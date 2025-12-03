@@ -3,7 +3,11 @@ import {
   affiliateApplications, type AffiliateApplication, type InsertAffiliateApplication,
   helpRequests, type HelpRequest, type InsertHelpRequest,
   startupGrants, type StartupGrant, type InsertStartupGrant,
-  furnitureAssistance, type FurnitureAssistance, type InsertFurnitureAssistance
+  furnitureAssistance, type FurnitureAssistance, type InsertFurnitureAssistance,
+  investorSubmissions, type InvestorSubmission, type InsertInvestorSubmission,
+  privateDoctorRequests, type PrivateDoctorRequest, type InsertPrivateDoctorRequest,
+  websiteApplications, type WebsiteApplication, type InsertWebsiteApplication,
+  generalContact, type GeneralContact, type InsertGeneralContact
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
@@ -44,6 +48,34 @@ export interface IStorage {
   getAllFurnitureAssistance(): Promise<FurnitureAssistance[]>;
   getFurnitureAssistanceByAssignee(userId: number): Promise<FurnitureAssistance[]>;
   updateFurnitureAssistance(id: number, updates: Partial<FurnitureAssistance>): Promise<FurnitureAssistance | undefined>;
+
+  // Investor Submissions
+  createInvestorSubmission(submission: InsertInvestorSubmission): Promise<InvestorSubmission>;
+  getInvestorSubmission(id: number): Promise<InvestorSubmission | undefined>;
+  getAllInvestorSubmissions(): Promise<InvestorSubmission[]>;
+  getInvestorSubmissionsByAssignee(userId: number): Promise<InvestorSubmission[]>;
+  updateInvestorSubmission(id: number, updates: Partial<InvestorSubmission>): Promise<InvestorSubmission | undefined>;
+
+  // Private Doctor Requests
+  createPrivateDoctorRequest(req: InsertPrivateDoctorRequest): Promise<PrivateDoctorRequest>;
+  getPrivateDoctorRequest(id: number): Promise<PrivateDoctorRequest | undefined>;
+  getAllPrivateDoctorRequests(): Promise<PrivateDoctorRequest[]>;
+  getPrivateDoctorRequestsByAssignee(userId: number): Promise<PrivateDoctorRequest[]>;
+  updatePrivateDoctorRequest(id: number, updates: Partial<PrivateDoctorRequest>): Promise<PrivateDoctorRequest | undefined>;
+
+  // Website Applications
+  createWebsiteApplication(app: InsertWebsiteApplication): Promise<WebsiteApplication>;
+  getWebsiteApplication(id: number): Promise<WebsiteApplication | undefined>;
+  getAllWebsiteApplications(): Promise<WebsiteApplication[]>;
+  getWebsiteApplicationsByAssignee(userId: number): Promise<WebsiteApplication[]>;
+  updateWebsiteApplication(id: number, updates: Partial<WebsiteApplication>): Promise<WebsiteApplication | undefined>;
+
+  // General Contact
+  createGeneralContact(contact: InsertGeneralContact): Promise<GeneralContact>;
+  getGeneralContact(id: number): Promise<GeneralContact | undefined>;
+  getAllGeneralContacts(): Promise<GeneralContact[]>;
+  getGeneralContactsByAssignee(userId: number): Promise<GeneralContact[]>;
+  updateGeneralContact(id: number, updates: Partial<GeneralContact>): Promise<GeneralContact | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -190,6 +222,122 @@ export class DatabaseStorage implements IStorage {
       .where(eq(furnitureAssistance.id, id))
       .returning();
     return req || undefined;
+  }
+
+  // Investor Submissions
+  async createInvestorSubmission(submission: InsertInvestorSubmission): Promise<InvestorSubmission> {
+    const [result] = await db.insert(investorSubmissions).values(submission).returning();
+    return result;
+  }
+
+  async getInvestorSubmission(id: number): Promise<InvestorSubmission | undefined> {
+    const [submission] = await db.select().from(investorSubmissions).where(eq(investorSubmissions.id, id));
+    return submission || undefined;
+  }
+
+  async getAllInvestorSubmissions(): Promise<InvestorSubmission[]> {
+    return db.select().from(investorSubmissions).orderBy(desc(investorSubmissions.createdAt));
+  }
+
+  async getInvestorSubmissionsByAssignee(userId: number): Promise<InvestorSubmission[]> {
+    return db.select().from(investorSubmissions)
+      .where(eq(investorSubmissions.assignedTo, userId))
+      .orderBy(desc(investorSubmissions.createdAt));
+  }
+
+  async updateInvestorSubmission(id: number, updates: Partial<InvestorSubmission>): Promise<InvestorSubmission | undefined> {
+    const [submission] = await db.update(investorSubmissions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(investorSubmissions.id, id))
+      .returning();
+    return submission || undefined;
+  }
+
+  // Private Doctor Requests
+  async createPrivateDoctorRequest(req: InsertPrivateDoctorRequest): Promise<PrivateDoctorRequest> {
+    const [result] = await db.insert(privateDoctorRequests).values(req).returning();
+    return result;
+  }
+
+  async getPrivateDoctorRequest(id: number): Promise<PrivateDoctorRequest | undefined> {
+    const [req] = await db.select().from(privateDoctorRequests).where(eq(privateDoctorRequests.id, id));
+    return req || undefined;
+  }
+
+  async getAllPrivateDoctorRequests(): Promise<PrivateDoctorRequest[]> {
+    return db.select().from(privateDoctorRequests).orderBy(desc(privateDoctorRequests.createdAt));
+  }
+
+  async getPrivateDoctorRequestsByAssignee(userId: number): Promise<PrivateDoctorRequest[]> {
+    return db.select().from(privateDoctorRequests)
+      .where(eq(privateDoctorRequests.assignedTo, userId))
+      .orderBy(desc(privateDoctorRequests.createdAt));
+  }
+
+  async updatePrivateDoctorRequest(id: number, updates: Partial<PrivateDoctorRequest>): Promise<PrivateDoctorRequest | undefined> {
+    const [req] = await db.update(privateDoctorRequests)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(privateDoctorRequests.id, id))
+      .returning();
+    return req || undefined;
+  }
+
+  // Website Applications
+  async createWebsiteApplication(app: InsertWebsiteApplication): Promise<WebsiteApplication> {
+    const [result] = await db.insert(websiteApplications).values(app).returning();
+    return result;
+  }
+
+  async getWebsiteApplication(id: number): Promise<WebsiteApplication | undefined> {
+    const [app] = await db.select().from(websiteApplications).where(eq(websiteApplications.id, id));
+    return app || undefined;
+  }
+
+  async getAllWebsiteApplications(): Promise<WebsiteApplication[]> {
+    return db.select().from(websiteApplications).orderBy(desc(websiteApplications.createdAt));
+  }
+
+  async getWebsiteApplicationsByAssignee(userId: number): Promise<WebsiteApplication[]> {
+    return db.select().from(websiteApplications)
+      .where(eq(websiteApplications.assignedTo, userId))
+      .orderBy(desc(websiteApplications.createdAt));
+  }
+
+  async updateWebsiteApplication(id: number, updates: Partial<WebsiteApplication>): Promise<WebsiteApplication | undefined> {
+    const [app] = await db.update(websiteApplications)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(websiteApplications.id, id))
+      .returning();
+    return app || undefined;
+  }
+
+  // General Contact
+  async createGeneralContact(contact: InsertGeneralContact): Promise<GeneralContact> {
+    const [result] = await db.insert(generalContact).values(contact).returning();
+    return result;
+  }
+
+  async getGeneralContact(id: number): Promise<GeneralContact | undefined> {
+    const [contact] = await db.select().from(generalContact).where(eq(generalContact.id, id));
+    return contact || undefined;
+  }
+
+  async getAllGeneralContacts(): Promise<GeneralContact[]> {
+    return db.select().from(generalContact).orderBy(desc(generalContact.createdAt));
+  }
+
+  async getGeneralContactsByAssignee(userId: number): Promise<GeneralContact[]> {
+    return db.select().from(generalContact)
+      .where(eq(generalContact.assignedTo, userId))
+      .orderBy(desc(generalContact.createdAt));
+  }
+
+  async updateGeneralContact(id: number, updates: Partial<GeneralContact>): Promise<GeneralContact | undefined> {
+    const [contact] = await db.update(generalContact)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(generalContact.id, id))
+      .returning();
+    return contact || undefined;
   }
 }
 
