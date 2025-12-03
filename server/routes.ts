@@ -3,7 +3,16 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
-import { insertAffiliateApplicationSchema, insertHelpRequestSchema, insertStartupGrantSchema, insertFurnitureAssistanceSchema } from "@shared/schema";
+import { 
+  insertAffiliateApplicationSchema, 
+  insertHelpRequestSchema, 
+  insertStartupGrantSchema, 
+  insertFurnitureAssistanceSchema,
+  insertInvestorSubmissionSchema,
+  insertPrivateDoctorRequestSchema,
+  insertWebsiteApplicationSchema,
+  insertGeneralContactSchema
+} from "@shared/schema";
 import { z } from "zod";
 
 declare module "express-session" {
@@ -110,6 +119,62 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to submit furniture assistance request" });
+    }
+  });
+
+  // Submit investor submission
+  app.post("/api/investor-submissions", async (req, res) => {
+    try {
+      const data = insertInvestorSubmissionSchema.parse(req.body);
+      const submission = await storage.createInvestorSubmission(data);
+      res.status(201).json({ success: true, id: submission.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit investor information" });
+    }
+  });
+
+  // Submit private doctor request
+  app.post("/api/private-doctor-requests", async (req, res) => {
+    try {
+      const data = insertPrivateDoctorRequestSchema.parse(req.body);
+      const request = await storage.createPrivateDoctorRequest(data);
+      res.status(201).json({ success: true, id: request.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit private doctor request" });
+    }
+  });
+
+  // Submit website application
+  app.post("/api/website-applications", async (req, res) => {
+    try {
+      const data = insertWebsiteApplicationSchema.parse(req.body);
+      const application = await storage.createWebsiteApplication(data);
+      res.status(201).json({ success: true, id: application.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit website application" });
+    }
+  });
+
+  // Submit general contact
+  app.post("/api/general-contact", async (req, res) => {
+    try {
+      const data = insertGeneralContactSchema.parse(req.body);
+      const contact = await storage.createGeneralContact(data);
+      res.status(201).json({ success: true, id: contact.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit contact form" });
     }
   });
 
@@ -351,6 +416,141 @@ export async function registerRoutes(
       res.json(grant);
     } catch (error) {
       res.status(500).json({ message: "Failed to update grant" });
+    }
+  });
+
+  // Get all furniture assistance requests
+  app.get("/api/admin/furniture-assistance", requireAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getAllFurnitureAssistance();
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch furniture assistance requests" });
+    }
+  });
+
+  // Update furniture assistance
+  app.patch("/api/admin/furniture-assistance/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const request = await storage.updateFurnitureAssistance(id, updates);
+      
+      if (!request) {
+        return res.status(404).json({ message: "Request not found" });
+      }
+      
+      res.json(request);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update furniture assistance request" });
+    }
+  });
+
+  // Get all investor submissions
+  app.get("/api/admin/investor-submissions", requireAdmin, async (req, res) => {
+    try {
+      const submissions = await storage.getAllInvestorSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch investor submissions" });
+    }
+  });
+
+  // Update investor submission
+  app.patch("/api/admin/investor-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const submission = await storage.updateInvestorSubmission(id, updates);
+      
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update investor submission" });
+    }
+  });
+
+  // Get all private doctor requests
+  app.get("/api/admin/private-doctor-requests", requireAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getAllPrivateDoctorRequests();
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch private doctor requests" });
+    }
+  });
+
+  // Update private doctor request
+  app.patch("/api/admin/private-doctor-requests/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const request = await storage.updatePrivateDoctorRequest(id, updates);
+      
+      if (!request) {
+        return res.status(404).json({ message: "Request not found" });
+      }
+      
+      res.json(request);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update private doctor request" });
+    }
+  });
+
+  // Get all website applications
+  app.get("/api/admin/website-applications", requireAdmin, async (req, res) => {
+    try {
+      const applications = await storage.getAllWebsiteApplications();
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch website applications" });
+    }
+  });
+
+  // Update website application
+  app.patch("/api/admin/website-applications/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const application = await storage.updateWebsiteApplication(id, updates);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update website application" });
+    }
+  });
+
+  // Get all general contacts
+  app.get("/api/admin/general-contact", requireAdmin, async (req, res) => {
+    try {
+      const contacts = await storage.getAllGeneralContacts();
+      res.json(contacts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch general contacts" });
+    }
+  });
+
+  // Update general contact
+  app.patch("/api/admin/general-contact/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const contact = await storage.updateGeneralContact(id, updates);
+      
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      res.json(contact);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update general contact" });
     }
   });
 
