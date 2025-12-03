@@ -62,7 +62,7 @@ export default function Home() {
               For those who do not qualify for grants, investors may make offers
             </p>
             <div className="mt-4 md:mt-6 text-center">
-              <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold h-12 md:h-14 px-6 md:px-8 text-sm md:text-base cursor-pointer w-full md:w-auto")}>
+              <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold h-11 md:h-12 px-4 md:px-6 text-xs md:text-sm cursor-pointer w-full md:w-auto")}>
                 Buying a New Home? Get Your Furniture Paid For
               </Link>
             </div>
