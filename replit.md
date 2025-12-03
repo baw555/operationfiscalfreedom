@@ -4,6 +4,19 @@
 A comprehensive veteran support platform providing free VA rating software, gig work marketplace, manual claim assistance, business launch support, and private doctor referrals for veterans experiencing VA delays. The platform includes a complete lead management system with public application forms and role-based portals for admins and affiliates.
 
 ## Recent Changes
+- **December 2024**: Enhanced admin dashboard with expanded lead management
+  - Added "Investors" tab for investor submission management
+  - Added sub-navigation within Help Requests (6 categories: Get Help, Startup Grant, Furniture, Private Doctor, Website, General Contact)
+  - All forms now wired to their respective API endpoints with success states
+- **December 2024**: Added investor submission system
+  - New `/become-investor` page with contact form
+  - Added "Become an Investor" link in footer
+  - Created investor_submissions database table
+- **December 2024**: Wired all forms to backend APIs
+  - `/private-doctor` submits to `/api/private-doctor-requests`
+  - `/apply-website` submits to `/api/website-applications`
+  - `/contact` submits to `/api/general-contact`
+  - All forms show success screens after submission
 - **December 2024**: Added private doctor referral page with VA MISSION Act information
   - New page at `/private-doctor` explaining veterans' rights to private care
   - Contact form for private doctor information requests
@@ -39,6 +52,10 @@ A comprehensive veteran support platform providing free VA rating software, gig 
 - `users` - Admin and affiliate accounts with hashed passwords
 - `affiliate_applications` - Partner application submissions
 - `help_requests` - VA claim help requests
+- `investor_submissions` - Investor inquiry submissions
+- `private_doctor_requests` - Private doctor referral requests
+- `website_applications` - Free website grant applications
+- `general_contact` - General contact form submissions
 
 ### Key Routes
 
@@ -49,13 +66,19 @@ A comprehensive veteran support platform providing free VA rating software, gig 
 - `/apply-website` - Free website grant application
 - `/apply-startup-grant` - Startup funding grant application ($5K-$50K)
 - `/investors` - Investor connection for non-qualifying grant applicants
+- `/become-investor` - Investor submission form
 - `/new-home-furniture` - Furniture assistance for veterans buying homes ($3K-$10K)
 - `/private-doctor` - Private doctor referral for VA delays (VA MISSION Act)
+- `/contact` - General contact form
 
 **Admin Portal:**
 - `/admin/setup` - First-time admin account creation (uses setup key)
 - `/admin/login` - Admin authentication
-- `/admin/dashboard` - Lead management CRM, affiliate management
+- `/admin/dashboard` - Lead management CRM with tabs:
+  - Affiliate Applications
+  - Help Requests (with sub-navigation: Get Help, Startup Grant, Furniture, Private Doctor, Website, General Contact)
+  - Investor Submissions
+  - Manage Affiliates
 
 **Affiliate Portal:**
 - `/affiliate/login` - Affiliate authentication
@@ -77,6 +100,10 @@ A comprehensive veteran support platform providing free VA rating software, gig 
 **Public:**
 - `POST /api/affiliate-applications` - Submit affiliate application
 - `POST /api/help-requests` - Submit help request
+- `POST /api/investor-submissions` - Submit investor inquiry
+- `POST /api/private-doctor-requests` - Submit private doctor request
+- `POST /api/website-applications` - Submit website grant application
+- `POST /api/general-contact` - Submit general contact form
 
 **Auth:**
 - `POST /api/auth/login` - User login
@@ -89,6 +116,14 @@ A comprehensive veteran support platform providing free VA rating software, gig 
 - `PATCH /api/admin/affiliate-applications/:id` - Update application
 - `GET /api/admin/help-requests` - List all help requests
 - `PATCH /api/admin/help-requests/:id` - Update request
+- `GET /api/admin/investor-submissions` - List all investor submissions
+- `PATCH /api/admin/investor-submissions/:id` - Update investor submission
+- `GET /api/admin/private-doctor-requests` - List all private doctor requests
+- `PATCH /api/admin/private-doctor-requests/:id` - Update private doctor request
+- `GET /api/admin/website-applications` - List all website applications
+- `PATCH /api/admin/website-applications/:id` - Update website application
+- `GET /api/admin/general-contact` - List all general contacts
+- `PATCH /api/admin/general-contact/:id` - Update general contact
 - `GET /api/admin/affiliates` - List affiliates
 - `POST /api/admin/affiliates` - Create affiliate
 - `DELETE /api/admin/affiliates/:id` - Delete affiliate
