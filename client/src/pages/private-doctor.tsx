@@ -5,13 +5,60 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Clock, Shield, CheckCircle, AlertTriangle, FileText, Stethoscope } from "lucide-react";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PrivateDoctor() {
+  const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    zip: "",
+    branch: "",
+    careType: "",
+    situation: "",
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const response = await fetch("/api/private-doctor-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to submit request");
+      return response.json();
+    },
+    onSuccess: () => {
+      setSubmitted(true);
+      toast({
+        title: "Request Submitted!",
+        description: "We'll contact you within 24-48 hours with provider options.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Submission Failed",
+        description: "Please try again or contact support.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.zip || !formData.branch || !formData.careType) {
+      toast({
+        title: "Missing Fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    submitMutation.mutate(formData);
   };
 
   if (submitted) {
@@ -160,29 +207,73 @@ export default function PrivateDoctor() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-brand-navy text-sm">First Name</Label>
-                    <Input id="firstName" placeholder="John" required data-testid="input-first-name" />
+                    <Label htmlFor="firstName" className="text-brand-navy text-sm">First Name *</Label>
+                    <Input 
+                      id="firstName" 
+                      placeholder="John" 
+                      required 
+                      data-testid="input-first-name"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-brand-navy text-sm">Last Name</Label>
-                    <Input id="lastName" placeholder="Doe" required data-testid="input-last-name" />
+                    <Label htmlFor="lastName" className="text-brand-navy text-sm">Last Name *</Label>
+                    <Input 
+                      id="lastName" 
+                      placeholder="Doe" 
+                      required 
+                      data-testid="input-last-name"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-brand-navy text-sm">Email</Label>
-                  <Input id="email" type="email" placeholder="john@example.com" required data-testid="input-email" />
+                  <Label htmlFor="email" className="text-brand-navy text-sm">Email *</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="john@example.com" 
+                    required 
+                    data-testid="input-email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-brand-navy text-sm">Phone Number</Label>
-                  <Input id="phone" type="tel" placeholder="(555) 123-4567" required data-testid="input-phone" />
+                  <Label htmlFor="phone" className="text-brand-navy text-sm">Phone Number *</Label>
+                  <Input 
+                    id="phone" 
+                    type="tel" 
+                    placeholder="(555) 123-4567" 
+                    required 
+                    data-testid="input-phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="zip" className="text-brand-navy text-sm">ZIP Code</Label>
-                  <Input id="zip" placeholder="12345" required data-testid="input-zip" />
+                  <Label htmlFor="zip" className="text-brand-navy text-sm">ZIP Code *</Label>
+                  <Input 
+                    id="zip" 
+                    placeholder="12345" 
+                    required 
+                    data-testid="input-zip"
+                    value={formData.zip}
+                    onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="branch" className="text-brand-navy text-sm">Branch of Service</Label>
-                  <select id="branch" className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" required data-testid="select-branch">
+                  <Label htmlFor="branch" className="text-brand-navy text-sm">Branch of Service *</Label>
+                  <select 
+                    id="branch" 
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                    required 
+                    data-testid="select-branch"
+                    value={formData.branch}
+                    onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                  >
                     <option value="">Select Branch</option>
                     <option value="army">Army</option>
                     <option value="navy">Navy</option>
@@ -193,8 +284,15 @@ export default function PrivateDoctor() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="careType" className="text-brand-navy text-sm">Type of Care Needed</Label>
-                  <select id="careType" className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" required data-testid="select-care-type">
+                  <Label htmlFor="careType" className="text-brand-navy text-sm">Type of Care Needed *</Label>
+                  <select 
+                    id="careType" 
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                    required 
+                    data-testid="select-care-type"
+                    value={formData.careType}
+                    onChange={(e) => setFormData({ ...formData, careType: e.target.value })}
+                  >
                     <option value="">Select Type</option>
                     <option value="primary">Primary Care</option>
                     <option value="specialty">Specialty Care</option>
@@ -212,14 +310,17 @@ export default function PrivateDoctor() {
                     placeholder="How long have you been waiting? What care do you need?" 
                     className="min-h-[100px] sm:min-h-[120px]"
                     data-testid="textarea-situation"
+                    value={formData.situation}
+                    onChange={(e) => setFormData({ ...formData, situation: e.target.value })}
                   />
                 </div>
                 <Button 
                   type="submit" 
                   className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-11 sm:h-12"
                   data-testid="button-submit"
+                  disabled={submitMutation.isPending}
                 >
-                  Get Private Doctor Information
+                  {submitMutation.isPending ? "Submitting..." : "Get Private Doctor Information"}
                 </Button>
                 <p className="text-xs text-gray-500 text-center">
                   We'll contact you within 24-48 hours with provider options in your area.
