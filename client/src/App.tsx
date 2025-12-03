@@ -16,8 +16,13 @@ import SuccessStories from "@/pages/success";
 import JoinMission from "@/pages/join";
 import Contact from "@/pages/contact";
 import Login from "@/pages/login";
-
 import ApplyWebsite from "@/pages/apply-website";
+import AffiliateApply from "@/pages/affiliate-apply";
+import GetHelp from "@/pages/get-help";
+import AdminLogin from "@/pages/admin-login";
+import AdminDashboard from "@/pages/admin-dashboard";
+import AffiliateLogin from "@/pages/affiliate-login";
+import AffiliateDashboard from "@/pages/affiliate-dashboard";
 
 function Router() {
   return (
@@ -35,6 +40,13 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/login" component={Login} />
       <Route path="/apply-website" component={ApplyWebsite} />
+      {/* Lead Management System Routes */}
+      <Route path="/affiliate" component={AffiliateApply} />
+      <Route path="/get-help" component={GetHelp} />
+      <Route path="/admin/login" component={AdminLogin} />
+      <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/affiliate/login" component={AffiliateLogin} />
+      <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
