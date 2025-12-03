@@ -50,9 +50,15 @@ export default function ApplyWebsite() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input id="email" type="email" placeholder="jane@example.com" />
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input id="email" type="email" placeholder="jane@example.com" data-testid="input-email" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input id="phone" type="tel" placeholder="(555) 123-4567" data-testid="input-phone" />
+                </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">

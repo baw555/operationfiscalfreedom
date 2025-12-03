@@ -26,7 +26,11 @@ export default function Contact() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="your@email.com" />
+                <Input id="email" type="email" placeholder="your@email.com" data-testid="input-email" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input id="phone" type="tel" placeholder="(555) 123-4567" data-testid="input-phone" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
