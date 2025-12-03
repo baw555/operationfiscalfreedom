@@ -84,18 +84,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="xl:hidden bg-brand-navy border-t border-white/10 p-4 flex flex-col gap-4 absolute w-full shadow-xl">
+          <div className="xl:hidden bg-brand-navy border-t border-white/10 p-4 flex flex-col gap-2 absolute w-full left-0 shadow-xl z-[100]">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="text-white font-bold uppercase tracking-wider hover:text-brand-khaki py-2 block cursor-pointer" onClick={() => setMobileMenuOpen(false)}>
-                  {item.name}
+              <Link 
+                key={item.href} 
+                href={item.href} 
+                className="text-white font-bold uppercase tracking-wider hover:text-brand-khaki py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-white/10" 
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {item.name}
               </Link>
             ))}
             <div className="h-px bg-white/10 my-2" />
-            <Link href="/join" className="block w-full text-center py-3 border-2 border-brand-khaki text-brand-khaki font-bold uppercase cursor-pointer">
-                Join Mission
+            <Link 
+              href="/join" 
+              className="flex items-center justify-center w-full py-4 border-2 border-brand-khaki text-brand-khaki font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-khaki/20" 
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Join Mission
             </Link>
-            <Link href="/login" className="block w-full text-center py-3 bg-brand-green text-white font-bold uppercase cursor-pointer">
-                Login
+            <Link 
+              href="/login" 
+              className="flex items-center justify-center w-full py-4 bg-brand-green text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-green/80" 
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Login
             </Link>
           </div>
         )}
@@ -127,21 +140,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           <div>
             <h4 className="font-display text-lg sm:text-xl text-brand-khaki mb-4 sm:mb-6">Platform</h4>
-            <ul className="space-y-2 sm:space-y-3 text-gray-400 text-sm sm:text-base">
-              <li><Link href="/va-software" className="hover:text-white cursor-pointer">VA Rating Software</Link></li>
-              <li><Link href="/gigs" className="hover:text-white cursor-pointer">Gig Marketplace</Link></li>
-              <li><Link href="/businesses" className="hover:text-white cursor-pointer">Veteran Businesses</Link></li>
-              <li><Link href="/resources" className="hover:text-white cursor-pointer">Resources</Link></li>
+            <ul className="space-y-1 text-gray-400 text-sm sm:text-base">
+              <li><Link href="/va-software" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">VA Rating Software</Link></li>
+              <li><Link href="/gigs" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Gig Marketplace</Link></li>
+              <li><Link href="/businesses" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Veteran Businesses</Link></li>
+              <li><Link href="/resources" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Resources</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-display text-lg sm:text-xl text-brand-khaki mb-4 sm:mb-6">Support</h4>
-            <ul className="space-y-2 sm:space-y-3 text-gray-400 text-sm sm:text-base">
-              <li><Link href="/contact" className="hover:text-white cursor-pointer">Contact Us</Link></li>
-              <li><Link href="/manual-help" className="hover:text-white cursor-pointer">Manual Claim Help</Link></li>
-              <li><Link href="/join" className="hover:text-white cursor-pointer">Join the Mission</Link></li>
-              <li><Link href="/login" className="hover:text-white cursor-pointer">Login</Link></li>
+            <ul className="space-y-1 text-gray-400 text-sm sm:text-base">
+              <li><Link href="/contact" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Contact Us</Link></li>
+              <li><Link href="/manual-help" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Manual Claim Help</Link></li>
+              <li><Link href="/join" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Join the Mission</Link></li>
+              <li><Link href="/login" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Login</Link></li>
             </ul>
           </div>
         </div>
