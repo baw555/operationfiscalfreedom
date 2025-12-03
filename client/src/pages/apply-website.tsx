@@ -27,6 +27,11 @@ export default function ApplyWebsite() {
         <div className="container mx-auto px-4 max-w-3xl">
           <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-gray-200">
             <div className="mb-10">
+              <div className="bg-brand-red/10 border border-brand-red/20 p-4 rounded-lg text-center mb-8">
+                 <p className="text-brand-red font-bold italic uppercase text-lg">
+                    "Get a fully functional website like this one completed within 24 hours of approval"
+                  </p>
+              </div>
               <h2 className="text-2xl font-display text-brand-navy mb-4">Business Application</h2>
               <p className="text-gray-600">
                 Tell us about your business idea. We select promising veteran-led ventures to support with free technical infrastructure.
@@ -134,11 +139,6 @@ export default function ApplyWebsite() {
                   <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> SEO Optimization Setup</li>
                   <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Hosting & Domain Setup Help</li>
                 </ul>
-                <div className="mt-4 pt-4 border-t border-brand-green/20 text-center">
-                  <p className="text-brand-red font-bold italic uppercase text-lg">
-                    "Get a fully functional website like this one completed within 24 hours of approval"
-                  </p>
-                </div>
               </div>
 
               <div className="flex items-start space-x-2 pt-2">
