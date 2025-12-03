@@ -17,6 +17,8 @@ import JoinMission from "@/pages/join";
 import Contact from "@/pages/contact";
 import Login from "@/pages/login";
 
+import ApplyWebsite from "@/pages/apply-website";
+
 function Router() {
   return (
     <Switch>
@@ -32,6 +34,7 @@ function Router() {
       <Route path="/join" component={JoinMission} />
       <Route path="/contact" component={Contact} />
       <Route path="/login" component={Login} />
+      <Route path="/apply-website" component={ApplyWebsite} />
       <Route component={NotFound} />
     </Switch>
   );
