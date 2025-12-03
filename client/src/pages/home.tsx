@@ -120,7 +120,7 @@ export default function Home() {
               <div className="text-center space-y-6">
                 <h3 className="text-3xl font-display text-white">Join The Ranks</h3>
                 <p className="text-gray-300">
-                  Join over 10,000 veterans who have taken control of their financial future.
+                  Join over 150,000 veterans who have taken control of their financial future.
                 </p>
                 <Link href="/join" className={cn(buttonVariants(), "w-full bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-bold h-12 cursor-pointer")}>
                     Get Started Today
