@@ -144,8 +144,10 @@ export async function registerRoutes(
     try {
       const { name, email, password, setupKey } = req.body;
       
-      // Simple setup key to prevent unauthorized admin creation
-      if (setupKey !== "OFF2024SETUP") {
+      // Use environment variable for setup key, fallback only in development
+      const expectedSetupKey = process.env.ADMIN_SETUP_KEY || (process.env.NODE_ENV !== "production" ? "OFF2024SETUP" : null);
+      
+      if (!expectedSetupKey || setupKey !== expectedSetupKey) {
         return res.status(403).json({ message: "Invalid setup key" });
       }
 

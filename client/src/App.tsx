@@ -23,6 +23,7 @@ import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AffiliateLogin from "@/pages/affiliate-login";
 import AffiliateDashboard from "@/pages/affiliate-dashboard";
+import AdminSetup from "@/pages/admin-setup";
 
 function Router() {
   return (
@@ -43,6 +44,7 @@ function Router() {
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />
+      <Route path="/admin/setup" component={AdminSetup} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/affiliate/login" component={AffiliateLogin} />
