@@ -24,6 +24,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AffiliateLogin from "@/pages/affiliate-login";
 import AffiliateDashboard from "@/pages/affiliate-dashboard";
 import AdminSetup from "@/pages/admin-setup";
+import ApplyStartupGrant from "@/pages/apply-startup-grant";
 
 function Router() {
   return (
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/login" component={Login} />
       <Route path="/apply-website" component={ApplyWebsite} />
+      <Route path="/apply-startup-grant" component={ApplyStartupGrant} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />

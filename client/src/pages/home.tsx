@@ -47,6 +47,9 @@ export default function Home() {
             <Link href="/apply-website" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
                 Get Free Business Website
             </Link>
+            <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-khaki text-brand-khaki hover:bg-brand-khaki hover:text-brand-navy h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
+                Apply for Startup Grant
+            </Link>
           </div>
         </div>
       </section>

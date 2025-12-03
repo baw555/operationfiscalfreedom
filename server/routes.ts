@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
-import { insertAffiliateApplicationSchema, insertHelpRequestSchema } from "@shared/schema";
+import { insertAffiliateApplicationSchema, insertHelpRequestSchema, insertStartupGrantSchema } from "@shared/schema";
 import { z } from "zod";
 
 declare module "express-session" {
@@ -82,6 +82,20 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to submit request" });
+    }
+  });
+
+  // Submit startup grant application
+  app.post("/api/startup-grants", async (req, res) => {
+    try {
+      const data = insertStartupGrantSchema.parse(req.body);
+      const grant = await storage.createStartupGrant(data);
+      res.status(201).json({ success: true, id: grant.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit grant application" });
     }
   });
 
@@ -296,6 +310,33 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete affiliate" });
+    }
+  });
+
+  // Get all startup grants
+  app.get("/api/admin/startup-grants", requireAdmin, async (req, res) => {
+    try {
+      const grants = await storage.getAllStartupGrants();
+      res.json(grants);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch startup grants" });
+    }
+  });
+
+  // Update startup grant
+  app.patch("/api/admin/startup-grants/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const grant = await storage.updateStartupGrant(id, updates);
+      
+      if (!grant) {
+        return res.status(404).json({ message: "Grant not found" });
+      }
+      
+      res.json(grant);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update grant" });
     }
   });
 

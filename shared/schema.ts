@@ -75,3 +75,36 @@ export const insertHelpRequestSchema = createInsertSchema(helpRequests).omit({
 
 export type InsertHelpRequest = z.infer<typeof insertHelpRequestSchema>;
 export type HelpRequest = typeof helpRequests.$inferSelect;
+
+// Startup Grant Applications
+export const startupGrants = pgTable("startup_grants", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  branch: text("branch").notNull(),
+  serviceStatus: text("service_status").notNull(),
+  businessName: text("business_name").notNull(),
+  industry: text("industry").notNull(),
+  businessDescription: text("business_description").notNull(),
+  fundingNeeds: text("funding_needs").notNull(),
+  grantAmount: text("grant_amount").notNull(),
+  status: text("status").notNull().default("new"),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertStartupGrantSchema = createInsertSchema(startupGrants).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertStartupGrant = z.infer<typeof insertStartupGrantSchema>;
+export type StartupGrant = typeof startupGrants.$inferSelect;
