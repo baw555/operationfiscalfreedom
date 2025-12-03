@@ -41,7 +41,7 @@ export default function Home() {
             <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-brand-green hover:bg-brand-green/90 text-white border-2 border-brand-green h-14 px-8 text-lg w-full sm:w-auto shadow-lg shadow-brand-green/20 cursor-pointer")}>
                 Get Free VA Rating Tool
             </Link>
-            <Link href="/gigs" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-brand-navy hover:bg-white hover:text-brand-navy h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
+            <Link href="/gigs" className={cn(buttonVariants({ size: "lg" }), "bg-brand-navy hover:bg-brand-navy/90 text-white border-2 border-brand-navy h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
                 Find Gig Work
             </Link>
           </div>

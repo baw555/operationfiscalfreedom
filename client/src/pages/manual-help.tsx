@@ -1,7 +1,8 @@
 import { Layout } from "@/components/layout";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { UserCheck, FileSearch, AlertTriangle, XCircle } from "lucide-react";
 import { Link } from "wouter";
+import { cn } from "@/lib/utils";
 
 export default function ManualHelp() {
   return (
@@ -46,8 +47,8 @@ export default function ManualHelp() {
             <p className="text-gray-600 mb-6">
               "The difference between a 30% rating and a 100% rating can be millions of dollars over a lifetime. Don't fight the bureaucracy alone."
             </p>
-            <Link href="/contact">
-              <Button className="w-full bg-brand-navy text-white h-12">Contact A Specialist</Button>
+            <Link href="/contact" className={cn(buttonVariants(), "w-full bg-brand-navy text-white h-12 cursor-pointer")}>
+              Contact A Specialist
             </Link>
           </div>
         </div>

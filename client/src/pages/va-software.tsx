@@ -1,6 +1,8 @@
 import { Layout } from "@/components/layout";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { CheckCircle, Download, FileText, BarChart2 } from "lucide-react";
+import { Link } from "wouter";
+import { cn } from "@/lib/utils";
 import softwareMockup from "@assets/generated_images/software_dashboard_mockup.png";
 
 export default function VARatingSoftware() {
@@ -61,9 +63,9 @@ export default function VARatingSoftware() {
       <section className="bg-brand-khaki/30 py-20 text-center">
          <div className="container mx-auto px-4">
            <h2 className="text-4xl font-display text-brand-navy mb-6">Don't File Blind. Get The Intel.</h2>
-           <Button size="lg" className="bg-brand-navy hover:bg-brand-navy/90 text-white h-14 px-10">
+           <Link href="/join" className={cn(buttonVariants({ size: "lg" }), "bg-brand-navy hover:bg-brand-navy/90 text-white h-14 px-10 cursor-pointer")}>
              Access The Tool Now
-           </Button>
+           </Link>
          </div>
       </section>
     </Layout>

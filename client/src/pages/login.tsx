@@ -33,7 +33,7 @@ export default function Login() {
             </Button>
 
             <p className="text-center text-sm text-gray-500 mt-4">
-              Don't have an account? <Link href="/join"><a className="text-brand-khaki font-bold hover:underline">Join Mission</a></Link>
+              Don't have an account? <Link href="/join" className="text-brand-khaki font-bold hover:underline cursor-pointer">Join Mission</Link>
             </p>
           </form>
         </div>

@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Menu, X, Shield, LogIn } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import logoImage from "@assets/generated_images/operation_fiscal_freedom_logo.png";
 
 const navItems = [
@@ -23,8 +23,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
       {/* Top Bar */}
-      <div className="bg-brand-black text-xs py-2 px-4 text-center text-white/80 uppercase tracking-widest">
-        Veterans Helping Veterans Rise • Operation Fiscal Freedom
+      <div className="bg-brand-black text-xs py-2 px-4 text-center text-white/80 uppercase tracking-widest flex flex-col md:flex-row justify-center items-center gap-2 md:gap-8">
+        <span>Veterans Helping Veterans Rise • Operation Fiscal Freedom</span>
+        <span className="hidden md:inline text-brand-khaki">•</span>
+        <span className="font-bold text-brand-khaki">Navy SEAL Owned Business</span>
       </div>
 
       {/* Navigation */}
@@ -44,10 +46,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden xl:flex items-center gap-6">
+          <nav className="hidden xl:flex items-center gap-4 2xl:gap-6">
             {navItems.map((item) => (
               <Link key={item.href} href={item.href} className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-brand-khaki transition-colors py-2 border-b-2 border-transparent cursor-pointer",
+                  "text-sm font-bold uppercase tracking-wider hover:text-brand-khaki transition-colors py-2 border-b-2 border-transparent cursor-pointer whitespace-nowrap",
                   location === item.href ? "text-brand-khaki border-brand-khaki" : "text-gray-300"
                 )}>
                   {item.name}
@@ -57,15 +59,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
-             <Link href="/join">
-              <Button variant="outline" className="border-brand-khaki text-brand-khaki hover:bg-brand-khaki hover:text-brand-navy font-bold border-2 cursor-pointer">
+             <Link href="/join" className={cn(buttonVariants({ variant: "outline" }), "border-brand-khaki text-brand-khaki hover:bg-brand-khaki hover:text-brand-navy font-bold border-2 cursor-pointer")}>
                 Join Mission
-              </Button>
             </Link>
-            <Link href="/login">
-              <Button className="bg-brand-green hover:bg-brand-green/90 text-white font-bold border-2 border-transparent cursor-pointer">
+            <Link href="/login" className={cn(buttonVariants(), "bg-brand-green hover:bg-brand-green/90 text-white font-bold border-2 border-transparent cursor-pointer")}>
                 <LogIn className="mr-2 h-4 w-4" /> Login
-              </Button>
             </Link>
           </div>
 

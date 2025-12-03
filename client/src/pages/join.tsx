@@ -59,7 +59,7 @@ export default function JoinMission() {
             </Button>
 
             <p className="text-center text-sm text-gray-500 mt-4">
-              Already have an account? <Link href="/login"><a className="text-brand-navy font-bold hover:underline">Login</a></Link>
+              Already have an account? <Link href="/login" className="text-brand-navy font-bold hover:underline cursor-pointer">Login</Link>
             </p>
           </form>
         </div>

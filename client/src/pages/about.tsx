@@ -1,8 +1,9 @@
 import { Layout } from "@/components/layout";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Target, Users, Shield, Heart } from "lucide-react";
 import { Link } from "wouter";
+import { cn } from "@/lib/utils";
 
 export default function About() {
   return (
@@ -70,10 +71,8 @@ export default function About() {
       <section className="bg-brand-black py-20 text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-display text-white mb-8">Join The Ranks</h2>
-          <Link href="/join">
-            <Button size="lg" className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-8 h-14">
+          <Link href="/join" className={cn(buttonVariants({ size: "lg" }), "bg-brand-green hover:bg-brand-green/90 text-white font-bold px-8 h-14 cursor-pointer")}>
               Start Your Mission
-            </Button>
           </Link>
         </div>
       </section>
