@@ -1,0 +1,483 @@
+⭐ PART 1 — BRAND IDENTITY
+1. Logo System (Fully Defined)
+
+Primary Logo:
+A shield badge with:
+
+Eagle wings forming an upward “V” (Veteran + Victory)
+
+A star above the wings
+
+Three ascending rank bars below
+
+Bold uppercase text: OPERATION FISCAL FREEDOM
+
+Tagline: “Veterans Helping Veterans Rise.”
+
+Alternative Versions:
+
+Mission Patch Variant
+
+Horizontal Bar Variant
+
+Monochrome Stencil Variant
+
+Icon-only (eagle + star)
+
+Brand Personality:
+
+Tactical
+
+Heroic
+
+Modern military
+
+Strong lines
+
+High contrast
+
+⭐ PART 2 — COLOR PALETTE
+Primary Colors
+
+Tactical Green — #4A5F33
+
+Patriot Navy — #0F1F33
+
+Field Khaki — #C5B38A
+
+Valor Black — #0A0A0A
+
+Freedom White — #FFFFFF
+
+Accents
+
+Honor Gold — #BDA256
+
+Mission Red — #A8372A
+
+Sky Blue — #2F6FA3
+
+⭐ PART 3 — TYPOGRAPHY
+Headlines: Bebas Neue
+Body Copy: Montserrat or Inter
+Buttons/Stats: Roboto Condensed
+⭐ PART 4 — BRAND VOICE & TONE
+
+Voice:
+Strong, honorable, empowering, brotherhood-focused, clear, trustworthy.
+
+Writing Pillars:
+
+Veterans helping veterans
+
+Financial empowerment
+
+Opportunity creation
+
+Mission-first
+
+No one left behind in the VA process
+
+⭐ PART 5 — WEBSITE SITEMAP (FULL)
+
+Home
+
+About Operation Fiscal Freedom
+
+VA Rating Software
+
+Manual VA Claim Support
+
+Gig Marketplace
+
+Veteran-Owned Business Portal
+
+Income Streams
+
+Resources & Guides
+
+News & Success Stories
+
+Join the Mission
+
+Contact
+
+Login
+
+Veteran Dashboard
+
+VA Software
+
+Gigs
+
+Wallet
+
+Referrals
+
+Introduced Opportunities
+
+Business Listings
+
+Training
+
+Profile
+
+⭐ PART 6 — FULL LEAD-GENERATION SYSTEM
+Step 1 — Hero CTA
+
+“Get Your Free VA Rating Software”
+
+Step 2 — Mini-Survey Funnel
+
+Branch of service
+
+Are you applying or appealing?
+
+Interested in gigs?
+
+Interested in referral income?
+
+Interested in starting a veteran-owned business?
+
+Step 3 — Instant Account Creation
+Step 4 — Personalized Pathways
+
+Your Dashboard:
+
+Download Software
+
+Start Earning
+
+Get Claim Help
+
+Introduce an Opportunity
+
+Step 5 — Automated Email Series (7 emails)
+
+Welcome / Mission
+
+Your software
+
+Gig onboarding
+
+Referral income
+
+Veteran-owned business tools
+
+Success stories
+
+Resources + Community
+
+⭐ PART 7 — FULL PAGE-BY-PAGE WEBSITE COPY
+HOME PAGE COPY
+Hero Section
+
+Headline:
+Operation Fiscal Freedom
+Veterans Helping Veterans Achieve Financial Independence
+
+Subheadline:
+Get your free VA rating software, access gig work, earn referral income, and join a community committed to your success.
+
+Buttons:
+
+Get Your Free VA Rating Tool
+
+Find Gig Work
+
+Section: What We Do
+
+We help U.S. military veterans:
+
+Understand the VA disability system
+
+Appeal or refile denied claims
+
+Access immediate gig work
+
+Connect with veteran-owned businesses
+
+Earn referral income
+
+Build multiple revenue streams
+
+Get access to resources that donate $3k–$10k during home purchases
+
+Section: Why We Exist
+
+Because no veteran should ever battle the VA alone.
+Because every veteran deserves financial freedom.
+Because your service built this country — now it's our turn to serve you.
+
+Section: Get the Free Software
+
+Explains ratings
+
+Shows what evidence you need
+
+Helps you file or appeal
+
+Step-by-step, veteran-friendly interface
+
+CTA: Download Free Tool
+
+Section: Gig Work for Veterans
+
+Earn real money today.
+Flexible. Remote or local.
+For every skill level.
+
+CTA: Start Earning
+
+Section: Veteran-Owned Businesses
+
+Hire veterans. Grow your company.
+Join the largest veteran gig network.
+
+CTA: Register Your Business
+
+Section: Earn Referral Income
+
+Introduce opportunities → earn forever.
+When another veteran earns, you earn too.
+
+CTA: Start Building Income Streams
+
+⭐ PART 8 — ABOUT PAGE
+Mission Statement
+
+Operation Fiscal Freedom exists to help veterans achieve financial stability, powerful opportunities, and decisive control over their futures.
+
+Who We Are
+
+A veteran-first organization dedicated to:
+
+Financial empowerment
+
+Navigating the VA system
+
+Income generation
+
+Community-driven opportunity creation
+
+How We Operate
+
+We operate like a mission unit:
+
+Clear objectives
+
+Tools built for success
+
+Veteran-to-veteran support
+
+Data-driven strategy
+
+⭐ PART 9 — VA RATING SOFTWARE PAGE
+Headline:
+
+Your Free VA Rating Navigation System
+
+Copy:
+
+This software simplifies everything:
+
+Rating explanations
+
+Evidence checklists
+
+Appeal support
+
+Filing guidance
+
+Success roadmaps
+
+CTA: Download Free Software
+
+⭐ PART 10 — MANUAL VA HELP PAGE
+Headline:
+
+Prefer a Human? We’ll Handle Everything.
+
+Copy:
+
+Our specialists help with:
+
+Claims
+
+Appeals
+
+Evidence gathering
+
+Denial overturn strategies
+
+CTA: Get Manual Help
+
+⭐ PART 11 — GIG MARKETPLACE PAGE
+Headline:
+
+Earn More. Live Free. Start Today.
+
+Gig Types:
+
+Sales
+
+Marketing
+
+Tech
+
+Delivery
+
+Construction
+
+Social media
+
+Admin
+
+Real estate assistance
+
+Veteran-only partner gigs
+
+CTA: Explore Gigs
+
+⭐ PART 12 — VETERAN-OWNED BUSINESSES PAGE
+Headline:
+
+Hire Veterans. Grow Your Company.
+
+CTA: List Your Business
+
+⭐ PART 13 — INCOME STREAMS PAGE
+
+Show income streams:
+
+Gig completion
+
+Introduced gigs
+
+Introduced opportunities
+
+Downstream revenue from other veterans
+
+Home-purchase donor benefits
+
+Veteran-owned business commissions
+
+CTA: Start Building Income
+
+⭐ PART 14 — RESOURCES PAGE
+
+Guides
+
+Articles
+
+VA rating breakdowns
+
+Evidence checklists
+
+Home-buying benefits
+
+Loan programs
+
+Healthcare & mental health
+
+Entrepreneurship training
+
+⭐ PART 15 — SUCCESS STORIES PAGE
+
+Profiles of veterans helped:
+
+Claims approved
+
+Gigs landed
+
+Income streams created
+
+Businesses launched
+
+⭐ PART 16 — PITCH DECK CONTENT (14 SLIDES)
+
+Cover: Operation Fiscal Freedom
+
+The Mission
+
+The Problem: VA complexity + veteran income instability
+
+The Solution: software + gigs + referrals
+
+Market Size
+
+Product Screenshots
+
+Multi-income ecosystem
+
+Competitive advantages
+
+Traction (placeholder)
+
+Revenue model
+
+Growth strategy
+
+Team
+
+Financial forecast
+
+Call to action
+
+⭐ PART 17 — INVESTOR NARRATIVE
+
+A veteran-first ecosystem creating:
+
+Massive income mobility
+
+Peer-to-peer opportunity sharing
+
+Service-based trust
+
+Recurring revenue engines
+
+Data-driven claim outcomes
+
+⭐ PART 18 — MOBILE APP UI CONCEPT
+
+Key screens:
+
+Dashboard
+
+Gigs
+
+Wallet
+
+VA Software
+
+Ticket Support
+
+Referral Engine
+
+Business Listings
+
+Opportunity Submission
+
+⭐ PART 19 — FULL REPLIT WEBSITE BUILDER PROMPT
+
+Here is your complete “copy/paste” prompt for Replit:
+
+REPLIT BUILD PROMPT (FULL SYSTEM)
+
+Build a military-themed website called Operation Fiscal Freedom.
+Use the full brand guide below:
+
+Logo: Shield + eagle wings forming a V + star + ascending rank bars
+
+Colors: #4A5F33, #0F1F33, #C5B38A, #FFFFFF, #0A0A0A, #BDA256, #A8372A, #2F6FA3
+
+Fonts: Bebas Neue (headers), Montserrat/Inter (body), Roboto Condensed (buttons)
+
+Tone: Empowering, tactical, veteran-focused, trustworthy
+
+Pages to generate:
+Home, About, VA Software, Manual VA Help, Gig Marketplace, Veteran-Owned Businesses, Income Streams, Resources, Success Stories, Join the Mission, Contact, Login, Dashboard with subpages.
+
+Insert the copy from this document.
+Follow the sitemap.
+Use strong CTAs and military graphics.
