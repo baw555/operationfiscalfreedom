@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-brand-black">
+      <section className="relative min-h-[70vh] sm:min-h-[80vh] flex items-center justify-center overflow-hidden bg-brand-black">
         <div className="absolute inset-0 z-0">
           <img 
             src={heroBg} 
@@ -20,45 +20,45 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/60 to-transparent" />
         </div>
 
-        <div className="container relative z-10 px-4 py-20 text-center max-w-5xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-green/20 border border-brand-green/40 text-brand-green mb-8 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="container relative z-10 px-3 sm:px-4 py-10 sm:py-20 text-center max-w-5xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-brand-green/20 border border-brand-green/40 text-brand-green mb-4 sm:mb-8 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <span className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
-            <span className="font-ui font-bold text-sm tracking-wider uppercase text-white">Mission Active</span>
+            <span className="font-ui font-bold text-xs sm:text-sm tracking-wider uppercase text-white">Mission Active</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-display text-white mb-6 leading-[0.9] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-display text-white mb-4 sm:mb-6 leading-[0.9] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
             Operation <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400">Fiscal Freedom</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+          <p className="text-base sm:text-xl md:text-2xl text-gray-300 mb-6 sm:mb-10 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 px-2">
             Veterans Helping Veterans Achieve Financial Independence.
             <br />
-            <span className="text-brand-khaki text-lg mt-2 block">Get your free VA rating software, access gig work, and earn referral income.</span>
+            <span className="text-brand-khaki text-sm sm:text-lg mt-2 block">Get your free VA rating software, access gig work, and earn referral income.</span>
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-            <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-brand-green hover:bg-brand-green/90 text-white border-2 border-brand-green h-14 px-8 text-lg w-full sm:w-auto shadow-lg shadow-brand-green/20 cursor-pointer")}>
+          <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 max-w-md sm:max-w-none mx-auto">
+            <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-brand-green hover:bg-brand-green/90 text-white border-2 border-brand-green h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto shadow-lg shadow-brand-green/20 cursor-pointer")}>
                 Get Free VA Rating Tool
             </Link>
-            <Link href="/gigs" className={cn(buttonVariants({ size: "lg" }), "bg-brand-navy hover:bg-brand-navy/90 text-white border-2 border-brand-navy h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
+            <Link href="/gigs" className={cn(buttonVariants({ size: "lg" }), "bg-brand-navy hover:bg-brand-navy/90 text-white border-2 border-brand-navy h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto cursor-pointer")}>
                 Find Gig Work
             </Link>
-            <Link href="/apply-website" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
+            <Link href="/apply-website" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto cursor-pointer")}>
                 Get Free Business Website
             </Link>
-            <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-khaki text-brand-khaki hover:bg-brand-khaki hover:text-brand-navy h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
+            <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-khaki text-brand-khaki hover:bg-brand-khaki hover:text-brand-navy h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto cursor-pointer")}>
                 Apply for Startup Grant
             </Link>
-            <Link href="/investors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
+            <Link href="/investors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto cursor-pointer")}>
                 Apply New Business to Investors
             </Link>
           </div>
-          <p className="text-gray-400 text-sm mt-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400">
+          <p className="text-gray-400 text-xs sm:text-sm mt-4 sm:mt-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 px-4">
             For those who do not qualify for grants, investors may make offers
           </p>
-          <div className="mt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
-            <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold h-14 px-8 text-lg cursor-pointer")}>
+          <div className="mt-4 sm:mt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 px-2">
+            <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold h-12 sm:h-14 px-4 sm:px-8 text-xs sm:text-lg cursor-pointer w-full sm:w-auto")}>
               Buying a New Home? Get Your Furniture Paid For
             </Link>
           </div>
@@ -66,29 +66,29 @@ export default function Home() {
       </section>
 
       {/* What We Do */}
-      <section className="py-20 bg-white">
+      <section className="py-12 sm:py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl text-brand-navy mb-4">Mission Objectives</h2>
-            <div className="w-24 h-1 bg-brand-gold mx-auto mb-6" />
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl text-brand-navy mb-3 sm:mb-4">Mission Objectives</h2>
+            <div className="w-16 sm:w-24 h-1 bg-brand-gold mx-auto mb-4 sm:mb-6" />
+            <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
               We provide a comprehensive ecosystem designed to lift veterans up financially.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
             {[
               { icon: Shield, title: "VA Claims Support", desc: "Understand the system, appeal denied claims, and get the rating you deserve with our free software." },
               { icon: Briefcase, title: "Immediate Gig Work", desc: "Access flexible, remote or local gig work opportunities tailored for veteran skillsets." },
               { icon: DollarSign, title: "Income Streams", desc: "Build multiple revenue streams through referrals and veteran-owned business connections." },
             ].map((item, i) => (
               <Card key={i} className="border-t-4 border-t-brand-navy hover:border-t-brand-green transition-colors shadow-lg">
-                <CardContent className="pt-8 pb-8 px-6 text-center">
-                  <div className="w-16 h-16 bg-brand-navy/5 rounded-full flex items-center justify-center mx-auto mb-6 text-brand-navy">
-                    <item.icon size={32} />
+                <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-6 text-center">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-brand-navy/5 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-brand-navy">
+                    <item.icon size={24} className="sm:w-8 sm:h-8" />
                   </div>
-                  <h3 className="text-2xl font-display text-brand-navy mb-3">{item.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                  <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-2 sm:mb-3">{item.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{item.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -97,49 +97,49 @@ export default function Home() {
       </section>
 
       {/* Why We Exist - Dark/Tactical */}
-      <section className="py-20 bg-brand-navy text-white relative overflow-hidden">
+      <section className="py-12 sm:py-20 bg-brand-navy text-white relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl mb-6">Why We Exist</h2>
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded bg-brand-green/20 flex items-center justify-center shrink-0 border border-brand-green/40">
-                    <Users className="text-brand-green" />
+              <h2 className="text-2xl sm:text-4xl md:text-5xl mb-4 sm:mb-6">Why We Exist</h2>
+              <div className="space-y-4 sm:space-y-6">
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded bg-brand-green/20 flex items-center justify-center shrink-0 border border-brand-green/40">
+                    <Users className="text-brand-green w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold mb-2 text-brand-khaki">No Veteran Left Behind</h4>
-                    <p className="text-gray-300">Because no veteran should ever battle the VA alone. The system is complex, but we make it navigable.</p>
+                    <h4 className="text-base sm:text-xl font-bold mb-1 sm:mb-2 text-brand-khaki">No Veteran Left Behind</h4>
+                    <p className="text-sm sm:text-base text-gray-300">Because no veteran should ever battle the VA alone. The system is complex, but we make it navigable.</p>
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded bg-brand-green/20 flex items-center justify-center shrink-0 border border-brand-green/40">
-                    <BarChart className="text-brand-green" />
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded bg-brand-green/20 flex items-center justify-center shrink-0 border border-brand-green/40">
+                    <BarChart className="text-brand-green w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold mb-2 text-brand-khaki">Financial Freedom</h4>
-                    <p className="text-gray-300">Every veteran deserves financial stability. We build pathways to achieve it.</p>
+                    <h4 className="text-base sm:text-xl font-bold mb-1 sm:mb-2 text-brand-khaki">Financial Freedom</h4>
+                    <p className="text-sm sm:text-base text-gray-300">Every veteran deserves financial stability. We build pathways to achieve it.</p>
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded bg-brand-green/20 flex items-center justify-center shrink-0 border border-brand-green/40">
-                    <Award className="text-brand-green" />
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded bg-brand-green/20 flex items-center justify-center shrink-0 border border-brand-green/40">
+                    <Award className="text-brand-green w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold mb-2 text-brand-khaki">Continued Service</h4>
-                    <p className="text-gray-300">Your service built this country — now it's our turn to serve you.</p>
+                    <h4 className="text-base sm:text-xl font-bold mb-1 sm:mb-2 text-brand-khaki">Continued Service</h4>
+                    <p className="text-sm sm:text-base text-gray-300">Your service built this country — now it's our turn to serve you.</p>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="bg-white/5 p-8 rounded-lg border border-white/10 backdrop-blur-sm">
-              <div className="text-center space-y-6">
-                <h3 className="text-3xl font-display text-white">Join The Ranks</h3>
-                <p className="text-gray-300">
+            <div className="bg-white/5 p-6 sm:p-8 rounded-lg border border-white/10 backdrop-blur-sm">
+              <div className="text-center space-y-4 sm:space-y-6">
+                <h3 className="text-2xl sm:text-3xl font-display text-white">Join The Ranks</h3>
+                <p className="text-sm sm:text-base text-gray-300">
                   Join over 150,000 veterans who have taken control of their financial future.
                 </p>
-                <Link href="/join" className={cn(buttonVariants(), "w-full bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-bold h-12 cursor-pointer")}>
+                <Link href="/join" className={cn(buttonVariants(), "w-full bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-bold h-11 sm:h-12 cursor-pointer")}>
                     Get Started Today
                 </Link>
               </div>
@@ -149,35 +149,35 @@ export default function Home() {
       </section>
 
       {/* Gig Work Callout */}
-      <section className="py-20 bg-brand-khaki/20">
+      <section className="py-12 sm:py-20 bg-brand-khaki/20">
         <div className="container mx-auto px-4">
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-            <div className="grid md:grid-cols-2">
-              <div className="p-12 flex flex-col justify-center">
-                <div className="inline-block px-3 py-1 rounded bg-brand-navy/10 text-brand-navy font-bold text-xs uppercase tracking-wider mb-4 w-fit">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="p-6 sm:p-12 flex flex-col justify-center order-2 md:order-1">
+                <div className="inline-block px-3 py-1 rounded bg-brand-navy/10 text-brand-navy font-bold text-xs uppercase tracking-wider mb-3 sm:mb-4 w-fit">
                   Immediate Income
                 </div>
-                <h2 className="text-4xl font-display text-brand-navy mb-6">Gig Work For Veterans</h2>
-                <p className="text-gray-600 mb-8 text-lg">
+                <h2 className="text-2xl sm:text-4xl font-display text-brand-navy mb-4 sm:mb-6">Gig Work For Veterans</h2>
+                <p className="text-sm sm:text-lg text-gray-600 mb-6 sm:mb-8">
                   Earn real money today. Flexible, remote, or local opportunities for every skill level. 
                   From sales and marketing to construction and logistics.
                 </p>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center gap-2 text-brand-navy font-medium">
-                    <Check className="text-brand-green h-5 w-5" /> Flexible Schedule
+                <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
+                  <li className="flex items-center gap-2 text-brand-navy font-medium text-sm sm:text-base">
+                    <Check className="text-brand-green h-4 w-4 sm:h-5 sm:w-5" /> Flexible Schedule
                   </li>
-                  <li className="flex items-center gap-2 text-brand-navy font-medium">
-                    <Check className="text-brand-green h-5 w-5" /> Remote Options
+                  <li className="flex items-center gap-2 text-brand-navy font-medium text-sm sm:text-base">
+                    <Check className="text-brand-green h-4 w-4 sm:h-5 sm:w-5" /> Remote Options
                   </li>
-                  <li className="flex items-center gap-2 text-brand-navy font-medium">
-                    <Check className="text-brand-green h-5 w-5" /> Veteran-Preferred Hiring
+                  <li className="flex items-center gap-2 text-brand-navy font-medium text-sm sm:text-base">
+                    <Check className="text-brand-green h-4 w-4 sm:h-5 sm:w-5" /> Veteran-Preferred Hiring
                   </li>
                 </ul>
-                <Link href="/gigs" className={cn(buttonVariants(), "bg-brand-navy hover:bg-brand-navy/90 text-white self-start px-8 h-12 cursor-pointer")}>
+                <Link href="/gigs" className={cn(buttonVariants(), "bg-brand-navy hover:bg-brand-navy/90 text-white self-start px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base cursor-pointer")}>
                     Start Earning <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </div>
-              <div className="bg-gray-200 relative h-64 md:h-auto">
+              <div className="bg-gray-200 relative h-48 sm:h-64 md:h-auto order-1 md:order-2">
                 <img 
                   src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1000&auto=format&fit=crop" 
                   alt="Veterans working" 
@@ -191,17 +191,17 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-brand-green text-white text-center">
+      <section className="py-12 sm:py-24 bg-brand-green text-white text-center">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl md:text-6xl font-display mb-6">Ready To Take Command?</h2>
-          <p className="text-xl mb-10 max-w-2xl mx-auto text-white/90">
+          <h2 className="text-2xl sm:text-4xl md:text-6xl font-display mb-4 sm:mb-6">Ready To Take Command?</h2>
+          <p className="text-base sm:text-xl mb-6 sm:mb-10 max-w-2xl mx-auto text-white/90 px-2">
             Download the free software, find gigs, and start building your financial freedom today.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-white text-brand-green hover:bg-gray-100 font-bold px-8 h-14 text-lg cursor-pointer")}>
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
+            <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-white text-brand-green hover:bg-gray-100 font-bold px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-lg cursor-pointer w-full sm:w-auto")}>
                 Download Free Tool
             </Link>
-            <Link href="/income" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-brand-green/80 px-8 h-14 text-lg cursor-pointer")}>
+            <Link href="/income" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-brand-green/80 px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-lg cursor-pointer w-full sm:w-auto")}>
                 Start Building Income
             </Link>
           </div>

@@ -81,17 +81,17 @@ export default function GetHelp() {
   if (submitted) {
     return (
       <Layout>
-        <section className="bg-brand-navy text-white py-20 text-center">
+        <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
           <div className="container mx-auto px-4">
-            <CheckCircle className="h-20 w-20 text-brand-green mx-auto mb-6" />
-            <h1 className="text-5xl font-display mb-6">Help Request Received!</h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-green mx-auto mb-4 sm:mb-6" />
+            <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6">Help Request Received!</h1>
+            <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
               Your request has been submitted. One of our veteran advocates will review your case and 
               contact you within 24-48 hours. We're here to help you get the rating you deserve.
             </p>
             <Button 
               onClick={() => setLocation("/")}
-              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-8 py-6 text-lg"
+              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
               data-testid="button-return-home"
             >
               Return to Home
@@ -104,42 +104,42 @@ export default function GetHelp() {
 
   return (
     <Layout>
-      <section className="bg-brand-navy text-white py-20 text-center">
+      <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
         <div className="container mx-auto px-4">
-          <h1 className="text-5xl font-display mb-6">Get Help With Your VA Claim</h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <h1 className="text-2xl sm:text-5xl font-display mb-4 sm:mb-6">Get Help With Your VA Claim</h1>
+          <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-2">
             Struggling with your disability rating or VA claim? Our veteran advocates are here to help you 
             navigate the system and get the benefits you deserve.
           </p>
         </div>
       </section>
 
-      <section className="py-16 bg-gray-100">
+      <section className="py-10 sm:py-16 bg-gray-100">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-12">
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <Shield className="h-12 w-12 text-brand-navy mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Expert Guidance</h3>
-              <p className="text-gray-600 text-sm">Veterans helping veterans navigate the VA system</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto mb-8 sm:mb-12">
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <Shield className="h-8 w-8 sm:h-12 sm:w-12 text-brand-navy mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Expert Guidance</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Veterans helping veterans navigate the VA system</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <Clock className="h-12 w-12 text-brand-green mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Fast Response</h3>
-              <p className="text-gray-600 text-sm">Get a response within 24-48 hours</p>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <Clock className="h-8 w-8 sm:h-12 sm:w-12 text-brand-green mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Fast Response</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Get a response within 24-48 hours</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <HeartHandshake className="h-12 w-12 text-brand-gold mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Free Support</h3>
-              <p className="text-gray-600 text-sm">No cost for initial consultation</p>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <HeartHandshake className="h-8 w-8 sm:h-12 sm:w-12 text-brand-gold mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Free Support</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">No cost for initial consultation</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-gray-50">
+      <section className="py-12 sm:py-20 bg-gray-50">
         <div className="container mx-auto px-4 max-w-2xl">
-          <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-            <h2 className="font-display text-3xl text-brand-navy mb-6 text-center">Request Help</h2>
+          <div className="bg-white p-4 sm:p-8 rounded-xl shadow-lg border border-gray-200">
+            <h2 className="font-display text-2xl sm:text-3xl text-brand-navy mb-4 sm:mb-6 text-center">Request Help</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>

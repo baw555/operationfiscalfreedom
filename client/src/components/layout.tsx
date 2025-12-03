@@ -28,25 +28,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Top Bar */}
-      <div className="bg-brand-black text-xs py-2 px-4 text-center text-white/80 uppercase tracking-widest flex flex-col md:flex-row justify-center items-center gap-2 md:gap-8">
-        <span>Veterans Helping Veterans Rise • Operation Fiscal Freedom</span>
+      <div className="bg-brand-black text-[10px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-4 text-center text-white/80 uppercase tracking-wide sm:tracking-widest flex flex-col md:flex-row justify-center items-center gap-1 md:gap-8">
+        <span className="hidden sm:inline">Veterans Helping Veterans Rise • Operation Fiscal Freedom</span>
+        <span className="sm:hidden">Veterans Helping Veterans Rise</span>
         <span className="hidden md:inline text-brand-khaki">•</span>
         <span className="font-bold text-brand-khaki">Navy SEAL Owned Business</span>
       </div>
 
       {/* Navigation */}
       <header className="sticky top-0 z-50 w-full border-b border-brand-navy/20 bg-brand-navy/95 backdrop-blur supports-[backdrop-filter]:bg-brand-navy/90 text-white">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+        <div className="container mx-auto px-2 sm:px-4 h-14 sm:h-16 md:h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity cursor-pointer">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity cursor-pointer">
               <img 
                 src={logoImage} 
                 alt="OFF Logo" 
-                className="h-12 w-12 object-contain bg-white rounded-full p-0.5 border-2 border-brand-green" 
+                className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 object-contain bg-white rounded-full p-0.5 border-2 border-brand-green" 
               />
               <div className="flex flex-col">
-                <span className="font-display text-2xl leading-none tracking-wide">Operation</span>
-                <span className="font-display text-2xl leading-none text-brand-khaki tracking-wide">Fiscal Freedom</span>
+                <span className="font-display text-sm sm:text-lg md:text-2xl leading-none tracking-wide">Operation</span>
+                <span className="font-display text-sm sm:text-lg md:text-2xl leading-none text-brand-khaki tracking-wide">Fiscal Freedom</span>
               </div>
           </Link>
 
@@ -106,12 +107,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="bg-brand-black text-white pt-16 pb-8 border-t-4 border-brand-gold">
-        <div className="container mx-auto px-4 grid md:grid-cols-4 gap-12 mb-12">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <Shield className="h-8 w-8 text-brand-green" />
-              <span className="font-display text-3xl tracking-wide text-white">Operation Fiscal Freedom</span>
+      <footer className="bg-brand-black text-white pt-10 sm:pt-16 pb-6 sm:pb-8 border-t-4 border-brand-gold">
+        <div className="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-8 sm:mb-12">
+          <div className="col-span-1 sm:col-span-2">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-brand-green" />
+              <span className="font-display text-xl sm:text-3xl tracking-wide text-white">Operation Fiscal Freedom</span>
             </div>
             <p className="text-gray-400 mb-6 max-w-md leading-relaxed">
               Veterans Helping Veterans Rise. We provide the tools, community, and opportunities for financial independence.
@@ -125,8 +126,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div>
-            <h4 className="font-display text-xl text-brand-khaki mb-6">Platform</h4>
-            <ul className="space-y-3 text-gray-400">
+            <h4 className="font-display text-lg sm:text-xl text-brand-khaki mb-4 sm:mb-6">Platform</h4>
+            <ul className="space-y-2 sm:space-y-3 text-gray-400 text-sm sm:text-base">
               <li><Link href="/va-software" className="hover:text-white cursor-pointer">VA Rating Software</Link></li>
               <li><Link href="/gigs" className="hover:text-white cursor-pointer">Gig Marketplace</Link></li>
               <li><Link href="/businesses" className="hover:text-white cursor-pointer">Veteran Businesses</Link></li>
@@ -135,8 +136,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div>
-            <h4 className="font-display text-xl text-brand-khaki mb-6">Support</h4>
-            <ul className="space-y-3 text-gray-400">
+            <h4 className="font-display text-lg sm:text-xl text-brand-khaki mb-4 sm:mb-6">Support</h4>
+            <ul className="space-y-2 sm:space-y-3 text-gray-400 text-sm sm:text-base">
               <li><Link href="/contact" className="hover:text-white cursor-pointer">Contact Us</Link></li>
               <li><Link href="/manual-help" className="hover:text-white cursor-pointer">Manual Claim Help</Link></li>
               <li><Link href="/join" className="hover:text-white cursor-pointer">Join the Mission</Link></li>

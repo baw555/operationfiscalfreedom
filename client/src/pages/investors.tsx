@@ -75,17 +75,17 @@ export default function Investors() {
   if (submitted) {
     return (
       <Layout>
-        <section className="bg-brand-navy text-white py-20 text-center">
+        <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
           <div className="container mx-auto px-4">
-            <CheckCircle className="h-20 w-20 text-brand-green mx-auto mb-6" />
-            <h1 className="text-5xl font-display mb-6" data-testid="text-success-title">Investor Pitch Received!</h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8" data-testid="text-success-message">
+            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-green mx-auto mb-4 sm:mb-6" />
+            <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6" data-testid="text-success-title">Investor Pitch Received!</h1>
+            <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2" data-testid="text-success-message">
               Thank you for submitting your business pitch. Our investor network will review your proposal 
               and reach out if there's interest. This typically takes 5-7 business days.
             </p>
             <Button 
               onClick={() => setLocation("/")}
-              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-8 py-6 text-lg"
+              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
               data-testid="button-return-home"
             >
               Return to Home
@@ -98,47 +98,47 @@ export default function Investors() {
 
   return (
     <Layout>
-      <section className="bg-brand-navy text-white py-20 text-center">
+      <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
         <div className="container mx-auto px-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white mb-6">
-            <TrendingUp className="w-4 h-4" />
-            <span className="font-bold text-sm uppercase tracking-wider">Investor Network</span>
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 border border-white/20 text-white mb-4 sm:mb-6">
+            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="font-bold text-xs sm:text-sm uppercase tracking-wider">Investor Network</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-display mb-6" data-testid="text-page-title">Connect With Investors</h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto" data-testid="text-page-description">
+          <h1 className="text-2xl sm:text-4xl md:text-6xl font-display mb-4 sm:mb-6" data-testid="text-page-title">Connect With Investors</h1>
+          <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-2" data-testid="text-page-description">
             For those who do not qualify for grants, investors may make offers. Submit your business pitch to our investor network.
           </p>
         </div>
       </section>
 
-      <section className="py-16 bg-gray-100">
+      <section className="py-10 sm:py-16 bg-gray-100">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-12">
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <Handshake className="h-12 w-12 text-brand-navy mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Direct Access</h3>
-              <p className="text-gray-600 text-sm">Connect directly with investors interested in veteran businesses</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto mb-8 sm:mb-12">
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <Handshake className="h-8 w-8 sm:h-12 sm:w-12 text-brand-navy mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Direct Access</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Connect directly with investors interested in veteran businesses</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <PiggyBank className="h-12 w-12 text-brand-green mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Flexible Funding</h3>
-              <p className="text-gray-600 text-sm">Various investment options from equity to revenue-share</p>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <PiggyBank className="h-8 w-8 sm:h-12 sm:w-12 text-brand-green mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Flexible Funding</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Various investment options from equity to revenue-share</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <Target className="h-12 w-12 text-brand-gold mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Veteran-Focused</h3>
-              <p className="text-gray-600 text-sm">Investors specifically looking to support veteran ventures</p>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <Target className="h-8 w-8 sm:h-12 sm:w-12 text-brand-gold mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Veteran-Focused</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Investors specifically looking to support veteran ventures</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-gray-50">
+      <section className="py-12 sm:py-20 bg-gray-50">
         <div className="container mx-auto px-4 max-w-3xl">
-          <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-gray-200">
-            <div className="mb-10">
-              <h2 className="text-2xl font-display text-brand-navy mb-4">Submit Your Business Pitch</h2>
-              <p className="text-gray-600">
+          <div className="bg-white p-4 sm:p-8 md:p-12 rounded-xl sm:rounded-2xl shadow-xl border border-gray-200">
+            <div className="mb-6 sm:mb-10">
+              <h2 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4">Submit Your Business Pitch</h2>
+              <p className="text-sm sm:text-base text-gray-600">
                 Complete the form below to submit your business to our investor network. Investors will review and reach out directly if interested.
               </p>
             </div>

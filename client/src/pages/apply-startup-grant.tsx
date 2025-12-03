@@ -86,17 +86,17 @@ export default function ApplyStartupGrant() {
   if (submitted) {
     return (
       <Layout>
-        <section className="bg-brand-navy text-white py-20 text-center">
+        <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
           <div className="container mx-auto px-4">
-            <CheckCircle className="h-20 w-20 text-brand-green mx-auto mb-6" />
-            <h1 className="text-5xl font-display mb-6" data-testid="text-success-title">Grant Application Received!</h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8" data-testid="text-success-message">
+            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-green mx-auto mb-4 sm:mb-6" />
+            <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6" data-testid="text-success-title">Grant Application Received!</h1>
+            <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2" data-testid="text-success-message">
               Thank you for applying for our Veteran Business Startup Grant. Our team will review your application 
               and contact you within 3-5 business days to discuss next steps.
             </p>
             <Button 
               onClick={() => setLocation("/")}
-              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-8 py-6 text-lg"
+              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
               data-testid="button-return-home"
             >
               Return to Home
@@ -109,47 +109,47 @@ export default function ApplyStartupGrant() {
 
   return (
     <Layout>
-      <section className="bg-brand-navy text-white py-20 text-center">
+      <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
         <div className="container mx-auto px-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-khaki/20 border border-brand-khaki/40 text-brand-khaki mb-6">
-            <Banknote className="w-4 h-4" />
-            <span className="font-bold text-sm uppercase tracking-wider">Veteran Startup Grant Program</span>
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-brand-khaki/20 border border-brand-khaki/40 text-brand-khaki mb-4 sm:mb-6">
+            <Banknote className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="font-bold text-xs sm:text-sm uppercase tracking-wider">Veteran Startup Grant Program</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-display mb-6" data-testid="text-page-title">Apply for Business Startup Grant</h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto" data-testid="text-page-description">
+          <h1 className="text-2xl sm:text-4xl md:text-6xl font-display mb-4 sm:mb-6" data-testid="text-page-title">Apply for Business Startup Grant</h1>
+          <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-2" data-testid="text-page-description">
             We provide funding assistance to help veteran-owned startups get off the ground. Apply below to be considered for our grant program.
           </p>
         </div>
       </section>
 
-      <section className="py-16 bg-gray-100">
+      <section className="py-10 sm:py-16 bg-gray-100">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-12">
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <DollarSign className="h-12 w-12 text-brand-green mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Seed Funding</h3>
-              <p className="text-gray-600 text-sm">Grants up to $50,000 for qualifying businesses</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto mb-8 sm:mb-12">
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <DollarSign className="h-8 w-8 sm:h-12 sm:w-12 text-brand-green mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Seed Funding</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Grants up to $50,000 for qualifying businesses</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <Rocket className="h-12 w-12 text-brand-navy mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">No Repayment</h3>
-              <p className="text-gray-600 text-sm">This is a grant, not a loan — no repayment required</p>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <Rocket className="h-8 w-8 sm:h-12 sm:w-12 text-brand-navy mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">No Repayment</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">This is a grant, not a loan — no repayment required</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <TrendingUp className="h-12 w-12 text-brand-gold mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Mentorship</h3>
-              <p className="text-gray-600 text-sm">Access to business mentors and resources</p>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <TrendingUp className="h-8 w-8 sm:h-12 sm:w-12 text-brand-gold mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Mentorship</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Access to business mentors and resources</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-gray-50">
+      <section className="py-12 sm:py-20 bg-gray-50">
         <div className="container mx-auto px-4 max-w-3xl">
-          <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-gray-200">
-            <div className="mb-10">
-              <h2 className="text-2xl font-display text-brand-navy mb-4">Startup Grant Application</h2>
-              <p className="text-gray-600">
+          <div className="bg-white p-4 sm:p-8 md:p-12 rounded-xl sm:rounded-2xl shadow-xl border border-gray-200">
+            <div className="mb-6 sm:mb-10">
+              <h2 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4">Startup Grant Application</h2>
+              <p className="text-sm sm:text-base text-gray-600">
                 Complete the form below to apply for our veteran business startup grant. All fields are required.
               </p>
             </div>
