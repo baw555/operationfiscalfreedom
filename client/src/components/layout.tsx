@@ -154,6 +154,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <li><Link href="/contact" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Contact Us</Link></li>
               <li><Link href="/manual-help" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Manual Claim Help</Link></li>
               <li><Link href="/affiliate" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Become an Affiliate</Link></li>
+              <li><Link href="/become-investor" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Become an Investor</Link></li>
               <li><Link href="/join" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Join the Mission</Link></li>
               <li><Link href="/login" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-khaki">Login</Link></li>
             </ul>

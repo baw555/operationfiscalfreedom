@@ -28,6 +28,7 @@ import ApplyStartupGrant from "@/pages/apply-startup-grant";
 import Investors from "@/pages/investors";
 import NewHomeFurniture from "@/pages/new-home-furniture";
 import PrivateDoctor from "@/pages/private-doctor";
+import BecomeInvestor from "@/pages/become-investor";
 
 function Router() {
   return (
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/investors" component={Investors} />
       <Route path="/new-home-furniture" component={NewHomeFurniture} />
       <Route path="/private-doctor" component={PrivateDoctor} />
+      <Route path="/become-investor" component={BecomeInvestor} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />
