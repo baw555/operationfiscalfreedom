@@ -51,7 +51,7 @@ export default function Home() {
                 Apply for Startup Grant
             </Link>
             <Link href="/investors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
-                Investors
+                Apply New Business to Investors
             </Link>
           </div>
           <p className="text-gray-400 text-sm mt-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400">
