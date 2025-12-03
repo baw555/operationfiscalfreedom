@@ -134,6 +134,11 @@ export default function ApplyWebsite() {
                   <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> SEO Optimization Setup</li>
                   <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Hosting & Domain Setup Help</li>
                 </ul>
+                <div className="mt-4 pt-4 border-t border-brand-green/20 text-center">
+                  <p className="text-brand-green font-bold italic">
+                    "If accepted, you could have a website like this completed the same day"
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-start space-x-2 pt-2">
