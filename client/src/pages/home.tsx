@@ -50,7 +50,13 @@ export default function Home() {
             <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-khaki text-brand-khaki hover:bg-brand-khaki hover:text-brand-navy h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
                 Apply for Startup Grant
             </Link>
+            <Link href="/investors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-14 px-8 text-lg w-full sm:w-auto cursor-pointer")}>
+                Investors
+            </Link>
           </div>
+          <p className="text-gray-400 text-sm mt-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400">
+            For those who do not qualify for grants, investors may make offers
+          </p>
         </div>
       </section>
 

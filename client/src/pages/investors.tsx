@@ -5,17 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { Banknote, CheckCircle, DollarSign, Rocket, TrendingUp } from "lucide-react";
+import { TrendingUp, CheckCircle, Handshake, PiggyBank, Target } from "lucide-react";
 import { useLocation } from "wouter";
 
-export default function ApplyStartupGrant() {
+export default function Investors() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
-  const [agreed, setAgreed] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -44,7 +42,7 @@ export default function ApplyStartupGrant() {
       setSubmitted(true);
       toast({
         title: "Application Submitted!",
-        description: "We'll review your grant application and get back to you soon.",
+        description: "An investor will review your pitch and reach out soon.",
       });
     },
     onError: () => {
@@ -59,22 +57,13 @@ export default function ApplyStartupGrant() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const required = ['firstName', 'lastName', 'email', 'phone', 'branch', 'serviceStatus', 'businessName', 'industry', 'businessDescription', 'fundingNeeds', 'grantAmount'];
+    const required = ['firstName', 'lastName', 'email', 'phone', 'businessName', 'businessDescription', 'fundingNeeds', 'grantAmount'];
     const missing = required.filter(field => !formData[field as keyof typeof formData]);
     
     if (missing.length > 0) {
       toast({
         title: "Missing Fields",
         description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!agreed) {
-      toast({
-        title: "Certification Required",
-        description: "Please certify your veteran status.",
         variant: "destructive",
       });
       return;
@@ -89,10 +78,10 @@ export default function ApplyStartupGrant() {
         <section className="bg-brand-navy text-white py-20 text-center">
           <div className="container mx-auto px-4">
             <CheckCircle className="h-20 w-20 text-brand-green mx-auto mb-6" />
-            <h1 className="text-5xl font-display mb-6" data-testid="text-success-title">Grant Application Received!</h1>
+            <h1 className="text-5xl font-display mb-6" data-testid="text-success-title">Investor Pitch Received!</h1>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8" data-testid="text-success-message">
-              Thank you for applying for our Veteran Business Startup Grant. Our team will review your application 
-              and contact you within 3-5 business days to discuss next steps.
+              Thank you for submitting your business pitch. Our investor network will review your proposal 
+              and reach out if there's interest. This typically takes 5-7 business days.
             </p>
             <Button 
               onClick={() => setLocation("/")}
@@ -111,13 +100,13 @@ export default function ApplyStartupGrant() {
     <Layout>
       <section className="bg-brand-navy text-white py-20 text-center">
         <div className="container mx-auto px-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-khaki/20 border border-brand-khaki/40 text-brand-khaki mb-6">
-            <Banknote className="w-4 h-4" />
-            <span className="font-bold text-sm uppercase tracking-wider">Veteran Startup Grant Program</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white mb-6">
+            <TrendingUp className="w-4 h-4" />
+            <span className="font-bold text-sm uppercase tracking-wider">Investor Network</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-display mb-6" data-testid="text-page-title">Apply for Business Startup Grant</h1>
+          <h1 className="text-4xl md:text-6xl font-display mb-6" data-testid="text-page-title">Connect With Investors</h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto" data-testid="text-page-description">
-            We provide funding assistance to help veteran-owned startups get off the ground. Apply below to be considered for our grant program.
+            For those who do not qualify for grants, investors may make offers. Submit your business pitch to our investor network.
           </p>
         </div>
       </section>
@@ -126,19 +115,19 @@ export default function ApplyStartupGrant() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-12">
             <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <DollarSign className="h-12 w-12 text-brand-green mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Seed Funding</h3>
-              <p className="text-gray-600 text-sm">Grants up to $50,000 for qualifying businesses</p>
+              <Handshake className="h-12 w-12 text-brand-navy mx-auto mb-4" />
+              <h3 className="font-display text-xl text-brand-navy mb-2">Direct Access</h3>
+              <p className="text-gray-600 text-sm">Connect directly with investors interested in veteran businesses</p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <Rocket className="h-12 w-12 text-brand-navy mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">No Repayment</h3>
-              <p className="text-gray-600 text-sm">This is a grant, not a loan — no repayment required</p>
+              <PiggyBank className="h-12 w-12 text-brand-green mx-auto mb-4" />
+              <h3 className="font-display text-xl text-brand-navy mb-2">Flexible Funding</h3>
+              <p className="text-gray-600 text-sm">Various investment options from equity to revenue-share</p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <TrendingUp className="h-12 w-12 text-brand-gold mx-auto mb-4" />
-              <h3 className="font-display text-xl text-brand-navy mb-2">Mentorship</h3>
-              <p className="text-gray-600 text-sm">Access to business mentors and resources</p>
+              <Target className="h-12 w-12 text-brand-gold mx-auto mb-4" />
+              <h3 className="font-display text-xl text-brand-navy mb-2">Veteran-Focused</h3>
+              <p className="text-gray-600 text-sm">Investors specifically looking to support veteran ventures</p>
             </div>
           </div>
         </div>
@@ -148,9 +137,9 @@ export default function ApplyStartupGrant() {
         <div className="container mx-auto px-4 max-w-3xl">
           <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-gray-200">
             <div className="mb-10">
-              <h2 className="text-2xl font-display text-brand-navy mb-4">Startup Grant Application</h2>
+              <h2 className="text-2xl font-display text-brand-navy mb-4">Submit Your Business Pitch</h2>
               <p className="text-gray-600">
-                Complete the form below to apply for our veteran business startup grant. All fields are required.
+                Complete the form below to submit your business to our investor network. Investors will review and reach out directly if interested.
               </p>
             </div>
 
@@ -205,7 +194,7 @@ export default function ApplyStartupGrant() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="branch">Branch of Service *</Label>
+                  <Label htmlFor="branch">Branch of Service (if applicable)</Label>
                   <Select value={formData.branch} onValueChange={(v) => setFormData({ ...formData, branch: v })}>
                     <SelectTrigger data-testid="select-branch">
                       <SelectValue placeholder="Select Branch" />
@@ -217,27 +206,32 @@ export default function ApplyStartupGrant() {
                       <SelectItem value="air-force">Air Force</SelectItem>
                       <SelectItem value="coast-guard">Coast Guard</SelectItem>
                       <SelectItem value="space-force">Space Force</SelectItem>
+                      <SelectItem value="none">Not a Veteran</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="status">Service Status *</Label>
-                  <Select value={formData.serviceStatus} onValueChange={(v) => setFormData({ ...formData, serviceStatus: v })}>
-                    <SelectTrigger data-testid="select-status">
-                      <SelectValue placeholder="Select Status" />
+                  <Label htmlFor="industry">Industry *</Label>
+                  <Select value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
+                    <SelectTrigger data-testid="select-industry">
+                      <SelectValue placeholder="Select Industry" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="veteran">Veteran</SelectItem>
-                      <SelectItem value="active">Active Duty</SelectItem>
-                      <SelectItem value="reserve">Reserve / Guard</SelectItem>
-                      <SelectItem value="spouse">Military Spouse</SelectItem>
+                      <SelectItem value="services">Professional Services</SelectItem>
+                      <SelectItem value="retail">Retail / E-commerce</SelectItem>
+                      <SelectItem value="construction">Construction / Trades</SelectItem>
+                      <SelectItem value="tech">Technology / Software</SelectItem>
+                      <SelectItem value="logistics">Logistics / Transport</SelectItem>
+                      <SelectItem value="food">Food & Beverage</SelectItem>
+                      <SelectItem value="health">Health & Wellness</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="businessName">Proposed Business Name *</Label>
+                <Label htmlFor="businessName">Business Name *</Label>
                 <Input 
                   id="businessName" 
                   placeholder="e.g. Tactical Logistics Solutions"
@@ -248,29 +242,10 @@ export default function ApplyStartupGrant() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="industry">Industry *</Label>
-                <Select value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
-                  <SelectTrigger data-testid="select-industry">
-                    <SelectValue placeholder="Select Industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="services">Professional Services</SelectItem>
-                    <SelectItem value="retail">Retail / E-commerce</SelectItem>
-                    <SelectItem value="construction">Construction / Trades</SelectItem>
-                    <SelectItem value="tech">Technology / Software</SelectItem>
-                    <SelectItem value="logistics">Logistics / Transport</SelectItem>
-                    <SelectItem value="food">Food & Beverage</SelectItem>
-                    <SelectItem value="health">Health & Wellness</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="businessDescription">Business Description *</Label>
+                <Label htmlFor="businessDescription">Business Description & Value Proposition *</Label>
                 <Textarea 
                   id="businessDescription" 
-                  placeholder="Describe your business idea, your target market, and what makes it unique..." 
+                  placeholder="Describe your business, your target market, competitive advantage, and why investors should be interested..." 
                   className="min-h-[150px]"
                   value={formData.businessDescription}
                   onChange={(e) => setFormData({ ...formData, businessDescription: e.target.value })}
@@ -279,10 +254,10 @@ export default function ApplyStartupGrant() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fundingNeeds">How Will You Use the Grant Funds? *</Label>
+                <Label htmlFor="fundingNeeds">How Will Investment Funds Be Used? *</Label>
                 <Textarea 
                   id="fundingNeeds" 
-                  placeholder="Describe specifically how the grant funds will be used (e.g., equipment, inventory, marketing, licenses...)" 
+                  placeholder="Describe your funding needs and how investment will accelerate your business growth..." 
                   className="min-h-[100px]"
                   value={formData.fundingNeeds}
                   onChange={(e) => setFormData({ ...formData, fundingNeeds: e.target.value })}
@@ -291,53 +266,35 @@ export default function ApplyStartupGrant() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="grantAmount">Requested Grant Amount *</Label>
+                <Label htmlFor="grantAmount">Investment Amount Seeking *</Label>
                 <Select value={formData.grantAmount} onValueChange={(v) => setFormData({ ...formData, grantAmount: v })}>
-                  <SelectTrigger data-testid="select-grant-amount">
+                  <SelectTrigger data-testid="select-investment-amount">
                     <SelectValue placeholder="Select Amount" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5000">$5,000</SelectItem>
-                    <SelectItem value="10000">$10,000</SelectItem>
-                    <SelectItem value="25000">$25,000</SelectItem>
-                    <SelectItem value="35000">$35,000</SelectItem>
-                    <SelectItem value="50000">$50,000</SelectItem>
+                    <SelectItem value="25000">$25,000 - $50,000</SelectItem>
+                    <SelectItem value="75000">$50,000 - $100,000</SelectItem>
+                    <SelectItem value="150000">$100,000 - $250,000</SelectItem>
+                    <SelectItem value="500000">$250,000 - $500,000</SelectItem>
+                    <SelectItem value="1000000">$500,000+</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="bg-brand-green/5 border border-brand-green/20 p-6 rounded-lg space-y-4">
-                <h3 className="font-bold text-brand-navy flex items-center gap-2">
-                  <CheckCircle className="text-brand-green w-5 h-5" />
-                  What's Included in the Grant Program:
-                </h3>
-                <ul className="grid md:grid-cols-2 gap-3 text-sm text-gray-700">
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Direct Financial Support</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Business Mentorship</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Networking Opportunities</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Resource Library Access</li>
-                </ul>
-              </div>
-
-              <div className="flex items-start space-x-2 pt-2">
-                <Checkbox 
-                  id="terms" 
-                  checked={agreed}
-                  onCheckedChange={(checked) => setAgreed(checked as boolean)}
-                  data-testid="checkbox-terms"
-                />
-                <Label htmlFor="terms" className="text-sm font-normal text-gray-600 leading-tight">
-                  I certify that I am a U.S. military veteran, active service member, or military spouse and that this business is/will be at least 51% veteran-owned.
-                </Label>
+              <div className="bg-brand-navy/5 border border-brand-navy/20 p-6 rounded-lg">
+                <p className="text-sm text-gray-600">
+                  <strong>Note:</strong> By submitting this form, you agree to have your business information shared with our network of investors. 
+                  Investors will reach out directly if interested. There is no guarantee of funding.
+                </p>
               </div>
 
               <Button 
                 type="submit"
-                className="w-full bg-brand-khaki hover:bg-brand-khaki/90 text-brand-navy font-bold h-14 text-lg shadow-lg"
+                className="w-full bg-brand-navy hover:bg-brand-navy/90 text-white font-bold h-14 text-lg shadow-lg"
                 disabled={submitMutation.isPending}
-                data-testid="button-submit-application"
+                data-testid="button-submit-pitch"
               >
-                {submitMutation.isPending ? "Submitting..." : "Submit Grant Application"}
+                {submitMutation.isPending ? "Submitting..." : "Submit to Investors"}
               </Button>
             </form>
           </div>
