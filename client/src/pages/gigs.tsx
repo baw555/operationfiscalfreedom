@@ -5,28 +5,28 @@ import { Briefcase, Code, Truck, Wrench, Phone, PenTool } from "lucide-react";
 export default function Gigs() {
   return (
     <Layout>
-      <section className="bg-brand-khaki/20 py-20 text-center border-b border-brand-khaki/30">
+      <section className="bg-brand-khaki/20 py-12 sm:py-20 text-center border-b border-brand-khaki/30">
         <div className="container mx-auto px-4">
-          <h1 className="text-5xl md:text-7xl font-display text-brand-navy mb-6">Earn More. Live Free. Start Today.</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-10">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-display text-brand-navy mb-4 sm:mb-6">Earn More. Live Free. Start Today.</h1>
+          <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-10 px-2">
             Access a marketplace of opportunities built specifically for the discipline and reliability of veterans.
           </p>
-          <div className="flex justify-center gap-4">
-            <Button size="lg" className="bg-brand-navy hover:bg-brand-navy/90 text-white h-14 px-8">
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
+            <Button size="lg" className="bg-brand-navy hover:bg-brand-navy/90 text-white h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base w-full sm:w-auto">
               Explore Gigs
             </Button>
-            <Button size="lg" variant="outline" className="border-2 border-brand-navy text-brand-navy h-14 px-8">
+            <Button size="lg" variant="outline" className="border-2 border-brand-navy text-brand-navy h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base w-full sm:w-auto">
               Post A Gig
             </Button>
           </div>
         </div>
       </section>
 
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-display text-brand-navy mb-12 text-center">Available Opportunities</h2>
+          <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-8 sm:mb-12 text-center">Available Opportunities</h2>
           
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
             {[
               { icon: Briefcase, title: "Sales", count: "120+ Gigs" },
               { icon: Phone, title: "Marketing", count: "85+ Gigs" },
@@ -35,24 +35,24 @@ export default function Gigs() {
               { icon: Wrench, title: "Construction", count: "150+ Gigs" },
               { icon: PenTool, title: "Admin", count: "90+ Gigs" },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-4 p-6 border border-gray-200 rounded-lg hover:border-brand-green cursor-pointer group transition-colors">
-                <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-600 group-hover:bg-brand-green group-hover:text-white transition-colors">
-                  <item.icon size={24} />
+              <div key={i} className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border border-gray-200 rounded-lg hover:border-brand-green cursor-pointer group transition-colors">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded flex items-center justify-center text-gray-600 group-hover:bg-brand-green group-hover:text-white transition-colors shrink-0">
+                  <item.icon size={20} className="sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-brand-navy text-lg">{item.title}</h3>
-                  <p className="text-sm text-gray-500">{item.count}</p>
+                  <h3 className="font-bold text-brand-navy text-sm sm:text-lg">{item.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500">{item.count}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-16 p-8 bg-brand-navy rounded-xl text-white flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="mt-10 sm:mt-16 p-6 sm:p-8 bg-brand-navy rounded-xl text-white flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-8 text-center md:text-left">
              <div>
-               <h3 className="text-2xl font-display mb-2">Veteran-Only Partner Gigs</h3>
-               <p className="text-gray-300">Exclusive high-paying contracts reserved for verified veterans.</p>
+               <h3 className="text-xl sm:text-2xl font-display mb-1 sm:mb-2">Veteran-Only Partner Gigs</h3>
+               <p className="text-sm sm:text-base text-gray-300">Exclusive high-paying contracts reserved for verified veterans.</p>
              </div>
-             <Button className="bg-brand-gold text-brand-black font-bold hover:bg-brand-gold/90 px-8">
+             <Button className="bg-brand-gold text-brand-black font-bold hover:bg-brand-gold/90 px-6 sm:px-8 w-full md:w-auto">
                Verify Status to Access
              </Button>
           </div>
