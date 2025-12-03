@@ -140,3 +140,122 @@ export const insertFurnitureAssistanceSchema = createInsertSchema(furnitureAssis
 
 export type InsertFurnitureAssistance = z.infer<typeof insertFurnitureAssistanceSchema>;
 export type FurnitureAssistance = typeof furnitureAssistance.$inferSelect;
+
+// Investor Submissions
+export const investorSubmissions = pgTable("investor_submissions", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  companyName: text("company_name"),
+  investmentInterest: text("investment_interest").notNull(),
+  investmentRange: text("investment_range").notNull(),
+  message: text("message"),
+  status: text("status").notNull().default("new"),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertInvestorSubmissionSchema = createInsertSchema(investorSubmissions).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertInvestorSubmission = z.infer<typeof insertInvestorSubmissionSchema>;
+export type InvestorSubmission = typeof investorSubmissions.$inferSelect;
+
+// Private Doctor Requests
+export const privateDoctorRequests = pgTable("private_doctor_requests", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  zip: text("zip").notNull(),
+  branch: text("branch").notNull(),
+  careType: text("care_type").notNull(),
+  situation: text("situation"),
+  status: text("status").notNull().default("new"),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertPrivateDoctorRequestSchema = createInsertSchema(privateDoctorRequests).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPrivateDoctorRequest = z.infer<typeof insertPrivateDoctorRequestSchema>;
+export type PrivateDoctorRequest = typeof privateDoctorRequests.$inferSelect;
+
+// Website Applications
+export const websiteApplications = pgTable("website_applications", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  branch: text("branch").notNull(),
+  serviceStatus: text("service_status").notNull(),
+  businessName: text("business_name").notNull(),
+  industry: text("industry").notNull(),
+  description: text("description").notNull(),
+  websiteNeeds: text("website_needs"),
+  status: text("status").notNull().default("new"),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertWebsiteApplicationSchema = createInsertSchema(websiteApplications).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertWebsiteApplication = z.infer<typeof insertWebsiteApplicationSchema>;
+export type WebsiteApplication = typeof websiteApplications.$inferSelect;
+
+// General Contact Submissions
+export const generalContact = pgTable("general_contact", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("new"),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertGeneralContactSchema = createInsertSchema(generalContact).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertGeneralContact = z.infer<typeof insertGeneralContactSchema>;
+export type GeneralContact = typeof generalContact.$inferSelect;
