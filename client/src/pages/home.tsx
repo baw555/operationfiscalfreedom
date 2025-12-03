@@ -57,6 +57,11 @@ export default function Home() {
           <p className="text-gray-400 text-sm mt-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400">
             For those who do not qualify for grants, investors may make offers
           </p>
+          <div className="mt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
+            <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold h-14 px-8 text-lg cursor-pointer")}>
+              Buying a New Home? Get Your Furniture Paid For
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -26,6 +26,7 @@ import AffiliateDashboard from "@/pages/affiliate-dashboard";
 import AdminSetup from "@/pages/admin-setup";
 import ApplyStartupGrant from "@/pages/apply-startup-grant";
 import Investors from "@/pages/investors";
+import NewHomeFurniture from "@/pages/new-home-furniture";
 
 function Router() {
   return (
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/apply-website" component={ApplyWebsite} />
       <Route path="/apply-startup-grant" component={ApplyStartupGrant} />
       <Route path="/investors" component={Investors} />
+      <Route path="/new-home-furniture" component={NewHomeFurniture} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />

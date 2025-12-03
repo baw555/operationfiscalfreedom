@@ -108,3 +108,35 @@ export const insertStartupGrantSchema = createInsertSchema(startupGrants).omit({
 
 export type InsertStartupGrant = z.infer<typeof insertStartupGrantSchema>;
 export type StartupGrant = typeof startupGrants.$inferSelect;
+
+// Furniture Assistance Requests
+export const furnitureAssistance = pgTable("furniture_assistance", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  branch: text("branch").notNull(),
+  serviceStatus: text("service_status").notNull(),
+  homeStatus: text("home_status").notNull(),
+  expectedCloseDate: text("expected_close_date"),
+  homeLocation: text("home_location"),
+  additionalInfo: text("additional_info"),
+  status: text("status").notNull().default("new"),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertFurnitureAssistanceSchema = createInsertSchema(furnitureAssistance).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFurnitureAssistance = z.infer<typeof insertFurnitureAssistanceSchema>;
+export type FurnitureAssistance = typeof furnitureAssistance.$inferSelect;

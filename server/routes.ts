@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
-import { insertAffiliateApplicationSchema, insertHelpRequestSchema, insertStartupGrantSchema } from "@shared/schema";
+import { insertAffiliateApplicationSchema, insertHelpRequestSchema, insertStartupGrantSchema, insertFurnitureAssistanceSchema } from "@shared/schema";
 import { z } from "zod";
 
 declare module "express-session" {
@@ -96,6 +96,20 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to submit grant application" });
+    }
+  });
+
+  // Submit furniture assistance request
+  app.post("/api/furniture-assistance", async (req, res) => {
+    try {
+      const data = insertFurnitureAssistanceSchema.parse(req.body);
+      const request = await storage.createFurnitureAssistance(data);
+      res.status(201).json({ success: true, id: request.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit furniture assistance request" });
     }
   });
 

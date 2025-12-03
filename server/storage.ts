@@ -2,7 +2,8 @@ import {
   users, type User, type InsertUser,
   affiliateApplications, type AffiliateApplication, type InsertAffiliateApplication,
   helpRequests, type HelpRequest, type InsertHelpRequest,
-  startupGrants, type StartupGrant, type InsertStartupGrant
+  startupGrants, type StartupGrant, type InsertStartupGrant,
+  furnitureAssistance, type FurnitureAssistance, type InsertFurnitureAssistance
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
@@ -36,6 +37,13 @@ export interface IStorage {
   getAllStartupGrants(): Promise<StartupGrant[]>;
   getStartupGrantsByAssignee(userId: number): Promise<StartupGrant[]>;
   updateStartupGrant(id: number, updates: Partial<StartupGrant>): Promise<StartupGrant | undefined>;
+
+  // Furniture Assistance
+  createFurnitureAssistance(req: InsertFurnitureAssistance): Promise<FurnitureAssistance>;
+  getFurnitureAssistance(id: number): Promise<FurnitureAssistance | undefined>;
+  getAllFurnitureAssistance(): Promise<FurnitureAssistance[]>;
+  getFurnitureAssistanceByAssignee(userId: number): Promise<FurnitureAssistance[]>;
+  updateFurnitureAssistance(id: number, updates: Partial<FurnitureAssistance>): Promise<FurnitureAssistance | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -153,6 +161,35 @@ export class DatabaseStorage implements IStorage {
       .where(eq(startupGrants.id, id))
       .returning();
     return grant || undefined;
+  }
+
+  // Furniture Assistance
+  async createFurnitureAssistance(req: InsertFurnitureAssistance): Promise<FurnitureAssistance> {
+    const [result] = await db.insert(furnitureAssistance).values(req).returning();
+    return result;
+  }
+
+  async getFurnitureAssistance(id: number): Promise<FurnitureAssistance | undefined> {
+    const [req] = await db.select().from(furnitureAssistance).where(eq(furnitureAssistance.id, id));
+    return req || undefined;
+  }
+
+  async getAllFurnitureAssistance(): Promise<FurnitureAssistance[]> {
+    return db.select().from(furnitureAssistance).orderBy(desc(furnitureAssistance.createdAt));
+  }
+
+  async getFurnitureAssistanceByAssignee(userId: number): Promise<FurnitureAssistance[]> {
+    return db.select().from(furnitureAssistance)
+      .where(eq(furnitureAssistance.assignedTo, userId))
+      .orderBy(desc(furnitureAssistance.createdAt));
+  }
+
+  async updateFurnitureAssistance(id: number, updates: Partial<FurnitureAssistance>): Promise<FurnitureAssistance | undefined> {
+    const [req] = await db.update(furnitureAssistance)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(furnitureAssistance.id, id))
+      .returning();
+    return req || undefined;
   }
 }
 
