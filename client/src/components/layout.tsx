@@ -22,11 +22,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
-      {/* Disclaimer Banner */}
-      <div className="bg-white text-brand-red text-center py-2 px-4 font-bold text-sm uppercase tracking-wide border-b border-brand-red/20">
-        test website, not finished and doesn't reflect final form
-      </div>
-
       {/* Top Bar */}
       <div className="bg-brand-black text-xs py-2 px-4 text-center text-white/80 uppercase tracking-widest flex flex-col md:flex-row justify-center items-center gap-2 md:gap-8">
         <span>Veterans Helping Veterans Rise • Operation Fiscal Freedom</span>
