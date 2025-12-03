@@ -37,22 +37,31 @@ export default function Home() {
             <span className="text-brand-khaki text-sm sm:text-lg mt-2 block">Get your free VA rating software, access gig work, and earn referral income.</span>
           </p>
 
-          <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 max-w-md sm:max-w-none mx-auto">
-            <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-brand-green hover:bg-brand-green/90 text-white border-2 border-brand-green h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto shadow-lg shadow-brand-green/20 cursor-pointer")}>
-                Get Free VA Rating Tool
-            </Link>
-            <Link href="/gigs" className={cn(buttonVariants({ size: "lg" }), "bg-brand-navy hover:bg-brand-navy/90 text-white border-2 border-brand-navy h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto cursor-pointer")}>
-                Find Gig Work
-            </Link>
-            <Link href="/apply-website" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto cursor-pointer")}>
-                Get Free Business Website
-            </Link>
-            <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-khaki text-brand-khaki hover:bg-brand-khaki hover:text-brand-navy h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto cursor-pointer")}>
-                Apply for Startup Grant
-            </Link>
-            <Link href="/investors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full sm:w-auto cursor-pointer")}>
-                Apply New Business to Investors
-            </Link>
+          <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 max-w-2xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
+              <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-brand-green hover:bg-brand-green/90 text-white border-2 border-brand-green h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full shadow-lg shadow-brand-green/20 cursor-pointer")}>
+                  Free VA Rating Tool
+              </Link>
+              <Link href="/gigs" className={cn(buttonVariants({ size: "lg" }), "bg-brand-navy hover:bg-brand-navy/90 text-white border-2 border-brand-navy h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full cursor-pointer")}>
+                  Find Gig Work
+              </Link>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
+              <Link href="/apply-website" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full cursor-pointer")}>
+                  Get Free Business Website
+              </Link>
+              <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-khaki text-brand-khaki hover:bg-brand-khaki hover:text-brand-navy h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full cursor-pointer")}>
+                  Apply for Startup Grant
+              </Link>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
+              <Link href="/investors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full cursor-pointer")}>
+                  Apply New Business to Investors
+              </Link>
+              <Link href="/private-doctor" className={cn(buttonVariants({ size: "lg" }), "bg-red-600 hover:bg-red-700 text-white border-2 border-red-600 h-12 sm:h-14 px-4 sm:px-8 text-sm sm:text-lg w-full cursor-pointer")}>
+                  VA Taking Too Long? Get a Private Doctor
+              </Link>
+            </div>
           </div>
           <p className="text-gray-400 text-xs sm:text-sm mt-4 sm:mt-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 px-4">
             For those who do not qualify for grants, investors may make offers
