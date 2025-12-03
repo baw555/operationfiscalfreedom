@@ -7,12 +7,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Shield, LogOut, Users, FileText, HelpCircle, Plus, Search, 
-  Filter, ChevronDown, X, Edit, Trash2, Key, Eye 
+  Filter, ChevronDown, X, Edit, Trash2, Key, Eye, TrendingUp, 
+  Stethoscope, Globe, Mail, Home, DollarSign, Briefcase
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 
-type TabType = "applications" | "requests" | "affiliates";
+type MainTabType = "applications" | "requests" | "investors" | "affiliates";
+type RequestSubType = "get_help" | "startup_grant" | "furniture" | "private_doctor" | "website" | "general_contact";
 type LeadStatus = "new" | "contacted" | "in_progress" | "closed";
 
 const statusColors: Record<LeadStatus, string> = {
@@ -22,11 +24,21 @@ const statusColors: Record<LeadStatus, string> = {
   closed: "bg-green-100 text-green-800",
 };
 
+const requestSubTabs: { key: RequestSubType; label: string; icon: any }[] = [
+  { key: "get_help", label: "Get Help", icon: HelpCircle },
+  { key: "startup_grant", label: "Startup Grant", icon: DollarSign },
+  { key: "furniture", label: "Furniture", icon: Home },
+  { key: "private_doctor", label: "Private Doctor", icon: Stethoscope },
+  { key: "website", label: "Website", icon: Globe },
+  { key: "general_contact", label: "General Contact", icon: Mail },
+];
+
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabType>("applications");
+  const [activeTab, setActiveTab] = useState<MainTabType>("applications");
+  const [requestSubTab, setRequestSubTab] = useState<RequestSubType>("get_help");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<any>(null);
@@ -49,7 +61,7 @@ export default function AdminDashboard() {
     }
   }, [authData, authLoading, setLocation]);
 
-  // Fetch data
+  // Fetch data - existing
   const { data: applications = [] } = useQuery({
     queryKey: ["admin-applications"],
     queryFn: async () => {
@@ -74,6 +86,47 @@ export default function AdminDashboard() {
     queryKey: ["admin-affiliates"],
     queryFn: async () => {
       const res = await fetch("/api/admin/affiliates");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  // Fetch new data types
+  const { data: investorSubmissions = [] } = useQuery({
+    queryKey: ["admin-investor-submissions"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/investor-submissions");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  const { data: privateDoctorRequests = [] } = useQuery({
+    queryKey: ["admin-private-doctor-requests"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/private-doctor-requests");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  const { data: websiteApplications = [] } = useQuery({
+    queryKey: ["admin-website-applications"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/website-applications");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  const { data: generalContacts = [] } = useQuery({
+    queryKey: ["admin-general-contact"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/general-contact");
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -111,6 +164,74 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-help-requests"] });
       toast({ title: "Request updated" });
+      setSelectedLead(null);
+    },
+  });
+
+  const updateInvestorMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: any) => {
+      const res = await fetch(`/api/admin/investor-submissions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-investor-submissions"] });
+      toast({ title: "Investor submission updated" });
+      setSelectedLead(null);
+    },
+  });
+
+  const updatePrivateDoctorMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: any) => {
+      const res = await fetch(`/api/admin/private-doctor-requests/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-private-doctor-requests"] });
+      toast({ title: "Request updated" });
+      setSelectedLead(null);
+    },
+  });
+
+  const updateWebsiteMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: any) => {
+      const res = await fetch(`/api/admin/website-applications/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-website-applications"] });
+      toast({ title: "Application updated" });
+      setSelectedLead(null);
+    },
+  });
+
+  const updateGeneralContactMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: any) => {
+      const res = await fetch(`/api/admin/general-contact/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-general-contact"] });
+      toast({ title: "Contact updated" });
       setSelectedLead(null);
     },
   });
@@ -160,13 +281,37 @@ export default function AdminDashboard() {
   // Filter leads
   const filterLeads = (leads: any[]) => {
     return leads.filter((lead) => {
-      const matchesSearch = 
-        lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      const searchFields = [
+        lead.name, lead.firstName, lead.lastName, lead.email, lead.companyName, lead.businessName
+      ].filter(Boolean).join(" ").toLowerCase();
+      const matchesSearch = searchFields.includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   };
+
+  // Get current request data based on sub-tab
+  const getCurrentRequestData = () => {
+    switch (requestSubTab) {
+      case "get_help":
+        return { data: helpRequests, type: "help_request" };
+      case "startup_grant":
+        return { data: helpRequests.filter((r: any) => r.helpType === "startup_grant"), type: "help_request" };
+      case "furniture":
+        return { data: helpRequests.filter((r: any) => r.helpType === "furniture"), type: "help_request" };
+      case "private_doctor":
+        return { data: privateDoctorRequests, type: "private_doctor" };
+      case "website":
+        return { data: websiteApplications, type: "website" };
+      case "general_contact":
+        return { data: generalContacts, type: "general_contact" };
+      default:
+        return { data: [], type: "" };
+    }
+  };
+
+  // Get total counts for stats
+  const totalRequests = helpRequests.length + privateDoctorRequests.length + websiteApplications.length + generalContacts.length;
 
   if (authLoading) {
     return (
@@ -180,16 +325,16 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
       <header className="bg-brand-navy text-white shadow-lg">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Shield className="h-8 w-8 text-brand-green" />
             <div>
-              <h1 className="font-display text-2xl">Admin Command Center</h1>
+              <h1 className="font-display text-xl sm:text-2xl">Admin Command Center</h1>
               <p className="text-sm text-gray-400">Operation Fiscal Freedom</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-300">Welcome, {authData?.user?.name}</span>
+            <span className="text-sm text-gray-300 hidden sm:inline">Welcome, {authData?.user?.name}</span>
             <Button 
               variant="outline" 
               size="sm"
@@ -203,69 +348,126 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-brand-navy">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md border-l-4 border-brand-navy">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm">Affiliate Applications</p>
-                <p className="text-3xl font-bold text-brand-navy">{applications.length}</p>
+                <p className="text-gray-500 text-xs sm:text-sm">Affiliate Apps</p>
+                <p className="text-2xl sm:text-3xl font-bold text-brand-navy">{applications.length}</p>
               </div>
-              <FileText className="h-10 w-10 text-brand-navy/20" />
+              <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-brand-navy/20" />
             </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-brand-green">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md border-l-4 border-brand-green">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm">Help Requests</p>
-                <p className="text-3xl font-bold text-brand-green">{helpRequests.length}</p>
+                <p className="text-gray-500 text-xs sm:text-sm">All Requests</p>
+                <p className="text-2xl sm:text-3xl font-bold text-brand-green">{totalRequests}</p>
               </div>
-              <HelpCircle className="h-10 w-10 text-brand-green/20" />
+              <HelpCircle className="h-8 w-8 sm:h-10 sm:w-10 text-brand-green/20" />
             </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-brand-gold">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md border-l-4 border-purple-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm">Active Affiliates</p>
-                <p className="text-3xl font-bold text-brand-gold">{affiliates.length}</p>
+                <p className="text-gray-500 text-xs sm:text-sm">Investor Leads</p>
+                <p className="text-2xl sm:text-3xl font-bold text-purple-600">{investorSubmissions.length}</p>
               </div>
-              <Users className="h-10 w-10 text-brand-gold/20" />
+              <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 text-purple-500/20" />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md border-l-4 border-brand-gold">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-xs sm:text-sm">Affiliates</p>
+                <p className="text-2xl sm:text-3xl font-bold text-brand-gold">{affiliates.length}</p>
+              </div>
+              <Users className="h-8 w-8 sm:h-10 sm:w-10 text-brand-gold/20" />
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Main Tabs */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="flex border-b">
+          <div className="flex flex-wrap border-b">
             <button
               onClick={() => setActiveTab("applications")}
-              className={`flex-1 py-4 px-6 font-bold text-sm uppercase tracking-wide transition-colors ${
+              className={`flex-1 min-w-[120px] py-3 sm:py-4 px-3 sm:px-6 font-bold text-xs sm:text-sm uppercase tracking-wide transition-colors ${
                 activeTab === "applications" ? "bg-brand-navy text-white" : "text-gray-600 hover:bg-gray-50"
               }`}
               data-testid="tab-applications"
             >
-              <FileText className="h-4 w-4 inline mr-2" /> Affiliate Applications
+              <FileText className="h-4 w-4 inline mr-1 sm:mr-2" /> 
+              <span className="hidden sm:inline">Affiliate Apps</span>
+              <span className="sm:hidden">Apps</span>
             </button>
             <button
               onClick={() => setActiveTab("requests")}
-              className={`flex-1 py-4 px-6 font-bold text-sm uppercase tracking-wide transition-colors ${
+              className={`flex-1 min-w-[120px] py-3 sm:py-4 px-3 sm:px-6 font-bold text-xs sm:text-sm uppercase tracking-wide transition-colors ${
                 activeTab === "requests" ? "bg-brand-navy text-white" : "text-gray-600 hover:bg-gray-50"
               }`}
               data-testid="tab-requests"
             >
-              <HelpCircle className="h-4 w-4 inline mr-2" /> Help Requests
+              <HelpCircle className="h-4 w-4 inline mr-1 sm:mr-2" /> 
+              <span className="hidden sm:inline">Help Requests</span>
+              <span className="sm:hidden">Requests</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("investors")}
+              className={`flex-1 min-w-[120px] py-3 sm:py-4 px-3 sm:px-6 font-bold text-xs sm:text-sm uppercase tracking-wide transition-colors ${
+                activeTab === "investors" ? "bg-brand-navy text-white" : "text-gray-600 hover:bg-gray-50"
+              }`}
+              data-testid="tab-investors"
+            >
+              <TrendingUp className="h-4 w-4 inline mr-1 sm:mr-2" /> 
+              <span className="hidden sm:inline">Investors</span>
+              <span className="sm:hidden">Invest</span>
             </button>
             <button
               onClick={() => setActiveTab("affiliates")}
-              className={`flex-1 py-4 px-6 font-bold text-sm uppercase tracking-wide transition-colors ${
+              className={`flex-1 min-w-[120px] py-3 sm:py-4 px-3 sm:px-6 font-bold text-xs sm:text-sm uppercase tracking-wide transition-colors ${
                 activeTab === "affiliates" ? "bg-brand-navy text-white" : "text-gray-600 hover:bg-gray-50"
               }`}
               data-testid="tab-affiliates"
             >
-              <Users className="h-4 w-4 inline mr-2" /> Manage Affiliates
+              <Users className="h-4 w-4 inline mr-1 sm:mr-2" /> 
+              <span className="hidden sm:inline">Manage Affiliates</span>
+              <span className="sm:hidden">Team</span>
             </button>
           </div>
+
+          {/* Sub-tabs for Requests */}
+          {activeTab === "requests" && (
+            <div className="bg-gray-100 border-b overflow-x-auto">
+              <div className="flex min-w-max">
+                {requestSubTabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setRequestSubTab(tab.key)}
+                    className={`px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1 sm:gap-2 ${
+                      requestSubTab === tab.key 
+                        ? "bg-white text-brand-navy border-b-2 border-brand-navy" 
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                    data-testid={`subtab-${tab.key}`}
+                  >
+                    <tab.icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                    {tab.label}
+                    <span className="ml-1 px-1.5 py-0.5 bg-gray-200 rounded-full text-xs">
+                      {tab.key === "get_help" && helpRequests.length}
+                      {tab.key === "startup_grant" && helpRequests.filter((r: any) => r.helpType === "startup_grant").length}
+                      {tab.key === "furniture" && helpRequests.filter((r: any) => r.helpType === "furniture").length}
+                      {tab.key === "private_doctor" && privateDoctorRequests.length}
+                      {tab.key === "website" && websiteApplications.length}
+                      {tab.key === "general_contact" && generalContacts.length}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Filters */}
           {activeTab !== "affiliates" && (
@@ -296,7 +498,8 @@ export default function AdminDashboard() {
           )}
 
           {/* Content */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
+            {/* Affiliate Applications Tab */}
             {activeTab === "applications" && (
               <div className="space-y-4">
                 {filterLeads(applications).length === 0 ? (
@@ -309,13 +512,13 @@ export default function AdminDashboard() {
                       onClick={() => setSelectedLead({ ...app, type: "application" })}
                       data-testid={`lead-application-${app.id}`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-bold text-brand-navy">{app.name}</h3>
-                          <p className="text-sm text-gray-600">{app.companyName}</p>
-                          <p className="text-sm text-gray-500">{app.email} | {app.phone}</p>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-brand-navy truncate">{app.name}</h3>
+                          <p className="text-sm text-gray-600 truncate">{app.companyName}</p>
+                          <p className="text-sm text-gray-500 truncate">{app.email} | {app.phone}</p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${statusColors[app.status as LeadStatus]}`}>
                             {app.status}
                           </span>
@@ -330,30 +533,87 @@ export default function AdminDashboard() {
               </div>
             )}
 
+            {/* Help Requests Tab with Sub-navigation */}
             {activeTab === "requests" && (
               <div className="space-y-4">
-                {filterLeads(helpRequests).length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">No help requests found</p>
-                ) : (
-                  filterLeads(helpRequests).map((req: any) => (
+                {(() => {
+                  const { data, type } = getCurrentRequestData();
+                  const filteredData = filterLeads(data);
+                  
+                  if (filteredData.length === 0) {
+                    return <p className="text-center text-gray-500 py-8">No requests found</p>;
+                  }
+
+                  return filteredData.map((item: any) => (
                     <div 
-                      key={req.id} 
+                      key={item.id} 
                       className="bg-gray-50 rounded-lg p-4 border hover:border-brand-navy/50 transition-colors cursor-pointer"
-                      onClick={() => setSelectedLead({ ...req, type: "request" })}
-                      data-testid={`lead-request-${req.id}`}
+                      onClick={() => setSelectedLead({ ...item, type })}
+                      data-testid={`lead-${type}-${item.id}`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-bold text-brand-navy">{req.name}</h3>
-                          <p className="text-sm text-gray-600 capitalize">{req.helpType.replace(/_/g, " ")}</p>
-                          <p className="text-sm text-gray-500">{req.email} | {req.phone}</p>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-brand-navy truncate">
+                            {item.name || `${item.firstName} ${item.lastName}`}
+                          </h3>
+                          {item.helpType && (
+                            <p className="text-sm text-gray-600 capitalize">{item.helpType.replace(/_/g, " ")}</p>
+                          )}
+                          {item.businessName && (
+                            <p className="text-sm text-gray-600">{item.businessName}</p>
+                          )}
+                          {item.careType && (
+                            <p className="text-sm text-gray-600 capitalize">{item.careType} Care</p>
+                          )}
+                          {item.subject && (
+                            <p className="text-sm text-gray-600">{item.subject}</p>
+                          )}
+                          <p className="text-sm text-gray-500 truncate">{item.email} | {item.phone}</p>
                         </div>
-                        <div className="text-right">
-                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${statusColors[req.status as LeadStatus]}`}>
-                            {req.status}
+                        <div className="text-right shrink-0">
+                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${statusColors[item.status as LeadStatus]}`}>
+                            {item.status}
                           </span>
                           <p className="text-xs text-gray-400 mt-2">
-                            {format(new Date(req.createdAt), "MMM d, yyyy")}
+                            {format(new Date(item.createdAt), "MMM d, yyyy")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+
+            {/* Investor Submissions Tab */}
+            {activeTab === "investors" && (
+              <div className="space-y-4">
+                {filterLeads(investorSubmissions).length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No investor submissions found</p>
+                ) : (
+                  filterLeads(investorSubmissions).map((inv: any) => (
+                    <div 
+                      key={inv.id} 
+                      className="bg-gray-50 rounded-lg p-4 border hover:border-brand-navy/50 transition-colors cursor-pointer"
+                      onClick={() => setSelectedLead({ ...inv, type: "investor" })}
+                      data-testid={`lead-investor-${inv.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-brand-navy truncate">{inv.firstName} {inv.lastName}</h3>
+                          {inv.companyName && (
+                            <p className="text-sm text-gray-600 truncate">{inv.companyName}</p>
+                          )}
+                          <p className="text-sm text-purple-600 capitalize">{inv.investmentInterest?.replace(/_/g, " ")}</p>
+                          <p className="text-sm text-gray-500 truncate">{inv.email} | {inv.phone}</p>
+                          <p className="text-sm font-medium text-green-600">{inv.investmentRange?.replace(/_/g, " ").replace("k", "K")}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${statusColors[inv.status as LeadStatus]}`}>
+                            {inv.status}
+                          </span>
+                          <p className="text-xs text-gray-400 mt-2">
+                            {format(new Date(inv.createdAt), "MMM d, yyyy")}
                           </p>
                         </div>
                       </div>
@@ -363,6 +623,7 @@ export default function AdminDashboard() {
               </div>
             )}
 
+            {/* Manage Affiliates Tab */}
             {activeTab === "affiliates" && (
               <div>
                 <div className="flex justify-end mb-4">
@@ -413,19 +674,24 @@ export default function AdminDashboard() {
       {selectedLead && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b flex items-center justify-between">
-              <h2 className="text-xl font-bold text-brand-navy">
-                {selectedLead.type === "application" ? "Affiliate Application" : "Help Request"}
+            <div className="p-4 sm:p-6 border-b flex items-center justify-between">
+              <h2 className="text-lg sm:text-xl font-bold text-brand-navy">
+                {selectedLead.type === "application" && "Affiliate Application"}
+                {selectedLead.type === "help_request" && "Help Request"}
+                {selectedLead.type === "investor" && "Investor Submission"}
+                {selectedLead.type === "private_doctor" && "Private Doctor Request"}
+                {selectedLead.type === "website" && "Website Application"}
+                {selectedLead.type === "general_contact" && "General Contact"}
               </h2>
               <button onClick={() => setSelectedLead(null)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-6 w-6" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-gray-500">Name</Label>
-                  <p className="font-medium">{selectedLead.name}</p>
+                  <p className="font-medium">{selectedLead.name || `${selectedLead.firstName} ${selectedLead.lastName}`}</p>
                 </div>
                 <div>
                   <Label className="text-gray-500">Email</Label>
@@ -441,18 +707,70 @@ export default function AdminDashboard() {
                     <p className="font-medium">{selectedLead.companyName}</p>
                   </div>
                 )}
+                {selectedLead.businessName && (
+                  <div>
+                    <Label className="text-gray-500">Business Name</Label>
+                    <p className="font-medium">{selectedLead.businessName}</p>
+                  </div>
+                )}
                 {selectedLead.helpType && (
                   <div>
                     <Label className="text-gray-500">Help Type</Label>
                     <p className="font-medium capitalize">{selectedLead.helpType.replace(/_/g, " ")}</p>
                   </div>
                 )}
+                {selectedLead.investmentInterest && (
+                  <div>
+                    <Label className="text-gray-500">Investment Interest</Label>
+                    <p className="font-medium capitalize">{selectedLead.investmentInterest.replace(/_/g, " ")}</p>
+                  </div>
+                )}
+                {selectedLead.investmentRange && (
+                  <div>
+                    <Label className="text-gray-500">Investment Range</Label>
+                    <p className="font-medium">{selectedLead.investmentRange.replace(/_/g, " ").replace("k", "K")}</p>
+                  </div>
+                )}
+                {selectedLead.careType && (
+                  <div>
+                    <Label className="text-gray-500">Care Type</Label>
+                    <p className="font-medium capitalize">{selectedLead.careType}</p>
+                  </div>
+                )}
+                {selectedLead.branch && (
+                  <div>
+                    <Label className="text-gray-500">Branch</Label>
+                    <p className="font-medium capitalize">{selectedLead.branch}</p>
+                  </div>
+                )}
+                {selectedLead.zip && (
+                  <div>
+                    <Label className="text-gray-500">ZIP Code</Label>
+                    <p className="font-medium">{selectedLead.zip}</p>
+                  </div>
+                )}
+                {selectedLead.industry && (
+                  <div>
+                    <Label className="text-gray-500">Industry</Label>
+                    <p className="font-medium capitalize">{selectedLead.industry}</p>
+                  </div>
+                )}
+                {selectedLead.subject && (
+                  <div>
+                    <Label className="text-gray-500">Subject</Label>
+                    <p className="font-medium">{selectedLead.subject}</p>
+                  </div>
+                )}
               </div>
-              <div>
-                <Label className="text-gray-500">Description</Label>
-                <p className="mt-1 p-3 bg-gray-50 rounded-lg">{selectedLead.description}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+              {(selectedLead.description || selectedLead.message || selectedLead.situation || selectedLead.websiteNeeds) && (
+                <div>
+                  <Label className="text-gray-500">Details</Label>
+                  <p className="mt-1 p-3 bg-gray-50 rounded-lg text-sm">
+                    {selectedLead.description || selectedLead.message || selectedLead.situation || selectedLead.websiteNeeds}
+                  </p>
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="status">Status</Label>
                   <select
@@ -468,21 +786,23 @@ export default function AdminDashboard() {
                     <option value="closed">Closed</option>
                   </select>
                 </div>
-                <div>
-                  <Label htmlFor="assignedTo">Assign To</Label>
-                  <select
-                    id="assignedTo"
-                    value={selectedLead.assignedTo || ""}
-                    onChange={(e) => setSelectedLead({ ...selectedLead, assignedTo: e.target.value ? parseInt(e.target.value) : null })}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
-                    data-testid="select-assign-to"
-                  >
-                    <option value="">Unassigned</option>
-                    {affiliates.map((aff: any) => (
-                      <option key={aff.id} value={aff.id}>{aff.name}</option>
-                    ))}
-                  </select>
-                </div>
+                {(selectedLead.type === "application" || selectedLead.type === "help_request") && (
+                  <div>
+                    <Label htmlFor="assignedTo">Assign To</Label>
+                    <select
+                      id="assignedTo"
+                      value={selectedLead.assignedTo || ""}
+                      onChange={(e) => setSelectedLead({ ...selectedLead, assignedTo: e.target.value ? parseInt(e.target.value) : null })}
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
+                      data-testid="select-assign-to"
+                    >
+                      <option value="">Unassigned</option>
+                      {affiliates.map((aff: any) => (
+                        <option key={aff.id} value={aff.id}>{aff.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
               <div>
                 <Label htmlFor="notes">Notes</Label>
@@ -496,15 +816,30 @@ export default function AdminDashboard() {
                 />
               </div>
             </div>
-            <div className="p-6 border-t flex justify-end gap-3">
+            <div className="p-4 sm:p-6 border-t flex justify-end gap-3">
               <Button variant="outline" onClick={() => setSelectedLead(null)}>Cancel</Button>
               <Button 
                 onClick={() => {
                   const { type, ...data } = selectedLead;
-                  if (type === "application") {
-                    updateApplicationMutation.mutate(data);
-                  } else {
-                    updateHelpRequestMutation.mutate(data);
+                  switch (type) {
+                    case "application":
+                      updateApplicationMutation.mutate(data);
+                      break;
+                    case "help_request":
+                      updateHelpRequestMutation.mutate(data);
+                      break;
+                    case "investor":
+                      updateInvestorMutation.mutate(data);
+                      break;
+                    case "private_doctor":
+                      updatePrivateDoctorMutation.mutate(data);
+                      break;
+                    case "website":
+                      updateWebsiteMutation.mutate(data);
+                      break;
+                    case "general_contact":
+                      updateGeneralContactMutation.mutate(data);
+                      break;
                   }
                 }}
                 className="bg-brand-navy"
