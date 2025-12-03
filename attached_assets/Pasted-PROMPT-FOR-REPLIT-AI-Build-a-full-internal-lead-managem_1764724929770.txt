@@ -1,0 +1,236 @@
+PROMPT FOR REPLIT AI
+
+Build a full internal lead-management system with two public-facing pages (/affiliate and /get-help) and two private login portals (Admin + Affiliate).
+
+SYSTEM ARCHITECTURE
+Create the following components:
+1. Database
+
+Use a built-in Replit DB or SQLite (your choice) with tables:
+
+Tables needed:
+
+users (id, name, email, password_hash, role = “admin” or “affiliate”)
+
+affiliate_applications
+
+help_requests
+
+Each lead record must include:
+
+id
+
+data fields
+
+lead_type
+
+timestamp
+
+status
+
+assigned_to (nullable for Admin assignment)
+
+2. Authentication System
+
+Create two secure login portals:
+
+Admin Portal (/admin/login)
+
+Admins can:
+
+view all affiliate applications
+
+view all help requests
+
+filter, sort, categorize, update status
+
+assign leads to affiliates
+
+manage users (create affiliates, reset passwords, etc.)
+
+Affiliate Portal (/affiliate/login)
+
+Affiliates can:
+
+log in with their own credentials
+
+view only the leads assigned to them
+
+update lead status
+
+mark leads as contacted, in progress, closed, etc.
+
+Important:
+Hash all passwords. Do NOT store plain text.
+Use sessions or JWT for secure login handling.
+
+3. PUBLIC PAGES
+
+Build two new pages:
+
+PAGE 1 — /affiliate
+Purpose
+
+Affiliate Application Page.
+
+Lead Form Fields
+
+Name
+
+Company Name
+
+Phone Number
+
+Email
+
+“Describe everything you need” (textarea)
+
+Hidden field: lead_type = affiliate_application
+
+Functionality
+
+On submit: save into database table affiliate_applications
+
+Redirect to a success page
+
+Create a notification entry visible in the Admin dashboard
+
+PAGE 2 — /get-help
+Purpose
+
+People request help for disability/VA claim issues.
+
+Lead Form Fields
+
+Name
+
+Phone Number
+
+Email
+
+Dropdown: Type of Help Needed
+
+Disability rating denial
+
+VA claim appeal
+
+Low VA rating
+
+C&P exam issues
+
+Service-connection dispute
+
+Other (if “Other,” show text input)
+
+Description text box
+
+Hidden field: lead_type = help_request
+
+Functionality
+
+Save submission into help_requests database
+
+Categorize based on dropdown
+
+Redirect to a success page
+
+Entry appears in Admin dashboard automatically
+
+4. INTERNAL CRM / DASHBOARD
+For Admins
+
+Build at /admin/dashboard.
+
+Must include:
+
+master lead list
+
+filters (date, category, status, lead type)
+
+ability to assign leads to affiliate users
+
+ability to leave notes on each lead
+
+affiliate management page (add/edit affiliates)
+
+For Affiliates
+
+Build at /affiliate/dashboard.
+
+Must include:
+
+leads assigned to them
+
+lead status update buttons
+
+notes/comments section
+
+5. FRONTEND REQUIREMENTS
+
+Match the existing site styling
+
+Forms must be clean, modern, and mobile-friendly
+
+Use components that load fast with minimal JS
+
+Add simple validation for required fields
+
+6. BACKEND REQUIREMENTS
+
+Create your own APIs/endpoints for:
+
+form submissions
+
+login
+
+session management
+
+admin actions
+
+affiliate actions
+
+Use secure password hashing
+
+Validate input
+
+Prevent unauthorized access
+
+7. ROUTING
+
+Create the following routes:
+
+PUBLIC
+
+/affiliate
+
+/get-help
+
+PRIVATE
+
+/admin/login
+
+/admin/dashboard
+
+/affiliate/login
+
+/affiliate/dashboard
+
+Build everything end-to-end:
+
+Database
+
+APIs
+
+Authentication
+
+Dashboards
+
+Public pages
+
+Forms
+
+Routing
+
+Styling
+
+Make sure all lead submissions flow into the internal CRM automatically and are easy to search, track, and categorize.
