@@ -1,9 +1,13 @@
 # Operation Fiscal Freedom
 
 ## Overview
-A comprehensive veteran support platform providing free VA rating software, gig work marketplace, manual claim assistance, and business launch support. The platform includes a complete lead management system with public application forms and role-based portals for admins and affiliates.
+A comprehensive veteran support platform providing free VA rating software, gig work marketplace, manual claim assistance, business launch support, and private doctor referrals for veterans experiencing VA delays. The platform includes a complete lead management system with public application forms and role-based portals for admins and affiliates.
 
 ## Recent Changes
+- **December 2024**: Added private doctor referral page with VA MISSION Act information
+  - New page at `/private-doctor` explaining veterans' rights to private care
+  - Contact form for private doctor information requests
+  - Reorganized home hero buttons into paired layout
 - **December 2024**: Added full lead management system with PostgreSQL database
   - Public forms at `/affiliate` and `/get-help`
   - Admin dashboard at `/admin/dashboard`
@@ -43,6 +47,10 @@ A comprehensive veteran support platform providing free VA rating software, gig 
 - `/affiliate` - Affiliate application form
 - `/get-help` - Help request form for VA claims
 - `/apply-website` - Free website grant application
+- `/apply-startup-grant` - Startup funding grant application ($5K-$50K)
+- `/investors` - Investor connection for non-qualifying grant applicants
+- `/new-home-furniture` - Furniture assistance for veterans buying homes ($3K-$10K)
+- `/private-doctor` - Private doctor referral for VA delays (VA MISSION Act)
 
 **Admin Portal:**
 - `/admin/setup` - First-time admin account creation (uses setup key)
