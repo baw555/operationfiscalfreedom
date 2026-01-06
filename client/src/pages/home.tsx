@@ -16,23 +16,37 @@ export default function Home() {
   const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
-    const sequence = [
-      { phase: 1, delay: 1000 },    // "We can feel it. It's coming."
-      { phase: 2, delay: 5000 },    // "Something..." with soldiers
-      { phase: 3, delay: 9000 },    // "Someone..." with economic chart
-      { phase: 4, delay: 13000 },   // "Will you be ready..." with homeless vet
-      { phase: 5, delay: 17000 },   // Fade to black
-      { phase: 6, delay: 19000 },   // Main hero
-    ];
+    const runAnimation = () => {
+      setAnimationPhase(0);
+      setShowContent(false);
+      
+      const sequence = [
+        { phase: 1, delay: 1000 },    // "We can feel it. It's coming."
+        { phase: 2, delay: 5000 },    // "Something..." with economic chart
+        { phase: 3, delay: 9000 },    // "Someone..." with soldiers
+        { phase: 4, delay: 13000 },   // "Will you be ready..." with homeless vet
+        { phase: 5, delay: 17000 },   // Fade to black
+        { phase: 6, delay: 19000 },   // Main hero
+      ];
 
-    sequence.forEach(({ phase, delay }) => {
-      setTimeout(() => {
-        setAnimationPhase(phase);
-        if (phase === 6) {
-          setTimeout(() => setShowContent(true), 500);
-        }
-      }, delay);
-    });
+      sequence.forEach(({ phase, delay }) => {
+        setTimeout(() => {
+          setAnimationPhase(phase);
+          if (phase === 6) {
+            setTimeout(() => setShowContent(true), 500);
+          }
+        }, delay);
+      });
+    };
+
+    runAnimation();
+    
+    // Loop every 29 seconds (19s animation + 10s pause)
+    const loopInterval = setInterval(() => {
+      runAnimation();
+    }, 29000);
+
+    return () => clearInterval(loopInterval);
   }, []);
 
   return (
@@ -67,15 +81,15 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Phase 2: Something - Soldiers */}
+          {/* Phase 2: Something - Economic Chart */}
           <div className={cn(
             "absolute inset-0 flex items-center justify-center transition-all duration-1500",
             animationPhase === 2 ? "opacity-100" : "opacity-0"
           )}>
             <div className="absolute inset-0">
               <img 
-                src={somethingImg} 
-                alt="Something is coming" 
+                src={answerCallImg} 
+                alt="Economic challenges" 
                 className={cn(
                   "w-full h-full object-cover transition-all duration-1000",
                   animationPhase === 2 ? "opacity-60 scale-105" : "opacity-0 scale-100"
@@ -91,15 +105,15 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* Phase 3: Someone - Economic Chart */}
+          {/* Phase 3: Someone - Soldiers */}
           <div className={cn(
             "absolute inset-0 flex items-center justify-center transition-all duration-1500",
             animationPhase === 3 ? "opacity-100" : "opacity-0"
           )}>
             <div className="absolute inset-0">
               <img 
-                src={answerCallImg} 
-                alt="Economic challenges" 
+                src={somethingImg} 
+                alt="Something is coming" 
                 className={cn(
                   "w-full h-full object-cover transition-all duration-1000",
                   animationPhase === 3 ? "opacity-60 scale-105" : "opacity-0 scale-100"
