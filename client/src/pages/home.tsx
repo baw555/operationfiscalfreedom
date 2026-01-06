@@ -91,7 +91,7 @@ export default function Home() {
     <Layout>
       {/* Animated Hero Intro */}
       {animationPhase < 7 && (
-        <section className="relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
+        <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden bg-black">
           {/* Phase 0: Initial black */}
           <div className={cn(
             "absolute inset-0 bg-black transition-opacity duration-1000",
@@ -129,7 +129,7 @@ export default function Home() {
                 src={answerCallImg} 
                 alt="Economic challenges" 
                 className={cn(
-                  "w-full h-full object-cover transition-all duration-1000",
+                  "w-full h-full object-contain sm:object-cover transition-all duration-1000",
                   animationPhase === 2 ? "opacity-60 scale-105" : "opacity-0 scale-100"
                 )}
               />
@@ -153,7 +153,7 @@ export default function Home() {
                 src={somethingImg} 
                 alt="Something is coming" 
                 className={cn(
-                  "w-full h-full object-cover transition-all duration-1000",
+                  "w-full h-full object-contain sm:object-cover transition-all duration-1000",
                   animationPhase === 3 ? "opacity-60 scale-105" : "opacity-0 scale-100"
                 )}
               />
@@ -177,7 +177,7 @@ export default function Home() {
                 src={someoneImg} 
                 alt="Veteran needs help" 
                 className={cn(
-                  "w-full h-full object-cover transition-all duration-1000",
+                  "w-full h-full object-contain sm:object-cover transition-all duration-1000",
                   animationPhase === 4 ? "opacity-60 scale-105" : "opacity-0 scale-100"
                 )}
               />
@@ -225,11 +225,11 @@ export default function Home() {
           </div>
 
           {/* Skip Animation Button - Always visible during animation */}
-          <div className="absolute bottom-8 left-0 right-0 flex justify-center z-50">
+          <div className="absolute bottom-4 sm:bottom-8 left-0 right-0 flex justify-center z-50 px-4">
             <Button 
               onClick={toggleAnimation}
               variant="outline"
-              className="border-2 border-white/40 text-white hover:bg-white/10 text-sm px-4 py-2 backdrop-blur-sm bg-black/20"
+              className="border-2 border-white/60 text-white hover:bg-white/20 text-sm sm:text-base px-6 py-3 backdrop-blur-sm bg-black/40 shadow-lg"
             >
               <Pause className="w-4 h-4 mr-2" />
               Skip to Main
