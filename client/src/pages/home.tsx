@@ -7,10 +7,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, ChevronDown } from "lucide-react";
+import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, ChevronDown, Pause, Play } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 import heroBg from "@assets/generated_images/hero_background_veterans.png";
 import somethingImg from "@assets/Screenshot_2026-01-06_6.59.01_AM_1767701107020.png";
@@ -20,40 +20,71 @@ import answerCallImg from "@assets/Screenshot_2026-01-06_6.55.18_AM_176770110702
 export default function Home() {
   const [animationPhase, setAnimationPhase] = useState(0);
   const [showContent, setShowContent] = useState(false);
+  const [animationPaused, setAnimationPaused] = useState(false);
+  const loopIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+
+  const clearAllTimeouts = () => {
+    timeoutsRef.current.forEach(t => clearTimeout(t));
+    timeoutsRef.current = [];
+  };
+
+  const runAnimation = () => {
+    clearAllTimeouts();
+    setAnimationPhase(0);
+    setShowContent(false);
+    
+    const sequence = [
+      { phase: 1, delay: 1000 },
+      { phase: 2, delay: 5000 },
+      { phase: 3, delay: 9000 },
+      { phase: 4, delay: 13000 },
+      { phase: 5, delay: 17000 },
+      { phase: 6, delay: 19000 },
+      { phase: 7, delay: 25000 },
+    ];
+
+    sequence.forEach(({ phase, delay }) => {
+      const timeout = setTimeout(() => {
+        setAnimationPhase(phase);
+        if (phase === 7) {
+          setTimeout(() => setShowContent(true), 500);
+        }
+      }, delay);
+      timeoutsRef.current.push(timeout);
+    });
+  };
+
+  const toggleAnimation = () => {
+    if (animationPaused) {
+      runAnimation();
+      loopIntervalRef.current = setInterval(() => {
+        runAnimation();
+      }, 57000);
+    } else {
+      clearAllTimeouts();
+      if (loopIntervalRef.current) {
+        clearInterval(loopIntervalRef.current);
+        loopIntervalRef.current = null;
+      }
+      setAnimationPhase(7);
+      setShowContent(true);
+    }
+    setAnimationPaused(!animationPaused);
+  };
 
   useEffect(() => {
-    const runAnimation = () => {
-      setAnimationPhase(0);
-      setShowContent(false);
-      
-      const sequence = [
-        { phase: 1, delay: 1000 },    // "We can feel it. It's coming."
-        { phase: 2, delay: 5000 },    // "Something..." with economic chart
-        { phase: 3, delay: 9000 },    // "Someone..." with soldiers
-        { phase: 4, delay: 13000 },   // "Will you be ready..." with homeless vet
-        { phase: 5, delay: 17000 },   // Fade to black
-        { phase: 6, delay: 19000 },   // "This time it isn't for God and Country..."
-        { phase: 7, delay: 25000 },   // Main hero
-      ];
-
-      sequence.forEach(({ phase, delay }) => {
-        setTimeout(() => {
-          setAnimationPhase(phase);
-          if (phase === 7) {
-            setTimeout(() => setShowContent(true), 500);
-          }
-        }, delay);
-      });
-    };
-
     runAnimation();
-    
-    // Loop every 57 seconds (25s animation + 21s extra hero + 10s pause + 1s buffer)
-    const loopInterval = setInterval(() => {
+    loopIntervalRef.current = setInterval(() => {
       runAnimation();
     }, 57000);
 
-    return () => clearInterval(loopInterval);
+    return () => {
+      clearAllTimeouts();
+      if (loopIntervalRef.current) {
+        clearInterval(loopIntervalRef.current);
+      }
+    };
   }, []);
 
   return (
@@ -257,6 +288,27 @@ export default function Home() {
                 </div>
                 <span className="text-brand-gold font-display text-lg sm:text-2xl md:text-3xl">Faith</span>
               </div>
+            </div>
+
+            {/* Animation Toggle Button */}
+            <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-350">
+              <Button 
+                onClick={toggleAnimation}
+                variant="outline"
+                className="border-2 border-white/40 text-white hover:bg-white/10 text-sm px-4 py-2"
+              >
+                {animationPaused ? (
+                  <>
+                    <Play className="w-4 h-4 mr-2" />
+                    Play Animation
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-4 h-4 mr-2" />
+                    Stop Animation
+                  </>
+                )}
+              </Button>
             </div>
 
             <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 w-full max-w-xl mx-auto px-2">
