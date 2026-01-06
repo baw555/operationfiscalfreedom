@@ -87,7 +87,7 @@ export default function NewHomeFurniture() {
       <Layout>
         <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
           <div className="container mx-auto px-4">
-            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-green mx-auto mb-4 sm:mb-6" />
+            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-red mx-auto mb-4 sm:mb-6" />
             <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6" data-testid="text-success-title">Request Received!</h1>
             <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2" data-testid="text-success-message">
               Thank you for your interest in our Furniture Assistance Program. A representative from one of our 
@@ -95,7 +95,7 @@ export default function NewHomeFurniture() {
             </p>
             <Button 
               onClick={() => setLocation("/")}
-              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
+              className="bg-brand-red hover:bg-brand-red/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
               data-testid="button-return-home"
             >
               Return to Home
@@ -125,7 +125,7 @@ export default function NewHomeFurniture() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto mb-8 sm:mb-12">
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
-              <DollarSign className="h-8 w-8 sm:h-12 sm:w-12 text-brand-green mx-auto mb-3 sm:mb-4" />
+              <DollarSign className="h-8 w-8 sm:h-12 sm:w-12 text-brand-red mx-auto mb-3 sm:mb-4" />
               <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">$3,000 - $10,000</h3>
               <p className="text-gray-600 text-xs sm:text-sm">Cash assistance based on need and eligibility</p>
             </div>
@@ -145,19 +145,19 @@ export default function NewHomeFurniture() {
             <h2 className="text-xl sm:text-2xl font-display text-brand-navy mb-4 sm:mb-6 text-center">How It Works</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
               <div className="text-center">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-green text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2 sm:mb-3 text-sm sm:text-base">1</div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-red text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2 sm:mb-3 text-sm sm:text-base">1</div>
                 <p className="text-xs sm:text-sm text-gray-600">Submit your information below</p>
               </div>
               <div className="text-center">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-green text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2 sm:mb-3 text-sm sm:text-base">2</div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-red text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2 sm:mb-3 text-sm sm:text-base">2</div>
                 <p className="text-xs sm:text-sm text-gray-600">Partner non-profit reviews your request</p>
               </div>
               <div className="text-center">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-green text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2 sm:mb-3 text-sm sm:text-base">3</div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-red text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2 sm:mb-3 text-sm sm:text-base">3</div>
                 <p className="text-xs sm:text-sm text-gray-600">Verify home purchase documentation</p>
               </div>
               <div className="text-center">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-green text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2 sm:mb-3 text-sm sm:text-base">4</div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-red text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2 sm:mb-3 text-sm sm:text-base">4</div>
                 <p className="text-xs sm:text-sm text-gray-600">Receive furniture assistance funds</p>
               </div>
             </div>
@@ -307,16 +307,16 @@ export default function NewHomeFurniture() {
                 />
               </div>
 
-              <div className="bg-brand-green/5 border border-brand-green/20 p-6 rounded-lg space-y-4">
+              <div className="bg-brand-red/5 border border-brand-green/20 p-6 rounded-lg space-y-4">
                 <h3 className="font-bold text-brand-navy flex items-center gap-2">
-                  <CheckCircle className="text-brand-green w-5 h-5" />
+                  <CheckCircle className="text-brand-red w-5 h-5" />
                   Program Eligibility:
                 </h3>
                 <ul className="grid md:grid-cols-2 gap-3 text-sm text-gray-700">
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> U.S. Military Veteran or Active Duty</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Purchasing or Recently Purchased Home</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Valid DD-214 or Military ID</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Home Purchase Documentation</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> U.S. Military Veteran or Active Duty</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Purchasing or Recently Purchased Home</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Valid DD-214 or Military ID</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Home Purchase Documentation</li>
                 </ul>
               </div>
 

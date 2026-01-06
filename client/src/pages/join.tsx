@@ -54,7 +54,7 @@ export default function JoinMission() {
               </div>
             </div>
 
-            <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white font-bold h-11 sm:h-12 mt-4 sm:mt-6">
+            <Button className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-11 sm:h-12 mt-4 sm:mt-6">
               Create Account
             </Button>
 

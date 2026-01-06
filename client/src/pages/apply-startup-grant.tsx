@@ -88,7 +88,7 @@ export default function ApplyStartupGrant() {
       <Layout>
         <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
           <div className="container mx-auto px-4">
-            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-green mx-auto mb-4 sm:mb-6" />
+            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-red mx-auto mb-4 sm:mb-6" />
             <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6" data-testid="text-success-title">Grant Application Received!</h1>
             <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2" data-testid="text-success-message">
               Thank you for applying for our Veteran Business Startup Grant. Our team will review your application 
@@ -96,7 +96,7 @@ export default function ApplyStartupGrant() {
             </p>
             <Button 
               onClick={() => setLocation("/")}
-              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
+              className="bg-brand-red hover:bg-brand-red/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
               data-testid="button-return-home"
             >
               Return to Home
@@ -111,7 +111,7 @@ export default function ApplyStartupGrant() {
     <Layout>
       <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
         <div className="container mx-auto px-4">
-          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-brand-khaki/20 border border-brand-khaki/40 text-brand-khaki mb-4 sm:mb-6">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-brand-silver/20 border border-brand-silver/40 text-white mb-4 sm:mb-6">
             <Banknote className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="font-bold text-xs sm:text-sm uppercase tracking-wider">Veteran Startup Grant Program</span>
           </div>
@@ -126,7 +126,7 @@ export default function ApplyStartupGrant() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto mb-8 sm:mb-12">
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
-              <DollarSign className="h-8 w-8 sm:h-12 sm:w-12 text-brand-green mx-auto mb-3 sm:mb-4" />
+              <DollarSign className="h-8 w-8 sm:h-12 sm:w-12 text-brand-red mx-auto mb-3 sm:mb-4" />
               <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Seed Funding</h3>
               <p className="text-gray-600 text-xs sm:text-sm">Grants up to $50,000 for qualifying businesses</p>
             </div>
@@ -306,16 +306,16 @@ export default function ApplyStartupGrant() {
                 </Select>
               </div>
 
-              <div className="bg-brand-green/5 border border-brand-green/20 p-6 rounded-lg space-y-4">
+              <div className="bg-brand-red/5 border border-brand-green/20 p-6 rounded-lg space-y-4">
                 <h3 className="font-bold text-brand-navy flex items-center gap-2">
-                  <CheckCircle className="text-brand-green w-5 h-5" />
+                  <CheckCircle className="text-brand-red w-5 h-5" />
                   What's Included in the Grant Program:
                 </h3>
                 <ul className="grid md:grid-cols-2 gap-3 text-sm text-gray-700">
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Direct Financial Support</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Business Mentorship</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Networking Opportunities</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Resource Library Access</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Direct Financial Support</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Business Mentorship</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Networking Opportunities</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Resource Library Access</li>
                 </ul>
               </div>
 
@@ -333,7 +333,7 @@ export default function ApplyStartupGrant() {
 
               <Button 
                 type="submit"
-                className="w-full bg-brand-khaki hover:bg-brand-khaki/90 text-brand-navy font-bold h-14 text-lg shadow-lg"
+                className="w-full bg-brand-red hover:bg-brand-red/90 text-brand-navy font-bold h-14 text-lg shadow-lg"
                 disabled={submitMutation.isPending}
                 data-testid="button-submit-application"
               >

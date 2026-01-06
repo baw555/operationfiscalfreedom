@@ -5,7 +5,7 @@ import { Briefcase, Code, Truck, Wrench, Phone, PenTool } from "lucide-react";
 export default function Gigs() {
   return (
     <Layout>
-      <section className="bg-brand-khaki/20 py-12 sm:py-20 text-center border-b border-brand-khaki/30">
+      <section className="bg-brand-silver/20 py-12 sm:py-20 text-center border-b border-brand-silver/30">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl sm:text-5xl md:text-7xl font-display text-brand-navy mb-4 sm:mb-6">Earn More. Live Free. Start Today.</h1>
           <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-10 px-2">
@@ -35,8 +35,8 @@ export default function Gigs() {
               { icon: Wrench, title: "Construction", count: "150+ Gigs" },
               { icon: PenTool, title: "Admin", count: "90+ Gigs" },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border border-gray-200 rounded-lg hover:border-brand-green cursor-pointer group transition-colors">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded flex items-center justify-center text-gray-600 group-hover:bg-brand-green group-hover:text-white transition-colors shrink-0">
+              <div key={i} className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border border-gray-200 rounded-lg hover:border-brand-red cursor-pointer group transition-colors">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded flex items-center justify-center text-gray-600 group-hover:bg-brand-red group-hover:text-white transition-colors shrink-0">
                   <item.icon size={20} className="sm:w-6 sm:h-6" />
                 </div>
                 <div>

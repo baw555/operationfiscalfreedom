@@ -5,7 +5,7 @@ import { DollarSign, Share2, Briefcase, Home } from "lucide-react";
 export default function Income() {
   return (
     <Layout>
-      <section className="bg-brand-green text-white py-20">
+      <section className="bg-brand-red text-white py-20">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-display mb-6">Multiple Income Streams</h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
@@ -22,7 +22,7 @@ export default function Income() {
                 title: "Gig Completion", 
                 desc: "Earn directly by completing tasks in our marketplace.",
                 icon: Briefcase,
-                color: "text-brand-green"
+                color: "text-brand-red"
               },
               { 
                 title: "Introduced Opportunities", 

@@ -81,7 +81,7 @@ export default function ApplyWebsite() {
       <Layout>
         <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
           <div className="container mx-auto px-4">
-            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-green mx-auto mb-4 sm:mb-6" />
+            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-red mx-auto mb-4 sm:mb-6" />
             <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6">Application Received!</h1>
             <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
               Thank you for applying for our free website grant! Our team will review your application 
@@ -89,7 +89,7 @@ export default function ApplyWebsite() {
             </p>
             <Button 
               onClick={() => setLocation("/")}
-              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
+              className="bg-brand-red hover:bg-brand-red/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
               data-testid="button-return-home"
             >
               Return to Home
@@ -279,16 +279,16 @@ export default function ApplyWebsite() {
                 />
               </div>
 
-              <div className="bg-brand-green/5 border border-brand-green/20 p-4 sm:p-6 rounded-lg space-y-4">
+              <div className="bg-brand-red/5 border border-brand-green/20 p-4 sm:p-6 rounded-lg space-y-4">
                 <h3 className="font-bold text-brand-navy flex items-center gap-2">
-                  <CheckCircle2 className="text-brand-green w-5 h-5" />
+                  <CheckCircle2 className="text-brand-red w-5 h-5" />
                   What's Included in the Grant:
                 </h3>
                 <ul className="grid md:grid-cols-2 gap-3 text-sm text-gray-700">
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Custom Design & Development</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Mobile Responsive Layout</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> SEO Optimization Setup</li>
-                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-green" /> Hosting & Domain Setup Help</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Custom Design & Development</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Mobile Responsive Layout</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> SEO Optimization Setup</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-brand-red" /> Hosting & Domain Setup Help</li>
                 </ul>
               </div>
 

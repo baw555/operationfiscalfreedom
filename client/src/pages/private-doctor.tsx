@@ -64,16 +64,16 @@ export default function PrivateDoctor() {
   if (submitted) {
     return (
       <Layout>
-        <section className="min-h-[60vh] bg-brand-green flex items-center justify-center py-12 sm:py-20">
+        <section className="min-h-[60vh] bg-brand-red flex items-center justify-center py-12 sm:py-20">
           <div className="container mx-auto px-4 text-center">
             <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-              <CheckCircle className="text-brand-green w-8 h-8 sm:w-10 sm:h-10" />
+              <CheckCircle className="text-brand-red w-8 h-8 sm:w-10 sm:h-10" />
             </div>
             <h1 className="text-3xl sm:text-5xl font-display text-white mb-4">Request Received!</h1>
             <p className="text-base sm:text-xl text-white/90 max-w-xl mx-auto mb-6 sm:mb-8 px-2">
               Our team will contact you within 24-48 hours with information about approved private healthcare providers in your area.
             </p>
-            <Button onClick={() => setSubmitted(false)} variant="outline" className="border-white text-white hover:bg-white hover:text-brand-green">
+            <Button onClick={() => setSubmitted(false)} variant="outline" className="border-white text-white hover:bg-white hover:text-brand-red">
               Submit Another Request
             </Button>
           </div>
@@ -166,29 +166,29 @@ export default function PrivateDoctor() {
               </p>
               <div className="space-y-4 sm:space-y-6">
                 <div className="flex gap-3 sm:gap-4">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-green/20 flex items-center justify-center shrink-0">
-                    <span className="text-brand-green font-bold text-sm sm:text-base">1</span>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-red/20 flex items-center justify-center shrink-0">
+                    <span className="text-brand-red font-bold text-sm sm:text-base">1</span>
                   </div>
                   <div>
-                    <h4 className="text-base sm:text-lg font-bold text-brand-khaki mb-1">Submit Your Information</h4>
+                    <h4 className="text-base sm:text-lg font-bold text-white mb-1">Submit Your Information</h4>
                     <p className="text-sm sm:text-base text-gray-400">Tell us about your situation and healthcare needs.</p>
                   </div>
                 </div>
                 <div className="flex gap-3 sm:gap-4">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-green/20 flex items-center justify-center shrink-0">
-                    <span className="text-brand-green font-bold text-sm sm:text-base">2</span>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-red/20 flex items-center justify-center shrink-0">
+                    <span className="text-brand-red font-bold text-sm sm:text-base">2</span>
                   </div>
                   <div>
-                    <h4 className="text-base sm:text-lg font-bold text-brand-khaki mb-1">We Find Providers</h4>
+                    <h4 className="text-base sm:text-lg font-bold text-white mb-1">We Find Providers</h4>
                     <p className="text-sm sm:text-base text-gray-400">We locate approved community care providers in your area.</p>
                   </div>
                 </div>
                 <div className="flex gap-3 sm:gap-4">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-green/20 flex items-center justify-center shrink-0">
-                    <span className="text-brand-green font-bold text-sm sm:text-base">3</span>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-red/20 flex items-center justify-center shrink-0">
+                    <span className="text-brand-red font-bold text-sm sm:text-base">3</span>
                   </div>
                   <div>
-                    <h4 className="text-base sm:text-lg font-bold text-brand-khaki mb-1">Get Connected</h4>
+                    <h4 className="text-base sm:text-lg font-bold text-white mb-1">Get Connected</h4>
                     <p className="text-sm sm:text-base text-gray-400">We provide you with provider information and guidance on next steps.</p>
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export default function PrivateDoctor() {
                   "I waited 4 months for a VA appointment. With the MISSION Act, I saw a private specialist in 2 weeks. 
                   Same quality care, no more waiting."
                 </p>
-                <p className="text-brand-khaki font-bold mt-2 text-sm sm:text-base">— Army Veteran, Texas</p>
+                <p className="text-white font-bold mt-2 text-sm sm:text-base">— Army Veteran, Texas</p>
               </div>
             </div>
 

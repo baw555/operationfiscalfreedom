@@ -11,7 +11,7 @@ export default function Businesses() {
           <p className="text-base sm:text-xl text-gray-400 max-w-2xl mx-auto mb-6 sm:mb-10 px-2">
             Join the largest network of veteran-owned businesses. Hire reliable talent and find new partners.
           </p>
-          <Button size="lg" className="bg-brand-green hover:bg-brand-green/90 text-white h-12 sm:h-14 px-6 sm:px-10 text-sm sm:text-lg w-full sm:w-auto">
+          <Button size="lg" className="bg-brand-red hover:bg-brand-red/90 text-white h-12 sm:h-14 px-6 sm:px-10 text-sm sm:text-lg w-full sm:w-auto">
             List Your Business
           </Button>
         </div>

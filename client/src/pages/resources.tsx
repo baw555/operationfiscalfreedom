@@ -26,7 +26,7 @@ export default function Resources() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {resources.map((item, i) => (
-              <Card key={i} className="hover:shadow-lg transition-shadow border-t-4 border-t-brand-green">
+              <Card key={i} className="hover:shadow-lg transition-shadow border-t-4 border-t-brand-red">
                 <CardHeader className="p-4 sm:p-6">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3 sm:mb-4 text-brand-navy">
                     <item.icon size={20} className="sm:w-6 sm:h-6" />

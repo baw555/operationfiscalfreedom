@@ -23,17 +23,17 @@ export default function Login() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-gray-300 text-sm">Password</Label>
-                <a href="#" className="text-xs text-brand-khaki hover:underline">Forgot password?</a>
+                <a href="#" className="text-xs text-white hover:underline">Forgot password?</a>
               </div>
               <Input id="password" type="password" className="bg-brand-black/50 border-white/10 text-white" />
             </div>
 
-            <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white font-bold h-11 sm:h-12">
+            <Button className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-11 sm:h-12">
               Login
             </Button>
 
             <p className="text-center text-xs sm:text-sm text-gray-500 mt-4">
-              Don't have an account? <Link href="/join" className="text-brand-khaki font-bold hover:underline cursor-pointer">Join Mission</Link>
+              Don't have an account? <Link href="/join" className="text-white font-bold hover:underline cursor-pointer">Join Mission</Link>
             </p>
           </form>
         </div>
