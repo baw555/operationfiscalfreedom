@@ -4,101 +4,215 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 import logoStacked from "@assets/NavStar-Stacked_1767699657516.png";
+import heroBg from "@assets/generated_images/hero_background_veterans.png";
+import somethingImg from "@assets/Screenshot_2026-01-06_6.59.01_AM_1767701107020.png";
+import someoneImg from "@assets/Screenshot_2026-01-06_6.57.21_AM_1767701107023.png";
+import answerCallImg from "@assets/Screenshot_2026-01-06_6.55.18_AM_1767701107025.png";
 
 export default function Home() {
+  const [animationPhase, setAnimationPhase] = useState(0);
+  const [showContent, setShowContent] = useState(false);
+
+  useEffect(() => {
+    const sequence = [
+      { phase: 1, delay: 500 },
+      { phase: 2, delay: 3000 },
+      { phase: 3, delay: 5500 },
+      { phase: 4, delay: 8000 },
+      { phase: 5, delay: 10500 },
+    ];
+
+    sequence.forEach(({ phase, delay }) => {
+      setTimeout(() => {
+        setAnimationPhase(phase);
+        if (phase === 5) {
+          setTimeout(() => setShowContent(true), 500);
+        }
+      }, delay);
+    });
+  }, []);
+
   return (
     <Layout>
-      {/* Hero Section - INTENSE PATRIOTIC */}
-      <section className="relative min-h-[75vh] sm:min-h-[85vh] flex items-center justify-center overflow-hidden bg-brand-navy">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-navy via-brand-navy to-brand-red/30" />
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-brand-red/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-brand-navy to-transparent" />
-        </div>
-
-        <div className="container relative z-10 px-3 sm:px-4 py-10 sm:py-20 text-center max-w-5xl mx-auto">
-          {/* Logo */}
-          <div className="flex justify-center mb-6 sm:mb-8 animate-in fade-in zoom-in duration-1000">
-            <img src={logoStacked} alt="NavigatorUSA" className="h-28 sm:h-36 md:h-44 object-contain drop-shadow-2xl" />
+      {/* Animated Hero Intro */}
+      {animationPhase < 5 && (
+        <section className="relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
+          {/* Phase 1: Something */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-1000",
+            animationPhase === 1 ? "opacity-100" : "opacity-0"
+          )}>
+            <div className="absolute inset-0">
+              <img 
+                src={somethingImg} 
+                alt="Something is coming" 
+                className={cn(
+                  "w-full h-full object-cover transition-all duration-500",
+                  animationPhase === 1 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                )}
+              />
+              <div className="absolute inset-0 bg-black/40" />
+            </div>
+            <h1 className={cn(
+              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-700",
+              animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            )}>
+              Something...
+            </h1>
           </div>
 
-          <div className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-brand-red text-white mb-4 sm:mb-8 shadow-lg shadow-brand-red/30 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-            <span className="font-bold text-xs sm:text-sm tracking-wider uppercase">Veterans' Family Resources</span>
-            <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
+          {/* Phase 2: Someone */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-1000",
+            animationPhase === 2 ? "opacity-100" : "opacity-0"
+          )}>
+            <div className="absolute inset-0">
+              <img 
+                src={someoneImg} 
+                alt="Someone needs help" 
+                className={cn(
+                  "w-full h-full object-cover transition-all duration-500",
+                  animationPhase === 2 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                )}
+              />
+              <div className="absolute inset-0 bg-black/40" />
+            </div>
+            <h1 className={cn(
+              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-700",
+              animationPhase === 2 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            )}>
+              Someone...
+            </h1>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white mb-4 sm:mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
-            Somebody, Something is Coming.
-            <br />
-            <span className="text-brand-red drop-shadow-lg">Will You Be Ready to Answer the Call?</span>
-          </h1>
-
-          <p className="text-xl sm:text-2xl md:text-4xl text-white mb-4 sm:mb-6 max-w-4xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 px-2 font-display">
-            Gear Up For Your Family to Face 2026 and Beyond
-          </p>
-          
-          {/* Four Pillars - INTENSE */}
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500 flex items-center justify-center mb-2 shadow-lg shadow-green-500/30">
-                <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              </div>
-              <span className="text-green-400 font-display text-lg sm:text-2xl md:text-3xl">Financial</span>
+          {/* Phase 3: Will you be ready */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-1000",
+            animationPhase === 3 ? "opacity-100" : "opacity-0"
+          )}>
+            <div className="absolute inset-0">
+              <img 
+                src={answerCallImg} 
+                alt="Economic challenges ahead" 
+                className={cn(
+                  "w-full h-full object-cover transition-all duration-500",
+                  animationPhase === 3 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                )}
+              />
+              <div className="absolute inset-0 bg-black/40" />
             </div>
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-brand-blue flex items-center justify-center mb-2 shadow-lg shadow-brand-blue/30">
-                <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              </div>
-              <span className="text-brand-blue font-display text-lg sm:text-2xl md:text-3xl">Spiritual</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-brand-red flex items-center justify-center mb-2 shadow-lg shadow-brand-red/30">
-                <Stethoscope className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              </div>
-              <span className="text-brand-red font-display text-lg sm:text-2xl md:text-3xl">Medical</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-brand-gold flex items-center justify-center mb-2 shadow-lg shadow-brand-gold/30">
-                <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-brand-navy" />
-              </div>
-              <span className="text-brand-gold font-display text-lg sm:text-2xl md:text-3xl">Holistic</span>
-            </div>
+            <h1 className={cn(
+              "relative z-10 text-3xl sm:text-5xl md:text-7xl font-display text-white tracking-wider text-center px-4 transition-all duration-700",
+              animationPhase === 3 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            )}>
+              Will You Be Ready<br />To Answer The Call?
+            </h1>
           </div>
 
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 w-full max-w-4xl mx-auto px-2">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-              <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-white hover:bg-gray-100 text-brand-navy border-2 border-white h-12 md:h-14 px-4 text-sm md:text-base w-full shadow-lg cursor-pointer font-bold")}>
-                  Free VA Rating Tool
-              </Link>
-              <Link href="/fin-ops" className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white border-2 border-brand-blue h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
-                  Find Fin-Ops Work
-              </Link>
-              <Link href="/apply-website" className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy border-2 border-brand-gold h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
-                  Get Free Business Website
-              </Link>
-              <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold")}>
-                  Apply for Startup Grant
-              </Link>
-              <Link href="/investors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-silver text-brand-silver hover:bg-brand-silver hover:text-brand-navy h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold")}>
-                  Connect with Investors
-              </Link>
-              <Link href="/private-doctor" className={cn(buttonVariants({ size: "lg" }), "bg-brand-red hover:bg-brand-red/90 text-white border-2 border-brand-red h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg shadow-brand-red/30")}>
-                  VA Too Slow? Private Doctor
-              </Link>
+          {/* Phase 4: Fade to black */}
+          <div className={cn(
+            "absolute inset-0 bg-black transition-opacity duration-1000",
+            animationPhase === 4 ? "opacity-100" : "opacity-0"
+          )} />
+        </section>
+      )}
+
+      {/* Main Hero Section - After Animation */}
+      {animationPhase >= 5 && (
+        <section className={cn(
+          "relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-navy transition-opacity duration-1000",
+          showContent ? "opacity-100" : "opacity-0"
+        )}>
+          <div className="absolute inset-0 z-0">
+            <img 
+              src={heroBg} 
+              alt="Veterans standing together" 
+              className="w-full h-full object-cover opacity-40"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/70 to-brand-navy/50" />
+          </div>
+
+          <div className="container relative z-10 px-3 sm:px-4 py-10 sm:py-20 text-center max-w-5xl mx-auto">
+            {/* Logo */}
+            <div className="flex justify-center mb-6 sm:mb-8 animate-in fade-in zoom-in duration-1000">
+              <img src={logoStacked} alt="NavigatorUSA" className="h-24 sm:h-32 md:h-40 object-contain drop-shadow-2xl" />
             </div>
-            <p className="text-gray-300 text-xs sm:text-sm mt-4 text-center">
-              For those who do not qualify for grants, investors may make offers
-            </p>
-            <div className="mt-4 md:mt-6 text-center">
-              <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-green-500 hover:bg-green-600 text-white font-bold h-11 md:h-12 px-4 md:px-6 text-xs md:text-sm cursor-pointer w-full md:w-auto shadow-lg")}>
-                Buying a New Home? Get Your Furniture Paid For
-              </Link>
+
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white mb-4 sm:mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+              Gear Up Financially, Physically<br />and Mentally for Your Family
+              <br />
+              <span className="text-brand-red">in 2026 and Beyond</span>
+            </h1>
+
+            <div className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-brand-red text-white mb-6 sm:mb-8 shadow-lg shadow-brand-red/30 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
+              <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
+              <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-wider">NAVIGATOR USA ELITE</span>
+              <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
+            </div>
+            
+            {/* Four Pillars */}
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+              <div className="flex flex-col items-center">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-green-500 flex items-center justify-center mb-2 shadow-lg shadow-green-500/30">
+                  <DollarSign className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
+                </div>
+                <span className="text-green-400 font-display text-lg sm:text-2xl md:text-3xl">Financial</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-blue flex items-center justify-center mb-2 shadow-lg shadow-brand-blue/30">
+                  <Shield className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
+                </div>
+                <span className="text-brand-blue font-display text-lg sm:text-2xl md:text-3xl">Mental</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-red flex items-center justify-center mb-2 shadow-lg shadow-brand-red/30">
+                  <Heart className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
+                </div>
+                <span className="text-brand-red font-display text-lg sm:text-2xl md:text-3xl">Physical</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-gold flex items-center justify-center mb-2 shadow-lg shadow-brand-gold/30">
+                  <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-brand-navy" />
+                </div>
+                <span className="text-brand-gold font-display text-lg sm:text-2xl md:text-3xl">Spiritual</span>
+              </div>
+            </div>
+
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 w-full max-w-4xl mx-auto px-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-white hover:bg-gray-100 text-brand-navy border-2 border-white h-12 md:h-14 px-4 text-sm md:text-base w-full shadow-lg cursor-pointer font-bold")}>
+                    Free VA Rating Tool
+                </Link>
+                <Link href="/fin-ops" className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white border-2 border-brand-blue h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
+                    Find Fin-Ops Work
+                </Link>
+                <Link href="/apply-website" className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy border-2 border-brand-gold h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
+                    Get Free Business Website
+                </Link>
+                <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold")}>
+                    Apply for Startup Grant
+                </Link>
+                <Link href="/investors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-silver text-brand-silver hover:bg-brand-silver hover:text-brand-navy h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold")}>
+                    Connect with Investors
+                </Link>
+                <Link href="/private-doctor" className={cn(buttonVariants({ size: "lg" }), "bg-brand-red hover:bg-brand-red/90 text-white border-2 border-brand-red h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg shadow-brand-red/30")}>
+                    VA Too Slow? Private Doctor
+                </Link>
+              </div>
+              <p className="text-gray-300 text-xs sm:text-sm mt-4 text-center">
+                For those who do not qualify for grants, investors may make offers
+              </p>
+              <div className="mt-4 md:mt-6 text-center">
+                <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-green-500 hover:bg-green-600 text-white font-bold h-11 md:h-12 px-4 md:px-6 text-xs md:text-sm cursor-pointer w-full md:w-auto shadow-lg")}>
+                  Buying a New Home? Get Your Furniture Paid For
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* What We Do - INTENSE */}
       <section className="py-12 sm:py-20 bg-white">
