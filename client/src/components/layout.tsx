@@ -23,11 +23,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
-      {/* Disclaimer Banner */}
-      <div className="bg-brand-red text-white text-center py-2 px-4 font-bold text-sm uppercase tracking-wide animate-pulse">
-        TEST WEBSITE - NOT FINISHED - DOES NOT REFLECT FINAL FORM
-      </div>
-
       {/* Top Bar - INTENSE */}
       <div className="bg-brand-navy text-[10px] sm:text-xs py-2 sm:py-3 px-2 sm:px-4 text-center text-white uppercase tracking-wide sm:tracking-widest flex flex-col md:flex-row justify-center items-center gap-1 md:gap-8 border-b-2 border-brand-red">
         <span className="hidden sm:inline font-bold">Veterans' Family Resources</span>
