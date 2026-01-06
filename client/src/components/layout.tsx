@@ -63,10 +63,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {/* CTA Buttons - INTENSE */}
           <div className="hidden md:flex items-center gap-3">
              <Link href="/join" className={cn(buttonVariants({ variant: "outline" }), "border-brand-navy text-brand-navy hover:bg-brand-navy hover:text-white font-bold border-2 cursor-pointer")}>
-                Join Now
+                Enlist
             </Link>
             <Link href="/login" className={cn(buttonVariants(), "bg-brand-red hover:bg-brand-red/90 text-white font-bold border-2 border-brand-red cursor-pointer shadow-lg")}>
-                <LogIn className="mr-2 h-4 w-4" /> Login
+                <LogIn className="mr-2 h-4 w-4" /> Deploy
             </Link>
           </div>
 
@@ -98,14 +98,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
               className="flex items-center justify-center w-full py-4 border-2 border-brand-navy text-brand-navy font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-navy/10" 
               onClick={() => setMobileMenuOpen(false)}
             >
-              Join Now
+              Enlist
             </Link>
             <Link 
               href="/login" 
               className="flex items-center justify-center w-full py-4 bg-brand-red text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-red/80 shadow-lg" 
               onClick={() => setMobileMenuOpen(false)}
             >
-              Login
+              Deploy
             </Link>
           </div>
         )}
@@ -154,8 +154,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <li><Link href="/manual-help" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Manual Claim Help</Link></li>
               <li><Link href="/affiliate" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Become an Affiliate</Link></li>
               <li><Link href="/become-investor" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Become an Investor</Link></li>
-              <li><Link href="/join" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Join Now</Link></li>
-              <li><Link href="/login" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Login</Link></li>
+              <li><Link href="/join" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Enlist</Link></li>
+              <li><Link href="/login" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Deploy</Link></li>
             </ul>
           </div>
         </div>
