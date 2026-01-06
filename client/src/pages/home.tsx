@@ -72,8 +72,8 @@ export default function Home() {
               <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-white hover:bg-gray-100 text-brand-navy border-2 border-white h-12 md:h-14 px-4 text-sm md:text-base w-full shadow-lg cursor-pointer font-bold")}>
                   Free VA Rating Tool
               </Link>
-              <Link href="/gigs" className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white border-2 border-brand-blue h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
-                  Find Gig Work
+              <Link href="/fin-ops" className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white border-2 border-brand-blue h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
+                  Find Fin-Ops Work
               </Link>
               <Link href="/apply-website" className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy border-2 border-brand-gold h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
                   Get Free Business Website
@@ -114,7 +114,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
             {[
               { icon: Shield, title: "VA Claims Support", desc: "Understand the system, appeal denied claims, and get the rating you deserve with our free software.", color: "brand-red" },
-              { icon: Briefcase, title: "Immediate Gig Work", desc: "Access flexible, remote or local gig work opportunities tailored for veteran skillsets.", color: "brand-blue" },
+              { icon: Briefcase, title: "Fin-Ops Opportunities", desc: "Access flexible, remote or local Financial Operations opportunities tailored for veteran skillsets.", color: "brand-blue" },
               { icon: DollarSign, title: "Income Streams", desc: "Build multiple revenue streams through referrals and veteran-owned business connections.", color: "green-500" },
             ].map((item, i) => (
               <Card key={i} className={`border-t-4 border-t-${item.color} hover:shadow-2xl transition-all shadow-lg`}>
@@ -185,7 +185,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Gig Work Callout - INTENSE */}
+      {/* Fin-Ops Callout - INTENSE */}
       <section className="py-12 sm:py-20 bg-gray-100">
         <div className="container mx-auto px-4">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border-2 border-brand-navy/10">
@@ -194,7 +194,7 @@ export default function Home() {
                 <div className="inline-block px-3 py-1.5 rounded bg-brand-red text-white font-bold text-xs uppercase tracking-wider mb-3 sm:mb-4 w-fit">
                   Immediate Income
                 </div>
-                <h2 className="text-2xl sm:text-4xl font-display text-brand-navy mb-4 sm:mb-6">Gig Work For Veterans</h2>
+                <h2 className="text-2xl sm:text-4xl font-display text-brand-navy mb-4 sm:mb-6">Fin-Ops For Veterans</h2>
                 <p className="text-sm sm:text-lg text-gray-600 mb-6 sm:mb-8">
                   Earn real money today. Flexible, remote, or local opportunities for every skill level. 
                   From sales and marketing to construction and logistics.
@@ -210,7 +210,7 @@ export default function Home() {
                     <Check className="text-brand-red h-5 w-5 sm:h-6 sm:w-6" /> Veteran-Preferred Hiring
                   </li>
                 </ul>
-                <Link href="/gigs" className={cn(buttonVariants(), "bg-brand-navy hover:bg-brand-navy/90 text-white self-start px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base cursor-pointer font-bold shadow-lg")}>
+                <Link href="/fin-ops" className={cn(buttonVariants(), "bg-brand-navy hover:bg-brand-navy/90 text-white self-start px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base cursor-pointer font-bold shadow-lg")}>
                     Start Earning <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </div>
@@ -234,7 +234,7 @@ export default function Home() {
         <div className="container mx-auto px-4 relative z-10">
           <h2 className="text-2xl sm:text-4xl md:text-6xl font-display mb-4 sm:mb-6 drop-shadow-lg">Ready To Take Command?</h2>
           <p className="text-base sm:text-xl mb-6 sm:mb-10 max-w-2xl mx-auto text-white/95 px-2">
-            Download the free software, find gigs, and start building your family's future today.
+            Download the free software, find Fin-Ops, and start building your family's future today.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
             <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-white text-brand-red hover:bg-gray-100 font-bold px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-lg cursor-pointer w-full sm:w-auto shadow-lg")}>

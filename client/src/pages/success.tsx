@@ -18,7 +18,7 @@ export default function SuccessStories() {
           <div className="grid md:grid-cols-2 gap-8">
             {[
               { name: "Sgt. Miller", branch: "USMC", result: "Rating increased from 30% to 90%", quote: "The software made it impossible to miss a step. I finally got what I deserved." },
-              { name: "Lt. Sarah J.", branch: "Navy", result: "Started a consulting gig", quote: "I found my first client on the marketplace within 48 hours. Now I'm fully independent." },
+              { name: "Lt. Sarah J.", branch: "Navy", result: "Started a consulting Fin-Op", quote: "I found my first client on the marketplace within 48 hours. Now I'm fully independent." },
               { name: "Cpl. Rodriguez", branch: "Army", result: "Built a recurring income stream", quote: "I referred 5 buddies to the program. They got help, and I built a steady monthly income." },
               { name: "Capt. Thompson", branch: "Air Force", result: "Launched a tech business", quote: "The veteran business network helped me find my first 10 employees. Invaluable." },
             ].map((story, i) => (

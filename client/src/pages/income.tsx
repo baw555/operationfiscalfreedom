@@ -19,8 +19,8 @@ export default function Income() {
           <div className="grid gap-6 max-w-4xl mx-auto">
             {[
               { 
-                title: "Gig Completion", 
-                desc: "Earn directly by completing tasks in our marketplace.",
+                title: "Fin-Ops Completion", 
+                desc: "Earn directly by completing Financial Operations in our marketplace.",
                 icon: Briefcase,
                 color: "text-brand-red"
               },
