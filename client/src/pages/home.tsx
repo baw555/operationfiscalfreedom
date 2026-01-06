@@ -41,10 +41,10 @@ export default function Home() {
 
     runAnimation();
     
-    // Loop every 36 seconds (19s animation + 7s extra hero + 10s pause)
+    // Loop every 43 seconds (19s animation + 14s extra hero + 10s pause)
     const loopInterval = setInterval(() => {
       runAnimation();
-    }, 36000);
+    }, 43000);
 
     return () => clearInterval(loopInterval);
   }, []);
@@ -182,16 +182,19 @@ export default function Home() {
               <img src={logoStacked} alt="NavigatorUSA" className="h-24 sm:h-32 md:h-40 object-contain drop-shadow-2xl" />
             </div>
 
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-white mb-4 sm:mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-white mb-1 sm:mb-2 leading-none animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
               GEAR UP
               <br />
-              <span className="text-brand-red text-2xl sm:text-4xl md:text-5xl lg:text-6xl">in 2026 and Beyond</span>
+              <span className="text-brand-red text-2xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight">in 2026 and Beyond</span>
             </h1>
 
-            <div className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-brand-red text-white mb-6 sm:mb-8 shadow-lg shadow-brand-red/30 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
-              <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
-              <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-wider">NAVIGATOR USA ELITE</span>
-              <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
+            <div className="flex flex-col items-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
+              <div className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-brand-red text-white shadow-lg shadow-brand-red/30">
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
+                <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-wider">NAVIGATOR USA ELITE</span>
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
+              </div>
+              <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase">Navy SEAL Owned and Operated</p>
             </div>
             
             {/* Four Pillars */}
