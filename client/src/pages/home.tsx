@@ -26,13 +26,14 @@ export default function Home() {
         { phase: 3, delay: 9000 },    // "Someone..." with soldiers
         { phase: 4, delay: 13000 },   // "Will you be ready..." with homeless vet
         { phase: 5, delay: 17000 },   // Fade to black
-        { phase: 6, delay: 19000 },   // Main hero
+        { phase: 6, delay: 19000 },   // "This time it isn't for God and Country..."
+        { phase: 7, delay: 25000 },   // Main hero
       ];
 
       sequence.forEach(({ phase, delay }) => {
         setTimeout(() => {
           setAnimationPhase(phase);
-          if (phase === 6) {
+          if (phase === 7) {
             setTimeout(() => setShowContent(true), 500);
           }
         }, delay);
@@ -41,10 +42,10 @@ export default function Home() {
 
     runAnimation();
     
-    // Loop every 43 seconds (19s animation + 14s extra hero + 10s pause)
+    // Loop every 57 seconds (25s animation + 21s extra hero + 10s pause + 1s buffer)
     const loopInterval = setInterval(() => {
       runAnimation();
-    }, 43000);
+    }, 57000);
 
     return () => clearInterval(loopInterval);
   }, []);
@@ -52,7 +53,7 @@ export default function Home() {
   return (
     <Layout>
       {/* Animated Hero Intro */}
-      {animationPhase < 6 && (
+      {animationPhase < 7 && (
         <section className="relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
           {/* Phase 0: Initial black */}
           <div className={cn(
@@ -158,11 +159,33 @@ export default function Home() {
             "absolute inset-0 bg-black transition-opacity duration-1500",
             animationPhase === 5 ? "opacity-100" : "opacity-0"
           )} />
+
+          {/* Phase 6: This time it isn't for God and Country */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center bg-black transition-all duration-1500",
+            animationPhase === 6 ? "opacity-100" : "opacity-0"
+          )}>
+            <div className="text-center px-4 max-w-4xl">
+              <h1 className={cn(
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white tracking-wider leading-relaxed transition-all duration-1000",
+                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+              )}>
+                This time it isn't for<br />
+                <span className="text-brand-red">God and Country.</span>
+              </h1>
+              <h2 className={cn(
+                "text-xl sm:text-3xl md:text-4xl lg:text-5xl font-display text-white tracking-wider mt-6 transition-all duration-1000 delay-500",
+                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+              )}>
+                It's for <span className="text-brand-blue">you</span>, your <span className="text-brand-gold">family</span><br />and <span className="text-green-400">each other</span>.
+              </h2>
+            </div>
+          </div>
         </section>
       )}
 
       {/* Main Hero Section - After Animation */}
-      {animationPhase >= 6 && (
+      {animationPhase >= 7 && (
         <section className={cn(
           "relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-navy transition-opacity duration-1000",
           showContent ? "opacity-100" : "opacity-0"
