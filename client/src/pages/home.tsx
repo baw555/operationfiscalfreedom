@@ -33,7 +33,7 @@ export default function Home() {
           </h1>
 
           <p className="text-lg sm:text-2xl md:text-3xl text-white mb-3 sm:mb-4 max-w-4xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 px-2 font-bold">
-            The Largest Network in the USA Unites:
+            Gear Up For Your Family to Face 2026 and Beyond
           </p>
           <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mb-6 sm:mb-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
             <span className="text-brand-green font-display text-xl sm:text-3xl md:text-4xl">Financial</span>
