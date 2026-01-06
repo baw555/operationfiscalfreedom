@@ -125,11 +125,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
               Gear up for your family to face 2026 and beyond. Financial. Spiritual. Medical. Holistic.
             </p>
-            <div className="flex gap-4">
-              <div className="w-10 h-10 bg-white/10 rounded flex items-center justify-center hover:bg-brand-red transition-colors cursor-pointer font-bold">X</div>
-              <div className="w-10 h-10 bg-white/10 rounded flex items-center justify-center hover:bg-brand-red transition-colors cursor-pointer font-bold">In</div>
-              <div className="w-10 h-10 bg-white/10 rounded flex items-center justify-center hover:bg-brand-red transition-colors cursor-pointer font-bold">Fb</div>
-            </div>
           </div>
 
           <div>
