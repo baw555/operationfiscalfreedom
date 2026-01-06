@@ -8,13 +8,8 @@ import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 
 const navItems = [
   { name: "About", href: "/about" },
-  { name: "Software", href: "/va-software" },
-  { name: "Manual Help", href: "/manual-help" },
   { name: "Fin-Ops", href: "/fin-ops" },
-  { name: "Businesses", href: "/businesses" },
-  { name: "Income", href: "/income" },
-  { name: "Resources", href: "/resources" },
-  { name: "Success", href: "/success" },
+  { name: "Vet-Biz-Owners", href: "/businesses" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
