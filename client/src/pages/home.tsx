@@ -223,6 +223,18 @@ export default function Home() {
               </h3>
             </div>
           </div>
+
+          {/* Skip Animation Button - Always visible during animation */}
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center z-50">
+            <Button 
+              onClick={toggleAnimation}
+              variant="outline"
+              className="border-2 border-white/40 text-white hover:bg-white/10 text-sm px-4 py-2 backdrop-blur-sm bg-black/20"
+            >
+              <Pause className="w-4 h-4 mr-2" />
+              Skip to Main
+            </Button>
+          </div>
         </section>
       )}
 
