@@ -26,16 +26,24 @@ export default function Home() {
             <span className="font-ui font-bold text-xs sm:text-sm tracking-wider uppercase text-white">Mission Active</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-display text-white mb-4 sm:mb-6 leading-[0.9] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
-            Operation <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400">Fiscal Freedom</span>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white mb-4 sm:mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+            Somebody, Something is Coming.
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-brand-gold to-brand-khaki">Will You Be Ready to Answer the Call?</span>
           </h1>
 
-          <p className="text-base sm:text-xl md:text-2xl text-gray-300 mb-6 sm:mb-10 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 px-2">
-            Veterans Helping Veterans Achieve Financial Independence.
-            <br />
-            <span className="text-brand-khaki text-sm sm:text-lg mt-2 block">Get your free VA rating software, access gig work, and earn referral income.</span>
+          <p className="text-lg sm:text-2xl md:text-3xl text-white mb-3 sm:mb-4 max-w-4xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 px-2 font-bold">
+            The Largest Network in the USA Unites:
           </p>
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mb-6 sm:mb-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+            <span className="text-brand-green font-display text-xl sm:text-3xl md:text-4xl">Financial</span>
+            <span className="text-white/40 font-display text-xl sm:text-3xl md:text-4xl">•</span>
+            <span className="text-brand-khaki font-display text-xl sm:text-3xl md:text-4xl">Spiritual</span>
+            <span className="text-white/40 font-display text-xl sm:text-3xl md:text-4xl">•</span>
+            <span className="text-red-400 font-display text-xl sm:text-3xl md:text-4xl">Medical</span>
+            <span className="text-white/40 font-display text-xl sm:text-3xl md:text-4xl">•</span>
+            <span className="text-brand-gold font-display text-xl sm:text-3xl md:text-4xl">Holistic</span>
+          </div>
 
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 w-full max-w-4xl mx-auto px-2">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
