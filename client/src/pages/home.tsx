@@ -199,25 +199,25 @@ export default function Home() {
 
           {/* Phase 6: This time it isn't for God and Country */}
           <div className={cn(
-            "absolute inset-0 flex items-center justify-center bg-black transition-all duration-1500",
+            "absolute inset-0 flex items-center justify-center bg-black transition-all duration-[2000ms] ease-in-out",
             animationPhase === 6 ? "opacity-100" : "opacity-0"
           )}>
             <div className="text-center px-4 max-w-4xl">
               <h1 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-red tracking-wider leading-tight transition-all duration-1000",
-                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-red tracking-wider leading-tight transition-all duration-[1500ms] ease-out",
+                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
               )}>
                 This time it isn't for "God and Country."
               </h1>
               <h2 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white tracking-wider mt-4 transition-all duration-1000 delay-300",
-                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white tracking-wider mt-4 transition-all duration-[1500ms] delay-700 ease-out",
+                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
               )}>
                 It's for you, your family
               </h2>
               <h3 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-blue tracking-wider mt-4 transition-all duration-1000 delay-500",
-                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-blue tracking-wider mt-4 transition-all duration-[1500ms] delay-[1400ms] ease-out",
+                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
               )}>
                 and each other.
               </h3>
