@@ -17,17 +17,18 @@ export default function Home() {
 
   useEffect(() => {
     const sequence = [
-      { phase: 1, delay: 500 },
-      { phase: 2, delay: 3000 },
-      { phase: 3, delay: 5500 },
-      { phase: 4, delay: 8000 },
-      { phase: 5, delay: 10500 },
+      { phase: 1, delay: 1000 },    // "We can feel it. It's coming."
+      { phase: 2, delay: 5000 },    // "Something..." with soldiers
+      { phase: 3, delay: 9000 },    // "Someone..." with economic chart
+      { phase: 4, delay: 13000 },   // "Will you be ready..." with homeless vet
+      { phase: 5, delay: 17000 },   // Fade to black
+      { phase: 6, delay: 19000 },   // Main hero
     ];
 
     sequence.forEach(({ phase, delay }) => {
       setTimeout(() => {
         setAnimationPhase(phase);
-        if (phase === 5) {
+        if (phase === 6) {
           setTimeout(() => setShowContent(true), 500);
         }
       }, delay);
@@ -37,90 +38,117 @@ export default function Home() {
   return (
     <Layout>
       {/* Animated Hero Intro */}
-      {animationPhase < 5 && (
+      {animationPhase < 6 && (
         <section className="relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
-          {/* Phase 1: Something */}
+          {/* Phase 0: Initial black */}
           <div className={cn(
-            "absolute inset-0 flex items-center justify-center transition-all duration-1000",
+            "absolute inset-0 bg-black transition-opacity duration-1000",
+            animationPhase === 0 ? "opacity-100" : "opacity-0"
+          )} />
+
+          {/* Phase 1: We can feel it */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-1500",
             animationPhase === 1 ? "opacity-100" : "opacity-0"
+          )}>
+            <div className="text-center px-4">
+              <h1 className={cn(
+                "text-4xl sm:text-6xl md:text-8xl font-display text-white tracking-wider transition-all duration-1000",
+                animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+              )}>
+                We can feel it.
+              </h1>
+              <h2 className={cn(
+                "text-3xl sm:text-5xl md:text-7xl font-display text-brand-red tracking-wider mt-4 transition-all duration-1000 delay-500",
+                animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+              )}>
+                It's coming.
+              </h2>
+            </div>
+          </div>
+
+          {/* Phase 2: Something - Soldiers */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-1500",
+            animationPhase === 2 ? "opacity-100" : "opacity-0"
           )}>
             <div className="absolute inset-0">
               <img 
                 src={somethingImg} 
                 alt="Something is coming" 
                 className={cn(
-                  "w-full h-full object-cover transition-all duration-500",
-                  animationPhase === 1 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                  "w-full h-full object-cover transition-all duration-1000",
+                  animationPhase === 2 ? "opacity-60 scale-105" : "opacity-0 scale-100"
                 )}
               />
-              <div className="absolute inset-0 bg-black/40" />
+              <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
-              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-700",
-              animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-1000",
+              animationPhase === 2 ? "opacity-100 scale-100" : "opacity-0 scale-90"
             )}>
               Something...
             </h1>
           </div>
 
-          {/* Phase 2: Someone */}
+          {/* Phase 3: Someone - Economic Chart */}
           <div className={cn(
-            "absolute inset-0 flex items-center justify-center transition-all duration-1000",
-            animationPhase === 2 ? "opacity-100" : "opacity-0"
-          )}>
-            <div className="absolute inset-0">
-              <img 
-                src={someoneImg} 
-                alt="Someone needs help" 
-                className={cn(
-                  "w-full h-full object-cover transition-all duration-500",
-                  animationPhase === 2 ? "opacity-60 scale-105" : "opacity-0 scale-100"
-                )}
-              />
-              <div className="absolute inset-0 bg-black/40" />
-            </div>
-            <h1 className={cn(
-              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-700",
-              animationPhase === 2 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-            )}>
-              Someone...
-            </h1>
-          </div>
-
-          {/* Phase 3: Will you be ready */}
-          <div className={cn(
-            "absolute inset-0 flex items-center justify-center transition-all duration-1000",
+            "absolute inset-0 flex items-center justify-center transition-all duration-1500",
             animationPhase === 3 ? "opacity-100" : "opacity-0"
           )}>
             <div className="absolute inset-0">
               <img 
                 src={answerCallImg} 
-                alt="Economic challenges ahead" 
+                alt="Economic challenges" 
                 className={cn(
-                  "w-full h-full object-cover transition-all duration-500",
+                  "w-full h-full object-cover transition-all duration-1000",
                   animationPhase === 3 ? "opacity-60 scale-105" : "opacity-0 scale-100"
                 )}
               />
-              <div className="absolute inset-0 bg-black/40" />
+              <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
-              "relative z-10 text-3xl sm:text-5xl md:text-7xl font-display text-white tracking-wider text-center px-4 transition-all duration-700",
+              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-1000",
               animationPhase === 3 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            )}>
+              Someone...
+            </h1>
+          </div>
+
+          {/* Phase 4: Will you be ready - Homeless Veteran */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-1500",
+            animationPhase === 4 ? "opacity-100" : "opacity-0"
+          )}>
+            <div className="absolute inset-0">
+              <img 
+                src={someoneImg} 
+                alt="Veteran needs help" 
+                className={cn(
+                  "w-full h-full object-cover transition-all duration-1000",
+                  animationPhase === 4 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                )}
+              />
+              <div className="absolute inset-0 bg-black/50" />
+            </div>
+            <h1 className={cn(
+              "relative z-10 text-3xl sm:text-5xl md:text-7xl font-display text-white tracking-wider text-center px-4 transition-all duration-1000",
+              animationPhase === 4 ? "opacity-100 scale-100" : "opacity-0 scale-90"
             )}>
               Will You Be Ready<br />To Answer The Call?
             </h1>
           </div>
 
-          {/* Phase 4: Fade to black */}
+          {/* Phase 5: Fade to black */}
           <div className={cn(
-            "absolute inset-0 bg-black transition-opacity duration-1000",
-            animationPhase === 4 ? "opacity-100" : "opacity-0"
+            "absolute inset-0 bg-black transition-opacity duration-1500",
+            animationPhase === 5 ? "opacity-100" : "opacity-0"
           )} />
         </section>
       )}
 
       {/* Main Hero Section - After Animation */}
-      {animationPhase >= 5 && (
+      {animationPhase >= 6 && (
         <section className={cn(
           "relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-navy transition-opacity duration-1000",
           showContent ? "opacity-100" : "opacity-0"
