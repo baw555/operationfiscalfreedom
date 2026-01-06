@@ -252,10 +252,10 @@ export default function Home() {
                 <span className="text-brand-blue font-display text-lg sm:text-2xl md:text-3xl">Physical</span>
               </div>
               <div className="flex flex-col items-center">
-                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-red flex items-center justify-center mb-2 shadow-lg shadow-brand-red/30">
-                  <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
+                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-gold flex items-center justify-center mb-2 shadow-lg shadow-brand-gold/30">
+                  <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-brand-navy" />
                 </div>
-                <span className="text-brand-red font-display text-lg sm:text-2xl md:text-3xl">Spiritual</span>
+                <span className="text-brand-gold font-display text-lg sm:text-2xl md:text-3xl">Faith</span>
               </div>
             </div>
 
