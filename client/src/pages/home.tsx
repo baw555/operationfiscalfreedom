@@ -41,10 +41,10 @@ export default function Home() {
 
     runAnimation();
     
-    // Loop every 29 seconds (19s animation + 10s pause)
+    // Loop every 36 seconds (19s animation + 7s extra hero + 10s pause)
     const loopInterval = setInterval(() => {
       runAnimation();
-    }, 29000);
+    }, 36000);
 
     return () => clearInterval(loopInterval);
   }, []);
@@ -182,10 +182,10 @@ export default function Home() {
               <img src={logoStacked} alt="NavigatorUSA" className="h-24 sm:h-32 md:h-40 object-contain drop-shadow-2xl" />
             </div>
 
-            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white mb-4 sm:mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
-              Gear Up Financially, Physically<br />and Mentally for Your Family
+            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-white mb-4 sm:mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+              GEAR UP
               <br />
-              <span className="text-brand-red">in 2026 and Beyond</span>
+              <span className="text-brand-red text-2xl sm:text-4xl md:text-5xl lg:text-6xl">in 2026 and Beyond</span>
             </h1>
 
             <div className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-brand-red text-white mb-6 sm:mb-8 shadow-lg shadow-brand-red/30 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
