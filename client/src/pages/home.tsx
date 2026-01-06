@@ -111,7 +111,7 @@ export default function Home() {
                 We can feel it.
               </h1>
               <h2 className={cn(
-                "text-3xl sm:text-5xl md:text-7xl font-display text-brand-red tracking-wider mt-4 transition-all duration-1000 delay-500",
+                "text-3xl sm:text-5xl md:text-7xl font-display text-brand-red tracking-wider mt-4 transition-all duration-1000 delay-[1500ms]",
                 animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
               )}>
                 It's coming.
