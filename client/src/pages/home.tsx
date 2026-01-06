@@ -1,7 +1,13 @@
 import { Layout } from "@/components/layout";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -253,35 +259,55 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 w-full max-w-4xl mx-auto px-2">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-white hover:bg-gray-100 text-brand-navy border-2 border-white h-12 md:h-14 px-4 text-sm md:text-base w-full shadow-lg cursor-pointer font-bold")}>
-                    Free VA Rating Tool
-                </Link>
-                <Link href="/fin-ops" className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white border-2 border-brand-blue h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
-                    Find Fin-Ops Work
-                </Link>
-                <Link href="/apply-website" className={cn(buttonVariants({ size: "lg" }), "bg-white hover:bg-gray-100 text-brand-navy border-2 border-white h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
-                    Get Free Business Website
-                </Link>
-                <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold")}>
-                    Apply for Startup Grant
-                </Link>
-                <Link href="/investors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-brand-silver text-brand-silver hover:bg-brand-silver hover:text-brand-navy h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold")}>
-                    Connect with Investors
-                </Link>
-                <Link href="/private-doctor" className={cn(buttonVariants({ size: "lg" }), "bg-brand-red hover:bg-brand-red/90 text-white border-2 border-brand-red h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg shadow-brand-red/30")}>
-                    VA Too Slow? Private Doctor
-                </Link>
-              </div>
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 w-full max-w-xl mx-auto px-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="w-full h-14 sm:h-16 text-lg sm:text-xl font-display bg-brand-red hover:bg-brand-red/90 text-white shadow-lg shadow-brand-red/30 border-2 border-white/20">
+                    Free Member Services
+                    <ChevronDown className="ml-2 h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-80 bg-white border-2 border-brand-navy/20 shadow-2xl" align="center">
+                  <Link href="/va-software">
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
+                      Free VA Rating Tool
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/fin-ops">
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
+                      Find Fin-Ops Work
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/apply-website">
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
+                      Get Free Business Website
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/apply-startup-grant">
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
+                      Apply for Startup Grant
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/investors">
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
+                      Connect with Investors
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/private-doctor">
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
+                      VA Too Slow? Private Doctor
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/new-home-furniture">
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
+                      New Home Furniture Assistance
+                    </DropdownMenuItem>
+                  </Link>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <p className="text-gray-300 text-xs sm:text-sm mt-4 text-center">
-                For those who do not qualify for grants, investors may make offers
+                Click above to access all free member services
               </p>
-              <div className="mt-4 md:mt-6 text-center">
-                <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white font-bold h-11 md:h-12 px-4 md:px-6 text-xs md:text-sm cursor-pointer w-full md:w-auto shadow-lg")}>
-                  Buying a New Home? Get Your Furniture Paid For
-                </Link>
-              </div>
             </div>
           </div>
         </section>
