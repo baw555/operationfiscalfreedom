@@ -167,18 +167,23 @@ export default function Home() {
           )}>
             <div className="text-center px-4 max-w-4xl">
               <h1 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white tracking-wider leading-relaxed transition-all duration-1000",
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-red tracking-wider leading-tight transition-all duration-1000",
                 animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-90"
               )}>
-                This time it isn't for<br />
-                <span className="text-brand-red">God and Country.</span>
+                This time it isn't for God and Country.
               </h1>
               <h2 className={cn(
-                "text-xl sm:text-3xl md:text-4xl lg:text-5xl font-display text-white tracking-wider mt-6 transition-all duration-1000 delay-500",
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white tracking-wider mt-4 transition-all duration-1000 delay-300",
                 animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-90"
               )}>
-                It's for <span className="text-brand-blue">you</span>, your <span className="text-brand-gold">family</span><br />and <span className="text-green-400">each other</span>.
+                It's for you, your family
               </h2>
+              <h3 className={cn(
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-blue tracking-wider mt-4 transition-all duration-1000 delay-500",
+                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+              )}>
+                and each other.
+              </h3>
             </div>
           </div>
         </section>
@@ -217,7 +222,7 @@ export default function Home() {
                 <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-wider">NAVIGATOR USA ELITE</span>
                 <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
               </div>
-              <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase">Navy SEAL Owned and Operated</p>
+              <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase shimmer-text">Navy SEAL Owned and Operated</p>
             </div>
             
             {/* Four Pillars */}

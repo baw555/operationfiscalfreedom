@@ -140,4 +140,29 @@
   .patriot-gradient {
     background: linear-gradient(180deg, hsl(352 84% 50%) 0%, hsl(216 72% 18%) 50%, hsl(352 84% 50%) 100%);
   }
+  
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.9) 40%,
+      rgba(255, 255, 255, 1) 50%,
+      rgba(255, 255, 255, 0.9) 60%,
+      rgba(255, 255, 255, 0.9) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 3s linear infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
