@@ -24,15 +24,16 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  /* Brand Colors */
-  --color-brand-green: hsl(94 30% 29%);
-  --color-brand-navy: hsl(213 54% 13%);
-  --color-brand-khaki: hsl(42 33% 66%);
-  --color-brand-black: hsl(0 0% 4%);
+  /* NavigatorUSA Brand Colors - INTENSE Patriotic Palette */
+  --color-brand-red: hsl(352 84% 50%);
+  --color-brand-navy: hsl(216 72% 18%);
+  --color-brand-blue: hsl(216 85% 45%);
   --color-brand-white: hsl(0 0% 100%);
-  --color-brand-gold: hsl(44 44% 54%);
-  --color-brand-red: hsl(6 59% 41%);
-  --color-brand-blue: hsl(207 55% 41%);
+  --color-brand-black: hsl(216 50% 8%);
+  --color-brand-silver: hsl(210 20% 85%);
+  --color-brand-gold: hsl(45 100% 50%);
+  --color-brand-green: hsl(145 63% 42%);
+  --color-brand-khaki: hsl(210 20% 75%);
 
   --font-display: "Bebas Neue", sans-serif;
   --font-body: "Montserrat", sans-serif;
@@ -44,67 +45,67 @@
 }
 
 :root {
-  /* Tactical Light Theme */
-  --background: 0 0% 98%; /* Off-white */
-  --foreground: 213 54% 13%; /* Patriot Navy */
+  /* NavigatorUSA Light Theme - INTENSE */
+  --background: 0 0% 100%;
+  --foreground: 216 72% 18%;
 
   --card: 0 0% 100%;
-  --card-foreground: 213 54% 13%;
+  --card-foreground: 216 72% 18%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 213 54% 13%;
+  --popover-foreground: 216 72% 18%;
 
-  --primary: 94 30% 29%; /* Tactical Green */
+  --primary: 352 84% 50%; /* Vibrant Red */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 42 33% 66%; /* Field Khaki */
-  --secondary-foreground: 213 54% 13%;
+  --secondary: 216 72% 18%; /* Deep Navy */
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 213 20% 90%;
-  --muted-foreground: 213 30% 40%;
+  --muted: 210 20% 95%;
+  --muted-foreground: 216 40% 40%;
 
-  --accent: 44 44% 54%; /* Honor Gold */
-  --accent-foreground: 213 54% 13%;
+  --accent: 216 85% 45%; /* Bright Blue */
+  --accent-foreground: 0 0% 100%;
 
-  --destructive: 6 59% 41%; /* Mission Red */
+  --destructive: 352 84% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 213 20% 85%;
-  --input: 213 20% 85%;
-  --ring: 94 30% 29%;
+  --border: 210 20% 85%;
+  --input: 210 20% 85%;
+  --ring: 352 84% 50%;
 
-  --radius: 0.25rem; /* Sharper corners for tactical look */
+  --radius: 0.375rem;
 }
 
 .dark {
-  /* Tactical Dark Theme */
-  --background: 0 0% 4%; /* Valor Black */
-  --foreground: 0 0% 95%;
+  /* NavigatorUSA Dark Theme - INTENSE */
+  --background: 216 50% 6%;
+  --foreground: 0 0% 98%;
 
-  --card: 213 54% 10%; /* Dark Navy tint */
-  --card-foreground: 0 0% 95%;
+  --card: 216 50% 10%;
+  --card-foreground: 0 0% 98%;
 
-  --popover: 213 54% 10%;
-  --popover-foreground: 0 0% 95%;
+  --popover: 216 50% 10%;
+  --popover-foreground: 0 0% 98%;
 
-  --primary: 94 30% 29%;
+  --primary: 352 84% 55%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 213 30% 20%;
-  --secondary-foreground: 0 0% 95%;
+  --secondary: 216 50% 20%;
+  --secondary-foreground: 0 0% 98%;
 
-  --muted: 213 30% 20%;
-  --muted-foreground: 213 20% 70%;
+  --muted: 216 30% 20%;
+  --muted-foreground: 210 20% 70%;
 
-  --accent: 44 44% 54%;
-  --accent-foreground: 213 54% 13%;
+  --accent: 216 85% 50%;
+  --accent-foreground: 0 0% 100%;
 
-  --destructive: 6 59% 41%;
+  --destructive: 352 84% 55%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 213 30% 20%;
-  --input: 213 30% 20%;
-  --ring: 94 30% 29%;
+  --border: 216 30% 25%;
+  --input: 216 30% 25%;
+  --ring: 352 84% 55%;
 }
 
 @layer base {
@@ -122,17 +123,21 @@
   }
 }
 
-/* Custom Utilities for Tactical Look */
+/* NavigatorUSA Intense Utilities */
 @layer utilities {
-  .tactical-border {
-    @apply border-2 border-primary/30 relative;
+  .nav-border {
+    @apply border-2 border-brand-red/40 relative;
   }
-  .tactical-corner::after {
-    content: '';
-    @apply absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-primary;
+  .nav-glow {
+    box-shadow: 0 0 20px rgba(226, 28, 61, 0.3), 0 0 40px rgba(226, 28, 61, 0.1);
   }
-  .tactical-corner::before {
-    content: '';
-    @apply absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-primary;
+  .nav-glow-blue {
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.3), 0 0 40px rgba(37, 99, 235, 0.1);
+  }
+  .intense-gradient {
+    background: linear-gradient(135deg, hsl(216 72% 18%) 0%, hsl(352 84% 35%) 50%, hsl(216 72% 18%) 100%);
+  }
+  .patriot-gradient {
+    background: linear-gradient(180deg, hsl(352 84% 50%) 0%, hsl(216 72% 18%) 50%, hsl(352 84% 50%) 100%);
   }
 }
