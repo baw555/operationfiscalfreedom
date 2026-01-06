@@ -228,28 +228,28 @@ export default function Home() {
             {/* Four Pillars */}
             <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
               <div className="flex flex-col items-center">
-                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-green-500 flex items-center justify-center mb-2 shadow-lg shadow-green-500/30">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-red flex items-center justify-center mb-2 shadow-lg shadow-brand-red/30">
                   <DollarSign className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
                 </div>
-                <span className="text-green-400 font-display text-lg sm:text-2xl md:text-3xl">Financial</span>
+                <span className="text-brand-red font-display text-lg sm:text-2xl md:text-3xl">Financial</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-white flex items-center justify-center mb-2 shadow-lg shadow-white/30">
+                  <Shield className="w-7 h-7 sm:w-9 sm:h-9 text-brand-navy" />
+                </div>
+                <span className="text-white font-display text-lg sm:text-2xl md:text-3xl">Mental</span>
               </div>
               <div className="flex flex-col items-center">
                 <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-blue flex items-center justify-center mb-2 shadow-lg shadow-brand-blue/30">
-                  <Shield className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
+                  <Heart className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
                 </div>
-                <span className="text-brand-blue font-display text-lg sm:text-2xl md:text-3xl">Mental</span>
+                <span className="text-brand-blue font-display text-lg sm:text-2xl md:text-3xl">Physical</span>
               </div>
               <div className="flex flex-col items-center">
                 <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-red flex items-center justify-center mb-2 shadow-lg shadow-brand-red/30">
-                  <Heart className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
+                  <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
                 </div>
-                <span className="text-brand-red font-display text-lg sm:text-2xl md:text-3xl">Physical</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-gold flex items-center justify-center mb-2 shadow-lg shadow-brand-gold/30">
-                  <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-brand-navy" />
-                </div>
-                <span className="text-brand-gold font-display text-lg sm:text-2xl md:text-3xl">Spiritual</span>
+                <span className="text-brand-red font-display text-lg sm:text-2xl md:text-3xl">Spiritual</span>
               </div>
             </div>
 
@@ -261,7 +261,7 @@ export default function Home() {
                 <Link href="/fin-ops" className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white border-2 border-brand-blue h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
                     Find Fin-Ops Work
                 </Link>
-                <Link href="/apply-website" className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy border-2 border-brand-gold h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
+                <Link href="/apply-website" className={cn(buttonVariants({ size: "lg" }), "bg-white hover:bg-gray-100 text-brand-navy border-2 border-white h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold shadow-lg")}>
                     Get Free Business Website
                 </Link>
                 <Link href="/apply-startup-grant" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "border-2 border-white text-white hover:bg-white hover:text-brand-navy h-12 md:h-14 px-4 text-sm md:text-base w-full cursor-pointer font-bold")}>
@@ -278,7 +278,7 @@ export default function Home() {
                 For those who do not qualify for grants, investors may make offers
               </p>
               <div className="mt-4 md:mt-6 text-center">
-                <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-green-500 hover:bg-green-600 text-white font-bold h-11 md:h-12 px-4 md:px-6 text-xs md:text-sm cursor-pointer w-full md:w-auto shadow-lg")}>
+                <Link href="/new-home-furniture" className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white font-bold h-11 md:h-12 px-4 md:px-6 text-xs md:text-sm cursor-pointer w-full md:w-auto shadow-lg")}>
                   Buying a New Home? Get Your Furniture Paid For
                 </Link>
               </div>
@@ -302,7 +302,7 @@ export default function Home() {
             {[
               { icon: Shield, title: "VA Claims Support", desc: "Understand the system, appeal denied claims, and get the rating you deserve with our free software.", color: "brand-red" },
               { icon: Briefcase, title: "Fin-Ops Opportunities", desc: "Access flexible, remote or local Financial Operations opportunities tailored for veteran skillsets.", color: "brand-blue" },
-              { icon: DollarSign, title: "Income Streams", desc: "Build multiple revenue streams through referrals and veteran-owned business connections.", color: "green-500" },
+              { icon: DollarSign, title: "Income Streams", desc: "Build multiple revenue streams through referrals and veteran-owned business connections.", color: "brand-blue" },
             ].map((item, i) => (
               <Card key={i} className={`border-t-4 border-t-${item.color} hover:shadow-2xl transition-all shadow-lg`}>
                 <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-6 text-center">
@@ -347,7 +347,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex gap-3 sm:gap-4">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-green-500 flex items-center justify-center shrink-0 shadow-lg">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-brand-blue flex items-center justify-center shrink-0 shadow-lg">
                     <Award className="text-white w-6 h-6 sm:w-7 sm:h-7" />
                   </div>
                   <div>
