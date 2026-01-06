@@ -7,6 +7,7 @@ import logoImage from "@assets/Navigaor_USA_Logo_396x86_1767699671480.png";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 
 const navItems = [
+  { name: "Home", href: "/" },
   { name: "About", href: "/about" },
   { name: "Fin-Ops", href: "/fin-ops" },
   { name: "Vet-Biz-Owners", href: "/businesses" },
