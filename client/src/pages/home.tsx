@@ -5,7 +5,7 @@ import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcas
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import logoStacked from "@assets/NavStar-Stacked_1767699657516.png";
+import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 import heroBg from "@assets/generated_images/hero_background_veterans.png";
 import somethingImg from "@assets/Screenshot_2026-01-06_6.59.01_AM_1767701107020.png";
 import someoneImg from "@assets/Screenshot_2026-01-06_6.57.21_AM_1767701107023.png";
