@@ -170,7 +170,7 @@ export default function Home() {
                 "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-red tracking-wider leading-tight transition-all duration-1000",
                 animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-90"
               )}>
-                This time it isn't for God and Country.
+                This time it isn't for "God and Country."
               </h1>
               <h2 className={cn(
                 "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white tracking-wider mt-4 transition-all duration-1000 delay-300",
