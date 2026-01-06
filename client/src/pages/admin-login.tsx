@@ -67,12 +67,12 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-brand-black flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Shield className="h-16 w-16 text-brand-green mx-auto mb-4" />
+          <Shield className="h-16 w-16 text-brand-red mx-auto mb-4" />
           <h1 className="text-3xl font-display text-white mb-2">Admin Portal</h1>
-          <p className="text-gray-400">Operation Fiscal Freedom Command Center</p>
+          <p className="text-gray-400">NavigatorUSA Command Center</p>
         </div>
 
-        <div className="bg-brand-navy p-8 rounded-xl border border-brand-green/30 shadow-xl">
+        <div className="bg-brand-navy p-8 rounded-xl border border-brand-red/30 shadow-xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-white">Email Address</Label>
@@ -110,7 +110,7 @@ export default function AdminLogin() {
             </div>
             <Button 
               type="submit"
-              className="w-full bg-brand-green hover:bg-brand-green/90 text-white font-bold h-12"
+              className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-12"
               disabled={loginMutation.isPending}
               data-testid="button-login"
             >

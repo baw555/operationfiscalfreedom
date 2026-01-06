@@ -1,9 +1,22 @@
-# Operation Fiscal Freedom
+# NavigatorUSA
 
 ## Overview
-A comprehensive veteran support platform providing free VA rating software, gig work marketplace, manual claim assistance, business launch support, and private doctor referrals for veterans experiencing VA delays. The platform includes a complete lead management system with public application forms and role-based portals for admins and affiliates.
+NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family support platform providing free VA rating software, gig work marketplace, manual claim assistance, business launch support with free website grants, startup funding grants up to $50,000, investor connections, furniture assistance ($3,000-$10,000) for veterans purchasing new homes, and private doctor referrals for VA delays. The platform includes a complete lead management system with public application forms and role-based portals for admins and affiliates.
+
+## Brand Identity
+- **Name**: NavigatorUSA
+- **Tagline**: Veterans' Family Resources
+- **Hero Message**: "Somebody, Something is Coming. Will You Be Ready to Answer the Call?"
+- **Sub-message**: "Gear Up For Your Family to Face 2026 and Beyond"
+- **Four Pillars**: Financial, Spiritual, Medical, Holistic
 
 ## Recent Changes
+- **January 2026**: Complete rebrand from Operation Fiscal Freedom to NavigatorUSA
+  - New INTENSE patriotic red/white/blue color scheme
+  - Updated all logos to NavigatorUSA star logo
+  - New tagline: "Veterans' Family Resources"
+  - Four pillars displayed: Financial, Spiritual, Medical, Holistic
+  - Updated all pages with NavigatorUSA branding
 - **December 2024**: Enhanced admin dashboard with expanded lead management
   - Added "Investors" tab for investor submission management
   - Added sub-navigation within Help Requests (6 categories: Get Help, Startup Grant, Furniture, Private Doctor, Website, General Contact)
@@ -18,20 +31,18 @@ A comprehensive veteran support platform providing free VA rating software, gig 
   - `/contact` submits to `/api/general-contact`
   - All forms show success screens after submission
 - **December 2024**: Added private doctor referral page with VA MISSION Act information
-  - New page at `/private-doctor` explaining veterans' rights to private care
-  - Contact form for private doctor information requests
-  - Reorganized home hero buttons into paired layout
 - **December 2024**: Added full lead management system with PostgreSQL database
-  - Public forms at `/affiliate` and `/get-help`
-  - Admin dashboard at `/admin/dashboard`
-  - Affiliate portal at `/affiliate/dashboard`
-  - Secure authentication with bcrypt and session management
 
 ## User Preferences
-- Military-tactical design aesthetic with brand colors: Tactical Green, Patriot Navy, Gold
+- INTENSE patriotic design aesthetic with red/white/blue color scheme
+- Brand Colors: 
+  - Primary Red: #E21C3D (Vibrant American flag red)
+  - Navy Blue: #1A365D (Deep patriotic navy)
+  - Bright Blue: #2563EB (Accent blue)
+  - White: #FFFFFF
+  - Gold: #EAB308 (Accent gold)
 - Typography: Bebas Neue for headings, Montserrat for body text
-- Emphasis on "Navy SEAL Owned Business" branding
-- Network size displayed as 150,000+ veterans
+- Network size displayed as 150,000+ veteran families
 
 ## Project Architecture
 
@@ -133,3 +144,9 @@ A comprehensive veteran support platform providing free VA rating software, gig 
 - `PATCH /api/affiliate/applications/:id` - Update application status
 - `GET /api/affiliate/help-requests` - Get assigned requests
 - `PATCH /api/affiliate/help-requests/:id` - Update request status
+
+## Logo Assets
+- Horizontal logo: `/attached_assets/NavStar-Horizontal_1767699671472.png`
+- Stacked logo: `/attached_assets/NavStar-Stacked_1767699657516.png`
+- Small logo: `/attached_assets/Navigaor_USA_Logo_396x86_1767699671480.png`
+- Favicon: `/attached_assets/NAV_USA_Logo_-_Stacked_1767699671481.png`

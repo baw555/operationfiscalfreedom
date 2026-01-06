@@ -65,15 +65,15 @@ export default function AffiliateApply() {
       <Layout>
         <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
           <div className="container mx-auto px-4">
-            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-green mx-auto mb-4 sm:mb-6" />
+            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-red mx-auto mb-4 sm:mb-6" />
             <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6">Application Received!</h1>
             <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-              Thank you for your interest in becoming an Operation Fiscal Freedom affiliate. 
+              Thank you for your interest in becoming a NavigatorUSA affiliate. 
               Our team will review your application and contact you within 24-48 hours.
             </p>
             <Button 
               onClick={() => setLocation("/")}
-              className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
+              className="bg-brand-red hover:bg-brand-red/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
               data-testid="button-return-home"
             >
               Return to Home
@@ -104,7 +104,7 @@ export default function AffiliateApply() {
               <p className="text-gray-600 text-xs sm:text-sm">Connect with 150,000+ veterans in our community</p>
             </div>
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
-              <DollarSign className="h-8 w-8 sm:h-12 sm:w-12 text-brand-green mx-auto mb-3 sm:mb-4" />
+              <DollarSign className="h-8 w-8 sm:h-12 sm:w-12 text-brand-red mx-auto mb-3 sm:mb-4" />
               <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Earn Commission</h3>
               <p className="text-gray-600 text-xs sm:text-sm">Competitive rates for veteran referrals</p>
             </div>

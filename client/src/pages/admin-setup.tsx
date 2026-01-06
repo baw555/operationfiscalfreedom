@@ -87,14 +87,14 @@ export default function AdminSetup() {
     return (
       <div className="min-h-screen bg-brand-black flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          <CheckCircle className="h-20 w-20 text-brand-green mx-auto mb-6" />
+          <CheckCircle className="h-20 w-20 text-brand-red mx-auto mb-6" />
           <h1 className="text-3xl font-display text-white mb-4" data-testid="text-success-title">Admin Account Created!</h1>
           <p className="text-gray-400 mb-8" data-testid="text-success-message">
             Your admin account has been set up successfully. You can now log in to the Admin Command Center.
           </p>
           <Button 
             onClick={() => setLocation("/admin/login")}
-            className="bg-brand-green hover:bg-brand-green/90 text-white font-bold px-8 py-6 text-lg"
+            className="bg-brand-red hover:bg-brand-red/90 text-white font-bold px-8 py-6 text-lg"
             data-testid="button-go-to-login"
           >
             Go to Admin Login
@@ -108,12 +108,12 @@ export default function AdminSetup() {
     <div className="min-h-screen bg-brand-black flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Shield className="h-16 w-16 text-brand-green mx-auto mb-4" />
+          <Shield className="h-16 w-16 text-brand-red mx-auto mb-4" />
           <h1 className="text-3xl font-display text-white mb-2" data-testid="text-page-title">Admin Setup</h1>
-          <p className="text-gray-400" data-testid="text-page-description">Create your first admin account for Operation Fiscal Freedom</p>
+          <p className="text-gray-400" data-testid="text-page-description">Create your first admin account for NavigatorUSA</p>
         </div>
 
-        <div className="bg-brand-navy p-8 rounded-xl border border-brand-green/30 shadow-xl">
+        <div className="bg-brand-navy p-8 rounded-xl border border-brand-red/30 shadow-xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-white">Full Name</Label>
@@ -177,7 +177,7 @@ export default function AdminSetup() {
             </div>
             <Button 
               type="submit"
-              className="w-full bg-brand-green hover:bg-brand-green/90 text-white font-bold h-12"
+              className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-12"
               disabled={setupMutation.isPending}
               data-testid="button-create-admin"
             >

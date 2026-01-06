@@ -67,12 +67,12 @@ export default function AffiliateLogin() {
     <div className="min-h-screen bg-brand-navy flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Users className="h-16 w-16 text-brand-khaki mx-auto mb-4" />
+          <Users className="h-16 w-16 text-brand-red mx-auto mb-4" />
           <h1 className="text-3xl font-display text-white mb-2">Affiliate Portal</h1>
-          <p className="text-gray-400">Operation Fiscal Freedom Partner Access</p>
+          <p className="text-gray-400">NavigatorUSA Partner Access</p>
         </div>
 
-        <div className="bg-brand-black p-8 rounded-xl border border-brand-khaki/30 shadow-xl">
+        <div className="bg-brand-black p-8 rounded-xl border border-brand-red/30 shadow-xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-white">Email Address</Label>
@@ -110,7 +110,7 @@ export default function AffiliateLogin() {
             </div>
             <Button 
               type="submit"
-              className="w-full bg-brand-khaki hover:bg-brand-khaki/90 text-brand-navy font-bold h-12"
+              className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-12"
               disabled={loginMutation.isPending}
               data-testid="button-login"
             >

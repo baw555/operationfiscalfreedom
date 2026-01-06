@@ -327,10 +327,10 @@ export default function AdminDashboard() {
       <header className="bg-brand-navy text-white shadow-lg">
         <div className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Shield className="h-8 w-8 text-brand-green" />
+            <Shield className="h-8 w-8 text-brand-red" />
             <div>
               <h1 className="font-display text-xl sm:text-2xl">Admin Command Center</h1>
-              <p className="text-sm text-gray-400">Operation Fiscal Freedom</p>
+              <p className="text-sm text-gray-400">NavigatorUSA</p>
             </div>
           </div>
           <div className="flex items-center gap-4">

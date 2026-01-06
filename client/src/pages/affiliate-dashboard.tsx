@@ -124,10 +124,10 @@ export default function AffiliateDashboard() {
       <header className="bg-brand-navy text-white shadow-lg">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Users className="h-8 w-8 text-brand-khaki" />
+            <Users className="h-8 w-8 text-brand-red" />
             <div>
               <h1 className="font-display text-2xl">Affiliate Portal</h1>
-              <p className="text-sm text-gray-400">Operation Fiscal Freedom</p>
+              <p className="text-sm text-gray-400">NavigatorUSA</p>
             </div>
           </div>
           <div className="flex items-center gap-4">

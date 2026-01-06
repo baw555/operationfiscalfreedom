@@ -11,7 +11,7 @@ export default function About() {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-display mb-4 sm:mb-6">About The Mission</h1>
           <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-2">
-            Operation Fiscal Freedom exists to help veterans achieve financial stability, powerful opportunities, and decisive control over their futures.
+            NavigatorUSA exists to help veterans achieve financial stability, powerful opportunities, and decisive control over their futures.
           </p>
         </div>
       </section>
@@ -29,8 +29,8 @@ export default function About() {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="bg-brand-green/10 p-4 sm:p-6 rounded-lg text-center">
-                <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-brand-green mx-auto mb-2 sm:mb-3" />
+              <div className="bg-brand-red/10 p-4 sm:p-6 rounded-lg text-center">
+                <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-brand-red mx-auto mb-2 sm:mb-3" />
                 <h3 className="font-bold text-brand-navy text-sm sm:text-base">Protection</h3>
               </div>
               <div className="bg-brand-navy/10 p-4 sm:p-6 rounded-lg text-center">
@@ -70,7 +70,7 @@ export default function About() {
       <section className="bg-brand-black py-12 sm:py-20 text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl sm:text-4xl font-display text-white mb-6 sm:mb-8">Join The Ranks</h2>
-          <Link href="/join" className={cn(buttonVariants({ size: "lg" }), "bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 sm:px-8 h-12 sm:h-14 cursor-pointer w-full sm:w-auto")}>
+          <Link href="/join" className={cn(buttonVariants({ size: "lg" }), "bg-brand-red hover:bg-brand-red/90 text-white font-bold px-6 sm:px-8 h-12 sm:h-14 cursor-pointer w-full sm:w-auto")}>
               Start Your Mission
           </Link>
         </div>
