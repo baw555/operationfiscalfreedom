@@ -143,7 +143,7 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* Phase 3: Someone - Soldiers */}
+          {/* Phase 3: Someone - Soldiers with War Effects */}
           <div className={cn(
             "absolute inset-0 flex items-center justify-center transition-all duration-1500",
             animationPhase === 3 ? "opacity-100" : "opacity-0"
@@ -151,16 +151,55 @@ export default function Home() {
             <div className="absolute inset-0">
               <img 
                 src={somethingImg} 
-                alt="Something is coming" 
+                alt="Soldiers geared up" 
                 className={cn(
                   "w-full h-full object-contain sm:object-cover transition-all duration-1000",
                   animationPhase === 3 ? "opacity-60 scale-105" : "opacity-0 scale-100"
                 )}
               />
-              <div className="absolute inset-0 bg-black/50" />
+              <div className="absolute inset-0 bg-black/40" />
+              
+              {/* War Effects Overlay */}
+              {animationPhase === 3 && (
+                <>
+                  {/* Flashing Lights / Explosions */}
+                  <div className="absolute top-[20%] left-[15%] w-4 h-4 bg-orange-500 rounded-full animate-pulse shadow-[0_0_30px_15px_rgba(255,165,0,0.6)]" style={{ animationDuration: '0.3s' }} />
+                  <div className="absolute top-[35%] right-[20%] w-6 h-6 bg-yellow-400 rounded-full animate-ping shadow-[0_0_40px_20px_rgba(255,255,0,0.5)]" style={{ animationDuration: '0.8s' }} />
+                  <div className="absolute bottom-[40%] left-[30%] w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-[0_0_25px_12px_rgba(255,0,0,0.6)]" style={{ animationDuration: '0.4s' }} />
+                  <div className="absolute top-[25%] left-[60%] w-5 h-5 bg-orange-400 rounded-full animate-ping shadow-[0_0_35px_18px_rgba(255,140,0,0.5)]" style={{ animationDuration: '0.6s' }} />
+                  <div className="absolute top-[45%] right-[35%] w-4 h-4 bg-yellow-500 rounded-full animate-pulse shadow-[0_0_30px_15px_rgba(255,200,0,0.6)]" style={{ animationDuration: '0.35s' }} />
+                  
+                  {/* Tracer Fire / Flak */}
+                  <div className="absolute top-[30%] left-0 w-20 h-0.5 bg-gradient-to-r from-transparent via-yellow-300 to-transparent animate-[tracerLeft_0.5s_linear_infinite]" />
+                  <div className="absolute top-[50%] right-0 w-16 h-0.5 bg-gradient-to-l from-transparent via-orange-400 to-transparent animate-[tracerRight_0.7s_linear_infinite]" />
+                  <div className="absolute top-[15%] left-[20%] w-12 h-0.5 bg-gradient-to-r from-transparent via-red-400 to-transparent animate-[tracerLeft_0.4s_linear_infinite]" style={{ animationDelay: '0.2s' }} />
+                  
+                  {/* Planes Flying Left to Right */}
+                  <div className="absolute top-[10%] animate-[flyPlane_4s_linear_infinite]">
+                    <svg className="w-12 h-6 sm:w-16 sm:h-8 text-gray-700 drop-shadow-lg" viewBox="0 0 64 32" fill="currentColor">
+                      <path d="M58 16L48 12V8L32 14L16 8V12L4 16L16 20V24L32 18L48 24V20L58 16Z" />
+                      <circle cx="10" cy="16" r="2" fill="#333" />
+                    </svg>
+                  </div>
+                  <div className="absolute top-[22%] animate-[flyPlane_5s_linear_infinite]" style={{ animationDelay: '1.5s' }}>
+                    <svg className="w-10 h-5 sm:w-14 sm:h-7 text-gray-600 drop-shadow-lg" viewBox="0 0 64 32" fill="currentColor">
+                      <path d="M58 16L48 12V8L32 14L16 8V12L4 16L16 20V24L32 18L48 24V20L58 16Z" />
+                      <circle cx="10" cy="16" r="2" fill="#333" />
+                    </svg>
+                  </div>
+                  <div className="absolute top-[8%] animate-[flyPlane_6s_linear_infinite]" style={{ animationDelay: '3s' }}>
+                    <svg className="w-8 h-4 sm:w-12 sm:h-6 text-gray-500 opacity-70 drop-shadow-lg" viewBox="0 0 64 32" fill="currentColor">
+                      <path d="M58 16L48 12V8L32 14L16 8V12L4 16L16 20V24L32 18L48 24V20L58 16Z" />
+                    </svg>
+                  </div>
+                  
+                  {/* Screen Flash Effect */}
+                  <div className="absolute inset-0 bg-white animate-[screenFlash_2s_ease-in-out_infinite] pointer-events-none" />
+                </>
+              )}
             </div>
             <h1 className={cn(
-              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-1000",
+              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-1000 drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]",
               animationPhase === 3 ? "opacity-100 scale-100" : "opacity-0 scale-90"
             )}>
               Someone...
