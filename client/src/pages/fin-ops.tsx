@@ -92,6 +92,37 @@ export default function FinOps() {
           </div>
         </div>
       </section>
+
+      <section className="py-12 sm:py-16 bg-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-6 sm:mb-8 text-center">Real Earnings Examples</h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="bg-white p-5 sm:p-6 rounded-xl shadow-md border-l-4 border-brand-red">
+                <h4 className="font-bold text-brand-navy mb-2">Parts Supplier</h4>
+                <p className="text-sm text-gray-600 mb-2">$138,000 FedEx spend → 42% savings</p>
+                <p className="text-lg font-bold text-brand-red">$452/month commission</p>
+              </div>
+              <div className="bg-white p-5 sm:p-6 rounded-xl shadow-md border-l-4 border-brand-blue">
+                <h4 className="font-bold text-brand-navy mb-2">Textiles Company</h4>
+                <p className="text-sm text-gray-600 mb-2">$150,000 UPS spend → 31% savings</p>
+                <p className="text-lg font-bold text-brand-blue">$325/month commission</p>
+              </div>
+              <div className="bg-white p-5 sm:p-6 rounded-xl shadow-md border-l-4 border-brand-gold">
+                <h4 className="font-bold text-brand-navy mb-2">Retailer</h4>
+                <p className="text-sm text-gray-600 mb-2">$1.2M freight spend → 36% savings</p>
+                <p className="text-lg font-bold text-brand-gold">$1,728/month commission</p>
+              </div>
+              <div className="bg-white p-5 sm:p-6 rounded-xl shadow-md border-l-4 border-brand-red">
+                <h4 className="font-bold text-brand-navy mb-2">Apparel Manufacturer</h4>
+                <p className="text-sm text-gray-600 mb-2">$5M UPS spend → 26% savings</p>
+                <p className="text-lg font-bold text-brand-red">$8,320/month commission</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </Layout>
   );
 }
