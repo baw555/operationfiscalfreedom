@@ -349,10 +349,10 @@ export class DatabaseStorage implements IStorage {
 
   // VLT Intake
   async createVltIntake(intake: InsertVltIntake): Promise<VltIntake> {
-    // Lead routing logic based on service type
+    // Lead routing logic based on issue type
     const routedTo =
-      intake.serviceType === "credits" ? "CPA" :
-      intake.serviceType === "tax_resolution" ? "Tax Attorney" :
+      intake.issue === "credits" ? "CPA" :
+      intake.issue === "resolution" ? "Tax Attorney" :
       "General";
 
     console.log("NEW LEAD:", {
@@ -376,7 +376,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateVltIntake(id: number, updates: Partial<VltIntake>): Promise<VltIntake | undefined> {
     const [intake] = await db.update(vltIntake)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(vltIntake.id, id))
       .returning();
     return intake || undefined;
