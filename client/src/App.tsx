@@ -129,6 +129,7 @@ function Router() {
       <Route path="/veteran-led-tax/resources/business-loans" component={VLTBusinessLoans} />
       <Route path="/veteran-led-tax/resources/guides" component={VLTGuides} />
       <Route path="/veteran-led-tax/apps" component={VLTApps} />
+      <Route path="/veteran-led-tax/apps/all" component={VLTApps} />
       <Route path="/veteran-led-tax/apps/crm" component={VLTCRM} />
       <Route path="/veteran-led-tax/apps/wotc" component={VLTWOTC} />
       <Route path="/veteran-led-tax/apps/smartfile" component={VLTSmartFile} />
