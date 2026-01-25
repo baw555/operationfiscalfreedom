@@ -35,6 +35,7 @@ import MerchantServices from "@/pages/merchant-services";
 import MyLocker from "@/pages/my-locker";
 import Shipping from "@/pages/shipping";
 import LogisticsOverview from "@/pages/logistics-overview";
+import BestPractices from "@/pages/best-practices";
 
 function Router() {
   return (
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/my-locker" component={MyLocker} />
       <Route path="/shipping" component={Shipping} />
       <Route path="/logistics-overview" component={LogisticsOverview} />
+      <Route path="/best-practices" component={BestPractices} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />

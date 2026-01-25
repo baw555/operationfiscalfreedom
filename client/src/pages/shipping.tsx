@@ -31,13 +31,22 @@ export default function Shipping() {
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-6">
               Leveraging over 50 years of logistics intelligence and data analytics, we provide Contract Optimization, Audit, and Data Analysis services to help shippers uncover significant, sustainable savings that consistently outperform what can be achieved through internal efforts.
             </p>
-            <Link 
-              href="/logistics-overview"
-              className={cn(buttonVariants({ size: "lg" }), "bg-brand-red hover:bg-brand-red/90 text-white font-bold px-8")}
-              data-testid="link-full-overview"
-            >
-              CLICK HERE FOR FULL OVERVIEW <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link 
+                href="/logistics-overview"
+                className={cn(buttonVariants({ size: "lg" }), "bg-brand-red hover:bg-brand-red/90 text-white font-bold px-8")}
+                data-testid="link-full-overview"
+              >
+                CLICK HERE FOR FULL OVERVIEW <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+              <Link 
+                href="/best-practices"
+                className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white font-bold px-8")}
+                data-testid="link-best-practices"
+              >
+                CLICK HERE FOR BEST PRACTICES FREIGHT & PARCEL <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto mb-12">
