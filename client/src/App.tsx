@@ -42,6 +42,19 @@ import DownloadRatePlaybook from "@/pages/download-rate-playbook";
 import DownloadFedExRates from "@/pages/download-fedex-rates";
 import DownloadUPSRates from "@/pages/download-ups-rates";
 import FinOp from "@/pages/fin-op";
+import VLTTaxPreparation from "@/pages/vlt/tax-preparation";
+import VLTTaxPlanning from "@/pages/vlt/tax-planning";
+import VLTTaxResolution from "@/pages/vlt/tax-resolution";
+import VLTTaxRecovery from "@/pages/vlt/tax-recovery";
+import VLTPayroll from "@/pages/vlt/payroll";
+import VLTSalesUseTaxDefense from "@/pages/vlt/sales-use-tax-defense";
+import VLTTaxCreditsIncentives from "@/pages/vlt/tax-credits-incentives";
+import VLTOutsourcedAccounting from "@/pages/vlt/outsourced-accounting";
+import VLTFractionalCFO from "@/pages/vlt/fractional-cfo";
+import VLTEntityStructuring from "@/pages/vlt/entity-structuring";
+import VLTIntake from "@/pages/vlt/intake";
+import VLTOurLegacy from "@/pages/vlt/our-legacy";
+import VLTServices from "@/pages/vlt/services";
 
 function Router() {
   return (
@@ -76,6 +89,19 @@ function Router() {
       <Route path="/download/fedex-rates" component={DownloadFedExRates} />
       <Route path="/download/ups-rates" component={DownloadUPSRates} />
       <Route path="/veteran-led-tax" component={FinOp} />
+      <Route path="/veteran-led-tax/our-legacy" component={VLTOurLegacy} />
+      <Route path="/veteran-led-tax/services" component={VLTServices} />
+      <Route path="/veteran-led-tax/services/tax-preparation" component={VLTTaxPreparation} />
+      <Route path="/veteran-led-tax/services/tax-planning" component={VLTTaxPlanning} />
+      <Route path="/veteran-led-tax/services/tax-resolution" component={VLTTaxResolution} />
+      <Route path="/veteran-led-tax/services/tax-recovery" component={VLTTaxRecovery} />
+      <Route path="/veteran-led-tax/services/payroll" component={VLTPayroll} />
+      <Route path="/veteran-led-tax/services/sales-use-tax-defense" component={VLTSalesUseTaxDefense} />
+      <Route path="/veteran-led-tax/services/tax-credits-incentives" component={VLTTaxCreditsIncentives} />
+      <Route path="/veteran-led-tax/services/outsourced-accounting" component={VLTOutsourcedAccounting} />
+      <Route path="/veteran-led-tax/services/fractional-cfo" component={VLTFractionalCFO} />
+      <Route path="/veteran-led-tax/services/entity-structuring" component={VLTEntityStructuring} />
+      <Route path="/veteran-led-tax/intake" component={VLTIntake} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />

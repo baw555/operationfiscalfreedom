@@ -17,25 +17,29 @@ const programs = [
         title: "Tax Preparation",
         description: "Streamlined intake, secure docs, and predictable filing workflows for individuals and businesses.",
         icon: FileText,
-        color: "blue"
+        color: "blue",
+        href: "/veteran-led-tax/services/tax-preparation"
       },
       {
         title: "Tax Planning",
         description: "Proactive planning: reduce taxes legally with clear strategy and pre-year-end execution.",
         icon: Calculator,
-        color: "green"
+        color: "green",
+        href: "/veteran-led-tax/services/tax-planning"
       },
       {
         title: "Tax Resolution",
         description: "Back taxes, notices, audits, and disputes—triage + action plan, then execute the pathway.",
         icon: Shield,
-        color: "red"
+        color: "red",
+        href: "/veteran-led-tax/services/tax-resolution"
       },
       {
         title: "Tax Recovery",
         description: "Review overpayments and amendment opportunities where appropriate—built around documentation.",
         icon: DollarSign,
-        color: "amber"
+        color: "amber",
+        href: "/veteran-led-tax/services/tax-recovery"
       }
     ]
   },
@@ -43,45 +47,51 @@ const programs = [
     category: "Business Ops",
     items: [
       {
-        title: "Bookkeeping / Reporting",
+        title: "Outsourced Accounting",
         description: "Clean books, clean decisions—monthly close, reports, and financial hygiene.",
         icon: BookOpen,
-        color: "purple"
+        color: "purple",
+        href: "/veteran-led-tax/services/outsourced-accounting"
       },
       {
-        title: "Profit Optimization",
-        description: "Improve margins with KPI discipline, expense controls, and operational execution support.",
+        title: "Tax Credits & Incentives",
+        description: "Maximize savings with R&D credits, WOTC, and other federal/state incentives.",
         icon: TrendingUp,
-        color: "emerald"
+        color: "emerald",
+        href: "/veteran-led-tax/services/tax-credits-incentives"
       },
       {
         title: "Fractional CFO",
         description: "Budgeting, forecasting, control systems, and accountability cadence.",
         icon: Briefcase,
-        color: "indigo"
+        color: "indigo",
+        href: "/veteran-led-tax/services/fractional-cfo"
       }
     ]
   },
   {
-    category: "Structure",
+    category: "Structure & Compliance",
     items: [
       {
         title: "Entity Structuring",
         description: "Choose and set up the right business structure for tax efficiency and liability protection.",
         icon: Building,
-        color: "slate"
+        color: "slate",
+        href: "/veteran-led-tax/services/entity-structuring"
       },
       {
-        title: "Controls & Documentation",
-        description: "Build internal controls and documentation systems that hold up under scrutiny.",
+        title: "Payroll Services",
+        description: "Reliable payroll processing, tax deposits, and compliance for your team.",
+        icon: Users,
+        color: "teal",
+        href: "/veteran-led-tax/services/payroll"
+      },
+      {
+        title: "Sales & Use Tax Defense",
+        description: "Navigate state sales tax audits and disputes with expert representation.",
         icon: ClipboardCheck,
-        color: "teal"
-      },
-      {
-        title: "Financial Playbooks",
-        description: "Standard operating procedures for financial operations and decision-making.",
-        icon: PlayCircle,
-        color: "orange"
+        color: "orange",
+        href: "/veteran-led-tax/services/sales-use-tax-defense"
       }
     ]
   }
@@ -184,19 +194,23 @@ export default function FinOp() {
                   const colors = colorClasses[item.color];
                   const Icon = item.icon;
                   return (
-                    <Card 
-                      key={item.title} 
-                      className={cn("border-l-4 hover:shadow-lg transition-shadow", colors.border)}
-                      data-testid={`card-program-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                    >
-                      <CardContent className="p-6">
-                        <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center mb-4", colors.bg)}>
-                          <Icon className={cn("w-6 h-6", colors.icon)} />
-                        </div>
-                        <h4 className="font-bold text-brand-navy mb-2">{item.title}</h4>
-                        <p className="text-sm text-gray-600">{item.description}</p>
-                      </CardContent>
-                    </Card>
+                    <Link key={item.title} href={item.href}>
+                      <Card 
+                        className={cn("border-l-4 hover:shadow-lg transition-all cursor-pointer h-full", colors.border)}
+                        data-testid={`card-program-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <CardContent className="p-6">
+                          <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center mb-4", colors.bg)}>
+                            <Icon className={cn("w-6 h-6", colors.icon)} />
+                          </div>
+                          <h4 className="font-bold text-brand-navy mb-2">{item.title}</h4>
+                          <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                          <span className="text-brand-red text-sm font-medium flex items-center gap-1">
+                            Learn More <ArrowRight className="w-4 h-4" />
+                          </span>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
