@@ -3,7 +3,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { Truck, DollarSign, TrendingUp, Shield, CheckCircle, ArrowRight, BarChart, Package } from "lucide-react";
+import { Truck, DollarSign, TrendingUp, Shield, CheckCircle, ArrowRight, BarChart, Package, Download, FileText } from "lucide-react";
 
 export default function Shipping() {
   return (
@@ -143,6 +143,125 @@ export default function Shipping() {
                 Any organization that pays its own freight invoices and manages relationships with logistics providers. ICC's client base spans a broad range of industries and revenue sizes. Shipping typically represents 3%–10% of gross revenue.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 sm:py-16 bg-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-3 text-center">Rate Increase Resources</h2>
+            <p className="text-sm sm:text-base text-gray-600 text-center mb-8 max-w-2xl mx-auto">
+              Download these rate comparison charts to share with prospects and demonstrate the dramatic shipping cost increases.
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <a 
+                href="/resources/FedEx_List_Rates_2026_vs_2025.pdf" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-orange-500 group"
+                data-testid="link-download-fedex-rates-2026"
+              >
+                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-orange-500/20 transition-colors">
+                  <FileText className="w-6 h-6 text-orange-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-brand-navy text-sm truncate">FedEx List Rates</h4>
+                  <p className="text-xs text-gray-500">2026 vs 2025</p>
+                </div>
+                <Download className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors shrink-0" />
+              </a>
+
+              <a 
+                href="/resources/FedEx_List_Rates_2025_vs_2020.pdf" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-orange-500 group"
+                data-testid="link-download-fedex-rates-5year"
+              >
+                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-orange-500/20 transition-colors">
+                  <FileText className="w-6 h-6 text-orange-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-brand-navy text-sm truncate">FedEx 5-Year Look Back</h4>
+                  <p className="text-xs text-gray-500">2025 vs 2020</p>
+                </div>
+                <Download className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors shrink-0" />
+              </a>
+
+              <a 
+                href="/resources/FedEx_Fee_Surcharge_Rates_2026_vs_2025.pdf" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-orange-500 group"
+                data-testid="link-download-fedex-fees-2026"
+              >
+                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-orange-500/20 transition-colors">
+                  <FileText className="w-6 h-6 text-orange-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-brand-navy text-sm truncate">FedEx Fees & Surcharges</h4>
+                  <p className="text-xs text-gray-500">2026 vs 2025</p>
+                </div>
+                <Download className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors shrink-0" />
+              </a>
+
+              <a 
+                href="/resources/FedEx_Fee_Surcharge_Rates_2025_vs_2020.pdf" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-orange-500 group"
+                data-testid="link-download-fedex-fees-5year"
+              >
+                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-orange-500/20 transition-colors">
+                  <FileText className="w-6 h-6 text-orange-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-brand-navy text-sm truncate">FedEx Fees 5-Year</h4>
+                  <p className="text-xs text-gray-500">2025 vs 2020</p>
+                </div>
+                <Download className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors shrink-0" />
+              </a>
+
+              <a 
+                href="/resources/UPS_Fee_Surcharge_Rates_2025_vs_2020.pdf" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-amber-700 group"
+                data-testid="link-download-ups-fees"
+              >
+                <div className="w-12 h-12 bg-amber-700/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-amber-700/20 transition-colors">
+                  <FileText className="w-6 h-6 text-amber-700" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-brand-navy text-sm truncate">UPS Fees & Surcharges</h4>
+                  <p className="text-xs text-gray-500">2025 vs 2020</p>
+                </div>
+                <Download className="w-5 h-5 text-gray-400 group-hover:text-amber-700 transition-colors shrink-0" />
+              </a>
+
+              <a 
+                href="/resources/ICC_Rate_Increase_Playbook_2025.pdf" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-brand-blue group"
+                data-testid="link-download-playbook"
+              >
+                <div className="w-12 h-12 bg-brand-blue/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-brand-blue/20 transition-colors">
+                  <FileText className="w-6 h-6 text-brand-blue" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-brand-navy text-sm truncate">ICC Rate Increase Playbook</h4>
+                  <p className="text-xs text-gray-500">2025 Strategies</p>
+                </div>
+                <Download className="w-5 h-5 text-gray-400 group-hover:text-brand-blue transition-colors shrink-0" />
+              </a>
+            </div>
+
+            <p className="text-xs text-gray-500 text-center mt-6">
+              All rate charts courtesy of ICC Logistics Services, Inc.
+            </p>
           </div>
         </div>
       </section>
