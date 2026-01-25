@@ -181,12 +181,41 @@ export async function registerRoutes(
     try {
       const data = insertVltIntakeSchema.parse(req.body);
       const intake = await storage.createVltIntake(data);
+      
+      // Forward to CRM webhook if configured
+      if (process.env.CRM_WEBHOOK_URL) {
+        fetch(process.env.CRM_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...data, routedTo: intake.routedTo }),
+        }).catch(err => console.error("CRM webhook failed:", err));
+      }
+      
       res.status(201).json({ success: true, id: intake.id, routedTo: intake.routedTo });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to submit intake form" });
+    }
+  });
+
+  // CRM webhook forwarder
+  app.post("/api/crm-webhook", async (req, res) => {
+    try {
+      if (!process.env.CRM_WEBHOOK_URL) {
+        return res.status(500).json({ message: "CRM webhook not configured" });
+      }
+      
+      await fetch(process.env.CRM_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req.body),
+      });
+      
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ message: "Webhook forwarding failed" });
     }
   });
 
