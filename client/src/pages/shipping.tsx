@@ -18,6 +18,10 @@ export default function Shipping() {
             0%, 100% { background-position: -200% center; }
             50% { background-position: 200% center; }
           }
+          @keyframes glistenAlt {
+            0%, 100% { background-position: -200% center; }
+            50% { background-position: 200% center; }
+          }
           .animate-truck {
             animation: moveRight 10s linear infinite;
           }
@@ -42,7 +46,7 @@ export default function Shipping() {
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: glisten 3s ease-in-out infinite;
+            animation: glisten 30s ease-in-out infinite;
           }
           .glisten-logo {
             background: linear-gradient(
@@ -57,7 +61,8 @@ export default function Shipping() {
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: glisten 3s ease-in-out infinite;
+            animation: glistenAlt 30s ease-in-out infinite;
+            animation-delay: 15s;
           }
         `}</style>
         
