@@ -85,6 +85,9 @@ import VLTEnergyTaxCredits from "@/pages/vlt/tax-credits/energy-tax-credits";
 import VLTPaidFamilyLeaveCredit from "@/pages/vlt/tax-credits/paid-family-leave-credit";
 import VLTDisabledAccessCredit from "@/pages/vlt/tax-credits/disabled-access-credit";
 import VLTArticles from "@/pages/vlt/articles/index";
+import VLTUnfiledTaxReturns from "@/pages/vlt/articles/unfiled-tax-returns";
+import VLTBackTaxes from "@/pages/vlt/articles/back-taxes";
+import VLTIRSAudit from "@/pages/vlt/articles/irs-audit";
 
 function Router() {
   return (
@@ -157,6 +160,9 @@ function Router() {
       <Route path="/veteran-led-tax/tax-news" component={VLTTaxNews} />
       <Route path="/veteran-led-tax/faqs" component={VLTFAQs} />
       <Route path="/veteran-led-tax/articles" component={VLTArticles} />
+      <Route path="/veteran-led-tax/articles/unfiled-tax-returns" component={VLTUnfiledTaxReturns} />
+      <Route path="/veteran-led-tax/articles/back-taxes" component={VLTBackTaxes} />
+      <Route path="/veteran-led-tax/articles/irs-audit" component={VLTIRSAudit} />
       <Route path="/veteran-led-tax/locations" component={VLTLocations} />
       <Route path="/veteran-led-tax/partners" component={VLTPartners} />
       <Route path="/veteran-led-tax/disclosures" component={VLTDisclosures} />
