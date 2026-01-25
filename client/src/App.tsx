@@ -55,6 +55,25 @@ import VLTEntityStructuring from "@/pages/vlt/entity-structuring";
 import VLTIntake from "@/pages/vlt/intake";
 import VLTOurLegacy from "@/pages/vlt/our-legacy";
 import VLTServices from "@/pages/vlt/services";
+import VLTResources from "@/pages/vlt/resources/index";
+import VLTIRSNotices from "@/pages/vlt/resources/irs-notices";
+import VLTAuditRepresentation from "@/pages/vlt/resources/audit-representation";
+import VLTWageGarnishments from "@/pages/vlt/resources/wage-garnishments";
+import VLTFormsAndLetters from "@/pages/vlt/resources/forms-and-letters";
+import VLTBusinessLoans from "@/pages/vlt/resources/business-loans";
+import VLTGuides from "@/pages/vlt/resources/guides";
+import VLTApps from "@/pages/vlt/apps/index";
+import VLTCRM from "@/pages/vlt/apps/crm";
+import VLTWOTC from "@/pages/vlt/apps/wotc";
+import VLTSmartFile from "@/pages/vlt/apps/smartfile";
+import VLTVideos from "@/pages/vlt/videos";
+import VLTTaxNews from "@/pages/vlt/tax-news";
+import VLTFAQs from "@/pages/vlt/faqs";
+import VLTLocations from "@/pages/vlt/locations";
+import VLTPartners from "@/pages/vlt/partners";
+import VLTDisclosures from "@/pages/vlt/disclosures";
+import VLTPrivacy from "@/pages/vlt/privacy";
+import VLTTerms from "@/pages/vlt/terms";
 
 function Router() {
   return (
@@ -102,6 +121,25 @@ function Router() {
       <Route path="/veteran-led-tax/services/fractional-cfo" component={VLTFractionalCFO} />
       <Route path="/veteran-led-tax/services/entity-structuring" component={VLTEntityStructuring} />
       <Route path="/veteran-led-tax/intake" component={VLTIntake} />
+      <Route path="/veteran-led-tax/resources" component={VLTResources} />
+      <Route path="/veteran-led-tax/resources/irs-notices" component={VLTIRSNotices} />
+      <Route path="/veteran-led-tax/resources/audit-representation" component={VLTAuditRepresentation} />
+      <Route path="/veteran-led-tax/resources/wage-garnishments" component={VLTWageGarnishments} />
+      <Route path="/veteran-led-tax/resources/forms-and-letters" component={VLTFormsAndLetters} />
+      <Route path="/veteran-led-tax/resources/business-loans" component={VLTBusinessLoans} />
+      <Route path="/veteran-led-tax/resources/guides" component={VLTGuides} />
+      <Route path="/veteran-led-tax/apps" component={VLTApps} />
+      <Route path="/veteran-led-tax/apps/crm" component={VLTCRM} />
+      <Route path="/veteran-led-tax/apps/wotc" component={VLTWOTC} />
+      <Route path="/veteran-led-tax/apps/smartfile" component={VLTSmartFile} />
+      <Route path="/veteran-led-tax/videos" component={VLTVideos} />
+      <Route path="/veteran-led-tax/tax-news" component={VLTTaxNews} />
+      <Route path="/veteran-led-tax/faqs" component={VLTFAQs} />
+      <Route path="/veteran-led-tax/locations" component={VLTLocations} />
+      <Route path="/veteran-led-tax/partners" component={VLTPartners} />
+      <Route path="/veteran-led-tax/disclosures" component={VLTDisclosures} />
+      <Route path="/veteran-led-tax/privacy" component={VLTPrivacy} />
+      <Route path="/veteran-led-tax/terms" component={VLTTerms} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />

@@ -98,12 +98,12 @@ const programs = [
 ];
 
 const resources = [
-  { label: "IRS Notices 101", href: "#" },
-  { label: "Audit Readiness Checklist", href: "#" },
-  { label: "Business Close Process", href: "#" },
-  { label: "Cashflow Weekly Rhythm", href: "#" },
-  { label: "Entity Structuring Basics", href: "#" },
-  { label: "Video Library", href: "#" }
+  { label: "IRS Notices 101", href: "/veteran-led-tax/resources/irs-notices" },
+  { label: "Audit Representation", href: "/veteran-led-tax/resources/audit-representation" },
+  { label: "Forms & Letters", href: "/veteran-led-tax/resources/forms-and-letters" },
+  { label: "Business Loans", href: "/veteran-led-tax/resources/business-loans" },
+  { label: "Guides", href: "/veteran-led-tax/resources/guides" },
+  { label: "Video Library", href: "/veteran-led-tax/videos" }
 ];
 
 const stats = [
