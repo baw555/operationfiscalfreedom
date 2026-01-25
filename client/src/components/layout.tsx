@@ -49,8 +49,13 @@ function AnimatedNavigatorUSA({ variant = "topbar" }: { variant?: "topbar" | "na
 
 const navItems = [
   { name: "Home", href: "/" },
-  { name: "About", href: "/about" },
   { name: "Vet-Biz-Owners", href: "/businesses" },
+];
+
+const aboutSubItems = [
+  { name: "About", href: "/about" },
+  { name: "Mission Act Health", href: "/private-doctor" },
+  { name: "Refer & Earn", href: "/veteran-led-tax/finops-refer" },
 ];
 
 const finOpsSubItems = [
@@ -64,6 +69,7 @@ const finOpsSubItems = [
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [finOpsOpen, setFinOpsOpen] = useState(false);
 
   return (
@@ -102,12 +108,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}>
                 Home
             </Link>
-            <Link href="/about" className={cn(
-                "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
-                location === "/about" ? "text-brand-red border-brand-red" : "text-brand-navy"
-              )}>
-                About
-            </Link>
+            
+            <div className="relative" onMouseEnter={() => setAboutOpen(true)} onMouseLeave={() => setAboutOpen(false)}>
+              <button className={cn(
+                  "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location === "/about" || location === "/private-doctor" || location.includes("/finops-refer") ? "text-brand-red border-brand-red" : "text-brand-navy"
+                )}>
+                  About <ChevronDown className={cn("w-4 h-4 transition-transform", aboutOpen && "rotate-180")} />
+              </button>
+              {aboutOpen && (
+                <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                  {aboutSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className={cn(
+                        "block px-4 py-2 text-sm font-bold hover:bg-brand-red hover:text-white transition-colors cursor-pointer",
+                        location === item.href ? "text-brand-red bg-brand-red/10" : "text-brand-navy"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             
             <div className="relative" onMouseEnter={() => setFinOpsOpen(true)} onMouseLeave={() => setFinOpsOpen(false)}>
               <button className={cn(
@@ -177,13 +202,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               Home
             </Link>
-            <Link 
-              href="/about" 
-              className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              About
-            </Link>
+            
+            <div className="border-l-4 border-brand-red">
+              <button 
+                className="text-brand-red font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]"
+                onClick={() => setAboutOpen(!aboutOpen)}
+              >
+                About <ChevronDown className={cn("w-4 h-4 transition-transform", aboutOpen && "rotate-180")} />
+              </button>
+              {aboutOpen && (
+                <div className="pl-4 pb-2">
+                  {aboutSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className="text-brand-navy font-semibold py-2 px-2 block cursor-pointer touch-manipulation min-h-[40px] flex items-center hover:text-brand-red active:bg-brand-red/10" 
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             
             <div className="border-l-4 border-brand-red">
               <button 

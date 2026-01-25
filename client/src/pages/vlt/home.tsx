@@ -1,13 +1,10 @@
-import Container from "@/components/Container";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 
 export default function VLTHome() {
   return (
-    <>
-      <Navbar />
-      <Container>
+    <Layout>
+      <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mt-12 text-brand-navy">
           Veteran Led Tax Solutions
         </h1>
@@ -81,8 +78,7 @@ export default function VLTHome() {
           </div>
         </div>
 
-        </Container>
-      <Footer />
-    </>
+      </div>
+    </Layout>
   );
 }
