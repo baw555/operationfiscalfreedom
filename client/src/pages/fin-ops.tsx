@@ -1,6 +1,7 @@
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Code, Truck, Wrench, Phone, PenTool } from "lucide-react";
+import { Briefcase, Code, Truck, Wrench, Phone, PenTool, CreditCard } from "lucide-react";
+import { Link } from "wouter";
 
 export default function FinOps() {
   return (
@@ -27,6 +28,17 @@ export default function FinOps() {
           <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-8 sm:mb-12 text-center">Available Opportunities</h2>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+            <Link href="/merchant-services">
+              <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border-2 border-brand-red rounded-lg hover:bg-brand-red/5 cursor-pointer group transition-colors">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-red rounded flex items-center justify-center text-white shrink-0">
+                  <CreditCard size={20} className="sm:w-6 sm:h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-brand-red text-sm sm:text-lg">Merchant Services</h3>
+                  <p className="text-xs sm:text-sm text-gray-500">Recurring Income</p>
+                </div>
+              </div>
+            </Link>
             {[
               { icon: Briefcase, title: "Sales", count: "120+ Ops" },
               { icon: Phone, title: "Marketing", count: "85+ Ops" },
