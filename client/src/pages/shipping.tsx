@@ -357,18 +357,15 @@ export default function Shipping() {
               </Link>
 
               <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-brand-navy to-brand-navy/90 flex items-center justify-center">
+                <div className="aspect-[4/3] flex items-center justify-center p-4">
                   <img 
                     src={logoStacked} 
                     alt="Navigator USA Logo" 
-                    className="w-24 h-24 object-contain"
+                    className="max-w-full max-h-full object-contain"
                   />
                 </div>
                 <div className="p-4 border-t-4 border-brand-gold">
-                  <div className="text-center">
-                    <h4 className="font-bold text-brand-navy text-sm">Navigator USA</h4>
-                    <p className="text-xs text-gray-500">Veteran Logistics</p>
-                  </div>
+                  <div className="h-[40px]"></div>
                 </div>
               </div>
             </div>
