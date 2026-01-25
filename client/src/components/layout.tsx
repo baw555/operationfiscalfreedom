@@ -6,6 +6,42 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import logoImage from "@assets/Navigaor_USA_Logo_396x86_1767699671480.png";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 
+const animatedTextStyles = `
+  @keyframes letterWave {
+    0%, 20% { color: #DC2626; }
+    40%, 100% { color: #E5E5E5; }
+  }
+  @keyframes veteransGlow {
+    0%, 70% { opacity: 0.7; text-shadow: none; }
+    80%, 95% { opacity: 1; text-shadow: 0 0 10px #D4AF37, 0 0 20px #D4AF37; }
+    100% { opacity: 0.7; text-shadow: none; }
+  }
+  .animate-veterans {
+    animation: veteransGlow 5s ease-in-out infinite;
+  }
+`;
+
+function AnimatedNavigatorUSA() {
+  const letters = "NavigatorUSA".split("");
+  return (
+    <span className="font-bold bg-brand-navy px-3 py-1 rounded inline-flex">
+      {letters.map((letter, index) => (
+        <span
+          key={index}
+          className="inline-block"
+          style={{
+            animation: `letterWave 5s ease-in-out infinite`,
+            animationDelay: `${index * 0.15}s`,
+            color: '#DC2626'
+          }}
+        >
+          {letter}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 const navItems = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
@@ -20,11 +56,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
       {/* Top Bar - INTENSE */}
+      <style>{animatedTextStyles}</style>
       <div className="bg-brand-navy text-[10px] sm:text-xs py-2 sm:py-3 px-2 sm:px-4 text-center text-white uppercase tracking-wide sm:tracking-widest flex flex-col md:flex-row justify-center items-center gap-1 md:gap-8 border-b-2 border-brand-red">
-        <span className="hidden sm:inline font-bold">Veterans' Family Resources</span>
-        <span className="sm:hidden font-bold">Veterans' Family Resources</span>
+        <span className="hidden sm:inline font-bold animate-veterans">Veterans' Family Resources</span>
+        <span className="sm:hidden font-bold animate-veterans">Veterans' Family Resources</span>
         <span className="hidden md:inline text-brand-red text-lg">★</span>
-        <span className="font-bold text-white bg-brand-red px-3 py-1 rounded">NavigatorUSA</span>
+        <AnimatedNavigatorUSA />
       </div>
 
       {/* Navigation - INTENSE */}
