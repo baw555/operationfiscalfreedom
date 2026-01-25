@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
+import { Resend } from "resend";
+import twilio from "twilio";
 import { 
   insertAffiliateApplicationSchema, 
   insertHelpRequestSchema, 
@@ -216,6 +218,39 @@ export async function registerRoutes(
       res.json({ ok: true });
     } catch (error) {
       res.status(500).json({ message: "Webhook forwarding failed" });
+    }
+  });
+
+  // Send notifications (email + SMS)
+  app.post("/api/notify", async (req, res) => {
+    try {
+      const { email, phone, message } = req.body;
+
+      // Send email via Resend if configured
+      if (process.env.RESEND_API_KEY && email) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: "Veteran Led Tax Solutions <no-reply@veteranledtax.com>",
+          to: email,
+          subject: "We received your intake",
+          html: `<p>${message || "Your intake was received. A specialist will review shortly."}</p>`,
+        });
+      }
+
+      // Send SMS via Twilio if configured
+      if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && phone) {
+        const tw = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        await tw.messages.create({
+          to: phone,
+          from: process.env.TWILIO_FROM!,
+          body: "Your intake was received. A specialist will review shortly.",
+        });
+      }
+
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Notification error:", error);
+      res.status(500).json({ message: "Failed to send notification" });
     }
   });
 
