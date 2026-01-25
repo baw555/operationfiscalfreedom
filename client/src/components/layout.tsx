@@ -57,9 +57,7 @@ const finOpsSubItems = [
   { name: "Fin-Ops Overview", href: "/fin-ops" },
   { name: "Merchant Services", href: "/merchant-services" },
   { name: "MY LOCKER", href: "/my-locker" },
-  { name: "Shipping Optimization", href: "/shipping" },
-  { name: "Logistics Overview", href: "/logistics-overview" },
-  { name: "Best Practices", href: "/best-practices" },
+  { name: "Veteran Logistics", href: "/shipping" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
