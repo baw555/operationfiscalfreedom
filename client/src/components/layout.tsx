@@ -8,16 +8,17 @@ import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 
 const animatedTextStyles = `
   @keyframes letterWave {
-    0%, 20% { color: #DC2626; }
-    40%, 100% { color: #E5E5E5; }
+    0%, 40% { color: #DC2626; }
+    60%, 100% { color: #E5E5E5; }
   }
   @keyframes veteransGlow {
-    0%, 70% { opacity: 0.7; text-shadow: none; }
-    80%, 95% { opacity: 1; text-shadow: 0 0 10px #D4AF37, 0 0 20px #D4AF37; }
+    0%, 50% { opacity: 0.7; text-shadow: none; }
+    60%, 90% { opacity: 1; text-shadow: 0 0 10px #D4AF37, 0 0 20px #D4AF37; }
     100% { opacity: 0.7; text-shadow: none; }
   }
   .animate-veterans {
-    animation: veteransGlow 5s ease-in-out infinite;
+    animation: veteransGlow 8s ease-in-out infinite;
+    animation-delay: 4s;
   }
 `;
 
@@ -34,8 +35,8 @@ function AnimatedNavigatorUSA({ variant = "topbar" }: { variant?: "topbar" | "na
           key={index}
           className="inline-block"
           style={{
-            animation: `letterWave 5s ease-in-out infinite`,
-            animationDelay: `${index * 0.15}s`,
+            animation: `letterWave 8s ease-in-out infinite`,
+            animationDelay: `${index * 0.2}s`,
             color: '#DC2626'
           }}
         >
