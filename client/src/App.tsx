@@ -42,6 +42,7 @@ import DownloadRatePlaybook from "@/pages/download-rate-playbook";
 import DownloadFedExRates from "@/pages/download-fedex-rates";
 import DownloadUPSRates from "@/pages/download-ups-rates";
 import FinOp from "@/pages/fin-op";
+import VLTHome from "@/pages/vlt/home";
 import VLTTaxPreparation from "@/pages/vlt/tax-preparation";
 import VLTTaxPlanning from "@/pages/vlt/tax-planning";
 import VLTTaxResolution from "@/pages/vlt/tax-resolution";
@@ -113,7 +114,7 @@ function Router() {
       <Route path="/download/rate-playbook" component={DownloadRatePlaybook} />
       <Route path="/download/fedex-rates" component={DownloadFedExRates} />
       <Route path="/download/ups-rates" component={DownloadUPSRates} />
-      <Route path="/veteran-led-tax" component={FinOp} />
+      <Route path="/veteran-led-tax" component={VLTHome} />
       <Route path="/veteran-led-tax/our-legacy" component={VLTOurLegacy} />
       <Route path="/veteran-led-tax/services" component={VLTServices} />
       <Route path="/veteran-led-tax/services/tax-preparation" component={VLTTaxPreparation} />
