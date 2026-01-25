@@ -41,6 +41,7 @@ import DownloadFreightChecklist from "@/pages/download-freight-checklist";
 import DownloadRatePlaybook from "@/pages/download-rate-playbook";
 import DownloadFedExRates from "@/pages/download-fedex-rates";
 import DownloadUPSRates from "@/pages/download-ups-rates";
+import FinOp from "@/pages/fin-op";
 
 function Router() {
   return (
@@ -74,6 +75,7 @@ function Router() {
       <Route path="/download/rate-playbook" component={DownloadRatePlaybook} />
       <Route path="/download/fedex-rates" component={DownloadFedExRates} />
       <Route path="/download/ups-rates" component={DownloadUPSRates} />
+      <Route path="/operation-fiscal-freedom" component={FinOp} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />
