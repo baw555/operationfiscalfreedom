@@ -299,6 +299,13 @@ export const vltIntake = pgTable("vlt_intake", {
   issue: text("issue").notNull(), // credits, resolution, preparation, planning, payroll, other
   issueDetails: text("issue_details"),
   businessType: text("business_type"), // individual, sole_prop, llc, s_corp, c_corp, partnership
+  businessName: text("business_name"),
+  annualRevenue: text("annual_revenue"),
+  isVeteran: text("is_veteran"),
+  leadType: text("lead_type").default("direct_client"), // affiliate_referral, direct_client
+  referrerName: text("referrer_name"), // For affiliate referrals
+  referrerEmail: text("referrer_email"),
+  referrerPhone: text("referrer_phone"),
   routedTo: text("routed_to"), // CPA, Tax Attorney, General
   status: text("status").notNull().default("new"), // new, contacted, in_progress, closed, converted
   assignedTo: integer("assigned_to"),

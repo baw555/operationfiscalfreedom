@@ -94,10 +94,10 @@ export default function VLTAdmin() {
               <thead className="bg-gray-100">
                 <tr>
                   <th className="p-2 text-left border">ID</th>
+                  <th className="p-2 text-left border">Type</th>
                   <th className="p-2 text-left border">Name</th>
                   <th className="p-2 text-left border">Email</th>
                   <th className="p-2 text-left border">Issue</th>
-                  <th className="p-2 text-left border">Routed To</th>
                   <th className="p-2 text-left border">Status</th>
                   <th className="p-2 text-left border">Referral</th>
                   <th className="p-2 text-left border">Created</th>
@@ -108,10 +108,23 @@ export default function VLTAdmin() {
                 {leads.map((lead) => (
                   <tr key={lead.id} className="border-b">
                     <td className="p-2 border">{lead.id}</td>
-                    <td className="p-2 border">{lead.name}</td>
+                    <td className="p-2 border">
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        lead.leadType === "affiliate_referral" 
+                          ? "bg-purple-100 text-purple-700" 
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {lead.leadType === "affiliate_referral" ? "Referral" : "Direct"}
+                      </span>
+                    </td>
+                    <td className="p-2 border">
+                      {lead.name}
+                      {lead.referrerName && (
+                        <div className="text-xs text-gray-500">via {lead.referrerName}</div>
+                      )}
+                    </td>
                     <td className="p-2 border">{lead.email}</td>
                     <td className="p-2 border">{lead.issue}</td>
-                    <td className="p-2 border">{lead.routedTo}</td>
                     <td className="p-2 border">
                       <select
                         value={lead.status}

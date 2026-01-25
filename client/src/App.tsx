@@ -110,6 +110,10 @@ import VLTIRSAudit from "@/pages/vlt/articles/irs-audit";
 import VLTPay from "@/pages/vlt/pay";
 import VLTAdmin from "@/pages/vlt/admin";
 import VLTAffiliatePortal from "@/pages/vlt/affiliate-portal";
+import VLTFinOpsRefer from "@/pages/vlt/finops-refer";
+import VLTBusinessOwner from "@/pages/vlt/business-owner";
+import VLTIntakeRefer from "@/pages/vlt/intake-refer";
+import VLTIntakeClient from "@/pages/vlt/intake-client";
 
 function Router() {
   return (
@@ -209,6 +213,10 @@ function Router() {
       <Route path="/veteran-led-tax/pay" component={VLTPay} />
       <Route path="/veteran-led-tax/admin" component={VLTAdmin} />
       <Route path="/veteran-led-tax/affiliate" component={VLTAffiliatePortal} />
+      <Route path="/veteran-led-tax/finops-refer" component={VLTFinOpsRefer} />
+      <Route path="/veteran-led-tax/business-owner" component={VLTBusinessOwner} />
+      <Route path="/veteran-led-tax/intake-refer" component={VLTIntakeRefer} />
+      <Route path="/veteran-led-tax/intake-client" component={VLTIntakeClient} />
       <Route path="/veteran-led-tax/disclosures" component={VLTDisclosures} />
       <Route path="/veteran-led-tax/privacy" component={VLTPrivacy} />
       <Route path="/veteran-led-tax/terms" component={VLTTerms} />
