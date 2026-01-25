@@ -1,6 +1,4 @@
-import Container from "@/components/Container";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 import { CreditCard, Palette, Truck, Briefcase, Phone, Code, Wrench, PenTool, DollarSign, Users, TrendingUp } from "lucide-react";
 
@@ -23,9 +21,8 @@ export default function FinOpsRefer() {
   ];
 
   return (
-    <>
-      <Navbar />
-      <Container>
+    <Layout>
+      <div className="container mx-auto px-4 py-8">
         <div className="text-center mt-12">
           <h1 className="text-4xl font-bold text-brand-navy" data-testid="heading-finops-refer">Fin-Ops Refer & Earn</h1>
           <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
@@ -107,8 +104,7 @@ export default function FinOpsRefer() {
             </Link>
           </div>
         </div>
-      </Container>
-      <Footer />
-    </>
+      </div>
+    </Layout>
   );
 }
