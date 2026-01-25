@@ -1,10 +1,11 @@
 import Container from "@/components/Container";
-import { Layout } from "@/components/layout";
+import Navbar from "@/components/Navbar";
 import { Link } from "wouter";
 
 export default function VLTHome() {
   return (
-    <Layout>
+    <>
+      <Navbar />
       <Container>
         <h1 className="text-4xl font-bold mt-12 text-brand-navy">
           Veteran Led Tax Solutions
@@ -85,6 +86,6 @@ export default function VLTHome() {
           </Link>
         </div>
       </Container>
-    </Layout>
+    </>
   );
 }
