@@ -21,10 +21,14 @@ const animatedTextStyles = `
   }
 `;
 
-function AnimatedNavigatorUSA() {
+function AnimatedNavigatorUSA({ variant = "topbar" }: { variant?: "topbar" | "navbar" }) {
   const letters = "NavigatorUSA".split("");
+  const isNavbar = variant === "navbar";
   return (
-    <span className="font-bold bg-brand-navy px-3 py-1 rounded inline-flex">
+    <span className={cn(
+      "font-bold inline-flex",
+      isNavbar ? "text-xl sm:text-2xl md:text-3xl tracking-tight" : "bg-brand-navy px-3 py-1 rounded"
+    )}>
       {letters.map((letter, index) => (
         <span
           key={index}
@@ -70,15 +74,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity cursor-pointer">
               <img 
-                src={logoImage} 
-                alt="NavigatorUSA Logo" 
-                className="h-10 sm:h-12 md:h-14 object-contain hidden sm:block" 
-              />
-              <img 
                 src={logoStacked} 
                 alt="NavigatorUSA Logo" 
-                className="h-12 w-12 object-contain sm:hidden" 
+                className="h-10 sm:h-12 md:h-14 w-10 sm:w-12 md:w-14 object-contain" 
               />
+              <AnimatedNavigatorUSA variant="navbar" />
           </Link>
 
           {/* Desktop Nav */}
