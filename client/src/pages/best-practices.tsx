@@ -17,21 +17,46 @@ export default function BestPractices() {
           <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto px-2 mb-8" data-testid="text-page-description">
             Checklists and strategies to identify hidden fees, missed refunds, and billing discrepancies in your shipping invoices.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/download/parcel-checklist"
-              className={cn(buttonVariants({ size: "lg" }), "bg-orange-500 hover:bg-orange-600 text-white font-bold px-6")}
-              data-testid="link-download-parcel"
-            >
-              <Download className="mr-2 h-5 w-5" /> Download Parcel Checklist
-            </Link>
-            <Link 
-              href="/download/freight-checklist"
-              className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white font-bold px-6")}
-              data-testid="link-download-freight"
-            >
-              <Download className="mr-2 h-5 w-5" /> Download Freight Checklist
-            </Link>
+          <div className="flex flex-col gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link 
+                href="/download/parcel-checklist"
+                className={cn(buttonVariants({ size: "lg" }), "bg-orange-500 hover:bg-orange-600 text-white font-bold px-6")}
+                data-testid="link-download-parcel"
+              >
+                <Download className="mr-2 h-5 w-5" /> Parcel Checklist
+              </Link>
+              <Link 
+                href="/download/freight-checklist"
+                className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white font-bold px-6")}
+                data-testid="link-download-freight"
+              >
+                <Download className="mr-2 h-5 w-5" /> Freight Checklist
+              </Link>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link 
+                href="/download/rate-playbook"
+                className={cn(buttonVariants({ size: "lg" }), "bg-brand-red hover:bg-brand-red/90 text-white font-bold px-6")}
+                data-testid="link-download-playbook"
+              >
+                <Download className="mr-2 h-5 w-5" /> Rate Increase Playbook
+              </Link>
+              <Link 
+                href="/download/fedex-rates"
+                className={cn(buttonVariants({ size: "lg" }), "bg-purple-600 hover:bg-purple-700 text-white font-bold px-6")}
+                data-testid="link-download-fedex"
+              >
+                <Download className="mr-2 h-5 w-5" /> FedEx Rate Chart
+              </Link>
+              <Link 
+                href="/download/ups-rates"
+                className={cn(buttonVariants({ size: "lg" }), "bg-amber-600 hover:bg-amber-700 text-white font-bold px-6")}
+                data-testid="link-download-ups"
+              >
+                <Download className="mr-2 h-5 w-5" /> UPS Rate Chart
+              </Link>
+            </div>
           </div>
         </div>
       </section>

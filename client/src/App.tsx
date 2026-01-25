@@ -38,6 +38,9 @@ import LogisticsOverview from "@/pages/logistics-overview";
 import BestPractices from "@/pages/best-practices";
 import DownloadParcelChecklist from "@/pages/download-parcel-checklist";
 import DownloadFreightChecklist from "@/pages/download-freight-checklist";
+import DownloadRatePlaybook from "@/pages/download-rate-playbook";
+import DownloadFedExRates from "@/pages/download-fedex-rates";
+import DownloadUPSRates from "@/pages/download-ups-rates";
 
 function Router() {
   return (
@@ -68,6 +71,9 @@ function Router() {
       <Route path="/best-practices" component={BestPractices} />
       <Route path="/download/parcel-checklist" component={DownloadParcelChecklist} />
       <Route path="/download/freight-checklist" component={DownloadFreightChecklist} />
+      <Route path="/download/rate-playbook" component={DownloadRatePlaybook} />
+      <Route path="/download/fedex-rates" component={DownloadFedExRates} />
+      <Route path="/download/ups-rates" component={DownloadUPSRates} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />
