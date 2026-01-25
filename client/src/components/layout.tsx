@@ -17,8 +17,8 @@ const animatedTextStyles = `
     100% { opacity: 0.7; text-shadow: none; }
   }
   .animate-veterans {
-    animation: veteransGlow 8s ease-in-out infinite;
-    animation-delay: 4s;
+    animation: veteransGlow 80s ease-in-out infinite;
+    animation-delay: 40s;
   }
 `;
 
@@ -35,8 +35,8 @@ function AnimatedNavigatorUSA({ variant = "topbar" }: { variant?: "topbar" | "na
           key={index}
           className="inline-block"
           style={{
-            animation: `letterWave 8s ease-in-out infinite`,
-            animationDelay: `${index * 0.2}s`,
+            animation: `letterWave 80s ease-in-out infinite`,
+            animationDelay: `${index * 2}s`,
             color: '#DC2626'
           }}
         >
