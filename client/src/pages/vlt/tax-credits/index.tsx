@@ -61,6 +61,11 @@ export default function TaxCredits() {
               <span className="text-brand-navy hover:underline cursor-pointer">Energy Tax Credits (ITC/PTC)</span>
             </Link>
           </li>
+          <li>
+            <Link href="/veteran-led-tax/services/tax-credits/utility-tax-credit">
+              <span className="text-brand-navy hover:underline cursor-pointer">Utility & Energy Efficiency Tax Credits</span>
+            </Link>
+          </li>
         </ul>
 
         <h3 className="text-lg font-semibold mt-6 text-brand-navy">Healthcare & Benefits</h3>

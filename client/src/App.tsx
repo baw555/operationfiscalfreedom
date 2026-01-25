@@ -80,6 +80,7 @@ import VLTPrivacy from "@/pages/vlt/privacy";
 import VLTTerms from "@/pages/vlt/terms";
 import VLTTaxCredits from "@/pages/vlt/tax-credits/index";
 import VLTRDTaxCredit from "@/pages/vlt/tax-credits/rd-tax-credit";
+import VLTUtilityTaxCredit from "@/pages/vlt/tax-credits/utility-tax-credit";
 import VLTWOTCCredit from "@/pages/vlt/tax-credits/wotc";
 import VLTEnergyTaxCredits from "@/pages/vlt/tax-credits/energy-tax-credits";
 import VLTPaidFamilyLeaveCredit from "@/pages/vlt/tax-credits/paid-family-leave-credit";
@@ -157,6 +158,7 @@ function Router() {
       <Route path="/veteran-led-tax/services/entity-structuring" component={VLTEntityStructuring} />
       <Route path="/veteran-led-tax/services/tax-credits" component={VLTTaxCredits} />
       <Route path="/veteran-led-tax/services/tax-credits/rd-tax-credit" component={VLTRDTaxCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/utility-tax-credit" component={VLTUtilityTaxCredit} />
       <Route path="/veteran-led-tax/services/tax-credits/wotc" component={VLTWOTCCredit} />
       <Route path="/veteran-led-tax/services/tax-credits/energy-tax-credits" component={VLTEnergyTaxCredits} />
       <Route path="/veteran-led-tax/services/tax-credits/paid-family-leave-credit" component={VLTPaidFamilyLeaveCredit} />
