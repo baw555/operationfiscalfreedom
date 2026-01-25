@@ -10,35 +10,35 @@ const credits = [
     title: "R&D Tax Credit",
     description: "Research and development credits for innovative businesses",
     icon: Beaker,
-    href: "/veteran-led-tax/tax-credits/rd-tax-credit",
+    href: "/veteran-led-tax/services/tax-credits/rd-tax-credit",
     color: "blue"
   },
   {
     title: "WOTC",
     description: "Work Opportunity Tax Credit for hiring eligible employees",
     icon: Users,
-    href: "/veteran-led-tax/tax-credits/wotc",
+    href: "/veteran-led-tax/services/tax-credits/wotc",
     color: "green"
   },
   {
     title: "Energy Tax Credits",
     description: "Clean energy incentives for homes and businesses",
     icon: Zap,
-    href: "/veteran-led-tax/tax-credits/energy-tax-credits",
+    href: "/veteran-led-tax/services/tax-credits/energy-tax-credits",
     color: "amber"
   },
   {
     title: "Paid Family Leave Credit",
     description: "Credits for employers offering paid family leave",
     icon: Heart,
-    href: "/veteran-led-tax/tax-credits/paid-family-leave-credit",
+    href: "/veteran-led-tax/services/tax-credits/paid-family-leave-credit",
     color: "pink"
   },
   {
     title: "Disabled Access Credit",
     description: "Credits for small businesses improving accessibility",
     icon: Accessibility,
-    href: "/veteran-led-tax/tax-credits/disabled-access-credit",
+    href: "/veteran-led-tax/services/tax-credits/disabled-access-credit",
     color: "purple"
   }
 ];

@@ -126,12 +126,12 @@ function Router() {
       <Route path="/veteran-led-tax/services/outsourced-accounting" component={VLTOutsourcedAccounting} />
       <Route path="/veteran-led-tax/services/fractional-cfo" component={VLTFractionalCFO} />
       <Route path="/veteran-led-tax/services/entity-structuring" component={VLTEntityStructuring} />
-      <Route path="/veteran-led-tax/tax-credits" component={VLTTaxCredits} />
-      <Route path="/veteran-led-tax/tax-credits/rd-tax-credit" component={VLTRDTaxCredit} />
-      <Route path="/veteran-led-tax/tax-credits/wotc" component={VLTWOTCCredit} />
-      <Route path="/veteran-led-tax/tax-credits/energy-tax-credits" component={VLTEnergyTaxCredits} />
-      <Route path="/veteran-led-tax/tax-credits/paid-family-leave-credit" component={VLTPaidFamilyLeaveCredit} />
-      <Route path="/veteran-led-tax/tax-credits/disabled-access-credit" component={VLTDisabledAccessCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits" component={VLTTaxCredits} />
+      <Route path="/veteran-led-tax/services/tax-credits/rd-tax-credit" component={VLTRDTaxCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/wotc" component={VLTWOTCCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/energy-tax-credits" component={VLTEnergyTaxCredits} />
+      <Route path="/veteran-led-tax/services/tax-credits/paid-family-leave-credit" component={VLTPaidFamilyLeaveCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/disabled-access-credit" component={VLTDisabledAccessCredit} />
       <Route path="/veteran-led-tax/intake" component={VLTIntake} />
       <Route path="/veteran-led-tax/resources" component={VLTResources} />
       <Route path="/veteran-led-tax/resources/irs-notices" component={VLTIRSNotices} />
