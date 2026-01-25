@@ -332,8 +332,13 @@ export default function Home() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-80 bg-white border-2 border-brand-navy/20 shadow-2xl" align="center">
-                  <Link href="/va-software">
+                  <Link href="/merchant-services">
                     <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
+                      Merchant Services
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/va-software">
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
                       Free VA Rating Tool
                     </DropdownMenuItem>
                   </Link>

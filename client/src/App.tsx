@@ -31,6 +31,7 @@ import NewHomeFurniture from "@/pages/new-home-furniture";
 import PrivateDoctor from "@/pages/private-doctor";
 import BecomeInvestor from "@/pages/become-investor";
 import MissionActHealth from "@/pages/mission-act-health";
+import MerchantServices from "@/pages/merchant-services";
 
 function Router() {
   return (
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/private-doctor" component={PrivateDoctor} />
       <Route path="/become-investor" component={BecomeInvestor} />
       <Route path="/mission-act-health" component={MissionActHealth} />
+      <Route path="/merchant-services" component={MerchantServices} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />
