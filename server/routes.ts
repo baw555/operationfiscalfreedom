@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { Resend } from "resend";
 import twilio from "twilio";
+import Stripe from "stripe";
 import { 
   insertAffiliateApplicationSchema, 
   insertHelpRequestSchema, 
@@ -218,6 +219,36 @@ export async function registerRoutes(
       res.json({ ok: true });
     } catch (error) {
       res.status(500).json({ message: "Webhook forwarding failed" });
+    }
+  });
+
+  // Stripe checkout session
+  app.post("/api/checkout", async (req, res) => {
+    try {
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.status(500).json({ message: "Stripe not configured" });
+      }
+      
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: { name: "Professional Review Fee" },
+            unit_amount: 5000,
+          },
+          quantity: 1,
+        }],
+        success_url: `${req.headers.origin}/veteran-led-tax?paid=true`,
+        cancel_url: `${req.headers.origin}/veteran-led-tax?canceled=true`,
+      });
+      
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Stripe error:", error);
+      res.status(500).json({ message: "Failed to create checkout session" });
     }
   });
 
