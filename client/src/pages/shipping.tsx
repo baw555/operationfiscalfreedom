@@ -11,10 +11,8 @@ export default function Shipping() {
       <section className="bg-brand-navy text-white py-12 sm:py-20 relative overflow-hidden min-h-[280px] sm:min-h-[320px]">
         <style>{`
           @keyframes moveRight {
-            0% { transform: translateX(-100px); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateX(calc(100vw + 100px)); opacity: 0; }
+            0% { transform: translateX(-150px); opacity: 1; }
+            100% { transform: translateX(calc(100vw + 150px)); opacity: 1; }
           }
           @keyframes glisten {
             0%, 100% { background-position: -200% center; }
@@ -70,7 +68,7 @@ export default function Shipping() {
           <div className="animate-truck absolute top-[45%] left-0 text-white/60">
             <Truck className="w-10 h-10 sm:w-14 sm:h-14" />
           </div>
-          <div className="animate-ship absolute top-[75%] left-0 text-white/60">
+          <div className="animate-ship absolute top-[75%] left-0 text-brand-blue/60">
             <Ship className="w-12 h-12 sm:w-16 sm:h-16" />
           </div>
         </div>
