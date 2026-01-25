@@ -75,7 +75,7 @@ function Router() {
       <Route path="/download/rate-playbook" component={DownloadRatePlaybook} />
       <Route path="/download/fedex-rates" component={DownloadFedExRates} />
       <Route path="/download/ups-rates" component={DownloadUPSRates} />
-      <Route path="/operation-fiscal-freedom" component={FinOp} />
+      <Route path="/veteran-led-tax" component={FinOp} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />

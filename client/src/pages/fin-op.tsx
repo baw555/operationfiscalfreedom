@@ -122,7 +122,7 @@ export default function FinOp() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-block bg-white/10 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-              Operation Fiscal Freedom — Fin-Op
+              Veteran Led Tax
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-display mb-6 leading-tight">
               Build a calmer financial system — and run it like ops.
@@ -284,10 +284,10 @@ export default function FinOp() {
       <section className="py-16 sm:py-20 bg-brand-navy text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl sm:text-3xl font-display mb-4">
-            www.operationfiscalfreedom.com
+            Veteran Led Tax
           </h2>
           <p className="text-slate-300 mb-8 max-w-2xl mx-auto">
-            Fin-Op: planning, prep, recovery, resolution. A Navigator USA financial operations partner.
+            Tax planning, prep, recovery, resolution. A Navigator USA financial operations partner.
           </p>
           <Link 
             href="/contact" 

@@ -58,7 +58,7 @@ const finOpsSubItems = [
   { name: "Merchant Services", href: "/merchant-services" },
   { name: "MY LOCKER", href: "/my-locker" },
   { name: "Veteran Logistics", href: "/shipping" },
-  { name: "Operation Fiscal Freedom", href: "/operation-fiscal-freedom" },
+  { name: "Veteran Led Tax", href: "/veteran-led-tax" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -112,7 +112,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="relative" onMouseEnter={() => setFinOpsOpen(true)} onMouseLeave={() => setFinOpsOpen(false)}>
               <button className={cn(
                   "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
-                  location.startsWith("/fin-ops") || location.startsWith("/merchant") || location.startsWith("/my-locker") || location.startsWith("/shipping") || location.startsWith("/logistics") || location.startsWith("/best-practices") || location.startsWith("/operation-fiscal-freedom") ? "text-brand-red border-brand-red" : "text-brand-navy"
+                  location.startsWith("/fin-ops") || location.startsWith("/merchant") || location.startsWith("/my-locker") || location.startsWith("/shipping") || location.startsWith("/logistics") || location.startsWith("/best-practices") || location.startsWith("/veteran-led-tax") ? "text-brand-red border-brand-red" : "text-brand-navy"
                 )}>
                   Fin-Ops <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
               </button>
