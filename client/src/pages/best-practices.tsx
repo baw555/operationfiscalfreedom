@@ -2,7 +2,7 @@ import { Layout } from "@/components/layout";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { Truck, Package, CheckSquare, AlertTriangle, FileText, ArrowRight, Phone } from "lucide-react";
+import { Truck, Package, CheckSquare, AlertTriangle, FileText, ArrowRight, Phone, Download } from "lucide-react";
 
 export default function BestPractices() {
   return (
@@ -14,9 +14,25 @@ export default function BestPractices() {
             <span className="font-bold text-xs sm:text-sm uppercase tracking-wider">Best Practices</span>
           </div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-display mb-4 sm:mb-6" data-testid="text-page-title">Freight & Parcel Best Practices</h1>
-          <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto px-2" data-testid="text-page-description">
+          <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto px-2 mb-8" data-testid="text-page-description">
             Checklists and strategies to identify hidden fees, missed refunds, and billing discrepancies in your shipping invoices.
           </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link 
+              href="/download/parcel-checklist"
+              className={cn(buttonVariants({ size: "lg" }), "bg-orange-500 hover:bg-orange-600 text-white font-bold px-6")}
+              data-testid="link-download-parcel"
+            >
+              <Download className="mr-2 h-5 w-5" /> Download Parcel Checklist
+            </Link>
+            <Link 
+              href="/download/freight-checklist"
+              className={cn(buttonVariants({ size: "lg" }), "bg-brand-blue hover:bg-brand-blue/90 text-white font-bold px-6")}
+              data-testid="link-download-freight"
+            >
+              <Download className="mr-2 h-5 w-5" /> Download Freight Checklist
+            </Link>
+          </div>
         </div>
       </section>
 

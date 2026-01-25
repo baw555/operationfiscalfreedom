@@ -36,6 +36,8 @@ import MyLocker from "@/pages/my-locker";
 import Shipping from "@/pages/shipping";
 import LogisticsOverview from "@/pages/logistics-overview";
 import BestPractices from "@/pages/best-practices";
+import DownloadParcelChecklist from "@/pages/download-parcel-checklist";
+import DownloadFreightChecklist from "@/pages/download-freight-checklist";
 
 function Router() {
   return (
@@ -64,6 +66,8 @@ function Router() {
       <Route path="/shipping" component={Shipping} />
       <Route path="/logistics-overview" component={LogisticsOverview} />
       <Route path="/best-practices" component={BestPractices} />
+      <Route path="/download/parcel-checklist" component={DownloadParcelChecklist} />
+      <Route path="/download/freight-checklist" component={DownloadFreightChecklist} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />
