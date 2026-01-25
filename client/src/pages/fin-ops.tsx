@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Code, Truck, Wrench, Phone, PenTool, CreditCard } from "lucide-react";
+import { Briefcase, Code, Truck, Wrench, Phone, PenTool, CreditCard, Palette } from "lucide-react";
 import { Link } from "wouter";
 
 export default function FinOps() {
@@ -36,6 +36,17 @@ export default function FinOps() {
                 <div>
                   <h3 className="font-bold text-brand-red text-sm sm:text-lg">Merchant Services</h3>
                   <p className="text-xs sm:text-sm text-gray-500">Recurring Income</p>
+                </div>
+              </div>
+            </Link>
+            <Link href="/my-locker">
+              <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border-2 border-brand-gold rounded-lg hover:bg-brand-gold/5 cursor-pointer group transition-colors">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-gold rounded flex items-center justify-center text-brand-navy shrink-0">
+                  <Palette size={20} className="sm:w-6 sm:h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-brand-gold text-sm sm:text-lg">Design - MY LOCKER</h3>
+                  <p className="text-xs sm:text-sm text-gray-500">Print-On-Demand Shops</p>
                 </div>
               </div>
             </Link>

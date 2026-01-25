@@ -32,6 +32,7 @@ import PrivateDoctor from "@/pages/private-doctor";
 import BecomeInvestor from "@/pages/become-investor";
 import MissionActHealth from "@/pages/mission-act-health";
 import MerchantServices from "@/pages/merchant-services";
+import MyLocker from "@/pages/my-locker";
 
 function Router() {
   return (
@@ -56,6 +57,7 @@ function Router() {
       <Route path="/become-investor" component={BecomeInvestor} />
       <Route path="/mission-act-health" component={MissionActHealth} />
       <Route path="/merchant-services" component={MerchantServices} />
+      <Route path="/my-locker" component={MyLocker} />
       {/* Lead Management System Routes */}
       <Route path="/affiliate" component={AffiliateApply} />
       <Route path="/get-help" component={GetHelp} />
