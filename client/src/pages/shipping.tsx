@@ -30,13 +30,13 @@ export default function Shipping() {
         `}</style>
         
         <div className="absolute inset-0 pointer-events-none">
-          <div className="animate-plane absolute top-[15%] left-0 text-brand-blue/40">
+          <div className="animate-plane absolute top-[15%] left-0 text-brand-red/60">
             <Plane className="w-12 h-12 sm:w-16 sm:h-16" />
           </div>
           <div className="animate-truck absolute top-[45%] left-0 text-white/60">
             <Truck className="w-10 h-10 sm:w-14 sm:h-14" />
           </div>
-          <div className="animate-ship absolute top-[75%] left-0 text-brand-red/40">
+          <div className="animate-ship absolute top-[75%] left-0 text-white/60">
             <Ship className="w-12 h-12 sm:w-16 sm:h-16" />
           </div>
         </div>
