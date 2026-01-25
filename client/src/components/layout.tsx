@@ -55,7 +55,7 @@ const navItems = [
 const aboutSubItems = [
   { name: "About", href: "/about" },
   { name: "Mission Act Health", href: "/private-doctor" },
-  { name: "Refer & Earn", href: "/veteran-led-tax/finops-refer" },
+  { name: "Refer & Earn", href: "/fin-ops" },
 ];
 
 const finOpsSubItems = [

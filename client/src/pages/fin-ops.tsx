@@ -1,11 +1,59 @@
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Code, Wrench, Phone, PenTool, CreditCard, Palette, Truck } from "lucide-react";
+import { Briefcase, Code, Wrench, Phone, PenTool, CreditCard, Palette, Truck, DollarSign, Users, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 
 export default function FinOps() {
   return (
     <Layout>
+      {/* Refer & Earn Section */}
+      <section className="bg-gradient-to-r from-brand-navy to-brand-navy/90 py-12 sm:py-16 text-center text-white">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl sm:text-5xl font-display mb-4">Refer & Earn</h1>
+          <p className="text-lg sm:text-xl text-gray-200 max-w-2xl mx-auto mb-8">
+            Earn commissions by referring clients to Veteran Led Tax Solutions. 
+            Whether you're an affiliate partner or have clients who need tax services, we pay you for every referral.
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
+            <div className="p-6 bg-white/10 rounded-lg backdrop-blur">
+              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto">
+                <DollarSign className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="mt-4 text-xl font-semibold">Earn Commissions</h3>
+              <p className="mt-2 text-gray-300">Get paid for every client you refer that closes</p>
+            </div>
+            <div className="p-6 bg-white/10 rounded-lg backdrop-blur">
+              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="mt-4 text-xl font-semibold">6-Level Deep Tracking</h3>
+              <p className="mt-2 text-gray-300">Build a team and earn on 6 levels of referrals</p>
+            </div>
+            <div className="p-6 bg-white/10 rounded-lg backdrop-blur">
+              <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto">
+                <TrendingUp className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="mt-4 text-xl font-semibold">Real-Time Portal</h3>
+              <p className="mt-2 text-gray-300">Track all your leads and commissions in your affiliate portal</p>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/veteran-led-tax/intake-refer">
+              <Button size="lg" className="bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold h-12 sm:h-14 px-6 sm:px-8">
+                Submit a Client Referral
+              </Button>
+            </Link>
+            <Link href="/veteran-led-tax/affiliate">
+              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 h-12 sm:h-14 px-6 sm:px-8">
+                Affiliate Portal Login
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-brand-silver/20 py-12 sm:py-20 text-center border-b border-brand-silver/30">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl sm:text-5xl md:text-7xl font-display text-brand-navy mb-4 sm:mb-6">Financial Operations</h1>
