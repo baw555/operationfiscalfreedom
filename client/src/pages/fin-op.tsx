@@ -127,6 +127,9 @@ export default function FinOp() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-display mb-6 leading-tight">
               Build a calmer financial system — and run it like ops.
             </h1>
+            <p className="text-lg sm:text-xl text-brand-gold font-semibold mb-4">
+              Under our Commanding Officer, a Highly Decorated Air Force Veteran
+            </p>
             <p className="text-lg sm:text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
               Fin-Op is a structured intake + execution pipeline for tax, compliance, cashflow, and business reporting. 
               Clear steps, clean documentation, fast follow-through.
