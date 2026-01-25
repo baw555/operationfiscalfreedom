@@ -222,6 +222,47 @@ export async function registerRoutes(
     }
   });
 
+  // Process lead (CRM + notify)
+  app.post("/api/process-lead", async (req, res) => {
+    try {
+      const data = req.body;
+      
+      // Forward to CRM
+      if (process.env.CRM_WEBHOOK_URL) {
+        fetch(process.env.CRM_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }).catch(err => console.error("CRM webhook failed:", err));
+      }
+      
+      // Send notifications
+      if (process.env.RESEND_API_KEY && data.email) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        resend.emails.send({
+          from: "Veteran Led Tax Solutions <no-reply@veteranledtax.com>",
+          to: data.email,
+          subject: "We received your intake",
+          html: `<p>Your intake was received. A specialist will review shortly.</p>`,
+        }).catch(err => console.error("Email failed:", err));
+      }
+      
+      if (process.env.TWILIO_ACCOUNT_SID && data.phone) {
+        const tw = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN!);
+        tw.messages.create({
+          to: data.phone,
+          from: process.env.TWILIO_FROM!,
+          body: "Your intake was received. A specialist will review shortly.",
+        }).catch(err => console.error("SMS failed:", err));
+      }
+      
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Process lead error:", error);
+      res.status(500).json({ message: "Failed to process lead" });
+    }
+  });
+
   // Stripe checkout session
   app.post("/api/checkout", async (req, res) => {
     try {
