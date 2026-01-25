@@ -84,6 +84,24 @@ import VLTWOTCCredit from "@/pages/vlt/tax-credits/wotc";
 import VLTEnergyTaxCredits from "@/pages/vlt/tax-credits/energy-tax-credits";
 import VLTPaidFamilyLeaveCredit from "@/pages/vlt/tax-credits/paid-family-leave-credit";
 import VLTDisabledAccessCredit from "@/pages/vlt/tax-credits/disabled-access-credit";
+import VLTEmployerChildcareCredit from "@/pages/vlt/tax-credits/employer-childcare-credit";
+import VLTPensionStartupCredit from "@/pages/vlt/tax-credits/pension-startup-credit";
+import VLTFICATipCredit from "@/pages/vlt/tax-credits/fica-tip-credit";
+import VLTNewMarketsCredit from "@/pages/vlt/tax-credits/new-markets-credit";
+import VLTRehabilitationCredit from "@/pages/vlt/tax-credits/rehabilitation-credit";
+import VLTSmallBusinessHealthCredit from "@/pages/vlt/tax-credits/small-business-health-credit";
+import VLTLIHTC from "@/pages/vlt/tax-credits/lihtc";
+import VLTIndianEmploymentCredit from "@/pages/vlt/tax-credits/indian-employment-credit";
+import VLTEITC from "@/pages/vlt/tax-credits/eitc";
+import VLTChildTaxCredit from "@/pages/vlt/tax-credits/child-tax-credit";
+import VLTAOTC from "@/pages/vlt/tax-credits/aotc";
+import VLTLifetimeLearningCredit from "@/pages/vlt/tax-credits/lifetime-learning-credit";
+import VLTSaversCredit from "@/pages/vlt/tax-credits/savers-credit";
+import VLTAdoptionCredit from "@/pages/vlt/tax-credits/adoption-credit";
+import VLTDependentCareCredit from "@/pages/vlt/tax-credits/dependent-care-credit";
+import VLTForeignTaxCredit from "@/pages/vlt/tax-credits/foreign-tax-credit";
+import VLTElderlyDisabledCredit from "@/pages/vlt/tax-credits/elderly-disabled-credit";
+import VLTPremiumTaxCredit from "@/pages/vlt/tax-credits/premium-tax-credit";
 import VLTArticles from "@/pages/vlt/articles/index";
 import VLTUnfiledTaxReturns from "@/pages/vlt/articles/unfiled-tax-returns";
 import VLTBackTaxes from "@/pages/vlt/articles/back-taxes";
@@ -142,6 +160,24 @@ function Router() {
       <Route path="/veteran-led-tax/services/tax-credits/energy-tax-credits" component={VLTEnergyTaxCredits} />
       <Route path="/veteran-led-tax/services/tax-credits/paid-family-leave-credit" component={VLTPaidFamilyLeaveCredit} />
       <Route path="/veteran-led-tax/services/tax-credits/disabled-access-credit" component={VLTDisabledAccessCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/employer-childcare-credit" component={VLTEmployerChildcareCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/pension-startup-credit" component={VLTPensionStartupCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/fica-tip-credit" component={VLTFICATipCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/new-markets-credit" component={VLTNewMarketsCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/rehabilitation-credit" component={VLTRehabilitationCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/small-business-health-credit" component={VLTSmallBusinessHealthCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/lihtc" component={VLTLIHTC} />
+      <Route path="/veteran-led-tax/services/tax-credits/indian-employment-credit" component={VLTIndianEmploymentCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/eitc" component={VLTEITC} />
+      <Route path="/veteran-led-tax/services/tax-credits/child-tax-credit" component={VLTChildTaxCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/aotc" component={VLTAOTC} />
+      <Route path="/veteran-led-tax/services/tax-credits/lifetime-learning-credit" component={VLTLifetimeLearningCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/savers-credit" component={VLTSaversCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/adoption-credit" component={VLTAdoptionCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/dependent-care-credit" component={VLTDependentCareCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/foreign-tax-credit" component={VLTForeignTaxCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/elderly-disabled-credit" component={VLTElderlyDisabledCredit} />
+      <Route path="/veteran-led-tax/services/tax-credits/premium-tax-credit" component={VLTPremiumTaxCredit} />
       <Route path="/veteran-led-tax/intake" component={VLTIntake} />
       <Route path="/veteran-led-tax/resources" component={VLTResources} />
       <Route path="/veteran-led-tax/resources/irs-notices" component={VLTIRSNotices} />
