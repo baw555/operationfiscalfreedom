@@ -3,18 +3,51 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { Truck, DollarSign, TrendingUp, Shield, CheckCircle, ArrowRight, BarChart, Package, Download, FileText } from "lucide-react";
+import { Truck, DollarSign, TrendingUp, Shield, CheckCircle, ArrowRight, BarChart, Package, Download, FileText, Plane, Ship } from "lucide-react";
 
 export default function Shipping() {
   return (
     <Layout>
-      <section className="bg-brand-navy text-white py-12 sm:py-20">
-        <div className="container mx-auto px-4 text-center">
+      <section className="bg-brand-navy text-white py-12 sm:py-20 relative overflow-hidden min-h-[280px] sm:min-h-[320px]">
+        <style>{`
+          @keyframes moveRight {
+            0% { transform: translateX(-100px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(calc(100vw + 100px)); opacity: 0; }
+          }
+          .animate-truck {
+            animation: moveRight 10s linear infinite;
+          }
+          .animate-plane {
+            animation: moveRight 10s linear infinite;
+            animation-delay: 3s;
+          }
+          .animate-ship {
+            animation: moveRight 10s linear infinite;
+            animation-delay: 6s;
+          }
+        `}</style>
+        
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="animate-plane absolute top-[15%] left-0 text-brand-blue/40">
+            <Plane className="w-12 h-12 sm:w-16 sm:h-16" />
+          </div>
+          <div className="animate-truck absolute top-[45%] left-0 text-brand-gold/40">
+            <Truck className="w-10 h-10 sm:w-14 sm:h-14" />
+          </div>
+          <div className="animate-ship absolute top-[75%] left-0 text-brand-red/40">
+            <Ship className="w-12 h-12 sm:w-16 sm:h-16" />
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-brand-blue/20 border border-brand-blue/40 text-brand-blue mb-4 sm:mb-6">
             <Truck className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="font-bold text-xs sm:text-sm uppercase tracking-wider">Income Opportunity</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-display mb-4 sm:mb-6" data-testid="text-page-title">Shipping Optimization</h1>
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-display mb-2 sm:mb-4" data-testid="text-page-title">Shipping Optimization</h1>
+          <p className="text-lg sm:text-2xl font-bold text-brand-gold tracking-widest mb-4 sm:mb-6">VETERAN LOGISTICS</p>
           <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto px-2" data-testid="text-page-description">
             Help businesses reduce their FedEx and UPS shipping costs by 15-42%. Earn 24% monthly commissions on every referral.
           </p>
