@@ -108,6 +108,7 @@ import VLTBackTaxes from "@/pages/vlt/articles/back-taxes";
 import VLTIRSAudit from "@/pages/vlt/articles/irs-audit";
 import VLTPay from "@/pages/vlt/pay";
 import VLTAdmin from "@/pages/vlt/admin";
+import VLTAffiliatePortal from "@/pages/vlt/affiliate-portal";
 
 function Router() {
   return (
@@ -205,6 +206,7 @@ function Router() {
       <Route path="/veteran-led-tax/partners" component={VLTPartners} />
       <Route path="/veteran-led-tax/pay" component={VLTPay} />
       <Route path="/veteran-led-tax/admin" component={VLTAdmin} />
+      <Route path="/veteran-led-tax/affiliate" component={VLTAffiliatePortal} />
       <Route path="/veteran-led-tax/disclosures" component={VLTDisclosures} />
       <Route path="/veteran-led-tax/privacy" component={VLTPrivacy} />
       <Route path="/veteran-led-tax/terms" component={VLTTerms} />

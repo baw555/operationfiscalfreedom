@@ -183,7 +183,28 @@ export async function registerRoutes(
   app.post("/api/vlt-intake", async (req, res) => {
     try {
       const data = insertVltIntakeSchema.parse(req.body);
-      const intake = await storage.createVltIntake(data);
+      
+      // Look up referral code if provided
+      let referralData: any = {};
+      if (data.referralCode) {
+        const affiliate = await storage.getVltAffiliateByReferralCode(data.referralCode);
+        if (affiliate) {
+          referralData = {
+            referredByL1: affiliate.id,
+            referredByL2: affiliate.level1Id,
+            referredByL3: affiliate.level2Id,
+            referredByL4: affiliate.level3Id,
+            referredByL5: affiliate.level4Id,
+            referredByL6: affiliate.level5Id,
+          };
+          // Increment affiliate's lead count
+          await storage.updateVltAffiliate(affiliate.id, { 
+            totalLeads: (affiliate.totalLeads || 0) + 1 
+          });
+        }
+      }
+      
+      const intake = await storage.createVltIntake({ ...data, ...referralData });
       
       // Forward to CRM webhook if configured
       if (process.env.CRM_WEBHOOK_URL) {
@@ -347,6 +368,165 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Failed to update VLT intake" });
+    }
+  });
+
+  // ===== VLT AFFILIATE MANAGEMENT (Admin) =====
+  
+  // Get all VLT affiliates
+  app.get("/api/admin/vlt-affiliates", requireAdmin, async (req, res) => {
+    try {
+      const affiliates = await storage.getAllVltAffiliates();
+      res.json(affiliates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch VLT affiliates" });
+    }
+  });
+
+  // Create VLT affiliate
+  app.post("/api/admin/vlt-affiliates", requireAdmin, async (req, res) => {
+    try {
+      const { name, email, phone, password, uplineCode } = req.body;
+      
+      // Generate unique referral code
+      const referralCode = `VLT${Date.now().toString(36).toUpperCase()}`;
+      
+      // Hash password
+      const bcrypt = await import("bcrypt");
+      const passwordHash = await bcrypt.hash(password, 10);
+      
+      // Look up upline if provided
+      let uplineData: any = {};
+      if (uplineCode) {
+        const upline = await storage.getVltAffiliateByReferralCode(uplineCode);
+        if (upline) {
+          uplineData = {
+            level1Id: upline.id,
+            level2Id: upline.level1Id,
+            level3Id: upline.level2Id,
+            level4Id: upline.level3Id,
+            level5Id: upline.level4Id,
+            level6Id: upline.level5Id,
+          };
+        }
+      }
+      
+      const affiliate = await storage.createVltAffiliate({
+        name,
+        email,
+        phone,
+        passwordHash,
+        referralCode,
+        status: "active",
+        ...uplineData,
+      });
+      
+      res.status(201).json(affiliate);
+    } catch (error) {
+      console.error("Create affiliate error:", error);
+      res.status(500).json({ message: "Failed to create VLT affiliate" });
+    }
+  });
+
+  // Update VLT affiliate
+  app.patch("/api/admin/vlt-affiliates/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateVltAffiliate(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Affiliate not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update VLT affiliate" });
+    }
+  });
+
+  // Delete VLT affiliate
+  app.delete("/api/admin/vlt-affiliates/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteVltAffiliate(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete VLT affiliate" });
+    }
+  });
+
+  // ===== VLT AFFILIATE PORTAL =====
+  
+  // VLT Affiliate login
+  app.post("/api/vlt-affiliate/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const affiliate = await storage.getVltAffiliateByEmail(email);
+      
+      if (!affiliate) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      const bcrypt = await import("bcrypt");
+      const valid = await bcrypt.compare(password, affiliate.passwordHash);
+      
+      if (!valid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      req.session.vltAffiliateId = affiliate.id;
+      res.json({ 
+        success: true, 
+        affiliate: { 
+          id: affiliate.id, 
+          name: affiliate.name, 
+          email: affiliate.email,
+          referralCode: affiliate.referralCode,
+          totalLeads: affiliate.totalLeads
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  // VLT Affiliate logout
+  app.post("/api/vlt-affiliate/logout", (req, res) => {
+    req.session.vltAffiliateId = undefined;
+    res.json({ success: true });
+  });
+
+  // Get current VLT affiliate
+  app.get("/api/vlt-affiliate/me", async (req, res) => {
+    try {
+      if (!req.session.vltAffiliateId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const affiliate = await storage.getVltAffiliate(req.session.vltAffiliateId);
+      if (!affiliate) {
+        return res.status(404).json({ message: "Affiliate not found" });
+      }
+      res.json({
+        id: affiliate.id,
+        name: affiliate.name,
+        email: affiliate.email,
+        referralCode: affiliate.referralCode,
+        totalLeads: affiliate.totalLeads,
+        status: affiliate.status
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get affiliate" });
+    }
+  });
+
+  // Get VLT affiliate's leads
+  app.get("/api/vlt-affiliate/leads", async (req, res) => {
+    try {
+      if (!req.session.vltAffiliateId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const leads = await storage.getVltIntakesByAffiliate(req.session.vltAffiliateId);
+      res.json(leads);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch leads" });
     }
   });
 

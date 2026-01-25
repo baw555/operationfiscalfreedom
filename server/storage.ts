@@ -8,7 +8,8 @@ import {
   privateDoctorRequests, type PrivateDoctorRequest, type InsertPrivateDoctorRequest,
   websiteApplications, type WebsiteApplication, type InsertWebsiteApplication,
   generalContact, type GeneralContact, type InsertGeneralContact,
-  vltIntake, type VltIntake, type InsertVltIntake
+  vltIntake, type VltIntake, type InsertVltIntake,
+  vltAffiliates, type VltAffiliate, type InsertVltAffiliate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
@@ -83,6 +84,16 @@ export interface IStorage {
   getVltIntake(id: number): Promise<VltIntake | undefined>;
   getAllVltIntakes(): Promise<VltIntake[]>;
   updateVltIntake(id: number, updates: Partial<VltIntake>): Promise<VltIntake | undefined>;
+  getVltIntakesByAffiliate(affiliateId: number): Promise<VltIntake[]>;
+
+  // VLT Affiliates
+  createVltAffiliate(affiliate: InsertVltAffiliate): Promise<VltAffiliate>;
+  getVltAffiliate(id: number): Promise<VltAffiliate | undefined>;
+  getVltAffiliateByEmail(email: string): Promise<VltAffiliate | undefined>;
+  getVltAffiliateByReferralCode(code: string): Promise<VltAffiliate | undefined>;
+  getAllVltAffiliates(): Promise<VltAffiliate[]>;
+  updateVltAffiliate(id: number, updates: Partial<VltAffiliate>): Promise<VltAffiliate | undefined>;
+  deleteVltAffiliate(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -380,6 +391,56 @@ export class DatabaseStorage implements IStorage {
       .where(eq(vltIntake.id, id))
       .returning();
     return intake || undefined;
+  }
+
+  async getVltIntakesByAffiliate(affiliateId: number): Promise<VltIntake[]> {
+    return db.select().from(vltIntake)
+      .where(or(
+        eq(vltIntake.referredByL1, affiliateId),
+        eq(vltIntake.referredByL2, affiliateId),
+        eq(vltIntake.referredByL3, affiliateId),
+        eq(vltIntake.referredByL4, affiliateId),
+        eq(vltIntake.referredByL5, affiliateId),
+        eq(vltIntake.referredByL6, affiliateId)
+      ))
+      .orderBy(desc(vltIntake.createdAt));
+  }
+
+  // VLT Affiliates
+  async createVltAffiliate(affiliate: InsertVltAffiliate): Promise<VltAffiliate> {
+    const [result] = await db.insert(vltAffiliates).values(affiliate).returning();
+    return result;
+  }
+
+  async getVltAffiliate(id: number): Promise<VltAffiliate | undefined> {
+    const [affiliate] = await db.select().from(vltAffiliates).where(eq(vltAffiliates.id, id));
+    return affiliate || undefined;
+  }
+
+  async getVltAffiliateByEmail(email: string): Promise<VltAffiliate | undefined> {
+    const [affiliate] = await db.select().from(vltAffiliates).where(eq(vltAffiliates.email, email));
+    return affiliate || undefined;
+  }
+
+  async getVltAffiliateByReferralCode(code: string): Promise<VltAffiliate | undefined> {
+    const [affiliate] = await db.select().from(vltAffiliates).where(eq(vltAffiliates.referralCode, code));
+    return affiliate || undefined;
+  }
+
+  async getAllVltAffiliates(): Promise<VltAffiliate[]> {
+    return db.select().from(vltAffiliates).orderBy(desc(vltAffiliates.createdAt));
+  }
+
+  async updateVltAffiliate(id: number, updates: Partial<VltAffiliate>): Promise<VltAffiliate | undefined> {
+    const [affiliate] = await db.update(vltAffiliates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(vltAffiliates.id, id))
+      .returning();
+    return affiliate || undefined;
+  }
+
+  async deleteVltAffiliate(id: number): Promise<void> {
+    await db.delete(vltAffiliates).where(eq(vltAffiliates.id, id));
   }
 }
 

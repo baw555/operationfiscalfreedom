@@ -260,20 +260,74 @@ export const insertGeneralContactSchema = createInsertSchema(generalContact).omi
 export type InsertGeneralContact = z.infer<typeof insertGeneralContactSchema>;
 export type GeneralContact = typeof generalContact.$inferSelect;
 
+// VLT Affiliates with 6-level hierarchy
+export const vltAffiliates = pgTable("vlt_affiliates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone"),
+  passwordHash: text("password_hash").notNull(),
+  referralCode: text("referral_code").notNull().unique(),
+  level1Id: integer("level1_id"), // Direct upline
+  level2Id: integer("level2_id"), // 2nd level upline
+  level3Id: integer("level3_id"), // 3rd level upline
+  level4Id: integer("level4_id"), // 4th level upline
+  level5Id: integer("level5_id"), // 5th level upline
+  level6Id: integer("level6_id"), // 6th level upline (master)
+  status: text("status").notNull().default("active"), // active, inactive, suspended
+  totalLeads: integer("total_leads").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertVltAffiliateSchema = createInsertSchema(vltAffiliates).omit({
+  id: true,
+  totalLeads: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVltAffiliate = z.infer<typeof insertVltAffiliateSchema>;
+export type VltAffiliate = typeof vltAffiliates.$inferSelect;
+
 // VLT Tax Intake Submissions
 export const vltIntake = pgTable("vlt_intake", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull(),
-  issue: text("issue").notNull(), // credits, resolution, other
-  routedTo: text("routed_to"),
+  phone: text("phone"),
+  issue: text("issue").notNull(), // credits, resolution, preparation, planning, payroll, other
+  issueDetails: text("issue_details"),
+  businessType: text("business_type"), // individual, sole_prop, llc, s_corp, c_corp, partnership
+  routedTo: text("routed_to"), // CPA, Tax Attorney, General
+  status: text("status").notNull().default("new"), // new, contacted, in_progress, closed, converted
+  assignedTo: integer("assigned_to"),
+  notes: text("notes"),
+  referralCode: text("referral_code"), // Affiliate referral code
+  referredByL1: integer("referred_by_l1"), // Level 1 affiliate who referred
+  referredByL2: integer("referred_by_l2"), // Level 2 upline
+  referredByL3: integer("referred_by_l3"), // Level 3 upline
+  referredByL4: integer("referred_by_l4"), // Level 4 upline
+  referredByL5: integer("referred_by_l5"), // Level 5 upline
+  referredByL6: integer("referred_by_l6"), // Level 6 upline (master)
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const insertVltIntakeSchema = createInsertSchema(vltIntake).omit({
   id: true,
   routedTo: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  referredByL1: true,
+  referredByL2: true,
+  referredByL3: true,
+  referredByL4: true,
+  referredByL5: true,
+  referredByL6: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 export type InsertVltIntake = z.infer<typeof insertVltIntakeSchema>;
