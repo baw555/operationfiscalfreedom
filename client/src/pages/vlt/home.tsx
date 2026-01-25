@@ -1,5 +1,6 @@
 import Container from "@/components/Container";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Link } from "wouter";
 
 export default function VLTHome() {
@@ -80,12 +81,8 @@ export default function VLTHome() {
           </div>
         </div>
 
-        <div className="mt-12 mb-8">
-          <Link href="/veteran-led-tax/disclosures">
-            <span className="text-sm text-gray-500 hover:text-brand-navy cursor-pointer">Disclosures</span>
-          </Link>
-        </div>
-      </Container>
+        </Container>
+      <Footer />
     </>
   );
 }
