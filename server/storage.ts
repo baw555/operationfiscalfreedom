@@ -350,27 +350,17 @@ export class DatabaseStorage implements IStorage {
   // VLT Intake
   async createVltIntake(intake: InsertVltIntake): Promise<VltIntake> {
     // Lead routing logic based on service type
-    let routedTo = "general";
-    switch (intake.serviceType) {
-      case "tax_prep":
-        routedTo = "tax_prep";
-        break;
-      case "tax_resolution":
-        routedTo = "resolution";
-        break;
-      case "payroll":
-        routedTo = "payroll";
-        break;
-      case "cfo":
-      case "entity":
-        routedTo = "advisory";
-        break;
-      case "credits":
-        routedTo = "tax_credits";
-        break;
-      default:
-        routedTo = "general";
-    }
+    const routedTo =
+      intake.serviceType === "credits" ? "CPA" :
+      intake.serviceType === "tax_resolution" ? "Tax Attorney" :
+      "General";
+
+    console.log("NEW LEAD:", {
+      ...intake,
+      routedTo,
+      timestamp: new Date().toISOString()
+    });
+
     const [result] = await db.insert(vltIntake).values({ ...intake, routedTo }).returning();
     return result;
   }
