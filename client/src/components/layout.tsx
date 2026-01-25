@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Menu, X, Star, LogIn } from "lucide-react";
+import { Menu, X, Star, LogIn, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import logoImage from "@assets/Navigaor_USA_Logo_396x86_1767699671480.png";
@@ -50,13 +50,22 @@ function AnimatedNavigatorUSA({ variant = "topbar" }: { variant?: "topbar" | "na
 const navItems = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
-  { name: "Fin-Ops", href: "/fin-ops" },
   { name: "Vet-Biz-Owners", href: "/businesses" },
+];
+
+const finOpsSubItems = [
+  { name: "Fin-Ops Overview", href: "/fin-ops" },
+  { name: "Merchant Services", href: "/merchant-services" },
+  { name: "MY LOCKER", href: "/my-locker" },
+  { name: "Shipping Optimization", href: "/shipping" },
+  { name: "Logistics Overview", href: "/logistics-overview" },
+  { name: "Best Practices", href: "/best-practices" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [finOpsOpen, setFinOpsOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
@@ -88,14 +97,50 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Desktop Nav */}
           <nav className="hidden xl:flex items-center gap-4 2xl:gap-6">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
-                  location === item.href ? "text-brand-red border-brand-red" : "text-brand-navy"
+            <Link href="/" className={cn(
+                "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
+                location === "/" ? "text-brand-red border-brand-red" : "text-brand-navy"
+              )}>
+                Home
+            </Link>
+            <Link href="/about" className={cn(
+                "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
+                location === "/about" ? "text-brand-red border-brand-red" : "text-brand-navy"
+              )}>
+                About
+            </Link>
+            
+            <div className="relative" onMouseEnter={() => setFinOpsOpen(true)} onMouseLeave={() => setFinOpsOpen(false)}>
+              <button className={cn(
+                  "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location.startsWith("/fin-ops") || location.startsWith("/merchant") || location.startsWith("/my-locker") || location.startsWith("/shipping") || location.startsWith("/logistics") || location.startsWith("/best-practices") ? "text-brand-red border-brand-red" : "text-brand-navy"
                 )}>
-                  {item.name}
-              </Link>
-            ))}
+                  Fin-Ops <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
+              </button>
+              {finOpsOpen && (
+                <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                  {finOpsSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className={cn(
+                        "block px-4 py-2 text-sm font-bold hover:bg-brand-red hover:text-white transition-colors cursor-pointer",
+                        location === item.href ? "text-brand-red bg-brand-red/10" : "text-brand-navy"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link href="/businesses" className={cn(
+                "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
+                location === "/businesses" ? "text-brand-red border-brand-red" : "text-brand-navy"
+              )}>
+                Vet-Biz-Owners
+            </Link>
           </nav>
 
           {/* CTA Buttons - INTENSE */}
@@ -120,16 +165,51 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Mobile Menu - INTENSE */}
         {mobileMenuOpen && (
           <div className="xl:hidden bg-white border-t-2 border-brand-red p-4 flex flex-col gap-2 absolute w-full left-0 shadow-xl z-[100]">
-            {navItems.map((item) => (
-              <Link 
-                key={item.href} 
-                href={item.href} 
-                className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
-                onClick={() => setMobileMenuOpen(false)}
+            <Link 
+              href="/" 
+              className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              href="/about" 
+              className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              About
+            </Link>
+            
+            <div className="border-l-4 border-brand-red">
+              <button 
+                className="text-brand-red font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]"
+                onClick={() => setFinOpsOpen(!finOpsOpen)}
               >
-                {item.name}
-              </Link>
-            ))}
+                Fin-Ops <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
+              </button>
+              {finOpsOpen && (
+                <div className="pl-4 pb-2">
+                  {finOpsSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className="text-brand-navy font-semibold py-2 px-2 block cursor-pointer touch-manipulation min-h-[40px] flex items-center hover:text-brand-red active:bg-brand-red/10" 
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link 
+              href="/businesses" 
+              className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Vet-Biz-Owners
+            </Link>
             <div className="h-px bg-brand-navy/20 my-2" />
             <Link 
               href="/join" 
