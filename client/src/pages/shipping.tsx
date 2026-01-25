@@ -245,155 +245,115 @@ export default function Shipping() {
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <a 
-                href="/resources/FedEx_List_Rates_2026_vs_2025.pdf" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group"
+              <Link 
+                href="/download/fedex-rates"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group cursor-pointer"
                 data-testid="link-download-fedex-rates-2026"
               >
-                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                  <img 
-                    src="/resources/preview-fedex-rates-2026.png" 
-                    alt="FedEx List Rates 2026 vs 2025 Preview" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <Download className="w-12 h-12 text-purple-600 mx-auto mb-2" />
+                    <span className="text-purple-800 font-bold">FedEx Rates</span>
+                  </div>
                 </div>
-                <div className="p-4 border-t-4 border-orange-500">
+                <div className="p-4 border-t-4 border-purple-600">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-brand-navy text-sm">FedEx List Rates</h4>
+                      <h4 className="font-bold text-brand-navy text-sm">FedEx Fee & Surcharge</h4>
                       <p className="text-xs text-gray-500">2026 vs 2025</p>
                     </div>
-                    <Download className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                    <Download className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
                   </div>
                 </div>
-              </a>
+              </Link>
 
-              <a 
-                href="/resources/FedEx_List_Rates_2025_vs_2020.pdf" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group"
-                data-testid="link-download-fedex-rates-5year"
-              >
-                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                  <img 
-                    src="/resources/preview-fedex-rates-5year.png" 
-                    alt="FedEx 5-Year Look Back Preview" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-4 border-t-4 border-orange-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-brand-navy text-sm">FedEx 5-Year Look Back</h4>
-                      <p className="text-xs text-gray-500">2025 vs 2020</p>
-                    </div>
-                    <Download className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
-                  </div>
-                </div>
-              </a>
-
-              <a 
-                href="/resources/FedEx_Fee_Surcharge_Rates_2026_vs_2025.pdf" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group"
-                data-testid="link-download-fedex-fees-2026"
-              >
-                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                  <img 
-                    src="/resources/preview-fedex-fees-2026.png" 
-                    alt="FedEx Fees & Surcharges 2026 Preview" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-4 border-t-4 border-orange-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-brand-navy text-sm">FedEx Fees & Surcharges</h4>
-                      <p className="text-xs text-gray-500">2026 vs 2025</p>
-                    </div>
-                    <Download className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
-                  </div>
-                </div>
-              </a>
-
-              <a 
-                href="/resources/FedEx_Fee_Surcharge_Rates_2025_vs_2020.pdf" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group"
-                data-testid="link-download-fedex-fees-5year"
-              >
-                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                  <img 
-                    src="/resources/preview-fedex-fees-5year.png" 
-                    alt="FedEx Fees 5-Year Preview" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-4 border-t-4 border-orange-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-brand-navy text-sm">FedEx Fees 5-Year</h4>
-                      <p className="text-xs text-gray-500">2025 vs 2020</p>
-                    </div>
-                    <Download className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
-                  </div>
-                </div>
-              </a>
-
-              <a 
-                href="/resources/UPS_Fee_Surcharge_Rates_2025_vs_2020.pdf" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group"
+              <Link 
+                href="/download/ups-rates"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group cursor-pointer"
                 data-testid="link-download-ups-fees"
               >
-                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                  <img 
-                    src="/resources/preview-ups-fees.png" 
-                    alt="UPS Fees & Surcharges Preview" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <Download className="w-12 h-12 text-amber-700 mx-auto mb-2" />
+                    <span className="text-amber-800 font-bold">UPS Rates</span>
+                  </div>
                 </div>
                 <div className="p-4 border-t-4 border-amber-700">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-bold text-brand-navy text-sm">UPS Fees & Surcharges</h4>
-                      <p className="text-xs text-gray-500">2025 vs 2020</p>
+                      <p className="text-xs text-gray-500">2025 vs 2020 (5-Year)</p>
                     </div>
                     <Download className="w-5 h-5 text-gray-400 group-hover:text-amber-700 transition-colors" />
                   </div>
                 </div>
-              </a>
+              </Link>
 
-              <a 
-                href="/resources/ICC_Rate_Increase_Playbook_2025.pdf" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group"
+              <Link 
+                href="/download/rate-playbook"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group cursor-pointer"
                 data-testid="link-download-playbook"
               >
-                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                  <img 
-                    src="/resources/preview-playbook.png" 
-                    alt="Rate Increase Playbook Preview" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <Download className="w-12 h-12 text-brand-red mx-auto mb-2" />
+                    <span className="text-red-800 font-bold">2025 Playbook</span>
+                  </div>
                 </div>
-                <div className="p-4 border-t-4 border-brand-blue">
+                <div className="p-4 border-t-4 border-brand-red">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-bold text-brand-navy text-sm">Rate Increase Playbook</h4>
                       <p className="text-xs text-gray-500">2025 Strategies</p>
                     </div>
+                    <Download className="w-5 h-5 text-gray-400 group-hover:text-brand-red transition-colors" />
+                  </div>
+                </div>
+              </Link>
+
+              <Link 
+                href="/download/parcel-checklist"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group cursor-pointer"
+                data-testid="link-download-parcel"
+              >
+                <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <Download className="w-12 h-12 text-orange-600 mx-auto mb-2" />
+                    <span className="text-orange-800 font-bold">Parcel Audit</span>
+                  </div>
+                </div>
+                <div className="p-4 border-t-4 border-orange-500">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-brand-navy text-sm">Parcel Audit Checklist</h4>
+                      <p className="text-xs text-gray-500">UPS, FedEx, DHL</p>
+                    </div>
+                    <Download className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                  </div>
+                </div>
+              </Link>
+
+              <Link 
+                href="/download/freight-checklist"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group cursor-pointer"
+                data-testid="link-download-freight"
+              >
+                <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <Download className="w-12 h-12 text-brand-blue mx-auto mb-2" />
+                    <span className="text-blue-800 font-bold">Freight Audit</span>
+                  </div>
+                </div>
+                <div className="p-4 border-t-4 border-brand-blue">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-brand-navy text-sm">Freight Invoice Checklist</h4>
+                      <p className="text-xs text-gray-500">LTL & TL</p>
+                    </div>
                     <Download className="w-5 h-5 text-gray-400 group-hover:text-brand-blue transition-colors" />
                   </div>
                 </div>
-              </a>
+              </Link>
             </div>
 
             <p className="text-xs text-gray-500 text-center mt-6">
