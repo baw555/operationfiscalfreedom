@@ -71,6 +71,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [finOpsOpen, setFinOpsOpen] = useState(false);
+  const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
+  const [mobileFinOpsOpen, setMobileFinOpsOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
@@ -203,20 +205,23 @@ export function Layout({ children }: { children: React.ReactNode }) {
               Home
             </Link>
             
-            <div className="border-l-4 border-brand-red">
+            <div className={cn("border-l-4", mobileAboutOpen ? "border-brand-red" : "border-transparent")}>
               <button 
-                className="text-brand-red font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]"
-                onClick={() => setAboutOpen(!aboutOpen)}
+                className={cn(
+                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]",
+                  mobileAboutOpen ? "text-brand-red" : "text-brand-navy"
+                )}
+                onClick={() => setMobileAboutOpen(!mobileAboutOpen)}
               >
-                About <ChevronDown className={cn("w-4 h-4 transition-transform", aboutOpen && "rotate-180")} />
+                About <ChevronDown className={cn("w-4 h-4 transition-transform", mobileAboutOpen && "rotate-180")} />
               </button>
-              {aboutOpen && (
-                <div className="pl-4 pb-2">
+              {mobileAboutOpen && (
+                <div className="pl-4 pb-2 bg-gray-50 rounded">
                   {aboutSubItems.map((item) => (
                     <Link 
                       key={item.href} 
                       href={item.href} 
-                      className="text-brand-navy font-semibold py-2 px-2 block cursor-pointer touch-manipulation min-h-[40px] flex items-center hover:text-brand-red active:bg-brand-red/10" 
+                      className="text-brand-navy font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-brand-red active:bg-brand-red/10 border-b border-gray-200 last:border-0" 
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {item.name}
@@ -226,20 +231,23 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
             
-            <div className="border-l-4 border-brand-red">
+            <div className={cn("border-l-4", mobileFinOpsOpen ? "border-brand-red" : "border-transparent")}>
               <button 
-                className="text-brand-red font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]"
-                onClick={() => setFinOpsOpen(!finOpsOpen)}
+                className={cn(
+                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]",
+                  mobileFinOpsOpen ? "text-brand-red" : "text-brand-navy"
+                )}
+                onClick={() => setMobileFinOpsOpen(!mobileFinOpsOpen)}
               >
-                Fin-Ops <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
+                Fin-Ops <ChevronDown className={cn("w-4 h-4 transition-transform", mobileFinOpsOpen && "rotate-180")} />
               </button>
-              {finOpsOpen && (
-                <div className="pl-4 pb-2">
+              {mobileFinOpsOpen && (
+                <div className="pl-4 pb-2 bg-gray-50 rounded">
                   {finOpsSubItems.map((item) => (
                     <Link 
                       key={item.href} 
                       href={item.href} 
-                      className="text-brand-navy font-semibold py-2 px-2 block cursor-pointer touch-manipulation min-h-[40px] flex items-center hover:text-brand-red active:bg-brand-red/10" 
+                      className="text-brand-navy font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-brand-red active:bg-brand-red/10 border-b border-gray-200 last:border-0" 
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {item.name}
