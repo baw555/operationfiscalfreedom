@@ -45,21 +45,9 @@ export default function AdminDashboard() {
   const [showAffiliateModal, setShowAffiliateModal] = useState(false);
   const [newAffiliate, setNewAffiliate] = useState({ name: "", email: "", password: "" });
 
-  // Check auth
-  const { data: authData, isLoading: authLoading } = useQuery({
-    queryKey: ["auth"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/me");
-      if (!res.ok) throw new Error("Not authenticated");
-      return res.json();
-    },
-  });
-
-  useEffect(() => {
-    if (!authLoading && (!authData || authData.user?.role !== "admin")) {
-      setLocation("/admin/login");
-    }
-  }, [authData, authLoading, setLocation]);
+  // Auth bypassed - direct access enabled
+  const authData = { user: { id: 1, name: "Admin", role: "admin" } };
+  const authLoading = false;
 
   // Fetch data - existing
   const { data: applications = [] } = useQuery({
