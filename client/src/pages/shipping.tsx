@@ -46,7 +46,7 @@ export default function Shipping() {
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: glisten 30s ease-in-out infinite;
+            animation: glisten 20s ease-in-out infinite;
           }
           .glisten-logo {
             background: linear-gradient(
@@ -61,8 +61,8 @@ export default function Shipping() {
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: glistenAlt 30s ease-in-out infinite;
-            animation-delay: 15s;
+            animation: glistenAlt 20s ease-in-out infinite;
+            animation-delay: 10s;
           }
         `}</style>
         
