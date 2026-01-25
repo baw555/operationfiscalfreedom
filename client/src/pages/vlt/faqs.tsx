@@ -1,9 +1,9 @@
-import { Layout } from "@/components/layout";
-import { buttonVariants } from "@/components/ui/button";
+import Container from "@/components/Container";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Link } from "wouter";
-import { cn } from "@/lib/utils";
-import { ChevronDown, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
@@ -48,9 +48,10 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full py-4 flex items-center justify-between text-left"
+        data-testid={`faq-toggle-${question.slice(0, 20).replace(/\s+/g, '-').toLowerCase()}`}
       >
         <span className="font-medium text-brand-navy">{question}</span>
-        <ChevronDown className={cn("w-5 h-5 text-gray-400 transition-transform", isOpen && "rotate-180")} />
+        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
       {isOpen && (
         <div className="pb-4 text-gray-600">
@@ -63,49 +64,33 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 
 export default function FAQs() {
   return (
-    <Layout>
-      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16 sm:py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-block bg-white/10 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-              Veteran Led Tax Solutions
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-display mb-6 leading-tight">
-              Frequently Asked Questions
-            </h1>
-            <p className="text-lg sm:text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
-              Common questions about our services and process.
-            </p>
-          </div>
-        </div>
-      </section>
+    <>
+      <Navbar />
+      <Container>
+        <h1 className="text-3xl font-bold mt-12">Frequently Asked Questions</h1>
+        <p className="mt-4 max-w-3xl">
+          Common questions about our services and process.
+        </p>
 
-      <section className="py-16 sm:py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-xl p-8 shadow-sm">
-              {faqs.map((faq) => (
-                <FAQItem key={faq.question} question={faq.question} answer={faq.answer} />
-              ))}
-            </div>
-          </div>
+        <div className="mt-8 max-w-3xl">
+          {faqs.map((faq) => (
+            <FAQItem key={faq.question} question={faq.question} answer={faq.answer} />
+          ))}
         </div>
-      </section>
 
-      <section className="py-16 sm:py-20 bg-brand-navy text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl sm:text-3xl font-display mb-4">Still Have Questions?</h2>
-          <p className="text-slate-300 mb-8 max-w-2xl mx-auto">
+        <div className="mt-12 mb-12">
+          <h2 className="text-xl font-semibold">Still Have Questions?</h2>
+          <p className="mt-2 text-gray-600 mb-4">
             We're here to help. Start your intake and we'll answer all your questions.
           </p>
-          <Link 
-            href="/veteran-led-tax/intake" 
-            className={cn(buttonVariants({ size: "lg" }), "bg-brand-red hover:bg-brand-red/90 text-white font-bold px-8")}
-          >
-            Contact Us <ArrowRight className="ml-2 w-4 h-4" />
+          <Link href="/veteran-led-tax/intake">
+            <span className="inline-block px-6 py-3 bg-brand-red text-white font-semibold rounded hover:bg-brand-red/90 cursor-pointer">
+              Contact Us
+            </span>
           </Link>
         </div>
-      </section>
-    </Layout>
+      </Container>
+      <Footer />
+    </>
   );
 }

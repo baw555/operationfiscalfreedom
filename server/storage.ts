@@ -7,7 +7,8 @@ import {
   investorSubmissions, type InvestorSubmission, type InsertInvestorSubmission,
   privateDoctorRequests, type PrivateDoctorRequest, type InsertPrivateDoctorRequest,
   websiteApplications, type WebsiteApplication, type InsertWebsiteApplication,
-  generalContact, type GeneralContact, type InsertGeneralContact
+  generalContact, type GeneralContact, type InsertGeneralContact,
+  vltIntake, type VltIntake, type InsertVltIntake
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
@@ -76,6 +77,12 @@ export interface IStorage {
   getAllGeneralContacts(): Promise<GeneralContact[]>;
   getGeneralContactsByAssignee(userId: number): Promise<GeneralContact[]>;
   updateGeneralContact(id: number, updates: Partial<GeneralContact>): Promise<GeneralContact | undefined>;
+
+  // VLT Intake
+  createVltIntake(intake: InsertVltIntake): Promise<VltIntake>;
+  getVltIntake(id: number): Promise<VltIntake | undefined>;
+  getAllVltIntakes(): Promise<VltIntake[]>;
+  updateVltIntake(id: number, updates: Partial<VltIntake>): Promise<VltIntake | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -338,6 +345,51 @@ export class DatabaseStorage implements IStorage {
       .where(eq(generalContact.id, id))
       .returning();
     return contact || undefined;
+  }
+
+  // VLT Intake
+  async createVltIntake(intake: InsertVltIntake): Promise<VltIntake> {
+    // Lead routing logic based on service type
+    let routedTo = "general";
+    switch (intake.serviceType) {
+      case "tax_prep":
+        routedTo = "tax_prep";
+        break;
+      case "tax_resolution":
+        routedTo = "resolution";
+        break;
+      case "payroll":
+        routedTo = "payroll";
+        break;
+      case "cfo":
+      case "entity":
+        routedTo = "advisory";
+        break;
+      case "credits":
+        routedTo = "tax_credits";
+        break;
+      default:
+        routedTo = "general";
+    }
+    const [result] = await db.insert(vltIntake).values({ ...intake, routedTo }).returning();
+    return result;
+  }
+
+  async getVltIntake(id: number): Promise<VltIntake | undefined> {
+    const [intake] = await db.select().from(vltIntake).where(eq(vltIntake.id, id));
+    return intake || undefined;
+  }
+
+  async getAllVltIntakes(): Promise<VltIntake[]> {
+    return db.select().from(vltIntake).orderBy(desc(vltIntake.createdAt));
+  }
+
+  async updateVltIntake(id: number, updates: Partial<VltIntake>): Promise<VltIntake | undefined> {
+    const [intake] = await db.update(vltIntake)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(vltIntake.id, id))
+      .returning();
+    return intake || undefined;
   }
 }
 

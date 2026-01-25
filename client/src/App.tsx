@@ -58,6 +58,9 @@ import VLTOurLegacy from "@/pages/vlt/our-legacy";
 import VLTServices from "@/pages/vlt/services";
 import VLTResources from "@/pages/vlt/resources/index";
 import VLTIRSNotices from "@/pages/vlt/resources/irs-notices";
+import VLTCP14 from "@/pages/vlt/resources/cp14";
+import VLTLT11 from "@/pages/vlt/resources/lt11";
+import VLTCP504 from "@/pages/vlt/resources/cp504";
 import VLTAuditRepresentation from "@/pages/vlt/resources/audit-representation";
 import VLTWageGarnishments from "@/pages/vlt/resources/wage-garnishments";
 import VLTFormsAndLetters from "@/pages/vlt/resources/forms-and-letters";
@@ -81,6 +84,7 @@ import VLTWOTCCredit from "@/pages/vlt/tax-credits/wotc";
 import VLTEnergyTaxCredits from "@/pages/vlt/tax-credits/energy-tax-credits";
 import VLTPaidFamilyLeaveCredit from "@/pages/vlt/tax-credits/paid-family-leave-credit";
 import VLTDisabledAccessCredit from "@/pages/vlt/tax-credits/disabled-access-credit";
+import VLTArticles from "@/pages/vlt/articles/index";
 
 function Router() {
   return (
@@ -136,6 +140,9 @@ function Router() {
       <Route path="/veteran-led-tax/intake" component={VLTIntake} />
       <Route path="/veteran-led-tax/resources" component={VLTResources} />
       <Route path="/veteran-led-tax/resources/irs-notices" component={VLTIRSNotices} />
+      <Route path="/veteran-led-tax/resources/irs-notices/cp14" component={VLTCP14} />
+      <Route path="/veteran-led-tax/resources/irs-notices/lt11" component={VLTLT11} />
+      <Route path="/veteran-led-tax/resources/irs-notices/cp504" component={VLTCP504} />
       <Route path="/veteran-led-tax/resources/audit-representation" component={VLTAuditRepresentation} />
       <Route path="/veteran-led-tax/resources/wage-garnishments" component={VLTWageGarnishments} />
       <Route path="/veteran-led-tax/resources/forms-and-letters" component={VLTFormsAndLetters} />
@@ -149,6 +156,7 @@ function Router() {
       <Route path="/veteran-led-tax/videos" component={VLTVideos} />
       <Route path="/veteran-led-tax/tax-news" component={VLTTaxNews} />
       <Route path="/veteran-led-tax/faqs" component={VLTFAQs} />
+      <Route path="/veteran-led-tax/articles" component={VLTArticles} />
       <Route path="/veteran-led-tax/locations" component={VLTLocations} />
       <Route path="/veteran-led-tax/partners" component={VLTPartners} />
       <Route path="/veteran-led-tax/disclosures" component={VLTDisclosures} />

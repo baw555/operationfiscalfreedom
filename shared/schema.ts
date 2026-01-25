@@ -259,3 +259,36 @@ export const insertGeneralContactSchema = createInsertSchema(generalContact).omi
 
 export type InsertGeneralContact = z.infer<typeof insertGeneralContactSchema>;
 export type GeneralContact = typeof generalContact.$inferSelect;
+
+// VLT Tax Intake Submissions
+export const vltIntake = pgTable("vlt_intake", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  serviceType: text("service_type").notNull(), // tax_prep, tax_resolution, payroll, cfo, entity, credits, other
+  businessType: text("business_type").notNull(), // individual, sole_prop, llc, s_corp, c_corp, partnership
+  description: text("description").notNull(),
+  urgency: text("urgency").notNull(), // standard, urgent, critical
+  source: text("source"), // referral, google, social, other
+  status: text("status").notNull().default("new"), // new, assigned, in_progress, closed
+  assignedTo: text("assigned_to"), // email or name of assigned professional
+  routedTo: text("routed_to"), // tax_prep, resolution, payroll, advisory
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertVltIntakeSchema = createInsertSchema(vltIntake).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  routedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVltIntake = z.infer<typeof insertVltIntakeSchema>;
+export type VltIntake = typeof vltIntake.$inferSelect;

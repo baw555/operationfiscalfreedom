@@ -11,7 +11,8 @@ import {
   insertInvestorSubmissionSchema,
   insertPrivateDoctorRequestSchema,
   insertWebsiteApplicationSchema,
-  insertGeneralContactSchema
+  insertGeneralContactSchema,
+  insertVltIntakeSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -172,6 +173,44 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to submit contact form" });
+    }
+  });
+
+  // Submit VLT intake
+  app.post("/api/vlt-intake", async (req, res) => {
+    try {
+      const data = insertVltIntakeSchema.parse(req.body);
+      const intake = await storage.createVltIntake(data);
+      res.status(201).json({ success: true, id: intake.id, routedTo: intake.routedTo });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit intake form" });
+    }
+  });
+
+  // Get all VLT intakes (admin)
+  app.get("/api/admin/vlt-intake", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllVltIntakes();
+      res.json(intakes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch VLT intakes" });
+    }
+  });
+
+  // Update VLT intake (admin)
+  app.patch("/api/admin/vlt-intake/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateVltIntake(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Intake not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update VLT intake" });
     }
   });
 
