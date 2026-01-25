@@ -16,6 +16,10 @@ export default function Shipping() {
             90% { opacity: 1; }
             100% { transform: translateX(calc(100vw + 100px)); opacity: 0; }
           }
+          @keyframes glisten {
+            0%, 100% { background-position: -200% center; }
+            50% { background-position: 200% center; }
+          }
           .animate-truck {
             animation: moveRight 10s linear infinite;
           }
@@ -26,6 +30,36 @@ export default function Shipping() {
           .animate-ship {
             animation: moveRight 10s linear infinite;
             animation-delay: 6s;
+          }
+          .glisten-text {
+            background: linear-gradient(
+              90deg,
+              #D4AF37 0%,
+              #D4AF37 40%,
+              #FFFFFF 50%,
+              #D4AF37 60%,
+              #D4AF37 100%
+            );
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glisten 3s ease-in-out infinite;
+          }
+          .glisten-logo {
+            background: linear-gradient(
+              90deg,
+              #1a365d 0%,
+              #1a365d 40%,
+              #D4AF37 50%,
+              #1a365d 60%,
+              #1a365d 100%
+            );
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glisten 3s ease-in-out infinite;
           }
         `}</style>
         
@@ -47,7 +81,7 @@ export default function Shipping() {
             <span className="font-bold text-xs sm:text-sm uppercase tracking-wider">Income Opportunity</span>
           </div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-display mb-2 sm:mb-4" data-testid="text-page-title">Shipping Optimization</h1>
-          <p className="text-lg sm:text-2xl font-bold text-brand-gold tracking-widest mb-4 sm:mb-6">VETERAN LOGISTICS</p>
+          <p className="text-lg sm:text-2xl font-bold tracking-widest mb-4 sm:mb-6 glisten-text">VETERAN LOGISTICS</p>
           <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto px-2" data-testid="text-page-description">
             Help businesses reduce their FedEx and UPS shipping costs by 15-42%. Earn 24% monthly commissions on every referral.
           </p>
@@ -57,7 +91,7 @@ export default function Shipping() {
       <section className="py-12 sm:py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-4">Navigator USA: Veteran Logistics</h2>
+            <h2 className="text-2xl sm:text-3xl font-display mb-4 glisten-logo">Navigator USA: Veteran Logistics</h2>
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-2 font-semibold italic">
               Logistics: What the military does best.
             </p>
