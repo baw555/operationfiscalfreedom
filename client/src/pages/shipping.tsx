@@ -24,9 +24,12 @@ export default function Shipping() {
       <section className="py-12 sm:py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-4">About ICC Logistics</h2>
+            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-4">Navigator USA: Veteran Logistics</h2>
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-2 font-semibold italic">
+              Logistics: What the military does best.
+            </p>
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-              Leveraging over 50 years of logistics intelligence and data analytics, ICC provides Contract Optimization, Audit, and Data Analysis services to help shippers uncover significant, sustainable savings that consistently outperform what can be achieved through internal efforts.
+              Leveraging over 50 years of logistics intelligence and data analytics, we provide Contract Optimization, Audit, and Data Analysis services to help shippers uncover significant, sustainable savings that consistently outperform what can be achieved through internal efforts.
             </p>
           </div>
 
@@ -50,7 +53,7 @@ export default function Shipping() {
                 </div>
                 <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4 text-center">The Solution</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  ICC utilizes a proprietary <strong>$5B+ annual parcel data pool</strong> to benchmark pricing against best-in-class peer contracts. They identify true costs and negotiate significant savings.
+                  We utilize a proprietary <strong>$5B+ annual parcel data pool</strong> to benchmark pricing against best-in-class peer contracts. We identify true costs and negotiate significant savings.
                 </p>
               </CardContent>
             </Card>
@@ -62,7 +65,7 @@ export default function Shipping() {
                 </div>
                 <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4 text-center">Your Earnings</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Earn <strong className="text-brand-gold">24% of ICC's gross revenue</strong> for every referred engagement. Commissions are paid monthly for the full duration of the client relationship.
+                  Earn <strong className="text-brand-gold">24% of gross revenue</strong> for every referred engagement. Commissions are paid monthly for the full duration of the client relationship.
                 </p>
               </CardContent>
             </Card>
@@ -104,7 +107,7 @@ export default function Shipping() {
       <section className="py-12 sm:py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-6 text-center">What ICC Offers</h2>
+            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-6 text-center">What We Offer</h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
@@ -140,7 +143,7 @@ export default function Shipping() {
             <div className="mt-8 p-6 bg-brand-navy/5 rounded-xl">
               <h4 className="font-display text-lg text-brand-navy mb-3">Ideal Clients</h4>
               <p className="text-sm text-gray-700">
-                Any organization that pays its own freight invoices and manages relationships with logistics providers. ICC's client base spans a broad range of industries and revenue sizes. Shipping typically represents 3%–10% of gross revenue.
+                Any organization that pays its own freight invoices and manages relationships with logistics providers. Our client base spans a broad range of industries and revenue sizes. Shipping typically represents 3%–10% of gross revenue.
               </p>
             </div>
           </div>
@@ -291,14 +294,14 @@ export default function Shipping() {
                 <div className="aspect-[4/3] overflow-hidden bg-gray-100">
                   <img 
                     src="/resources/preview-playbook.png" 
-                    alt="ICC Rate Increase Playbook Preview" 
+                    alt="Rate Increase Playbook Preview" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="p-4 border-t-4 border-brand-blue">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-brand-navy text-sm">ICC Rate Increase Playbook</h4>
+                      <h4 className="font-bold text-brand-navy text-sm">Rate Increase Playbook</h4>
                       <p className="text-xs text-gray-500">2025 Strategies</p>
                     </div>
                     <Download className="w-5 h-5 text-gray-400 group-hover:text-brand-blue transition-colors" />
@@ -308,7 +311,7 @@ export default function Shipping() {
             </div>
 
             <p className="text-xs text-gray-500 text-center mt-6">
-              All rate charts courtesy of ICC Logistics Services, Inc.
+              All rate charts courtesy of Navigator USA.
             </p>
           </div>
         </div>
