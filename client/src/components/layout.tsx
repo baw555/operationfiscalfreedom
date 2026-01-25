@@ -139,6 +139,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}>
                 Vet-Biz-Owners
             </Link>
+            <Link href="/admin/login" className={cn(
+                "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
+                location.startsWith("/admin") ? "text-brand-red border-brand-red" : "text-brand-navy"
+              )}>
+                Portal
+            </Link>
           </nav>
 
           {/* CTA Buttons - INTENSE */}
@@ -207,6 +213,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
               onClick={() => setMobileMenuOpen(false)}
             >
               Vet-Biz-Owners
+            </Link>
+            <Link 
+              href="/admin/login" 
+              className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Portal
             </Link>
             <div className="h-px bg-brand-navy/20 my-2" />
             <Link 
