@@ -74,11 +74,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity cursor-pointer">
               <img 
+                src={logoImage} 
+                alt="NavigatorUSA Logo" 
+                className="h-10 sm:h-12 md:h-14 object-contain hidden sm:block" 
+              />
+              <img 
                 src={logoStacked} 
                 alt="NavigatorUSA Logo" 
-                className="h-10 sm:h-12 md:h-14 w-10 sm:w-12 md:w-14 object-contain" 
+                className="h-12 w-12 object-contain sm:hidden" 
               />
-              <AnimatedNavigatorUSA variant="navbar" />
           </Link>
 
           {/* Desktop Nav */}
