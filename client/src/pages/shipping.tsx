@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { Truck, DollarSign, TrendingUp, Shield, CheckCircle, ArrowRight, BarChart, Package, Download, FileText, Plane, Ship } from "lucide-react";
+import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 
 export default function Shipping() {
   return (
@@ -354,6 +355,22 @@ export default function Shipping() {
                   </div>
                 </div>
               </Link>
+
+              <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-brand-navy to-brand-navy/90 flex items-center justify-center">
+                  <img 
+                    src={logoStacked} 
+                    alt="Navigator USA Logo" 
+                    className="w-24 h-24 object-contain"
+                  />
+                </div>
+                <div className="p-4 border-t-4 border-brand-gold">
+                  <div className="text-center">
+                    <h4 className="font-bold text-brand-navy text-sm">Navigator USA</h4>
+                    <p className="text-xs text-gray-500">Veteran Logistics</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <p className="text-xs text-gray-500 text-center mt-6">
