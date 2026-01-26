@@ -40,6 +40,10 @@ export default function AffiliateDashboard() {
   // VSO Air Support state
   const [showVsoModal, setShowVsoModal] = useState(false);
   const [vsoForm, setVsoForm] = useState({ vsoName: "", vsoEmail: "", comments: "" });
+  
+  // Lead search/filter state
+  const [leadSearch, setLeadSearch] = useState("");
+  const [leadStatusFilter, setLeadStatusFilter] = useState<string>("all");
 
   // Check auth - with retry logic for session timing
   const { data: authData, isLoading: authLoading } = useQuery({
@@ -78,22 +82,22 @@ export default function AffiliateDashboard() {
   }, [vltProfile]);
 
   // Fetch contracts
-  const { data: contractTemplates = [] } = useQuery({
+  const { data: contractTemplates = [], error: contractsError } = useQuery({
     queryKey: ["contract-templates"],
     queryFn: async () => {
       const res = await fetch("/api/contracts/templates", { credentials: "include" });
-      if (!res.ok) return [];
+      if (!res.ok) throw new Error("Failed to fetch contracts");
       return res.json();
     },
     enabled: !!authData?.user,
   });
 
   // Fetch signed agreements for this user
-  const { data: signedAgreements = [] } = useQuery({
+  const { data: signedAgreements = [], error: signedError } = useQuery({
     queryKey: ["my-signed-agreements"],
     queryFn: async () => {
       const res = await fetch("/api/contracts/my-signed", { credentials: "include" });
-      if (!res.ok) return [];
+      if (!res.ok) throw new Error("Failed to fetch signed agreements");
       return res.json();
     },
     enabled: !!authData?.user,
@@ -142,18 +146,19 @@ export default function AffiliateDashboard() {
   });
 
   // Check NDA status
-  const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
+  const { data: ndaStatus, isLoading: ndaLoading, error: ndaError } = useQuery({
     queryKey: ["/api/affiliate/nda-status"],
     queryFn: async () => {
       const res = await fetch("/api/affiliate/nda-status", { credentials: "include" });
-      if (!res.ok) return { hasSigned: false };
+      if (!res.ok) throw new Error("Failed to check NDA status");
       return res.json();
     },
     enabled: !!authData?.user,
+    retry: 3,
   });
 
   // Fetch security tracking data
-  const { data: securityData } = useQuery<{
+  const { data: securityData, isLoading: securityLoading, error: securityError } = useQuery<{
     ipTracking: any[];
     totalTrackedIPs: number;
     activeTracking: number;
@@ -161,6 +166,11 @@ export default function AffiliateDashboard() {
     hasSignedNda: boolean;
   }>({
     queryKey: ["/api/affiliate/security-tracking"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/security-tracking", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch security data");
+      return res.json();
+    },
     enabled: !!authData?.user,
   });
 
@@ -287,6 +297,23 @@ export default function AffiliateDashboard() {
 
   const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 
+  // Filter leads based on search and status
+  const filterLead = (lead: any) => {
+    const searchLower = leadSearch.toLowerCase();
+    const matchesSearch = !leadSearch || 
+      lead.name?.toLowerCase().includes(searchLower) ||
+      lead.email?.toLowerCase().includes(searchLower) ||
+      lead.companyName?.toLowerCase().includes(searchLower) ||
+      lead.businessName?.toLowerCase().includes(searchLower) ||
+      lead.contactName?.toLowerCase().includes(searchLower);
+    const matchesStatus = leadStatusFilter === "all" || lead.status === leadStatusFilter;
+    return matchesSearch && matchesStatus;
+  };
+
+  const filteredApplications = useMemo(() => applications.filter(filterLead), [applications, leadSearch, leadStatusFilter]);
+  const filteredHelpRequests = useMemo(() => helpRequests.filter(filterLead), [helpRequests, leadSearch, leadStatusFilter]);
+  const filteredBusinessLeads = useMemo(() => businessLeads.filter(filterLead), [businessLeads, leadSearch, leadStatusFilter]);
+
   if (authLoading || ndaLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
@@ -299,7 +326,8 @@ export default function AffiliateDashboard() {
   }
 
   // Block access until NDA is signed - redirect happens in useEffect
-  if (!ndaStatus?.hasSigned) {
+  // Only show lock screen if we've confirmed NDA is not signed (not during loading/error)
+  if (ndaStatus && !ndaStatus.hasSigned && !ndaError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-center">
@@ -309,6 +337,24 @@ export default function AffiliateDashboard() {
           <div className="text-xl text-white font-display">Portal Access Locked</div>
           <div className="text-gray-300">You must sign the Confidentiality Agreement to access this portal.</div>
           <div className="text-sm text-gray-400">Redirecting...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if NDA check failed
+  if (ndaError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center">
+            <AlertCircle className="w-8 h-8 text-white" />
+          </div>
+          <div className="text-xl text-white font-display">Connection Error</div>
+          <div className="text-gray-300">Unable to verify your account status. Please check your connection and try again.</div>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
         </div>
       </div>
     );
@@ -865,7 +911,7 @@ export default function AffiliateDashboard() {
 
             {/* Lead Sub-Tabs */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="flex border-b">
+              <div className="flex border-b flex-wrap">
                 <button
                   onClick={() => setLeadSubTab("applications")}
                   className={`flex-1 py-4 px-6 font-bold text-sm uppercase tracking-wide transition-colors ${
@@ -898,13 +944,46 @@ export default function AffiliateDashboard() {
                 </button>
               </div>
 
+              {/* Search and Filter Bar */}
+              <div className="p-4 bg-gray-50 border-b flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Search by name, email, or company..."
+                    value={leadSearch}
+                    onChange={(e) => setLeadSearch(e.target.value)}
+                    className="w-full"
+                    data-testid="input-lead-search"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  {["all", "new", "contacted", "in_progress", "closed"].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setLeadStatusFilter(status)}
+                      className={`px-3 py-2 rounded-lg text-xs font-bold capitalize transition-colors ${
+                        leadStatusFilter === status
+                          ? "bg-brand-navy text-white"
+                          : "bg-white text-gray-600 border hover:bg-gray-100"
+                      }`}
+                      data-testid={`filter-status-${status}`}
+                    >
+                      {status === "all" ? "All" : status.replace(/_/g, " ")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="p-6">
                 {leadSubTab === "applications" && (
                   <div className="space-y-4">
-                    {applications.length === 0 ? (
-                      <p className="text-center text-gray-500 py-8">No applications assigned to you yet</p>
+                    {filteredApplications.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">
+                        {applications.length === 0 
+                          ? "No applications assigned to you yet" 
+                          : "No applications match your search"}
+                      </p>
                     ) : (
-                      applications.map((app: any) => (
+                      filteredApplications.map((app: any) => (
                         <div 
                           key={app.id} 
                           className="bg-gray-50 rounded-lg p-4 border hover:border-brand-navy/50 transition-colors cursor-pointer"
@@ -934,10 +1013,14 @@ export default function AffiliateDashboard() {
 
                 {leadSubTab === "requests" && (
                   <div className="space-y-4">
-                    {helpRequests.length === 0 ? (
-                      <p className="text-center text-gray-500 py-8">No help requests assigned to you yet</p>
+                    {filteredHelpRequests.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">
+                        {helpRequests.length === 0 
+                          ? "No help requests assigned to you yet" 
+                          : "No help requests match your search"}
+                      </p>
                     ) : (
-                      helpRequests.map((req: any) => (
+                      filteredHelpRequests.map((req: any) => (
                         <div 
                           key={req.id} 
                           className="bg-gray-50 rounded-lg p-4 border hover:border-brand-navy/50 transition-colors cursor-pointer"
@@ -967,10 +1050,14 @@ export default function AffiliateDashboard() {
 
                 {leadSubTab === "bizleads" && (
                   <div className="space-y-4">
-                    {businessLeads.length === 0 ? (
-                      <p className="text-center text-gray-500 py-8">No business leads referred by you yet</p>
+                    {filteredBusinessLeads.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">
+                        {businessLeads.length === 0 
+                          ? "No business leads referred by you yet" 
+                          : "No business leads match your search"}
+                      </p>
                     ) : (
-                      businessLeads.map((lead: any) => (
+                      filteredBusinessLeads.map((lead: any) => (
                         <div 
                           key={lead.id} 
                           className="bg-gray-50 rounded-lg p-4 border hover:border-brand-navy/50 transition-colors"
@@ -1021,6 +1108,26 @@ export default function AffiliateDashboard() {
               <p className="text-gray-600 mb-6">
                 Track your referral link activity and security status. IP addresses are tracked for 30 days using first-touch attribution.
               </p>
+
+              {securityLoading && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-8 h-8 border-4 border-brand-navy border-t-transparent rounded-full animate-spin" />
+                  <span className="ml-3 text-gray-600">Loading security data...</span>
+                </div>
+              )}
+
+              {securityError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <AlertCircle className="w-5 h-5" />
+                    <span className="font-medium">Failed to load security data</span>
+                  </div>
+                  <p className="text-red-600 text-sm mt-1">Please refresh the page to try again.</p>
+                </div>
+              )}
+
+              {!securityLoading && !securityError && (
+                <>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="bg-gray-50 rounded-lg p-4">
@@ -1098,6 +1205,8 @@ export default function AffiliateDashboard() {
                   </table>
                 </div>
               </div>
+              </>
+              )}
             </div>
           </div>
         )}
