@@ -1115,6 +1115,59 @@ export async function registerRoutes(
     }
   });
 
+  // Check if affiliate has signed NDA
+  app.get("/api/affiliate/nda-status", requireAffiliate, async (req, res) => {
+    try {
+      const hasSigned = await storage.hasAffiliateSignedNda(req.session.userId!);
+      const nda = hasSigned ? await storage.getAffiliateNdaByUserId(req.session.userId!) : null;
+      res.json({ hasSigned, nda });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check NDA status" });
+    }
+  });
+
+  // Sign affiliate NDA
+  app.post("/api/affiliate/sign-nda", requireAffiliate, async (req, res) => {
+    try {
+      const { fullName, veteranNumber, address, customReferralCode, signatureData } = req.body;
+      
+      if (!fullName || !address) {
+        return res.status(400).json({ message: "Full name and address are required" });
+      }
+      
+      // Check if already signed
+      const alreadySigned = await storage.hasAffiliateSignedNda(req.session.userId!);
+      if (alreadySigned) {
+        return res.status(400).json({ message: "NDA already signed" });
+      }
+
+      // Get IP address
+      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+      
+      // Create NDA record
+      const nda = await storage.createAffiliateNda({
+        userId: req.session.userId!,
+        fullName,
+        veteranNumber: veteranNumber || null,
+        address,
+        customReferralCode: customReferralCode || null,
+        signatureData: signatureData || null,
+        signedIpAddress: ipAddress,
+        agreedToTerms: "true",
+      });
+      
+      // Update user's referral code if custom one provided
+      if (customReferralCode) {
+        await storage.updateUserReferralCode(req.session.userId!, customReferralCode.toUpperCase());
+      }
+      
+      res.json({ success: true, nda });
+    } catch (error) {
+      console.error("NDA signing error:", error);
+      res.status(500).json({ message: "Failed to sign NDA" });
+    }
+  });
+
   // ===== ECOSYSTEM / MASTER PORTAL ROUTES =====
 
   // Get all opportunities

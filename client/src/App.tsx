@@ -23,6 +23,7 @@ import GetHelp from "@/pages/get-help";
 import AdminLogin from "@/pages/admin-login";
 import AffiliateLogin from "@/pages/affiliate-login";
 import AffiliateDashboard from "@/pages/affiliate-dashboard";
+import AffiliateNda from "@/pages/affiliate-nda";
 import AdminSetup from "@/pages/admin-setup";
 import MasterPortal from "@/pages/master-portal";
 import SubMasterPortal from "@/pages/submaster-portal";
@@ -239,6 +240,7 @@ function Router() {
       <Route path="/comp-plan" component={CompPlan} />
       <Route path="/schedule-a" component={ScheduleA} />
       <Route path="/affiliate/login" component={AffiliateLogin} />
+      <Route path="/affiliate/nda" component={AffiliateNda} />
       <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
       <Route component={NotFound} />
     </Switch>

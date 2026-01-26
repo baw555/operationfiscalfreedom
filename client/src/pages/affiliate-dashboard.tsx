@@ -7,7 +7,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Users, LogOut, FileText, HelpCircle, X, Home, FileSignature, 
   Calculator, DollarSign, CheckCircle, AlertCircle, Clock, 
-  ArrowRight, TrendingUp, Building2, Copy, Share2, Send, Plane
+  ArrowRight, TrendingUp, Building2, Copy, Share2, Send, Plane,
+  Shield, Lock
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "wouter";
@@ -127,6 +128,23 @@ export default function AffiliateDashboard() {
     },
     enabled: !!authData?.user,
   });
+
+  // Check NDA status
+  const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
+    queryKey: ["affiliate-nda-status"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/nda-status");
+      if (!res.ok) return { hasSigned: false };
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  // Redirect to NDA page if not signed
+  if (!ndaLoading && authData?.user && ndaStatus && !ndaStatus.hasSigned) {
+    setLocation("/affiliate/nda");
+    return null;
+  }
 
   // Mutations
   const updateApplicationMutation = useMutation({
@@ -362,6 +380,30 @@ export default function AffiliateDashboard() {
         {/* ===== OVERVIEW TAB ===== */}
         {mainTab === "overview" && (
           <div className="space-y-8">
+            {/* Anti-Circumvention Notice */}
+            <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 shadow-md">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-amber-400 rounded-full flex-shrink-0">
+                  <Shield className="w-6 h-6 text-amber-900" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-amber-900 text-lg flex items-center gap-2">
+                    Anti-Circumvention Protection Active
+                    <Lock className="w-4 h-4" />
+                  </h3>
+                  <p className="text-amber-800 text-sm mt-1">
+                    Our system uses advanced tracking to protect your referral commissions. All leads are tracked via 30-day 
+                    cookies with first-touch attribution - once someone uses your referral link, you're credited even if they 
+                    return later without the link.
+                  </p>
+                  <p className="text-amber-700 text-xs mt-2 italic">
+                    This information is confidential and covered by your NDA. Please keep these details private to protect 
+                    all affiliates in our network.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Welcome */}
             <div className="bg-gradient-to-r from-brand-navy to-brand-navy/80 text-white rounded-xl p-6 shadow-lg">
               <h2 className="text-2xl font-bold mb-2">Welcome back, {authData?.user?.name?.split(' ')[0]}!</h2>

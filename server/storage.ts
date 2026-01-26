@@ -17,7 +17,8 @@ import {
   businessIntake, type BusinessIntake, type InsertBusinessIntake,
   contractTemplates, type ContractTemplate, type InsertContractTemplate,
   signedAgreements, type SignedAgreement, type InsertSignedAgreement,
-  commissionConfig, type CommissionConfig, type InsertCommissionConfig
+  commissionConfig, type CommissionConfig, type InsertCommissionConfig,
+  affiliateNda, type AffiliateNda, type InsertAffiliateNda
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
@@ -162,6 +163,11 @@ export interface IStorage {
   createCommissionConfig(config: InsertCommissionConfig): Promise<CommissionConfig>;
   getActiveCommissionConfig(): Promise<CommissionConfig | undefined>;
   updateCommissionConfig(id: number, updates: Partial<CommissionConfig>): Promise<CommissionConfig | undefined>;
+
+  // Affiliate NDA
+  createAffiliateNda(nda: InsertAffiliateNda): Promise<AffiliateNda>;
+  getAffiliateNdaByUserId(userId: number): Promise<AffiliateNda | undefined>;
+  hasAffiliateSignedNda(userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -745,6 +751,22 @@ export class DatabaseStorage implements IStorage {
   async updateCommissionConfig(id: number, updates: Partial<CommissionConfig>): Promise<CommissionConfig | undefined> {
     const [config] = await db.update(commissionConfig).set({ ...updates, updatedAt: new Date() }).where(eq(commissionConfig.id, id)).returning();
     return config || undefined;
+  }
+
+  // Affiliate NDA
+  async createAffiliateNda(nda: InsertAffiliateNda): Promise<AffiliateNda> {
+    const [created] = await db.insert(affiliateNda).values(nda).returning();
+    return created;
+  }
+
+  async getAffiliateNdaByUserId(userId: number): Promise<AffiliateNda | undefined> {
+    const [nda] = await db.select().from(affiliateNda).where(eq(affiliateNda.userId, userId));
+    return nda || undefined;
+  }
+
+  async hasAffiliateSignedNda(userId: number): Promise<boolean> {
+    const nda = await this.getAffiliateNdaByUserId(userId);
+    return !!nda;
   }
 }
 

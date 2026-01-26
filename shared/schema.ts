@@ -619,3 +619,27 @@ export const insertCommissionConfigSchema = createInsertSchema(commissionConfig)
 
 export type InsertCommissionConfig = z.infer<typeof insertCommissionConfigSchema>;
 export type CommissionConfig = typeof commissionConfig.$inferSelect;
+
+// Affiliate NDA - Simple good-faith agreement with Navigator USA Corp 501(c)(3)
+export const affiliateNda = pgTable("affiliate_nda", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  fullName: text("full_name").notNull(),
+  veteranNumber: text("veteran_number"),
+  address: text("address").notNull(),
+  customReferralCode: text("custom_referral_code"),
+  signatureData: text("signature_data"),
+  signedIpAddress: text("signed_ip_address"),
+  agreedToTerms: text("agreed_to_terms").notNull().default("true"),
+  signedAt: timestamp("signed_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAffiliateNdaSchema = createInsertSchema(affiliateNda).omit({
+  id: true,
+  signedAt: true,
+  createdAt: true,
+});
+
+export type InsertAffiliateNda = z.infer<typeof insertAffiliateNdaSchema>;
+export type AffiliateNda = typeof affiliateNda.$inferSelect;
