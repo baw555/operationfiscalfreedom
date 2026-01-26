@@ -131,14 +131,20 @@ export async function registerRoutes(
       // Log the user in automatically
       req.session.userId = affiliate.id;
       
-      res.status(201).json({ 
-        success: true,
-        user: {
-          id: affiliate.id, 
-          name: affiliate.name, 
-          email: affiliate.email, 
-          role: affiliate.role 
+      // Ensure session is saved before responding
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
         }
+        res.status(201).json({ 
+          success: true,
+          user: {
+            id: affiliate.id, 
+            name: affiliate.name, 
+            email: affiliate.email, 
+            role: affiliate.role 
+          }
+        });
       });
     } catch (error) {
       console.error("Affiliate signup error:", error);

@@ -41,28 +41,13 @@ export default function AffiliateApply() {
         description: "Redirecting you to sign the agreement...",
       });
       
-      // Verify session is established before redirecting
-      try {
-        const authCheck = await fetch("/api/auth/me");
-        if (authCheck.ok) {
-          console.log("Session verified, redirecting to NDA");
-          // Invalidate any cached auth state
-          await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-          // Full page navigation ensures session is properly loaded
-          window.location.href = "/affiliate/nda";
-        } else {
-          console.error("Session not established after signup");
-          toast({
-            title: "Session Error",
-            description: "Please try logging in manually.",
-            variant: "destructive",
-          });
-          window.location.href = "/affiliate/login";
-        }
-      } catch (err) {
-        console.error("Auth check failed:", err);
+      // Invalidate any cached auth state
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Small delay to ensure session cookie is set, then redirect
+      setTimeout(() => {
         window.location.href = "/affiliate/nda";
-      }
+      }, 500);
     },
     onError: (error: Error) => {
       toast({
