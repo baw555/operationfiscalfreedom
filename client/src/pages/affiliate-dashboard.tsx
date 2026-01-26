@@ -664,11 +664,44 @@ export default function AffiliateDashboard() {
                 VSO Revenue Generation Model
               </h2>
               <p className="text-gray-600 mb-6">
-                Project revenue for Veteran Service Organizations promoting to 50,000+ veterans with a 3% onboarding rate.
+                Realistic revenue projections for Veteran Service Organizations promoting to 50,000 veterans.
               </p>
 
+              {/* Conversion Funnel */}
+              <div className="bg-gradient-to-r from-brand-navy/10 to-brand-red/10 rounded-xl p-4 mb-6">
+                <h3 className="text-sm font-bold text-brand-navy mb-3">Realistic Conversion Funnel</h3>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-brand-navy">50,000</p>
+                    <p className="text-xs text-gray-500">Veterans Reached</p>
+                  </div>
+                  <div className="text-gray-400">→</div>
+                  <div className="text-center">
+                    <p className="text-xs text-brand-red font-bold">3% onboard</p>
+                    <p className="text-2xl font-bold text-brand-navy">1,500</p>
+                    <p className="text-xs text-gray-500">Affiliates</p>
+                  </div>
+                  <div className="text-gray-400">→</div>
+                  <div className="text-center">
+                    <p className="text-xs text-brand-red font-bold">10% produce</p>
+                    <p className="text-2xl font-bold text-green-600">150</p>
+                    <p className="text-xs text-gray-500">Active Producers</p>
+                    <p className="text-[10px] text-gray-400">(0.3% of total)</p>
+                  </div>
+                  <div className="text-gray-400">→</div>
+                  <div className="text-center">
+                    <p className="text-xs text-brand-red font-bold">6.7 sales each</p>
+                    <p className="text-2xl font-bold text-yellow-600">1,000</p>
+                    <p className="text-xs text-gray-500">Total Sales</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-3 text-center italic">
+                  Note: Only 0.3% of veterans reached will become active producers (3% onboard × 10% produce = 0.3%)
+                </p>
+              </div>
+
               {/* Key Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-brand-navy to-brand-navy/80 text-white rounded-xl p-5">
                   <p className="text-white/70 text-sm">Target Veterans</p>
                   <p className="text-3xl font-bold">50,000</p>
@@ -677,19 +710,28 @@ export default function AffiliateDashboard() {
                   <p className="text-white/70 text-sm">Onboarding Rate</p>
                   <p className="text-3xl font-bold">3%</p>
                 </div>
-                <div className="bg-gradient-to-br from-green-600 to-green-700 text-white rounded-xl p-5">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-5">
                   <p className="text-white/70 text-sm">New Affiliates</p>
                   <p className="text-3xl font-bold">1,500</p>
                 </div>
+                <div className="bg-gradient-to-br from-green-600 to-green-700 text-white rounded-xl p-5">
+                  <p className="text-white/70 text-sm">Active Producers</p>
+                  <p className="text-3xl font-bold">150</p>
+                  <p className="text-xs text-white/60">10% of affiliates</p>
+                </div>
                 <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white rounded-xl p-5">
-                  <p className="text-white/70 text-sm">Avg Sales/Affiliate</p>
-                  <p className="text-3xl font-bold">6.7</p>
+                  <p className="text-white/70 text-sm">Total Sales</p>
+                  <p className="text-3xl font-bold">1,000</p>
+                  <p className="text-xs text-white/60">~6.7 per producer</p>
                 </div>
               </div>
 
               {/* Revenue Projections */}
               <div className="bg-gray-50 rounded-xl p-6 mb-6">
                 <h3 className="text-lg font-bold text-brand-navy mb-4">Projected Revenue (Annual)</h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  Commission Pool = Deal Amount × Contract Rate. Weighted average: (70%×335 + 55%×333 + 18%×332) / 1,000 = ~47.7% effective rate
+                </p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -706,34 +748,34 @@ export default function AffiliateDashboard() {
                       <tr className="border-b hover:bg-white transition-colors">
                         <td className="py-3 px-4 font-medium">Private Reinsurance</td>
                         <td className="py-3 px-4 text-right text-brand-red font-bold">70%</td>
-                        <td className="py-3 px-4 text-right">3,350</td>
+                        <td className="py-3 px-4 text-right">335</td>
                         <td className="py-3 px-4 text-right">$250,000</td>
-                        <td className="py-3 px-4 text-right font-bold">$837,500,000</td>
-                        <td className="py-3 px-4 text-right text-green-600 font-bold">$586,250,000</td>
+                        <td className="py-3 px-4 text-right font-bold">$83,750,000</td>
+                        <td className="py-3 px-4 text-right text-green-600 font-bold">$58,625,000</td>
                       </tr>
                       <tr className="border-b hover:bg-white transition-colors">
                         <td className="py-3 px-4 font-medium">Tax Resolution</td>
                         <td className="py-3 px-4 text-right text-brand-red font-bold">55%</td>
-                        <td className="py-3 px-4 text-right">3,325</td>
+                        <td className="py-3 px-4 text-right">333</td>
                         <td className="py-3 px-4 text-right">$250,000</td>
-                        <td className="py-3 px-4 text-right font-bold">$831,250,000</td>
-                        <td className="py-3 px-4 text-right text-green-600 font-bold">$457,187,500</td>
+                        <td className="py-3 px-4 text-right font-bold">$83,250,000</td>
+                        <td className="py-3 px-4 text-right text-green-600 font-bold">$45,787,500</td>
                       </tr>
                       <tr className="border-b hover:bg-white transition-colors">
                         <td className="py-3 px-4 font-medium">ICC Logistics</td>
                         <td className="py-3 px-4 text-right text-brand-red font-bold">18%</td>
-                        <td className="py-3 px-4 text-right">3,325</td>
+                        <td className="py-3 px-4 text-right">332</td>
                         <td className="py-3 px-4 text-right">$250,000</td>
-                        <td className="py-3 px-4 text-right font-bold">$831,250,000</td>
-                        <td className="py-3 px-4 text-right text-green-600 font-bold">$149,625,000</td>
+                        <td className="py-3 px-4 text-right font-bold">$83,000,000</td>
+                        <td className="py-3 px-4 text-right text-green-600 font-bold">$14,940,000</td>
                       </tr>
                       <tr className="bg-brand-navy text-white font-bold">
                         <td className="py-4 px-4">TOTAL</td>
                         <td className="py-4 px-4 text-right">-</td>
-                        <td className="py-4 px-4 text-right">10,000</td>
+                        <td className="py-4 px-4 text-right">1,000</td>
                         <td className="py-4 px-4 text-right">$250,000</td>
-                        <td className="py-4 px-4 text-right">$2,500,000,000</td>
-                        <td className="py-4 px-4 text-right text-yellow-400">$1,193,062,500</td>
+                        <td className="py-4 px-4 text-right">$250,000,000</td>
+                        <td className="py-4 px-4 text-right text-yellow-400">$119,352,500</td>
                       </tr>
                     </tbody>
                   </table>
@@ -742,30 +784,33 @@ export default function AffiliateDashboard() {
 
               {/* Earnings by Position */}
               <div className="bg-gray-50 rounded-xl p-6 mb-6">
-                <h3 className="text-lg font-bold text-brand-navy mb-4">Average Earnings by Network Position</h3>
+                <h3 className="text-lg font-bold text-brand-navy mb-4">Estimated Earnings by Network Position (Active Producers Only)</h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  Based on $119M commission pool distributed among 150 producers. Actual earnings vary by sales volume and upline position.
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white rounded-lg p-5 border-l-4 border-yellow-500 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-bold text-gray-500">MASTER (Level 0)</span>
-                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">30 affiliates</span>
+                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">3 producers</span>
                     </div>
-                    <p className="text-2xl font-bold text-brand-navy">$902,730</p>
+                    <p className="text-2xl font-bold text-brand-navy">$90,273</p>
                     <p className="text-xs text-gray-500 mt-1">Avg annual earnings (producer + upline)</p>
                   </div>
                   <div className="bg-white rounded-lg p-5 border-l-4 border-blue-500 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-bold text-gray-500">SUBMASTER (Level 1)</span>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">120 affiliates</span>
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">12 producers</span>
                     </div>
-                    <p className="text-2xl font-bold text-brand-navy">$695,127</p>
+                    <p className="text-2xl font-bold text-brand-navy">$69,513</p>
                     <p className="text-xs text-gray-500 mt-1">Avg annual earnings (producer + upline)</p>
                   </div>
                   <div className="bg-white rounded-lg p-5 border-l-4 border-green-500 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-bold text-gray-500">AFFILIATE (Levels 2-6)</span>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">1,350 affiliates</span>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">135 producers</span>
                     </div>
-                    <p className="text-2xl font-bold text-brand-navy">$585,243</p>
+                    <p className="text-2xl font-bold text-brand-navy">$58,524</p>
                     <p className="text-xs text-gray-500 mt-1">Avg annual earnings (producer + upline)</p>
                   </div>
                 </div>
@@ -779,12 +824,12 @@ export default function AffiliateDashboard() {
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                   {[
-                    { uplines: 0, rate: 75, count: 30, avg: 509325 },
-                    { uplines: 1, rate: 74, count: 245, avg: 601790 },
-                    { uplines: 2, rate: 73, count: 680, avg: 587379 },
-                    { uplines: 3, rate: 72, count: 439, avg: 579973 },
-                    { uplines: 4, rate: 71, count: 98, avg: 543399 },
-                    { uplines: 5, rate: 70, count: 8, avg: 455028 },
+                    { uplines: 0, rate: 75, count: 3, avg: 50933 },
+                    { uplines: 1, rate: 74, count: 25, avg: 60179 },
+                    { uplines: 2, rate: 73, count: 68, avg: 58738 },
+                    { uplines: 3, rate: 72, count: 44, avg: 57997 },
+                    { uplines: 4, rate: 71, count: 9, avg: 54340 },
+                    { uplines: 5, rate: 70, count: 1, avg: 45503 },
                   ].map((item) => (
                     <div key={item.uplines} className="bg-white rounded-lg p-4 text-center shadow-sm">
                       <p className="text-xs text-gray-500">{item.uplines} Uplines</p>
@@ -792,7 +837,7 @@ export default function AffiliateDashboard() {
                       <p className="text-xs text-gray-500">Producer Rate</p>
                       <hr className="my-2" />
                       <p className="text-sm font-bold text-brand-navy">${(item.avg / 1000).toFixed(0)}K</p>
-                      <p className="text-xs text-gray-400">{item.count} affiliates</p>
+                      <p className="text-xs text-gray-400">{item.count} producers</p>
                     </div>
                   ))}
                 </div>
