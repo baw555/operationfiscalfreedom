@@ -86,13 +86,14 @@ type BusinessLead = {
 };
 
 export default function MasterPortal() {
-  const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "businessleads" | "opportunities" | "files" | "compplan" | "vso">("overview");
+  const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "businessleads" | "opportunities" | "files" | "compplan" | "vso" | "security">("overview");
   const [selectedVsoAffiliate, setSelectedVsoAffiliate] = useState<number | null>(null);
   const [calcGrossRevenue, setCalcGrossRevenue] = useState<number>(100000);
   const [calcContractRate, setCalcContractRate] = useState<number>(18);
   const [calcUplineCount, setCalcUplineCount] = useState<number>(0);
   const [calcRecruiter, setCalcRecruiter] = useState<boolean>(true);
   const [expandedAffiliate, setExpandedAffiliate] = useState<number | null>(null);
+  const [expandedFilesAffiliate, setExpandedFilesAffiliate] = useState<number | null>(null);
   const [viewingTemplate, setViewingTemplate] = useState<any | null>(null);
   const [viewingAgreement, setViewingAgreement] = useState<SignedAgreement | null>(null);
   const queryClient = useQueryClient();
@@ -125,8 +126,21 @@ export default function MasterPortal() {
     queryKey: ["/api/contracts/templates"],
   });
 
+  const { data: affiliateNdas = [] } = useQuery<any[]>({
+    queryKey: ["/api/master/ndas"],
+  });
+
   const { data: businessLeads = [] } = useQuery<BusinessLead[]>({
     queryKey: ["/api/master/business-leads"],
+  });
+
+  const { data: securityData } = useQuery<{
+    ipTracking: any[];
+    affiliates: any[];
+    totalTrackedIPs: number;
+    activeTracking: number;
+  }>({
+    queryKey: ["/api/master/security-tracking"],
   });
 
   const promoteMutation = useMutation({
@@ -184,6 +198,7 @@ export default function MasterPortal() {
             { key: "files", label: "Files/Agreements" },
             { key: "compplan", label: "Comp Plan" },
             { key: "vso", label: "VSO Revenue" },
+            { key: "security", label: "Security Measures" },
           ].map((t) => (
             <button
               key={t.key}
@@ -556,8 +571,124 @@ export default function MasterPortal() {
               <div className="p-4 border-b flex items-center gap-3">
                 <FileText className="w-6 h-6 text-brand-navy" />
                 <div>
-                  <h3 className="font-bold">Signed Agreements</h3>
-                  <p className="text-sm text-gray-600">All executed contracts on file ({signedAgreements.length} total)</p>
+                  <h3 className="font-bold">Signed Agreements by Affiliate</h3>
+                  <p className="text-sm text-gray-600">All executed contracts grouped by representative ({signedAgreements.length} total)</p>
+                </div>
+              </div>
+              <div className="p-4">
+                {(() => {
+                  // Group signed agreements by affiliate
+                  const groupedByAffiliate = signedAgreements.reduce((acc, sa) => {
+                    const key = sa.affiliateId;
+                    if (!acc[key]) {
+                      acc[key] = {
+                        affiliateId: sa.affiliateId,
+                        affiliateName: sa.affiliateName,
+                        affiliateEmail: sa.affiliateEmail,
+                        recruitedBy: sa.recruitedBy,
+                        contracts: []
+                      };
+                    }
+                    acc[key].contracts.push(sa);
+                    return acc;
+                  }, {} as Record<number, { affiliateId: number; affiliateName: string; affiliateEmail: string; recruitedBy: string | null; contracts: SignedAgreement[] }>);
+                  
+                  const affiliateGroups = Object.values(groupedByAffiliate).sort((a, b) => 
+                    a.affiliateName.localeCompare(b.affiliateName)
+                  );
+                  
+                  if (affiliateGroups.length === 0) {
+                    return (
+                      <p className="text-center text-gray-500 py-6">No signed agreements yet</p>
+                    );
+                  }
+                  
+                  return (
+                    <div className="space-y-2">
+                      {affiliateGroups.map((group) => (
+                        <div key={group.affiliateId} className="border rounded-lg overflow-hidden">
+                          <button
+                            onClick={() => setExpandedFilesAffiliate(
+                              expandedFilesAffiliate === group.affiliateId ? null : group.affiliateId
+                            )}
+                            className="w-full p-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+                            data-testid={`btn-expand-affiliate-files-${group.affiliateId}`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 bg-brand-navy rounded-full flex items-center justify-center text-white font-bold">
+                                {group.affiliateName.charAt(0)}
+                              </div>
+                              <div className="text-left">
+                                <p className="font-semibold">{group.affiliateName}</p>
+                                <p className="text-sm text-gray-600">{group.affiliateEmail}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <span className="px-3 py-1 bg-brand-navy text-white rounded-full text-sm font-medium">
+                                {group.contracts.length} contract{group.contracts.length !== 1 ? 's' : ''}
+                              </span>
+                              {expandedFilesAffiliate === group.affiliateId ? (
+                                <ChevronDown className="w-5 h-5 text-gray-500" />
+                              ) : (
+                                <ChevronRight className="w-5 h-5 text-gray-500" />
+                              )}
+                            </div>
+                          </button>
+                          
+                          {expandedFilesAffiliate === group.affiliateId && (
+                            <div className="border-t bg-white">
+                              <table className="min-w-full text-sm">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th className="p-3 text-left">Contract</th>
+                                    <th className="p-3 text-left">Signed Date</th>
+                                    <th className="p-3 text-left">Status</th>
+                                    <th className="p-3 text-left">Recruited By</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {group.contracts.map((sa) => {
+                                    const template = contractTemplates.find(t => t.id === sa.contractTemplateId);
+                                    return (
+                                      <tr 
+                                        key={sa.id}
+                                        className="border-t hover:bg-blue-50 cursor-pointer transition-colors"
+                                        onClick={() => setViewingAgreement(sa)}
+                                        data-testid={`row-signed-agreement-${sa.id}`}
+                                      >
+                                        <td className="p-3 text-blue-600 underline">{template?.name || `Contract #${sa.contractTemplateId}`}</td>
+                                        <td className="p-3">{new Date(sa.signedAt).toLocaleDateString()}</td>
+                                        <td className="p-3">
+                                          <span className={`px-2 py-1 rounded text-xs ${
+                                            sa.status === "signed" ? "bg-green-100 text-green-700" :
+                                            sa.status === "void" ? "bg-red-100 text-red-700" :
+                                            "bg-gray-100 text-gray-700"
+                                          }`}>
+                                            {sa.status}
+                                          </span>
+                                        </td>
+                                        <td className="p-3">{sa.recruitedBy || "-"}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+              <div className="p-4 border-b flex items-center gap-3">
+                <Shield className="w-6 h-6 text-brand-navy" />
+                <div>
+                  <h3 className="font-bold">Signed NDAs / Confidentiality Agreements</h3>
+                  <p className="text-sm text-gray-600">All affiliate confidentiality agreements ({affiliateNdas.length} total)</p>
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -567,45 +698,27 @@ export default function MasterPortal() {
                       <th className="p-3 text-left">ID</th>
                       <th className="p-3 text-left">Representative</th>
                       <th className="p-3 text-left">Email</th>
-                      <th className="p-3 text-left">Contract</th>
+                      <th className="p-3 text-left">Full Name (Signed)</th>
+                      <th className="p-3 text-left">Address</th>
                       <th className="p-3 text-left">Signed Date</th>
-                      <th className="p-3 text-left">Status</th>
-                      <th className="p-3 text-left">Recruited By</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {signedAgreements.length === 0 ? (
+                    {affiliateNdas.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="p-6 text-center text-gray-500">No signed agreements yet</td>
+                        <td colSpan={6} className="p-6 text-center text-gray-500">No NDAs signed yet</td>
                       </tr>
                     ) : (
-                      signedAgreements.map((sa) => {
-                        const template = contractTemplates.find(t => t.id === sa.contractTemplateId);
-                        return (
-                          <tr 
-                            key={sa.id} 
-                            className="border-t hover:bg-blue-50 cursor-pointer transition-colors"
-                            onClick={() => setViewingAgreement(sa)}
-                            data-testid={`row-signed-agreement-${sa.id}`}
-                          >
-                            <td className="p-3">{sa.id}</td>
-                            <td className="p-3 font-medium">{sa.affiliateName}</td>
-                            <td className="p-3">{sa.affiliateEmail}</td>
-                            <td className="p-3 text-blue-600 underline">{template?.name || `Contract #${sa.contractTemplateId}`}</td>
-                            <td className="p-3">{new Date(sa.signedAt).toLocaleDateString()}</td>
-                            <td className="p-3">
-                              <span className={`px-2 py-1 rounded text-xs ${
-                                sa.status === "signed" ? "bg-green-100 text-green-700" :
-                                sa.status === "void" ? "bg-red-100 text-red-700" :
-                                "bg-gray-100 text-gray-700"
-                              }`}>
-                                {sa.status}
-                              </span>
-                            </td>
-                            <td className="p-3">{sa.recruitedBy || "-"}</td>
-                          </tr>
-                        );
-                      })
+                      affiliateNdas.map((nda: any) => (
+                        <tr key={nda.id} className="border-t hover:bg-blue-50" data-testid={`row-nda-${nda.id}`}>
+                          <td className="p-3">{nda.id}</td>
+                          <td className="p-3 font-medium">{nda.affiliateName}</td>
+                          <td className="p-3">{nda.affiliateEmail}</td>
+                          <td className="p-3">{nda.fullName}</td>
+                          <td className="p-3 text-sm">{nda.address}</td>
+                          <td className="p-3">{new Date(nda.signedAt).toLocaleDateString()}</td>
+                        </tr>
+                      ))
                     )}
                   </tbody>
                 </table>
@@ -1192,6 +1305,186 @@ NavigatorUSA Team`);
                     <p className="text-xs text-white/50">Separate bonus</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "security" && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-lg p-4 border shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Total IPs Tracked</p>
+                    <p className="text-2xl font-bold text-brand-navy">{securityData?.totalTrackedIPs || 0}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-4 border shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Active Tracking (30d)</p>
+                    <p className="text-2xl font-bold text-green-600">{securityData?.activeTracking || 0}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-4 border shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Total Affiliates</p>
+                    <p className="text-2xl font-bold text-purple-600">{securityData?.affiliates?.length || 0}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-4 border shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">NDAs Signed</p>
+                    <p className="text-2xl font-bold text-yellow-600">
+                      {securityData?.affiliates?.filter((a: any) => a.hasSignedNda).length || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+              <div className="p-4 border-b flex items-center gap-3">
+                <Shield className="w-6 h-6 text-brand-navy" />
+                <div>
+                  <h3 className="font-bold">Affiliate NDA Status</h3>
+                  <p className="text-sm text-gray-600">Track which affiliates have signed the NDCA</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="p-3 text-left">Name</th>
+                      <th className="p-3 text-left">Email</th>
+                      <th className="p-3 text-left">Role</th>
+                      <th className="p-3 text-left">Referral Code</th>
+                      <th className="p-3 text-left">Links Clicked</th>
+                      <th className="p-3 text-left">NDCA Signed</th>
+                      <th className="p-3 text-left">Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {!securityData?.affiliates?.length ? (
+                      <tr>
+                        <td colSpan={7} className="p-6 text-center text-gray-500">No affiliates yet</td>
+                      </tr>
+                    ) : (
+                      securityData.affiliates.map((affiliate: any) => (
+                        <tr key={affiliate.id} className="border-t hover:bg-gray-50" data-testid={`row-security-affiliate-${affiliate.id}`}>
+                          <td className="p-3 font-medium">{affiliate.name}</td>
+                          <td className="p-3">{affiliate.email}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              affiliate.role === 'submaster' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {affiliate.role}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono text-sm">{affiliate.referralCode || '-'}</td>
+                          <td className="p-3">
+                            <span className="font-bold text-brand-navy">{affiliate.referralCount}</span>
+                          </td>
+                          <td className="p-3">
+                            {affiliate.hasSignedNda ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                Signed
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs">
+                                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                                Not Signed
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 text-gray-600">{new Date(affiliate.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+              <div className="p-4 border-b flex items-center gap-3">
+                <TrendingUp className="w-6 h-6 text-brand-navy" />
+                <div>
+                  <h3 className="font-bold">IP Address Tracking</h3>
+                  <p className="text-sm text-gray-600">All tracked referral link clicks (30-day first-touch attribution)</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="p-3 text-left">IP Address</th>
+                      <th className="p-3 text-left">Referral Code</th>
+                      <th className="p-3 text-left">Affiliate</th>
+                      <th className="p-3 text-left">Status</th>
+                      <th className="p-3 text-left">Clicked</th>
+                      <th className="p-3 text-left">Converted</th>
+                      <th className="p-3 text-left">Tracked Date</th>
+                      <th className="p-3 text-left">Expires</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {!securityData?.ipTracking?.length ? (
+                      <tr>
+                        <td colSpan={8} className="p-6 text-center text-gray-500">No IP tracking data yet</td>
+                      </tr>
+                    ) : (
+                      securityData.ipTracking.map((tracking: any) => (
+                        <tr key={tracking.id} className="border-t hover:bg-gray-50" data-testid={`row-ip-tracking-${tracking.id}`}>
+                          <td className="p-3 font-mono text-sm">{tracking.ipAddress}</td>
+                          <td className="p-3 font-mono text-sm">{tracking.referralCode}</td>
+                          <td className="p-3">{tracking.affiliateName}</td>
+                          <td className="p-3">
+                            {tracking.isActive ? (
+                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Active</span>
+                            ) : (
+                              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">Expired</span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                              Yes
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            {tracking.hasConvertedToLead ? (
+                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Converted</span>
+                            ) : (
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">Pending</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-gray-600">{new Date(tracking.createdAt).toLocaleDateString()}</td>
+                          <td className="p-3 text-gray-600">{new Date(tracking.expiresAt).toLocaleDateString()}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

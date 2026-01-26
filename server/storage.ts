@@ -170,6 +170,7 @@ export interface IStorage {
   createAffiliateNda(nda: InsertAffiliateNda): Promise<AffiliateNda>;
   getAffiliateNdaByUserId(userId: number): Promise<AffiliateNda | undefined>;
   hasAffiliateSignedNda(userId: number): Promise<boolean>;
+  getAllAffiliateNdas(): Promise<AffiliateNda[]>;
 
   // Business Leads
   createBusinessLead(lead: InsertBusinessLead): Promise<BusinessLead>;
@@ -183,6 +184,7 @@ export interface IStorage {
   createIpReferralTracking(data: InsertIpReferralTracking): Promise<IpReferralTracking>;
   getActiveIpReferral(ipAddress: string): Promise<IpReferralTracking | undefined>;
   getIpReferralsByAffiliate(affiliateId: number): Promise<IpReferralTracking[]>;
+  getAllIpReferrals(): Promise<IpReferralTracking[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -784,6 +786,10 @@ export class DatabaseStorage implements IStorage {
     return !!nda;
   }
 
+  async getAllAffiliateNdas(): Promise<AffiliateNda[]> {
+    return db.select().from(affiliateNda).orderBy(desc(affiliateNda.signedAt));
+  }
+
   // Business Leads
   async createBusinessLead(lead: InsertBusinessLead): Promise<BusinessLead> {
     const [created] = await db.insert(businessLeads).values(lead).returning();
@@ -833,6 +839,11 @@ export class DatabaseStorage implements IStorage {
   async getIpReferralsByAffiliate(affiliateId: number): Promise<IpReferralTracking[]> {
     return db.select().from(ipReferralTracking)
       .where(eq(ipReferralTracking.affiliateId, affiliateId))
+      .orderBy(desc(ipReferralTracking.createdAt));
+  }
+
+  async getAllIpReferrals(): Promise<IpReferralTracking[]> {
+    return db.select().from(ipReferralTracking)
       .orderBy(desc(ipReferralTracking.createdAt));
   }
 }

@@ -42,8 +42,11 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-// Middleware to check if user is admin - bypassed for direct access
+// Middleware to check if user is admin or master
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+    return res.status(403).json({ message: "Forbidden - Admin access required" });
+  }
   next();
 }
 
@@ -1205,6 +1208,25 @@ export async function registerRoutes(
     }
   });
 
+  // Get all NDAs for master portal
+  app.get("/api/master/ndas", requireAdmin, async (req, res) => {
+    try {
+      const ndas = await storage.getAllAffiliateNdas();
+      // Enrich with user details
+      const enrichedNdas = await Promise.all(ndas.map(async (nda) => {
+        const user = await storage.getUser(nda.userId);
+        return {
+          ...nda,
+          affiliateName: user?.name || 'Unknown',
+          affiliateEmail: user?.email || 'Unknown',
+        };
+      }));
+      res.json(enrichedNdas);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch NDAs" });
+    }
+  });
+
   // Sign affiliate NDA
   app.post("/api/affiliate/sign-nda", requireAffiliate, async (req, res) => {
     try {
@@ -2117,6 +2139,110 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Failed to update business lead" });
+    }
+  });
+
+  // === Security Tracking API ===
+
+  // Master portal: Get all IP referral tracking with enriched data
+  app.get("/api/master/security-tracking", requireAdmin, async (req, res) => {
+    try {
+      const ipReferrals = await storage.getAllIpReferrals();
+      const allAffiliates = await storage.getAllUsers();
+      const allNdas = await storage.getAllAffiliateNdas();
+      const allHelpRequests = await storage.getAllHelpRequests();
+      const allBusinessLeads = await storage.getAllBusinessLeads();
+      
+      // Enrich each IP tracking record with affiliate info, NDA status, and conversion status
+      const enrichedData = await Promise.all(ipReferrals.map(async (tracking) => {
+        const affiliate = allAffiliates.find(a => a.id === tracking.affiliateId);
+        const now = new Date();
+        const isActive = tracking.expiresAt > now;
+        
+        // Check if this IP has any submissions (help requests or business leads)
+        // This shows if they "became a lead"
+        const hasHelpRequest = allHelpRequests.some(hr => hr.referredBy === tracking.affiliateId);
+        const hasBusinessLead = allBusinessLeads.some(bl => bl.referredBy === tracking.affiliateId);
+        
+        return {
+          id: tracking.id,
+          ipAddress: tracking.ipAddress,
+          referralCode: tracking.referralCode,
+          affiliateId: tracking.affiliateId,
+          affiliateName: affiliate?.name || 'Unknown',
+          affiliateEmail: affiliate?.email || 'Unknown',
+          expiresAt: tracking.expiresAt,
+          createdAt: tracking.createdAt,
+          isActive,
+          clicked: true, // If we have a record, they clicked
+          hasConvertedToLead: hasHelpRequest || hasBusinessLead,
+        };
+      }));
+      
+      // Also get affiliate list with their NDA status
+      const affiliatesWithNdaStatus = allAffiliates
+        .filter(a => a.role === 'affiliate' || a.role === 'submaster')
+        .map(affiliate => {
+          const hasSignedNda = allNdas.some(nda => nda.userId === affiliate.id);
+          const referralCount = ipReferrals.filter(r => r.affiliateId === affiliate.id).length;
+          return {
+            id: affiliate.id,
+            name: affiliate.name,
+            email: affiliate.email,
+            role: affiliate.role,
+            referralCode: affiliate.referralCode,
+            hasSignedNda,
+            referralCount,
+            createdAt: affiliate.createdAt,
+          };
+        });
+      
+      res.json({
+        ipTracking: enrichedData,
+        affiliates: affiliatesWithNdaStatus,
+        totalTrackedIPs: ipReferrals.length,
+        activeTracking: enrichedData.filter(d => d.isActive).length,
+      });
+    } catch (error) {
+      console.error("Error fetching security tracking:", error);
+      res.status(500).json({ message: "Failed to fetch security tracking data" });
+    }
+  });
+
+  // Affiliate: Get their own IP referral tracking
+  app.get("/api/affiliate/security-tracking", requireAffiliate, async (req, res) => {
+    try {
+      const ipReferrals = await storage.getIpReferralsByAffiliate(req.session.userId!);
+      const now = new Date();
+      const allHelpRequests = await storage.getHelpRequestsByAffiliate(req.session.userId!);
+      const allBusinessLeads = await storage.getBusinessLeadsByReferrer(req.session.userId!);
+      
+      // Check if user has signed NDA
+      const hasSignedNda = await storage.hasAffiliateSignedNda(req.session.userId!);
+      
+      const enrichedData = ipReferrals.map(tracking => {
+        const isActive = tracking.expiresAt > now;
+        return {
+          id: tracking.id,
+          ipAddress: tracking.ipAddress,
+          referralCode: tracking.referralCode,
+          expiresAt: tracking.expiresAt,
+          createdAt: tracking.createdAt,
+          isActive,
+          clicked: true,
+        };
+      });
+      
+      res.json({
+        ipTracking: enrichedData,
+        totalTrackedIPs: ipReferrals.length,
+        activeTracking: enrichedData.filter(d => d.isActive).length,
+        totalLeadsConverted: allHelpRequests.length + allBusinessLeads.length,
+        hasSignedNda,
+      });
+    } catch (error) {
+      console.error("Error fetching affiliate security tracking:", error);
+      res.status(500).json({ message: "Failed to fetch security tracking data" });
     }
   });
 

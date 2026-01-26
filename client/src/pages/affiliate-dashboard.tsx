@@ -15,7 +15,7 @@ import { useLocation, Link } from "wouter";
 import { format } from "date-fns";
 
 type LeadStatus = "new" | "contacted" | "in_progress" | "closed";
-type MainTab = "overview" | "contracts" | "calculator" | "leads";
+type MainTab = "overview" | "contracts" | "calculator" | "leads" | "security";
 
 const statusColors: Record<LeadStatus, string> = {
   new: "bg-blue-100 text-blue-800",
@@ -147,6 +147,18 @@ export default function AffiliateDashboard() {
       if (!res.ok) return { hasSigned: false };
       return res.json();
     },
+    enabled: !!authData?.user,
+  });
+
+  // Fetch security tracking data
+  const { data: securityData } = useQuery<{
+    ipTracking: any[];
+    totalTrackedIPs: number;
+    activeTracking: number;
+    totalLeadsConverted: number;
+    hasSignedNda: boolean;
+  }>({
+    queryKey: ["/api/affiliate/security-tracking"],
     enabled: !!authData?.user,
   });
 
@@ -292,6 +304,7 @@ export default function AffiliateDashboard() {
     { id: "contracts", label: "Contracts", icon: <FileSignature className="w-4 h-4" />, badge: pendingContracts.length },
     { id: "calculator", label: "Calculator", icon: <Calculator className="w-4 h-4" /> },
     { id: "leads", label: "Leads", icon: <Users className="w-4 h-4" />, badge: activeLeads > 0 ? activeLeads : undefined },
+    { id: "security", label: "Security", icon: <Shield className="w-4 h-4" /> },
   ];
 
   return (
@@ -971,6 +984,98 @@ export default function AffiliateDashboard() {
                     )}
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== SECURITY TAB ===== */}
+        {mainTab === "security" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-bold text-brand-navy mb-4 flex items-center gap-2">
+                <Shield className="w-6 h-6" />
+                Security Measures
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Track your referral link activity and security status. IP addresses are tracked for 30 days using first-touch attribution.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">IPs Tracked</p>
+                  <p className="text-2xl font-bold text-brand-navy">{securityData?.totalTrackedIPs || 0}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">Active (30d)</p>
+                  <p className="text-2xl font-bold text-green-600">{securityData?.activeTracking || 0}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">Leads Converted</p>
+                  <p className="text-2xl font-bold text-brand-red">{securityData?.totalLeadsConverted || 0}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">NDCA Status</p>
+                  <p className="text-2xl font-bold">
+                    {securityData?.hasSignedNda ? (
+                      <span className="text-green-600">Signed</span>
+                    ) : (
+                      <span className="text-red-600">Pending</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-4 border-b">
+                  <h3 className="font-bold text-brand-navy">IP Tracking Log</h3>
+                  <p className="text-sm text-gray-600">People who clicked your referral links</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="p-3 text-left">IP Address</th>
+                        <th className="p-3 text-left">Referral Code</th>
+                        <th className="p-3 text-left">Status</th>
+                        <th className="p-3 text-left">Clicked</th>
+                        <th className="p-3 text-left">Tracked Date</th>
+                        <th className="p-3 text-left">Expires</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {!securityData?.ipTracking?.length ? (
+                        <tr>
+                          <td colSpan={6} className="p-6 text-center text-gray-500">
+                            No referral link clicks tracked yet. Share your referral link to start tracking!
+                          </td>
+                        </tr>
+                      ) : (
+                        securityData.ipTracking.map((tracking: any) => (
+                          <tr key={tracking.id} className="border-t hover:bg-gray-50" data-testid={`row-ip-tracking-${tracking.id}`}>
+                            <td className="p-3 font-mono text-sm">{tracking.ipAddress}</td>
+                            <td className="p-3 font-mono text-sm">{tracking.referralCode}</td>
+                            <td className="p-3">
+                              {tracking.isActive ? (
+                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Active</span>
+                              ) : (
+                                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">Expired</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                Yes
+                              </span>
+                            </td>
+                            <td className="p-3 text-gray-600">{new Date(tracking.createdAt).toLocaleDateString()}</td>
+                            <td className="p-3 text-gray-600">{new Date(tracking.expiresAt).toLocaleDateString()}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
