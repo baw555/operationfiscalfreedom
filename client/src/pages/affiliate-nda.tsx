@@ -31,17 +31,45 @@ export default function AffiliateNda() {
   // Start webcam for face capture
   const startCamera = useCallback(async () => {
     try {
+      // Use flexible constraints that work on most devices
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "user", width: 400, height: 300 } 
+        video: { 
+          facingMode: "user",
+          width: { ideal: 640, max: 1280 },
+          height: { ideal: 480, max: 720 }
+        } 
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setIsCameraActive(true);
+        
+        // Wait for video metadata to load before playing
+        videoRef.current.onloadedmetadata = async () => {
+          try {
+            await videoRef.current?.play();
+            setIsCameraActive(true);
+          } catch (playErr) {
+            console.error("Video play failed:", playErr);
+            toast({ 
+              title: "Camera Error", 
+              description: "Could not start video preview. Please try again.",
+              variant: "destructive" 
+            });
+          }
+        };
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Camera error:", err);
+      let message = "Please allow camera access to capture your face photo.";
+      if (err.name === "NotFoundError") {
+        message = "No camera found on this device.";
+      } else if (err.name === "NotAllowedError") {
+        message = "Camera permission denied. Please enable camera access in your browser settings.";
+      } else if (err.name === "NotReadableError") {
+        message = "Camera is in use by another application.";
+      }
       toast({ 
-        title: "Camera Access Denied", 
-        description: "Please allow camera access to capture your face photo.",
+        title: "Camera Access Failed", 
+        description: message,
         variant: "destructive" 
       });
     }
@@ -60,12 +88,26 @@ export default function AffiliateNda() {
   // Capture face photo from webcam
   const captureFacePhoto = useCallback(() => {
     if (videoRef.current) {
+      const video = videoRef.current;
+      // Use actual video dimensions, fallback to display dimensions if not available
+      const width = video.videoWidth || video.clientWidth || 640;
+      const height = video.videoHeight || video.clientHeight || 480;
+      
+      if (width === 0 || height === 0) {
+        toast({ 
+          title: "Capture Failed", 
+          description: "Video not ready. Please wait a moment and try again.",
+          variant: "destructive" 
+        });
+        return;
+      }
+      
       const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0);
+        ctx.drawImage(video, 0, 0, width, height);
         const imageData = canvas.toDataURL('image/jpeg', 0.8);
         setFacePhoto(imageData);
         stopCamera();
