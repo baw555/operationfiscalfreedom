@@ -25,9 +25,11 @@ export default function StressTest() {
   const queryClient = useQueryClient();
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   
-  // Configuration state - average 7 sales per affiliate
-  const [numAffiliates, setNumAffiliates] = useState(30);
-  const [numSales, setNumSales] = useState(30 * 7); // 7 sales per affiliate average
+  // Configuration state - only veteran opt-ins needed, rest is calculated
+  // Formula: 1000 opt-ins = 3 affiliates (0.3% rate), each affiliate averages 7 sales
+  const [veteranOptIns, setVeteranOptIns] = useState(10000);
+  const numAffiliates = Math.max(5, Math.floor(veteranOptIns * 0.003)); // 0.3% become affiliates
+  const numSales = numAffiliates * 7; // 7 sales per affiliate average
   const [hierarchyRandomness, setHierarchyRandomness] = useState(50); // 0-100
 
   const { data: results, isLoading, refetch } = useQuery({
@@ -199,40 +201,38 @@ export default function StressTest() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div>
-                  <Label htmlFor="numSales" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Number of Sales
+                  <Label htmlFor="veteranOptIns" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Veteran Opt-Ins
                   </Label>
                   <Input
-                    id="numSales"
+                    id="veteranOptIns"
                     type="number"
-                    min={1}
-                    max={5000}
-                    value={numSales}
-                    onChange={(e) => setNumSales(Math.min(5000, Math.max(1, parseInt(e.target.value) || 100)))}
+                    min={1000}
+                    max={500000}
+                    value={veteranOptIns}
+                    onChange={(e) => setVeteranOptIns(Math.min(500000, Math.max(1000, parseInt(e.target.value) || 10000)))}
                     className="w-full"
-                    data-testid="input-num-sales"
+                    data-testid="input-veteran-optins"
                   />
-                  <p className="text-xs text-gray-500 mt-1">1 - 5,000 sales</p>
+                  <p className="text-xs text-gray-500 mt-1">Enter opt-ins to calculate all metrics</p>
                 </div>
                 <div>
-                  <Label htmlFor="numAffiliates" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Number of Affiliates
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Affiliates (calculated)
                   </Label>
-                  <Input
-                    id="numAffiliates"
-                    type="number"
-                    min={5}
-                    max={100}
-                    value={numAffiliates}
-                    onChange={(e) => {
-                      const newAffiliates = Math.min(100, Math.max(5, parseInt(e.target.value) || 30));
-                      setNumAffiliates(newAffiliates);
-                      setNumSales(newAffiliates * 7);
-                    }}
-                    className="w-full"
-                    data-testid="input-num-affiliates"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">5 - 100 affiliates (auto-sets 7 sales each)</p>
+                  <div className="bg-gray-100 border rounded-md px-3 py-2 text-lg font-bold text-brand-navy">
+                    {numAffiliates.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">0.3% of opt-ins become affiliates</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Sales (calculated)
+                  </Label>
+                  <div className="bg-gray-100 border rounded-md px-3 py-2 text-lg font-bold text-brand-navy">
+                    {numSales.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">7 sales per affiliate average</p>
                 </div>
                 <div>
                   <Label htmlFor="hierarchyRandomness" className="text-sm font-medium text-gray-700 mb-2 block">
