@@ -130,6 +130,7 @@ export async function registerRoutes(
       
       // Log the user in automatically
       req.session.userId = affiliate.id;
+      req.session.userRole = affiliate.role;
       
       // Ensure session is saved before responding
       req.session.save((err) => {
@@ -1141,12 +1142,12 @@ export async function registerRoutes(
       const affiliateFiles = await Promise.all(
         affiliates.map(async (affiliate) => {
           const nda = await storage.getAffiliateNdaByUserId(affiliate.id);
-          const signedContracts = await storage.getSignedAgreementsByUser(affiliate.id);
+          const signedContracts = await storage.getSignedAgreementsByAffiliate(affiliate.id);
           const w9 = await storage.getAffiliateW9ByUserId(affiliate.id);
           
           // Get contract template names
           const contractsWithNames = await Promise.all(
-            signedContracts.map(async (contract) => {
+            signedContracts.map(async (contract: { id: number; contractTemplateId: number; signatureData: string | null; createdAt: Date | null }) => {
               const template = await storage.getContractTemplate(contract.contractTemplateId);
               return {
                 id: contract.id,
@@ -1266,8 +1267,10 @@ export async function registerRoutes(
       // Generate referral code if not exists
       let referralCode = user.referralCode;
       if (!referralCode) {
-        referralCode = user.name.substring(0, 4).toUpperCase().replace(/[^A-Z]/g, 'X') + 
-          Math.random().toString(36).substring(2, 6).toUpperCase();
+        const crypto = await import('crypto');
+        const namePrefix = user.name.substring(0, 4).toUpperCase().replace(/[^A-Z]/g, 'X');
+        const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
+        referralCode = namePrefix + randomSuffix;
         await storage.updateUserReferralCode(user.id, referralCode);
       }
       
@@ -2075,7 +2078,7 @@ export async function registerRoutes(
   });
 
   // Get signed agreements for a specific affiliate
-  app.get("/api/contracts/signed/affiliate/:affiliateId", async (req, res) => {
+  app.get("/api/contracts/signed/affiliate/:affiliateId", requireAuth, async (req, res) => {
     try {
       const affiliateId = parseInt(req.params.affiliateId);
       const agreements = await storage.getSignedAgreementsByAffiliate(affiliateId);
@@ -2086,7 +2089,7 @@ export async function registerRoutes(
   });
 
   // Check if affiliate has signed a specific contract
-  app.get("/api/contracts/check/:affiliateId/:templateId", async (req, res) => {
+  app.get("/api/contracts/check/:affiliateId/:templateId", requireAuth, async (req, res) => {
     try {
       const affiliateId = parseInt(req.params.affiliateId);
       const templateId = parseInt(req.params.templateId);
@@ -2098,7 +2101,7 @@ export async function registerRoutes(
   });
 
   // Sign a contract
-  app.post("/api/contracts/sign", async (req, res) => {
+  app.post("/api/contracts/sign", requireAuth, async (req, res) => {
     try {
       const data = insertSignedAgreementSchema.parse(req.body);
       const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -2117,7 +2120,7 @@ export async function registerRoutes(
   });
 
   // Get pending contracts for an affiliate (contracts they haven't signed yet)
-  app.get("/api/contracts/pending/:affiliateId", async (req, res) => {
+  app.get("/api/contracts/pending/:affiliateId", requireAuth, async (req, res) => {
     try {
       const affiliateId = parseInt(req.params.affiliateId);
       const allTemplates = await storage.getActiveContractTemplates();
