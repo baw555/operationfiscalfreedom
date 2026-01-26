@@ -91,7 +91,7 @@ export default function AffiliateLogin() {
         </div>
         <div className="absolute bottom-4 left-4 text-green-500/40 font-mono text-xs">
           <div>NAVUSA-CMD</div>
-          <div>v2.0.26</div>
+          <div>v2.1.0</div>
         </div>
         <div className="absolute bottom-4 right-4 text-green-500/40 font-mono text-xs text-right">
           <div>ENCRYPTED</div>
