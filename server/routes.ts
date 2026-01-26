@@ -21,7 +21,8 @@ import {
   insertVeteranIntakeSchema,
   insertBusinessIntakeSchema,
   insertContractTemplateSchema,
-  insertSignedAgreementSchema
+  insertSignedAgreementSchema,
+  insertBusinessLeadSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -1937,6 +1938,67 @@ export async function registerRoutes(
       res.json({ success: true, config });
     } catch (error) {
       res.status(500).json({ message: "Failed to seed commission config" });
+    }
+  });
+
+  // === Business Leads API ===
+  
+  // Public: Submit a business lead
+  app.post("/api/business-leads", async (req, res) => {
+    try {
+      const data = insertBusinessLeadSchema.parse(req.body);
+      const lead = await storage.createBusinessLead(data);
+      res.status(201).json({ success: true, lead });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Error creating business lead:", error);
+      res.status(500).json({ message: "Failed to submit business lead" });
+    }
+  });
+
+  // Admin/Master: Get all business leads
+  app.get("/api/admin/business-leads", requireAdmin, async (req, res) => {
+    try {
+      const leads = await storage.getAllBusinessLeads();
+      res.json(leads);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch business leads" });
+    }
+  });
+
+  // Master portal: Get all business leads (for master users)
+  app.get("/api/master/business-leads", async (req, res) => {
+    try {
+      const leads = await storage.getAllBusinessLeads();
+      res.json(leads);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch business leads" });
+    }
+  });
+
+  // Affiliate: Get business leads referred by this affiliate
+  app.get("/api/affiliate/business-leads", requireAffiliate, async (req, res) => {
+    try {
+      const leads = await storage.getBusinessLeadsByReferrer(req.session.userId!);
+      res.json(leads);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch business leads" });
+    }
+  });
+
+  // Admin: Update business lead
+  app.patch("/api/admin/business-leads/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateBusinessLead(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update business lead" });
     }
   });
 

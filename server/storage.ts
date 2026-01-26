@@ -18,7 +18,8 @@ import {
   contractTemplates, type ContractTemplate, type InsertContractTemplate,
   signedAgreements, type SignedAgreement, type InsertSignedAgreement,
   commissionConfig, type CommissionConfig, type InsertCommissionConfig,
-  affiliateNda, type AffiliateNda, type InsertAffiliateNda
+  affiliateNda, type AffiliateNda, type InsertAffiliateNda,
+  businessLeads, type BusinessLead, type InsertBusinessLead
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
@@ -168,6 +169,14 @@ export interface IStorage {
   createAffiliateNda(nda: InsertAffiliateNda): Promise<AffiliateNda>;
   getAffiliateNdaByUserId(userId: number): Promise<AffiliateNda | undefined>;
   hasAffiliateSignedNda(userId: number): Promise<boolean>;
+
+  // Business Leads
+  createBusinessLead(lead: InsertBusinessLead): Promise<BusinessLead>;
+  getBusinessLead(id: number): Promise<BusinessLead | undefined>;
+  getAllBusinessLeads(): Promise<BusinessLead[]>;
+  getBusinessLeadsByType(leadType: string): Promise<BusinessLead[]>;
+  getBusinessLeadsByReferrer(referredBy: number): Promise<BusinessLead[]>;
+  updateBusinessLead(id: number, updates: Partial<BusinessLead>): Promise<BusinessLead | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -767,6 +776,34 @@ export class DatabaseStorage implements IStorage {
   async hasAffiliateSignedNda(userId: number): Promise<boolean> {
     const nda = await this.getAffiliateNdaByUserId(userId);
     return !!nda;
+  }
+
+  // Business Leads
+  async createBusinessLead(lead: InsertBusinessLead): Promise<BusinessLead> {
+    const [created] = await db.insert(businessLeads).values(lead).returning();
+    return created;
+  }
+
+  async getBusinessLead(id: number): Promise<BusinessLead | undefined> {
+    const [lead] = await db.select().from(businessLeads).where(eq(businessLeads.id, id));
+    return lead || undefined;
+  }
+
+  async getAllBusinessLeads(): Promise<BusinessLead[]> {
+    return db.select().from(businessLeads).orderBy(desc(businessLeads.createdAt));
+  }
+
+  async getBusinessLeadsByType(leadType: string): Promise<BusinessLead[]> {
+    return db.select().from(businessLeads).where(eq(businessLeads.leadType, leadType)).orderBy(desc(businessLeads.createdAt));
+  }
+
+  async getBusinessLeadsByReferrer(referredBy: number): Promise<BusinessLead[]> {
+    return db.select().from(businessLeads).where(eq(businessLeads.referredBy, referredBy)).orderBy(desc(businessLeads.createdAt));
+  }
+
+  async updateBusinessLead(id: number, updates: Partial<BusinessLead>): Promise<BusinessLead | undefined> {
+    const [updated] = await db.update(businessLeads).set({ ...updates, updatedAt: new Date() }).where(eq(businessLeads.id, id)).returning();
+    return updated || undefined;
   }
 }
 
