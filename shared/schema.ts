@@ -260,7 +260,8 @@ export const insertGeneralContactSchema = createInsertSchema(generalContact).omi
 export type InsertGeneralContact = z.infer<typeof insertGeneralContactSchema>;
 export type GeneralContact = typeof generalContact.$inferSelect;
 
-// VLT Affiliates with 7-level hierarchy
+// VLT Affiliates with 6-level hierarchy (new comp model)
+// Note: level7Id kept for legacy compatibility, new model uses L1-L6 only
 export const vltAffiliates = pgTable("vlt_affiliates", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -269,17 +270,20 @@ export const vltAffiliates = pgTable("vlt_affiliates", {
   passwordHash: text("password_hash").notNull(),
   referralCode: text("referral_code").notNull().unique(),
   role: text("role").notNull().default("affiliate"), // master, sub_master, affiliate
-  level1Id: integer("level1_id"), // Direct upline
-  level2Id: integer("level2_id"), // 2nd level upline
-  level3Id: integer("level3_id"), // 3rd level upline
-  level4Id: integer("level4_id"), // 4th level upline
-  level5Id: integer("level5_id"), // 5th level upline
-  level6Id: integer("level6_id"), // 6th level upline
-  level7Id: integer("level7_id"), // 7th level upline (master)
+  level1Id: integer("level1_id"), // Direct upline (closest upline - L2 in comp model)
+  level2Id: integer("level2_id"), // 2nd level upline (L3 in comp model)
+  level3Id: integer("level3_id"), // 3rd level upline (L4 in comp model)
+  level4Id: integer("level4_id"), // 4th level upline (L5 in comp model)
+  level5Id: integer("level5_id"), // 5th level upline (Company - L6 in comp model)
+  level6Id: integer("level6_id"), // Legacy - maps to L6/Company
+  level7Id: integer("level7_id"), // Legacy - kept for backward compatibility
+  recruiterId: integer("recruiter_id"), // Who recruited this affiliate (for 2.5% bounty)
   status: text("status").notNull().default("active"), // active, inactive, suspended
+  isCompActive: text("is_comp_active").notNull().default("true"), // For compression logic
   totalLeads: integer("total_leads").default(0),
   totalSales: integer("total_sales").default(0),
   totalCommissions: integer("total_commissions").default(0), // cents
+  totalRecruiterBounties: integer("total_recruiter_bounties").default(0), // cents
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -310,7 +314,7 @@ export const insertOpportunitySchema = createInsertSchema(opportunities).omit({
 export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;
 export type Opportunity = typeof opportunities.$inferSelect;
 
-// Sales tracking
+// Sales tracking with 6-level comp model
 export const sales = pgTable("sales", {
   id: serial("id").primaryKey(),
   opportunityId: integer("opportunity_id").references(() => opportunities.id),
@@ -320,13 +324,20 @@ export const sales = pgTable("sales", {
   clientPhone: text("client_phone"),
   saleAmount: integer("sale_amount").notNull(), // cents
   status: text("status").notNull().default("pending"), // pending, approved, paid, cancelled
-  referredByL1: integer("referred_by_l1"),
-  referredByL2: integer("referred_by_l2"),
-  referredByL3: integer("referred_by_l3"),
-  referredByL4: integer("referred_by_l4"),
-  referredByL5: integer("referred_by_l5"),
-  referredByL6: integer("referred_by_l6"),
-  referredByL7: integer("referred_by_l7"),
+  referredByL1: integer("referred_by_l1"), // Top producer (67%)
+  referredByL2: integer("referred_by_l2"), // Closest upline (3.5%)
+  referredByL3: integer("referred_by_l3"), // 2.0%
+  referredByL4: integer("referred_by_l4"), // 1.2%
+  referredByL5: integer("referred_by_l5"), // 0.8%
+  referredByL6: integer("referred_by_l6"), // Company (0.5% + compression)
+  referredByL7: integer("referred_by_l7"), // Legacy - kept for backward compatibility
+  recruiterId: integer("recruiter_id"), // For 2.5% bounty
+  recruiterBounty: integer("recruiter_bounty").default(0), // cents
+  l2Active: text("l2_active").default("true"), // For compression
+  l3Active: text("l3_active").default("true"),
+  l4Active: text("l4_active").default("true"),
+  l5Active: text("l5_active").default("true"),
+  compressedToL6: integer("compressed_to_l6").default(0), // Amount compressed to company
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -574,3 +585,28 @@ export const insertSignedAgreementSchema = createInsertSchema(signedAgreements).
 
 export type InsertSignedAgreement = z.infer<typeof insertSignedAgreementSchema>;
 export type SignedAgreement = typeof signedAgreements.$inferSelect;
+
+// Commission configuration for 6-level comp model
+export const commissionConfig = pgTable("commission_config", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().default("default"),
+  recruiterBountyPct: integer("recruiter_bounty_pct").notNull().default(250), // 2.5% = 250 (x100)
+  l1Pct: integer("l1_pct").notNull().default(6700), // 67% = 6700 (x100)
+  l2Pct: integer("l2_pct").notNull().default(350), // 3.5% = 350
+  l3Pct: integer("l3_pct").notNull().default(200), // 2.0% = 200
+  l4Pct: integer("l4_pct").notNull().default(120), // 1.2% = 120
+  l5Pct: integer("l5_pct").notNull().default(80), // 0.8% = 80
+  l6Pct: integer("l6_pct").notNull().default(50), // 0.5% = 50
+  isActive: text("is_active").notNull().default("true"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertCommissionConfigSchema = createInsertSchema(commissionConfig).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCommissionConfig = z.infer<typeof insertCommissionConfigSchema>;
+export type CommissionConfig = typeof commissionConfig.$inferSelect;

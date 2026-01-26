@@ -44,6 +44,19 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - Typography: Bebas Neue for headings, Montserrat for body text
 - Network size displayed as 150,000+ veteran families
 
+## Compensation Structure (6-Level Model)
+The default comp plan for all services (except tax) uses a 6-level structure with compression:
+- **Recruiter Bounty**: 2.5% of Gross (separate from House Pool)
+- **Level 1 (Top Producer)**: 67% of Gross Revenue
+- **Level 2 (Closest Upline)**: 3.5% (conditional)
+- **Level 3**: 2.0% (conditional)
+- **Level 4**: 1.2% (conditional)
+- **Level 5**: 0.8% (conditional)
+- **Level 6 (Company)**: 0.5% + all compression from inactive L2-L5
+- **Total House Allocation**: 75% of Gross
+
+**Compression**: If any L2-L5 participant is inactive, their allocation reverts to L6 (Company).
+
 ## Project Architecture
 
 ### Frontend (client/)
@@ -109,6 +122,7 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - `/veteran-intake` - Veteran services intake form (disability, holistic, healthcare, financial)
 - `/business-intake` - B2B services intake form (insurance, tax, payroll, consulting)
 - `/sign-contract` - E-signature portal for affiliates to sign required agreements (blocks portal access until signed)
+- `/comp-plan` - Interactive 6-level commission calculator with plan language
 
 ### Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string

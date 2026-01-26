@@ -16,7 +16,8 @@ import {
   veteranIntake, type VeteranIntake, type InsertVeteranIntake,
   businessIntake, type BusinessIntake, type InsertBusinessIntake,
   contractTemplates, type ContractTemplate, type InsertContractTemplate,
-  signedAgreements, type SignedAgreement, type InsertSignedAgreement
+  signedAgreements, type SignedAgreement, type InsertSignedAgreement,
+  commissionConfig, type CommissionConfig, type InsertCommissionConfig
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
@@ -154,6 +155,11 @@ export interface IStorage {
   getSignedAgreementsByAffiliate(affiliateId: number): Promise<SignedAgreement[]>;
   hasAffiliateSignedContract(affiliateId: number, contractTemplateId: number): Promise<boolean>;
   updateSignedAgreement(id: number, updates: Partial<SignedAgreement>): Promise<SignedAgreement | undefined>;
+
+  // Commission Config
+  createCommissionConfig(config: InsertCommissionConfig): Promise<CommissionConfig>;
+  getActiveCommissionConfig(): Promise<CommissionConfig | undefined>;
+  updateCommissionConfig(id: number, updates: Partial<CommissionConfig>): Promise<CommissionConfig | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -711,6 +717,22 @@ export class DatabaseStorage implements IStorage {
   async updateSignedAgreement(id: number, updates: Partial<SignedAgreement>): Promise<SignedAgreement | undefined> {
     const [sa] = await db.update(signedAgreements).set(updates).where(eq(signedAgreements.id, id)).returning();
     return sa || undefined;
+  }
+
+  // Commission Config
+  async createCommissionConfig(config: InsertCommissionConfig): Promise<CommissionConfig> {
+    const [c] = await db.insert(commissionConfig).values(config).returning();
+    return c;
+  }
+
+  async getActiveCommissionConfig(): Promise<CommissionConfig | undefined> {
+    const [config] = await db.select().from(commissionConfig).where(eq(commissionConfig.isActive, "true")).orderBy(desc(commissionConfig.createdAt)).limit(1);
+    return config || undefined;
+  }
+
+  async updateCommissionConfig(id: number, updates: Partial<CommissionConfig>): Promise<CommissionConfig | undefined> {
+    const [config] = await db.update(commissionConfig).set({ ...updates, updatedAt: new Date() }).where(eq(commissionConfig.id, id)).returning();
+    return config || undefined;
   }
 }
 

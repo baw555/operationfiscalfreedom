@@ -29,6 +29,7 @@ declare module "express-session" {
   interface SessionData {
     userId: number;
     userRole: string;
+    vltAffiliateId: number;
   }
 }
 
@@ -1463,6 +1464,120 @@ export async function registerRoutes(
       res.json(pendingTemplates);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch pending contracts" });
+    }
+  });
+
+  // ===== COMMISSION CALCULATION API =====
+
+  // Calculate commission breakdown for a sale
+  app.post("/api/commission/calculate", async (req, res) => {
+    try {
+      const { grossRevenue, recruiterExists = true, l2Active = true, l3Active = true, l4Active = true, l5Active = true } = req.body;
+      
+      const gross = Math.max(0, Number(grossRevenue) || 0);
+      
+      const pct = {
+        recruiter: 0.025,
+        l1: 0.67,
+        l2: 0.035,
+        l3: 0.020,
+        l4: 0.012,
+        l5: 0.008,
+        l6: 0.005,
+      };
+
+      const recruiterPay = recruiterExists ? Math.round(gross * pct.recruiter * 100) : 0;
+      const l1Pay = Math.round(gross * pct.l1 * 100);
+      
+      const l2Base = Math.round(gross * pct.l2 * 100);
+      const l3Base = Math.round(gross * pct.l3 * 100);
+      const l4Base = Math.round(gross * pct.l4 * 100);
+      const l5Base = Math.round(gross * pct.l5 * 100);
+      const l6Base = Math.round(gross * pct.l6 * 100);
+
+      const l2Pay = l2Active ? l2Base : 0;
+      const l3Pay = l3Active ? l3Base : 0;
+      const l4Pay = l4Active ? l4Base : 0;
+      const l5Pay = l5Active ? l5Base : 0;
+
+      const compressedToL6 =
+        (l2Active ? 0 : l2Base) +
+        (l3Active ? 0 : l3Base) +
+        (l4Active ? 0 : l4Base) +
+        (l5Active ? 0 : l5Base);
+
+      const l6Pay = l6Base + compressedToL6;
+
+      res.json({
+        grossRevenue: gross,
+        grossRevenueCents: Math.round(gross * 100),
+        recruiterBounty: recruiterPay,
+        l1Commission: l1Pay,
+        l2Commission: l2Pay,
+        l3Commission: l3Pay,
+        l4Commission: l4Pay,
+        l5Commission: l5Pay,
+        l6Commission: l6Pay,
+        compressedToL6: compressedToL6,
+        totalPaid: recruiterPay + l1Pay + l2Pay + l3Pay + l4Pay + l5Pay + l6Pay,
+        houseAllocation: l1Pay + l2Pay + l3Pay + l4Pay + l5Pay + l6Pay,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to calculate commissions" });
+    }
+  });
+
+  // Get commission configuration
+  app.get("/api/commission/config", async (req, res) => {
+    try {
+      const config = await storage.getActiveCommissionConfig();
+      if (!config) {
+        res.json({
+          recruiterBountyPct: 2.5,
+          l1Pct: 67,
+          l2Pct: 3.5,
+          l3Pct: 2.0,
+          l4Pct: 1.2,
+          l5Pct: 0.8,
+          l6Pct: 0.5,
+        });
+      } else {
+        res.json({
+          recruiterBountyPct: config.recruiterBountyPct / 100,
+          l1Pct: config.l1Pct / 100,
+          l2Pct: config.l2Pct / 100,
+          l3Pct: config.l3Pct / 100,
+          l4Pct: config.l4Pct / 100,
+          l5Pct: config.l5Pct / 100,
+          l6Pct: config.l6Pct / 100,
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get commission config" });
+    }
+  });
+
+  // Seed default commission config
+  app.post("/api/commission/seed", requireAdmin, async (req, res) => {
+    try {
+      const existing = await storage.getActiveCommissionConfig();
+      if (existing) {
+        return res.json({ success: true, message: "Config already exists", config: existing });
+      }
+      const config = await storage.createCommissionConfig({
+        name: "default",
+        recruiterBountyPct: 250,
+        l1Pct: 6700,
+        l2Pct: 350,
+        l3Pct: 200,
+        l4Pct: 120,
+        l5Pct: 80,
+        l6Pct: 50,
+        isActive: "true",
+      });
+      res.json({ success: true, config });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to seed commission config" });
     }
   });
 

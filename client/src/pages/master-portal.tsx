@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { Users, DollarSign, TrendingUp, Building2, Shield, ChevronDown, ChevronRight, FileText, Download } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Users, DollarSign, TrendingUp, Building2, Shield, ChevronDown, ChevronRight, FileText, Download, Calculator } from "lucide-react";
 
 type Affiliate = {
   id: number;
@@ -68,7 +68,13 @@ type SignedAgreement = {
 };
 
 export default function MasterPortal() {
-  const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "opportunities" | "files">("overview");
+  const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "opportunities" | "files" | "compplan">("overview");
+  const [calcGrossRevenue, setCalcGrossRevenue] = useState<number>(10000);
+  const [calcRecruiter, setCalcRecruiter] = useState<boolean>(true);
+  const [calcL2Active, setCalcL2Active] = useState<boolean>(true);
+  const [calcL3Active, setCalcL3Active] = useState<boolean>(true);
+  const [calcL4Active, setCalcL4Active] = useState<boolean>(true);
+  const [calcL5Active, setCalcL5Active] = useState<boolean>(true);
   const [expandedAffiliate, setExpandedAffiliate] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
@@ -152,6 +158,7 @@ export default function MasterPortal() {
             { key: "businesses", label: "Business Intake" },
             { key: "opportunities", label: "Opportunities" },
             { key: "files", label: "Files/Agreements" },
+            { key: "compplan", label: "Comp Plan" },
           ].map((t) => (
             <button
               key={t.key}
@@ -552,6 +559,180 @@ export default function MasterPortal() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "compplan" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg border shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Calculator className="w-6 h-6 text-brand-navy" />
+                <h2 className="text-xl font-bold text-brand-navy">6-Level Compensation Structure</h2>
+              </div>
+
+              <div className="prose max-w-none text-gray-700 mb-6">
+                <p className="mb-4">
+                  The Company allocates <strong className="text-brand-red">75%</strong> of Gross Revenue across six levels, 
+                  plus a separate <strong className="text-brand-red">2.5%</strong> recruiter bounty.
+                </p>
+                <div className="bg-gray-50 rounded-lg p-4 border">
+                  <ul className="space-y-1 text-sm">
+                    <li><strong>Level 1 (Top Producer):</strong> 67% of Gross</li>
+                    <li><strong>Level 2 (Closest Upline):</strong> 3.5% (conditional)</li>
+                    <li><strong>Level 3:</strong> 2.0% (conditional)</li>
+                    <li><strong>Level 4:</strong> 1.2% (conditional)</li>
+                    <li><strong>Level 5:</strong> 0.8% (conditional)</li>
+                    <li><strong>Level 6 (Company):</strong> 0.5% + compression</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border shadow-sm p-6">
+              <h3 className="font-bold text-brand-navy mb-4">Commission Calculator</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Gross Revenue ($)</label>
+                  <input
+                    type="number"
+                    value={calcGrossRevenue}
+                    onChange={(e) => setCalcGrossRevenue(Number(e.target.value))}
+                    className="w-full border rounded p-2"
+                    min={0}
+                    step={1000}
+                    data-testid="input-calc-gross"
+                  />
+                </div>
+                <label className="flex items-center gap-2 p-3 border rounded cursor-pointer">
+                  <input type="checkbox" checked={calcRecruiter} onChange={() => setCalcRecruiter(!calcRecruiter)} />
+                  <span className="text-sm">Recruiter (2.5%)</span>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                <label className="flex items-center gap-2 p-2 border rounded text-sm cursor-pointer">
+                  <input type="checkbox" checked={calcL2Active} onChange={() => setCalcL2Active(!calcL2Active)} />
+                  L2 (3.5%)
+                </label>
+                <label className="flex items-center gap-2 p-2 border rounded text-sm cursor-pointer">
+                  <input type="checkbox" checked={calcL3Active} onChange={() => setCalcL3Active(!calcL3Active)} />
+                  L3 (2.0%)
+                </label>
+                <label className="flex items-center gap-2 p-2 border rounded text-sm cursor-pointer">
+                  <input type="checkbox" checked={calcL4Active} onChange={() => setCalcL4Active(!calcL4Active)} />
+                  L4 (1.2%)
+                </label>
+                <label className="flex items-center gap-2 p-2 border rounded text-sm cursor-pointer">
+                  <input type="checkbox" checked={calcL5Active} onChange={() => setCalcL5Active(!calcL5Active)} />
+                  L5 (0.8%)
+                </label>
+              </div>
+
+              {(() => {
+                const gross = Math.max(0, calcGrossRevenue);
+                const pct = { recruiter: 0.025, l1: 0.67, l2: 0.035, l3: 0.020, l4: 0.012, l5: 0.008, l6: 0.005 };
+                const recruiterPay = calcRecruiter ? gross * pct.recruiter : 0;
+                const l1Pay = gross * pct.l1;
+                const l2Base = gross * pct.l2;
+                const l3Base = gross * pct.l3;
+                const l4Base = gross * pct.l4;
+                const l5Base = gross * pct.l5;
+                const l6Base = gross * pct.l6;
+                const l2Pay = calcL2Active ? l2Base : 0;
+                const l3Pay = calcL3Active ? l3Base : 0;
+                const l4Pay = calcL4Active ? l4Base : 0;
+                const l5Pay = calcL5Active ? l5Base : 0;
+                const compressedToL6 = (calcL2Active ? 0 : l2Base) + (calcL3Active ? 0 : l3Base) + (calcL4Active ? 0 : l4Base) + (calcL5Active ? 0 : l5Base);
+                const l6Pay = l6Base + compressedToL6;
+                const totalPaid = recruiterPay + l1Pay + l2Pay + l3Pay + l4Pay + l5Pay + l6Pay;
+                const money = (n: number) => n.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 });
+
+                return (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-brand-navy text-white rounded p-3">
+                        <div className="text-xs opacity-80">Gross Revenue</div>
+                        <div className="text-lg font-bold">{money(gross)}</div>
+                      </div>
+                      <div className="bg-brand-red text-white rounded p-3">
+                        <div className="text-xs opacity-80">Top Rep (67%)</div>
+                        <div className="text-lg font-bold">{money(l1Pay)}</div>
+                      </div>
+                      <div className="bg-green-600 text-white rounded p-3">
+                        <div className="text-xs opacity-80">Total Paid</div>
+                        <div className="text-lg font-bold">{money(totalPaid)}</div>
+                      </div>
+                      <div className="bg-blue-600 text-white rounded p-3">
+                        <div className="text-xs opacity-80">Company (L6)</div>
+                        <div className="text-lg font-bold">{money(l6Pay)}</div>
+                      </div>
+                    </div>
+
+                    <table className="w-full border rounded text-sm">
+                      <thead>
+                        <tr className="bg-gray-50 border-b">
+                          <th className="p-2 text-left">Level</th>
+                          <th className="p-2 text-left">Rate</th>
+                          <th className="p-2 text-left">Payout</th>
+                          <th className="p-2 text-left">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b bg-yellow-50">
+                          <td className="p-2">Recruiter Bounty</td>
+                          <td className="p-2">2.5%</td>
+                          <td className="p-2 font-medium">{money(recruiterPay)}</td>
+                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcRecruiter ? 'bg-green-100 text-green-700' : 'bg-gray-100'}`}>{calcRecruiter ? 'Active' : 'None'}</span></td>
+                        </tr>
+                        <tr className="border-b bg-red-50 font-semibold">
+                          <td className="p-2">L1 - Top Producer</td>
+                          <td className="p-2">67%</td>
+                          <td className="p-2">{money(l1Pay)}</td>
+                          <td className="p-2"><span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">Always Paid</span></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-2">L2 - Closest Upline</td>
+                          <td className="p-2">3.5%</td>
+                          <td className="p-2">{money(l2Pay)}</td>
+                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcL2Active ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{calcL2Active ? 'Active' : '→ L6'}</span></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-2">L3</td>
+                          <td className="p-2">2.0%</td>
+                          <td className="p-2">{money(l3Pay)}</td>
+                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcL3Active ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{calcL3Active ? 'Active' : '→ L6'}</span></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-2">L4</td>
+                          <td className="p-2">1.2%</td>
+                          <td className="p-2">{money(l4Pay)}</td>
+                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcL4Active ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{calcL4Active ? 'Active' : '→ L6'}</span></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-2">L5</td>
+                          <td className="p-2">0.8%</td>
+                          <td className="p-2">{money(l5Pay)}</td>
+                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcL5Active ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{calcL5Active ? 'Active' : '→ L6'}</span></td>
+                        </tr>
+                        <tr className="bg-blue-50 font-bold">
+                          <td className="p-2">L6 - Company</td>
+                          <td className="p-2">0.5% + comp</td>
+                          <td className="p-2">{money(l6Pay)}</td>
+                          <td className="p-2"><span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-700">Base + Compression</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    {compressedToL6 > 0 && (
+                      <div className="bg-orange-50 border border-orange-200 rounded p-3 text-sm">
+                        <strong>Compression:</strong> {money(compressedToL6)} from inactive levels reverted to Company (L6)
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
