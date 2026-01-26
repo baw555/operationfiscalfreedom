@@ -134,10 +134,21 @@ export default function AffiliateNda() {
     }
   }, [stopCamera, toast]);
 
-  // Handle ID document upload
+  // Handle ID document upload - restricted to image files only
   const handleIdUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type - images only
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({ 
+          title: "Invalid File Type", 
+          description: "Please upload an image file (JPG, PNG, GIF, or WebP).", 
+          variant: "destructive" 
+        });
+        return;
+      }
+      
       if (file.size > 10 * 1024 * 1024) {
         toast({ title: "File Too Large", description: "Please upload an image under 10MB.", variant: "destructive" });
         return;
@@ -242,8 +253,21 @@ export default function AffiliateNda() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Stop camera if still active to prevent it staying on
+    stopCamera();
+    
     if (!formData.agreedToTerms) {
       toast({ title: "Please agree to the terms", variant: "destructive" });
+      return;
+    }
+    
+    if (!formData.fullName || formData.fullName.trim().length < 2) {
+      toast({ title: "Name Required", description: "Please enter your full legal name.", variant: "destructive" });
+      return;
+    }
+    
+    if (!formData.address || formData.address.trim().length < 5) {
+      toast({ title: "Address Required", description: "Please enter your mailing address.", variant: "destructive" });
       return;
     }
     
@@ -259,6 +283,11 @@ export default function AffiliateNda() {
     
     const canvas = canvasRef.current;
     const signatureData = canvas?.toDataURL("image/png") || null;
+    
+    if (!signatureData || signatureData === 'data:,') {
+      toast({ title: "Signature Required", description: "Please sign in the signature box.", variant: "destructive" });
+      return;
+    }
     
     signNdaMutation.mutate({
       ...formData,

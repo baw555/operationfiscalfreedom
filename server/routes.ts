@@ -1372,18 +1372,31 @@ export async function registerRoutes(
   // Sign affiliate NDA
   app.post("/api/affiliate/sign-nda", requireAffiliate, async (req, res) => {
     try {
-      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto } = req.body;
+      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms } = req.body;
       
-      if (!fullName || !address) {
-        return res.status(400).json({ message: "Full name and address are required" });
+      // Validate required fields
+      if (!fullName || typeof fullName !== 'string' || fullName.trim().length < 2) {
+        return res.status(400).json({ message: "Full legal name is required (at least 2 characters)" });
       }
       
-      if (!facePhoto) {
+      if (!address || typeof address !== 'string' || address.trim().length < 5) {
+        return res.status(400).json({ message: "Address is required (at least 5 characters)" });
+      }
+      
+      if (!signatureData || typeof signatureData !== 'string' || !signatureData.startsWith('data:image/')) {
+        return res.status(400).json({ message: "Your signature is required - please sign in the signature box" });
+      }
+      
+      if (!facePhoto || typeof facePhoto !== 'string' || !facePhoto.startsWith('data:image/')) {
         return res.status(400).json({ message: "Face photo is required - please capture your face using webcam" });
       }
       
-      if (!idPhoto) {
-        return res.status(400).json({ message: "ID document upload is required" });
+      if (!idPhoto || typeof idPhoto !== 'string' || !idPhoto.startsWith('data:image/')) {
+        return res.status(400).json({ message: "ID document upload is required - must be an image file" });
+      }
+      
+      if (agreedToTerms !== true && agreedToTerms !== 'true') {
+        return res.status(400).json({ message: "You must agree to the terms to proceed" });
       }
       
       // Check if already signed
