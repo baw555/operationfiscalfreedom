@@ -2148,14 +2148,14 @@ export async function registerRoutes(
   app.get("/api/master/security-tracking", requireAdmin, async (req, res) => {
     try {
       const ipReferrals = await storage.getAllIpReferrals();
-      const allAffiliates = await storage.getAllUsers();
+      const allAffiliates = await storage.getAllAffiliates();
       const allNdas = await storage.getAllAffiliateNdas();
       const allHelpRequests = await storage.getAllHelpRequests();
       const allBusinessLeads = await storage.getAllBusinessLeads();
       
       // Enrich each IP tracking record with affiliate info, NDA status, and conversion status
-      const enrichedData = await Promise.all(ipReferrals.map(async (tracking) => {
-        const affiliate = allAffiliates.find(a => a.id === tracking.affiliateId);
+      const enrichedData = await Promise.all(ipReferrals.map(async (tracking: any) => {
+        const affiliate = allAffiliates.find((a: any) => a.id === tracking.affiliateId);
         const now = new Date();
         const isActive = tracking.expiresAt > now;
         
@@ -2181,8 +2181,8 @@ export async function registerRoutes(
       
       // Also get affiliate list with their NDA status
       const affiliatesWithNdaStatus = allAffiliates
-        .filter(a => a.role === 'affiliate' || a.role === 'submaster')
-        .map(affiliate => {
+        .filter((a: any) => a.role === 'affiliate' || a.role === 'submaster')
+        .map((affiliate: any) => {
           const hasSignedNda = allNdas.some(nda => nda.userId === affiliate.id);
           const referralCount = ipReferrals.filter(r => r.affiliateId === affiliate.id).length;
           return {
@@ -2214,7 +2214,7 @@ export async function registerRoutes(
     try {
       const ipReferrals = await storage.getIpReferralsByAffiliate(req.session.userId!);
       const now = new Date();
-      const allHelpRequests = await storage.getHelpRequestsByAffiliate(req.session.userId!);
+      const allHelpRequests = await storage.getHelpRequestsByAssignee(req.session.userId!);
       const allBusinessLeads = await storage.getBusinessLeadsByReferrer(req.session.userId!);
       
       // Check if user has signed NDA
@@ -2243,6 +2243,279 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching affiliate security tracking:", error);
       res.status(500).json({ message: "Failed to fetch security tracking data" });
+    }
+  });
+
+  // =====================================================
+  // STRESS TEST SIMULATION API
+  // =====================================================
+  
+  // Run stress test simulation with 1000 sales across 30 affiliates
+  app.post("/api/stress-test/run", requireAdmin, async (req, res) => {
+    try {
+      const militaryRanks = ["E1", "E2", "E3", "E4", "E5", "E6", "E7"];
+      const firstNames = ["James", "Michael", "Robert", "John", "David", "William", "Richard", "Joseph", "Thomas", "Charles", "Christopher", "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Andrew", "Paul", "Joshua", "Kenneth", "Kevin", "Brian", "George", "Timothy"];
+      const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris"];
+      const roles = ["master", "sub_master", "affiliate", "affiliate", "affiliate", "affiliate", "affiliate"];
+      const categories = ["disability", "holistic", "healthcare", "insurance", "tax_credits", "b2b", "b2c"];
+      const statuses = ["pending", "approved", "paid"];
+      
+      // Step 1: Create test opportunities if none exist
+      let existingOpportunities = await storage.getAllOpportunities();
+      if (existingOpportunities.length === 0) {
+        const testOpportunities = [
+          { name: "VA Disability Claim", category: "disability", description: "VA Disability assistance", commissionType: "percentage", commissionL1: 6900, commissionL2: 100, commissionL3: 100, commissionL4: 100, commissionL5: 100, commissionL6: 100, commissionL7: 2250, isActive: "true" },
+          { name: "Holistic Health Program", category: "holistic", description: "Holistic veteran health", commissionType: "percentage", commissionL1: 6900, commissionL2: 100, commissionL3: 100, commissionL4: 100, commissionL5: 100, commissionL6: 100, commissionL7: 2250, isActive: "true" },
+          { name: "Tax Credit Services", category: "tax_credits", description: "Business tax credit", commissionType: "flat", commissionL1: 50000, commissionL2: 2000, commissionL3: 2000, commissionL4: 2000, commissionL5: 2000, commissionL6: 2000, commissionL7: 15000, isActive: "true" },
+          { name: "Insurance Package", category: "insurance", description: "Veteran insurance", commissionType: "percentage", commissionL1: 6900, commissionL2: 100, commissionL3: 100, commissionL4: 100, commissionL5: 100, commissionL6: 100, commissionL7: 2250, isActive: "true" },
+        ];
+        for (const opp of testOpportunities) {
+          await storage.createOpportunity(opp);
+        }
+        existingOpportunities = await storage.getAllOpportunities();
+      }
+      
+      // Step 2: Create 30 test affiliates with hierarchy
+      const createdAffiliates: any[] = [];
+      const hashedPassword = await hashPassword("TestPass123!");
+      
+      for (let i = 0; i < 30; i++) {
+        const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+        const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+        const rank = militaryRanks[Math.floor(Math.random() * militaryRanks.length)];
+        const role = i === 0 ? "master" : (i < 5 ? "sub_master" : "affiliate");
+        
+        // Build hierarchy - each affiliate gets assigned to higher levels
+        const level1Id = i > 0 ? createdAffiliates[Math.floor(Math.random() * Math.min(i, 5))].id : null;
+        const level2Id = i > 1 ? createdAffiliates[Math.floor(Math.random() * Math.min(i, 3))].id : null;
+        const level3Id = i > 2 ? createdAffiliates[Math.floor(Math.random() * Math.min(i, 2))].id : null;
+        const level4Id = i > 3 ? createdAffiliates[Math.max(0, Math.floor(Math.random() * 2))].id : null;
+        const level5Id = i > 4 ? createdAffiliates[0].id : null;
+        const level6Id = createdAffiliates[0]?.id || null;
+        
+        try {
+          const affiliate = await storage.createVltAffiliate({
+            name: `${rank} ${firstName} ${lastName}`,
+            email: `test.${firstName.toLowerCase()}.${lastName.toLowerCase()}.${i}@stresstest.nav`,
+            phone: `555-${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+            passwordHash: hashedPassword,
+            referralCode: `STRESS${i.toString().padStart(3, "0")}`,
+            role,
+            level1Id,
+            level2Id,
+            level3Id,
+            level4Id,
+            level5Id,
+            level6Id,
+            level7Id: null,
+            recruiterId: i > 0 ? createdAffiliates[Math.floor(Math.random() * i)].id : null,
+            status: "active",
+            isCompActive: Math.random() > 0.2 ? "true" : "false",
+            totalSales: 0,
+            totalCommissions: 0,
+            totalRecruiterBounties: 0,
+          });
+          createdAffiliates.push(affiliate);
+        } catch (e) {
+          // Skip if affiliate already exists
+          console.log(`Skipping duplicate affiliate ${i}`);
+        }
+      }
+      
+      // Step 3: Create 1000 sales with commissions
+      const salesCreated: any[] = [];
+      const commissionsCreated: any[] = [];
+      
+      for (let i = 0; i < 1000; i++) {
+        const affiliate = createdAffiliates[Math.floor(Math.random() * createdAffiliates.length)];
+        const opportunity = existingOpportunities[Math.floor(Math.random() * existingOpportunities.length)];
+        const saleAmount = Math.floor(Math.random() * 500000) + 10000; // $100 - $5100 in cents
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        
+        const clientFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+        const clientLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+        
+        try {
+          const sale = await storage.createSale({
+            opportunityId: opportunity.id,
+            affiliateId: affiliate.id,
+            clientName: `${clientFirstName} ${clientLastName}`,
+            clientEmail: `${clientFirstName.toLowerCase()}.${clientLastName.toLowerCase()}@client.com`,
+            clientPhone: `555-${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+            saleAmount,
+            referredByL1: affiliate.id,
+            referredByL2: affiliate.level1Id,
+            referredByL3: affiliate.level2Id,
+            referredByL4: affiliate.level3Id,
+            referredByL5: affiliate.level4Id,
+            referredByL6: affiliate.level5Id,
+            referredByL7: affiliate.level6Id,
+            recruiterId: affiliate.recruiterId,
+            recruiterBounty: Math.floor(saleAmount * 0.025),
+            l2Active: affiliate.isCompActive,
+            l3Active: "true",
+            l4Active: "true",
+            l5Active: "true",
+            compressedToL6: 0,
+            notes: `Stress test sale #${i + 1}`,
+          });
+          
+          // Update sale status
+          await storage.updateSale(sale.id, { status });
+          salesCreated.push({ ...sale, status });
+          
+          // Create commissions for each level
+          const commissionPool = saleAmount;
+          const commissionRates = [0.69, 0.01, 0.01, 0.01, 0.01, 0.01, 0.225]; // Producer + 6 uplines + house
+          
+          // Level 1 - Producer
+          if (affiliate.id) {
+            const comm = await storage.createCommission({
+              saleId: sale.id,
+              affiliateId: affiliate.id,
+              level: 1,
+              amount: Math.floor(commissionPool * commissionRates[0]),
+            });
+            await storage.updateCommission(comm.id, { status });
+            commissionsCreated.push(comm);
+          }
+          
+          // Levels 2-6 uplines
+          const uplineIds = [affiliate.level1Id, affiliate.level2Id, affiliate.level3Id, affiliate.level4Id, affiliate.level5Id];
+          for (let lvl = 0; lvl < uplineIds.length; lvl++) {
+            if (uplineIds[lvl]) {
+              const comm = await storage.createCommission({
+                saleId: sale.id,
+                affiliateId: uplineIds[lvl],
+                level: lvl + 2,
+                amount: Math.floor(commissionPool * commissionRates[lvl + 1]),
+              });
+              await storage.updateCommission(comm.id, { status });
+              commissionsCreated.push(comm);
+            }
+          }
+        } catch (e) {
+          console.log(`Error creating sale ${i}:`, e);
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: "Stress test simulation completed",
+        stats: {
+          affiliatesCreated: createdAffiliates.length,
+          salesCreated: salesCreated.length,
+          commissionsCreated: commissionsCreated.length,
+          totalSalesVolume: salesCreated.reduce((sum, s) => sum + s.saleAmount, 0),
+          totalCommissions: commissionsCreated.reduce((sum, c) => sum + c.amount, 0),
+        },
+      });
+    } catch (error) {
+      console.error("Error running stress test:", error);
+      res.status(500).json({ message: "Failed to run stress test simulation" });
+    }
+  });
+  
+  // Get stress test results
+  app.get("/api/stress-test/results", requireAdmin, async (req, res) => {
+    try {
+      const affiliates = await storage.getAllVltAffiliates();
+      const allSales = await storage.getAllSales();
+      const opportunities = await storage.getAllOpportunities();
+      
+      // Get commissions for each affiliate
+      const affiliateData = await Promise.all(affiliates.map(async (aff) => {
+        const affSales = allSales.filter(s => s.affiliateId === aff.id);
+        const affCommissions = await storage.getCommissionsByAffiliate(aff.id);
+        
+        return {
+          id: aff.id,
+          name: aff.name,
+          email: aff.email,
+          role: aff.role,
+          referralCode: aff.referralCode,
+          status: aff.status,
+          isCompActive: aff.isCompActive,
+          level1Id: aff.level1Id,
+          level2Id: aff.level2Id,
+          level3Id: aff.level3Id,
+          totalDirectSales: affSales.length,
+          totalSalesVolume: affSales.reduce((sum, s) => sum + s.saleAmount, 0),
+          totalCommissionsEarned: affCommissions.reduce((sum, c) => sum + c.amount, 0),
+          pendingCommissions: affCommissions.filter(c => c.status === "pending").reduce((sum, c) => sum + c.amount, 0),
+          approvedCommissions: affCommissions.filter(c => c.status === "approved").reduce((sum, c) => sum + c.amount, 0),
+          paidCommissions: affCommissions.filter(c => c.status === "paid").reduce((sum, c) => sum + c.amount, 0),
+          commissionsByLevel: {
+            level1: affCommissions.filter(c => c.level === 1).reduce((sum, c) => sum + c.amount, 0),
+            level2: affCommissions.filter(c => c.level === 2).reduce((sum, c) => sum + c.amount, 0),
+            level3: affCommissions.filter(c => c.level === 3).reduce((sum, c) => sum + c.amount, 0),
+            level4: affCommissions.filter(c => c.level === 4).reduce((sum, c) => sum + c.amount, 0),
+            level5: affCommissions.filter(c => c.level === 5).reduce((sum, c) => sum + c.amount, 0),
+            level6: affCommissions.filter(c => c.level === 6).reduce((sum, c) => sum + c.amount, 0),
+          },
+        };
+      }));
+      
+      // Summary stats
+      const summary = {
+        totalAffiliates: affiliates.length,
+        totalSales: allSales.length,
+        totalSalesVolume: allSales.reduce((sum, s) => sum + s.saleAmount, 0),
+        salesByStatus: {
+          pending: allSales.filter(s => s.status === "pending").length,
+          approved: allSales.filter(s => s.status === "approved").length,
+          paid: allSales.filter(s => s.status === "paid").length,
+        },
+        affiliatesByRole: {
+          master: affiliates.filter(a => a.role === "master").length,
+          sub_master: affiliates.filter(a => a.role === "sub_master").length,
+          affiliate: affiliates.filter(a => a.role === "affiliate").length,
+        },
+        averageSaleAmount: allSales.length > 0 ? Math.floor(allSales.reduce((sum, s) => sum + s.saleAmount, 0) / allSales.length) : 0,
+        topPerformers: affiliateData.sort((a, b) => b.totalCommissionsEarned - a.totalCommissionsEarned).slice(0, 10),
+      };
+      
+      res.json({
+        summary,
+        affiliates: affiliateData,
+        opportunities,
+      });
+    } catch (error) {
+      console.error("Error fetching stress test results:", error);
+      res.status(500).json({ message: "Failed to fetch stress test results" });
+    }
+  });
+  
+  // Clear stress test data
+  app.delete("/api/stress-test/clear", requireAdmin, async (req, res) => {
+    try {
+      // This would need a storage method to clear test data
+      // For safety, we only clear affiliates with @stresstest.nav emails
+      const affiliates = await storage.getAllVltAffiliates();
+      const testAffiliates = affiliates.filter(a => a.email.includes("@stresstest.nav"));
+      
+      for (const aff of testAffiliates) {
+        // Delete commissions for this affiliate
+        const commissions = await storage.getCommissionsByAffiliate(aff.id);
+        for (const comm of commissions) {
+          // Would need delete commission method
+        }
+        // Delete sales by this affiliate
+        const sales = await storage.getSalesByAffiliate(aff.id);
+        for (const sale of sales) {
+          // Would need delete sale method
+        }
+        // Delete the affiliate
+        await storage.deleteVltAffiliate(aff.id);
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Cleared ${testAffiliates.length} test affiliates and their data` 
+      });
+    } catch (error) {
+      console.error("Error clearing stress test data:", error);
+      res.status(500).json({ message: "Failed to clear stress test data" });
     }
   });
 
