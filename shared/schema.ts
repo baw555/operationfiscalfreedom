@@ -674,3 +674,21 @@ export const insertBusinessLeadSchema = createInsertSchema(businessLeads).omit({
 
 export type InsertBusinessLead = z.infer<typeof insertBusinessLeadSchema>;
 export type BusinessLead = typeof businessLeads.$inferSelect;
+
+// IP Referral Tracking - tracks IP addresses linked to affiliates for 30 days
+export const ipReferralTracking = pgTable("ip_referral_tracking", {
+  id: serial("id").primaryKey(),
+  ipAddress: text("ip_address").notNull(),
+  affiliateId: integer("affiliate_id").references(() => users.id),
+  referralCode: text("referral_code").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertIpReferralTrackingSchema = createInsertSchema(ipReferralTracking).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertIpReferralTracking = z.infer<typeof insertIpReferralTrackingSchema>;
+export type IpReferralTracking = typeof ipReferralTracking.$inferSelect;

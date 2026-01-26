@@ -180,7 +180,7 @@ export default function AffiliateNda() {
             </div>
 
             <div className="prose prose-sm max-w-none mb-8 text-gray-700 border rounded-lg p-6 bg-gray-50">
-              <h2 className="text-lg font-bold text-brand-navy">NON-DISCLOSURE & GOOD FAITH AGREEMENT</h2>
+              <h2 className="text-lg font-bold text-brand-navy">NON-DISCLOSURE, NON-CIRCUMVENTION & GOOD FAITH AGREEMENT</h2>
               
               <p className="text-sm">
                 <strong>Date:</strong> {today}
@@ -201,16 +201,29 @@ export default function AffiliateNda() {
 
               <h3 className="text-md font-bold">2. CONFIDENTIALITY</h3>
               <p>
-                The Affiliate agrees to keep confidential all proprietary information, including but not limited to:
+                The Affiliate agrees to keep strictly confidential all proprietary information, including but not limited to:
               </p>
               <ul className="list-disc pl-5 text-sm">
-                <li>Commission structures and compensation details</li>
-                <li>Safety, security and circumvention protocols</li>
-                <li>Internal business processes and procedures</li>
-                <li>Veteran and client information</li>
+                <li>Commission structures, compensation details, and fee schedules</li>
+                <li>Safety, security, and circumvention protocols</li>
+                <li>Internal business processes, procedures, and trade secrets</li>
+                <li>Veteran, client, and prospect information</li>
+                <li>Marketing strategies and business development plans</li>
+                <li>Affiliate network structure and relationships</li>
               </ul>
 
-              <h3 className="text-md font-bold">3. GOOD FAITH</h3>
+              <h3 className="text-md font-bold">3. NON-CIRCUMVENTION</h3>
+              <p>
+                The Affiliate agrees to the following non-circumvention provisions:
+              </p>
+              <ul className="list-disc pl-5 text-sm">
+                <li><strong>No Direct Contact:</strong> The Affiliate shall not contact, solicit, or communicate directly with any client, prospect, vendor, or partner introduced through or discovered via the Organization's network without prior written consent.</li>
+                <li><strong>No Bypass Attempts:</strong> The Affiliate shall not attempt to bypass, circumvent, or avoid the Organization's referral tracking and attribution systems.</li>
+                <li><strong>No Competitive Interference:</strong> The Affiliate shall not introduce clients or prospects to competing organizations or services that would reduce or eliminate commissions owed to any party in the affiliate network.</li>
+                <li><strong>Protection of Relationships:</strong> All relationships, introductions, and business opportunities developed through the Organization belong to the Organization and its affiliate network.</li>
+              </ul>
+
+              <h3 className="text-md font-bold">4. GOOD FAITH & FAIR DEALING</h3>
               <p>
                 The Affiliate agrees to operate in good faith, understanding that this ecosystem is designed to:
               </p>
@@ -218,19 +231,29 @@ export default function AffiliateNda() {
                 <li>Help veterans generate income for themselves and their families</li>
                 <li>Support Navigator USA Corp's mission of veteran education and healthcare</li>
                 <li>Create sustainable opportunities for the veteran community</li>
+                <li>Maintain fair commission distribution among all network participants</li>
               </ul>
 
-              <h3 className="text-md font-bold">4. SAFETY, SECURITY AND CIRCUMVENTION PROTOCOLS</h3>
+              <h3 className="text-md font-bold">5. SAFETY, SECURITY AND CIRCUMVENTION PROTOCOLS</h3>
               <p>
-                The Affiliate acknowledges that the Organization employs safety, security and circumvention protocols 
-                to protect affiliate referrals and commissions. The Affiliate agrees not to share details of these 
-                protocols with anyone outside the affiliate network.
+                The Affiliate acknowledges that the Organization employs comprehensive safety, security, and circumvention protocols 
+                to protect affiliate referrals and commissions. These protocols are confidential and proprietary. The Affiliate 
+                agrees not to share, disclose, or discuss details of these systems with anyone outside the authorized affiliate network.
               </p>
 
-              <h3 className="text-md font-bold">5. TERM</h3>
+              <h3 className="text-md font-bold">6. REMEDIES & DAMAGES</h3>
+              <p>
+                The Affiliate acknowledges that any breach of this Agreement may cause irreparable harm to the Organization 
+                and other affiliates. In the event of breach, the Organization shall be entitled to seek injunctive relief, 
+                actual damages, loss of commissions, and reasonable attorney's fees. Violators may be permanently removed 
+                from the affiliate network with forfeiture of all pending commissions.
+              </p>
+
+              <h3 className="text-md font-bold">7. TERM</h3>
               <p>
                 This Agreement remains in effect for the duration of the Affiliate's participation in the program 
-                and for a period of two (2) years following termination.
+                and for a period of two (2) years following termination. The non-circumvention and confidentiality 
+                provisions shall survive termination indefinitely.
               </p>
             </div>
 

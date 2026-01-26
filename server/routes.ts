@@ -89,24 +89,102 @@ export async function registerRoutes(
     }
   });
 
+  // Track referral link visit - locks IP to affiliate for 30 days (first-touch attribution)
+  app.post("/api/track-referral", async (req, res) => {
+    try {
+      const { referralCode } = req.body;
+      
+      if (!referralCode) {
+        return res.status(400).json({ message: "Referral code required" });
+      }
+      
+      // Get client IP address
+      const clientIp = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+      
+      // Check if this IP is already tracked
+      const existingTracking = await storage.getActiveIpReferral(clientIp);
+      if (existingTracking) {
+        // IP already tracked - return existing affiliate info (first-touch attribution)
+        return res.json({ 
+          success: true, 
+          message: "IP already attributed",
+          referralCode: existingTracking.referralCode,
+          expiresAt: existingTracking.expiresAt
+        });
+      }
+      
+      // Look up affiliate by referral code
+      const affiliate = await storage.getUserByReferralCode(referralCode);
+      if (!affiliate) {
+        return res.status(404).json({ message: "Invalid referral code" });
+      }
+      
+      // Create IP tracking record (30 day expiration)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+      
+      await storage.createIpReferralTracking({
+        ipAddress: clientIp,
+        affiliateId: affiliate.id,
+        referralCode: referralCode,
+        expiresAt,
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Referral tracked",
+        referralCode,
+        expiresAt
+      });
+    } catch (error) {
+      console.error("Error tracking referral:", error);
+      res.status(500).json({ message: "Failed to track referral" });
+    }
+  });
+
   // Submit help request
   app.post("/api/help-requests", async (req, res) => {
     try {
       const { referralCode, ...rest } = req.body;
       const data = insertHelpRequestSchema.parse(rest);
       
-      // Look up affiliate by referral code if provided
+      // Get client IP address
+      const clientIp = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+      
+      // Look up affiliate by referral code if provided, or check IP tracking
       let referredById: number | undefined;
+      let finalReferralCode = referralCode;
+      
       if (referralCode) {
+        // Referral code provided - use it and track IP
         const affiliate = await storage.getUserByReferralCode(referralCode);
         if (affiliate) {
           referredById = affiliate.id;
+          // Track this IP if not already tracked
+          const existingIpTracking = await storage.getActiveIpReferral(clientIp);
+          if (!existingIpTracking) {
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 30); // 30 day expiration
+            await storage.createIpReferralTracking({
+              ipAddress: clientIp,
+              affiliateId: affiliate.id,
+              referralCode: referralCode,
+              expiresAt,
+            });
+          }
+        }
+      } else {
+        // No referral code - check if IP is already tracked
+        const ipTracking = await storage.getActiveIpReferral(clientIp);
+        if (ipTracking && ipTracking.affiliateId) {
+          referredById = ipTracking.affiliateId;
+          finalReferralCode = ipTracking.referralCode;
         }
       }
       
       const request = await storage.createHelpRequest({
         ...data,
-        referralCode: referralCode || undefined,
+        referralCode: finalReferralCode || undefined,
         referredBy: referredById,
       } as any);
       res.status(201).json({ success: true, id: request.id });
@@ -1946,8 +2024,48 @@ export async function registerRoutes(
   // Public: Submit a business lead
   app.post("/api/business-leads", async (req, res) => {
     try {
-      const data = insertBusinessLeadSchema.parse(req.body);
-      const lead = await storage.createBusinessLead(data);
+      const { referralCode, ...rest } = req.body;
+      const data = insertBusinessLeadSchema.parse(rest);
+      
+      // Get client IP address
+      const clientIp = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+      
+      // Look up affiliate by referral code if provided, or check IP tracking
+      let referredById: number | undefined;
+      let finalReferralCode = referralCode;
+      
+      if (referralCode) {
+        // Referral code provided - use it and track IP
+        const affiliate = await storage.getUserByReferralCode(referralCode);
+        if (affiliate) {
+          referredById = affiliate.id;
+          // Track this IP if not already tracked
+          const existingIpTracking = await storage.getActiveIpReferral(clientIp);
+          if (!existingIpTracking) {
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 30); // 30 day expiration
+            await storage.createIpReferralTracking({
+              ipAddress: clientIp,
+              affiliateId: affiliate.id,
+              referralCode: referralCode,
+              expiresAt,
+            });
+          }
+        }
+      } else {
+        // No referral code - check if IP is already tracked
+        const ipTracking = await storage.getActiveIpReferral(clientIp);
+        if (ipTracking && ipTracking.affiliateId) {
+          referredById = ipTracking.affiliateId;
+          finalReferralCode = ipTracking.referralCode;
+        }
+      }
+      
+      const lead = await storage.createBusinessLead({
+        ...data,
+        referralCode: finalReferralCode || undefined,
+        referredBy: referredById,
+      } as any);
       res.status(201).json({ success: true, lead });
     } catch (error) {
       if (error instanceof z.ZodError) {

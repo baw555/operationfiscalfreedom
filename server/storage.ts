@@ -19,10 +19,11 @@ import {
   signedAgreements, type SignedAgreement, type InsertSignedAgreement,
   commissionConfig, type CommissionConfig, type InsertCommissionConfig,
   affiliateNda, type AffiliateNda, type InsertAffiliateNda,
-  businessLeads, type BusinessLead, type InsertBusinessLead
+  businessLeads, type BusinessLead, type InsertBusinessLead,
+  ipReferralTracking, type IpReferralTracking, type InsertIpReferralTracking
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
+import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -177,6 +178,11 @@ export interface IStorage {
   getBusinessLeadsByType(leadType: string): Promise<BusinessLead[]>;
   getBusinessLeadsByReferrer(referredBy: number): Promise<BusinessLead[]>;
   updateBusinessLead(id: number, updates: Partial<BusinessLead>): Promise<BusinessLead | undefined>;
+
+  // IP Referral Tracking
+  createIpReferralTracking(data: InsertIpReferralTracking): Promise<IpReferralTracking>;
+  getActiveIpReferral(ipAddress: string): Promise<IpReferralTracking | undefined>;
+  getIpReferralsByAffiliate(affiliateId: number): Promise<IpReferralTracking[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -804,6 +810,30 @@ export class DatabaseStorage implements IStorage {
   async updateBusinessLead(id: number, updates: Partial<BusinessLead>): Promise<BusinessLead | undefined> {
     const [updated] = await db.update(businessLeads).set({ ...updates, updatedAt: new Date() }).where(eq(businessLeads.id, id)).returning();
     return updated || undefined;
+  }
+
+  // IP Referral Tracking
+  async createIpReferralTracking(data: InsertIpReferralTracking): Promise<IpReferralTracking> {
+    const [created] = await db.insert(ipReferralTracking).values(data).returning();
+    return created;
+  }
+
+  async getActiveIpReferral(ipAddress: string): Promise<IpReferralTracking | undefined> {
+    const now = new Date();
+    const [tracking] = await db.select().from(ipReferralTracking)
+      .where(and(
+        eq(ipReferralTracking.ipAddress, ipAddress),
+        gt(ipReferralTracking.expiresAt, now)
+      ))
+      .orderBy(desc(ipReferralTracking.createdAt))
+      .limit(1);
+    return tracking || undefined;
+  }
+
+  async getIpReferralsByAffiliate(affiliateId: number): Promise<IpReferralTracking[]> {
+    return db.select().from(ipReferralTracking)
+      .where(eq(ipReferralTracking.affiliateId, affiliateId))
+      .orderBy(desc(ipReferralTracking.createdAt));
   }
 }
 
