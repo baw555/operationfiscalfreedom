@@ -561,7 +561,8 @@ export type ContractTemplate = typeof contractTemplates.$inferSelect;
 export const signedAgreements = pgTable("signed_agreements", {
   id: serial("id").primaryKey(),
   contractTemplateId: integer("contract_template_id").references(() => contractTemplates.id).notNull(),
-  affiliateId: integer("affiliate_id").references(() => vltAffiliates.id).notNull(),
+  affiliateId: integer("affiliate_id").notNull(), // User ID (not FK - can be user or VLT affiliate)
+  userId: integer("user_id").references(() => users.id), // Link to regular user account
   affiliateName: text("affiliate_name").notNull(),
   affiliateEmail: text("affiliate_email").notNull(),
   signatureData: text("signature_data"), // Base64 signature image
