@@ -62,6 +62,11 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Trust proxy for production (Replit's load balancer)
+  if (process.env.NODE_ENV === "production") {
+    app.set('trust proxy', 1);
+  }
+
   // Session middleware
   app.use(
     session({
@@ -71,6 +76,7 @@ export async function registerRoutes(
       cookie: {
         secure: process.env.NODE_ENV === "production",
         httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
       },
     })
@@ -734,9 +740,16 @@ export async function registerRoutes(
       req.session.userId = user.id;
       req.session.userRole = user.role;
 
-      res.json({ 
-        success: true, 
-        user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      // Ensure session is saved before responding
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Login failed - session error" });
+        }
+        res.json({ 
+          success: true, 
+          user: { id: user.id, name: user.name, email: user.email, role: user.role }
+        });
       });
     } catch (error) {
       res.status(500).json({ message: "Login failed" });
