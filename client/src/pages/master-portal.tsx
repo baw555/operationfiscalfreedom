@@ -8,12 +8,12 @@ export default function MasterPortal() {
         <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center">
           <Shield className="w-10 h-10 text-white" />
         </div>
-        <div className="text-2xl text-white font-bold">Master Portal Locked</div>
+        <div className="text-2xl text-white font-bold">MASTER PORTAL - ACCESS DENIED</div>
         <div className="text-gray-300">
-          Access to the Master Portal is restricted. This portal is not available at this time.
+          This portal is completely locked and not available for access.
         </div>
         <div className="text-sm text-gray-500 mt-4">
-          Contact administration for access inquiries.
+          Authorized personnel only. Contact administration.
         </div>
       </div>
     </div>

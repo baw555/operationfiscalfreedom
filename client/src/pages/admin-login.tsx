@@ -1,16 +1,20 @@
-import { useEffect } from "react";
-import { useLocation } from "wouter";
+import { Shield } from "lucide-react";
 
 export default function AdminLogin() {
-  const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    setLocation("/master-portal");
-  }, [setLocation]);
-
   return (
-    <div className="min-h-screen bg-brand-black flex items-center justify-center">
-      <p className="text-white">Redirecting...</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4 text-center max-w-md">
+        <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center">
+          <Shield className="w-10 h-10 text-white" />
+        </div>
+        <div className="text-2xl text-white font-bold">ADMIN LOGIN - ACCESS DENIED</div>
+        <div className="text-gray-300">
+          This login portal is completely locked and not available for access.
+        </div>
+        <div className="text-sm text-gray-500 mt-4">
+          Authorized personnel only. Contact administration.
+        </div>
+      </div>
     </div>
   );
 }
