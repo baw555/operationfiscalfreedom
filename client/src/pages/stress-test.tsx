@@ -56,7 +56,7 @@ export default function StressTest() {
     onSuccess: (data) => {
       toast({
         title: "Stress Test Complete!",
-        description: `Created ${data.stats.affiliatesCreated} affiliates, ${data.stats.salesCreated} sales, ${data.stats.commissionsCreated} commissions`,
+        description: `Used ${data.stats.affiliatesUsed} affiliates, created ${data.stats.salesCreated} sales, ${data.stats.commissionsCreated} commissions`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/stress-test/results"] });
     },

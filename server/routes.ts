@@ -2288,69 +2288,79 @@ export async function registerRoutes(
         existingOpportunities = await storage.getAllOpportunities();
       }
       
-      // Step 2: Create test affiliates with hierarchy (using affiliateCount)
-      const createdAffiliates: any[] = [];
-      const hashedPassword = await hashPassword("TestPass123!");
-      const subMasterCount = Math.max(1, Math.floor(affiliateCount * 0.15)); // 15% are sub_masters
+      // Step 2: Check for existing stress test affiliates or create new ones
+      const allAffiliates = await storage.getAllVltAffiliates();
+      let stressTestAffiliates = allAffiliates.filter(a => a.email.includes("@stresstest.nav"));
       
-      for (let i = 0; i < affiliateCount; i++) {
-        const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-        const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-        const rank = militaryRanks[Math.floor(Math.random() * militaryRanks.length)];
-        const role = i === 0 ? "master" : (i < subMasterCount ? "sub_master" : "affiliate");
+      // If we have existing stress test affiliates, use them; otherwise create new ones
+      if (stressTestAffiliates.length === 0) {
+        const hashedPassword = await hashPassword("TestPass123!");
+        const subMasterCount = Math.max(1, Math.floor(affiliateCount * 0.15)); // 15% are sub_masters
+        const createdAffiliates: any[] = [];
         
-        // Build hierarchy with configurable randomness
-        // Higher randomness = more varied/random hierarchy, lower = more structured
-        const getRandomParent = (maxIdx: number) => {
-          if (maxIdx <= 0) return null;
-          const structuredIdx = Math.min(i - 1, maxIdx - 1); // Structured: pick immediate parent
-          const randomIdx = Math.floor(Math.random() * maxIdx); // Random: pick any parent
-          const blendedIdx = Math.round(structuredIdx * (1 - randomness) + randomIdx * randomness);
-          return createdAffiliates[Math.min(blendedIdx, maxIdx - 1)]?.id || null;
-        };
-        
-        const level1Id = i > 0 ? getRandomParent(Math.min(i, subMasterCount + 2)) : null;
-        const level2Id = i > 1 ? getRandomParent(Math.min(i, subMasterCount)) : null;
-        const level3Id = i > 2 ? getRandomParent(Math.min(i, Math.max(2, subMasterCount - 1))) : null;
-        const level4Id = i > 3 ? getRandomParent(Math.min(i, 3)) : null;
-        const level5Id = i > 4 ? getRandomParent(2) : null;
-        const level6Id = createdAffiliates[0]?.id || null;
-        
-        try {
-          const affiliate = await storage.createVltAffiliate({
-            name: `${rank} ${firstName} ${lastName}`,
-            email: `test.${firstName.toLowerCase()}.${lastName.toLowerCase()}.${i}@stresstest.nav`,
-            phone: `555-${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
-            passwordHash: hashedPassword,
-            referralCode: `STRESS${i.toString().padStart(3, "0")}`,
-            role,
-            level1Id,
-            level2Id,
-            level3Id,
-            level4Id,
-            level5Id,
-            level6Id,
-            level7Id: null,
-            recruiterId: i > 0 ? createdAffiliates[Math.floor(Math.random() * i)].id : null,
-            status: "active",
-            isCompActive: Math.random() > 0.2 ? "true" : "false",
-            totalSales: 0,
-            totalCommissions: 0,
-            totalRecruiterBounties: 0,
-          });
-          createdAffiliates.push(affiliate);
-        } catch (e) {
-          // Skip if affiliate already exists
-          console.log(`Skipping duplicate affiliate ${i}`);
+        for (let i = 0; i < affiliateCount; i++) {
+          const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+          const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+          const rank = militaryRanks[Math.floor(Math.random() * militaryRanks.length)];
+          const role = i === 0 ? "master" : (i < subMasterCount ? "sub_master" : "affiliate");
+          
+          // Build hierarchy with configurable randomness
+          const getRandomParent = (maxIdx: number) => {
+            if (maxIdx <= 0) return null;
+            const structuredIdx = Math.min(i - 1, maxIdx - 1);
+            const randomIdx = Math.floor(Math.random() * maxIdx);
+            const blendedIdx = Math.round(structuredIdx * (1 - randomness) + randomIdx * randomness);
+            return createdAffiliates[Math.min(blendedIdx, maxIdx - 1)]?.id || null;
+          };
+          
+          const level1Id = i > 0 ? getRandomParent(Math.min(i, subMasterCount + 2)) : null;
+          const level2Id = i > 1 ? getRandomParent(Math.min(i, subMasterCount)) : null;
+          const level3Id = i > 2 ? getRandomParent(Math.min(i, Math.max(2, subMasterCount - 1))) : null;
+          const level4Id = i > 3 ? getRandomParent(Math.min(i, 3)) : null;
+          const level5Id = i > 4 ? getRandomParent(2) : null;
+          const level6Id = createdAffiliates[0]?.id || null;
+          
+          try {
+            const affiliate = await storage.createVltAffiliate({
+              name: `${rank} ${firstName} ${lastName}`,
+              email: `test.${firstName.toLowerCase()}.${lastName.toLowerCase()}.${i}@stresstest.nav`,
+              phone: `555-${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+              passwordHash: hashedPassword,
+              referralCode: `STRESS${i.toString().padStart(3, "0")}`,
+              role,
+              level1Id,
+              level2Id,
+              level3Id,
+              level4Id,
+              level5Id,
+              level6Id,
+              level7Id: null,
+              recruiterId: i > 0 ? createdAffiliates[Math.floor(Math.random() * i)].id : null,
+              status: "active",
+              isCompActive: Math.random() > 0.2 ? "true" : "false",
+              totalSales: 0,
+              totalCommissions: 0,
+              totalRecruiterBounties: 0,
+            });
+            createdAffiliates.push(affiliate);
+          } catch (e) {
+            console.log(`Skipping duplicate affiliate ${i}`);
+          }
         }
+        stressTestAffiliates = createdAffiliates;
       }
       
       // Step 3: Create sales with commissions (using salesCount)
       const salesCreated: any[] = [];
       const commissionsCreated: any[] = [];
       
+      // Use stress test affiliates for sales
+      if (stressTestAffiliates.length === 0) {
+        return res.status(400).json({ message: "No affiliates available for stress test. Please clear data and try again." });
+      }
+      
       for (let i = 0; i < salesCount; i++) {
-        const affiliate = createdAffiliates[Math.floor(Math.random() * createdAffiliates.length)];
+        const affiliate = stressTestAffiliates[Math.floor(Math.random() * stressTestAffiliates.length)];
         const opportunity = existingOpportunities[Math.floor(Math.random() * existingOpportunities.length)];
         // Median sale for tax is $16,000 - create distribution around this
         // Range: $5,000 - $35,000 with median around $16,000
@@ -2430,7 +2440,7 @@ export async function registerRoutes(
         success: true,
         message: "Stress test simulation completed",
         stats: {
-          affiliatesCreated: createdAffiliates.length,
+          affiliatesUsed: stressTestAffiliates.length,
           salesCreated: salesCreated.length,
           commissionsCreated: commissionsCreated.length,
           totalSalesVolume: salesCreated.reduce((sum, s) => sum + s.saleAmount, 0),
