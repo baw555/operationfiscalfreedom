@@ -140,11 +140,12 @@ export default function AffiliateDashboard() {
     enabled: !!authData?.user,
   });
 
-  // Redirect to NDA page if not signed
-  if (!ndaLoading && authData?.user && ndaStatus && !ndaStatus.hasSigned) {
-    setLocation("/affiliate/nda");
-    return null;
-  }
+  // Redirect to NDA page if not signed - use effect to avoid render-time navigation
+  useEffect(() => {
+    if (!ndaLoading && authData?.user && ndaStatus && !ndaStatus.hasSigned) {
+      setLocation("/affiliate/nda");
+    }
+  }, [ndaLoading, authData, ndaStatus, setLocation]);
 
   // Mutations
   const updateApplicationMutation = useMutation({
