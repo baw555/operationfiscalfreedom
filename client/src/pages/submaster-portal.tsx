@@ -90,11 +90,11 @@ export default function SubMasterPortal() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8" data-testid="submaster-portal-container">
         <div className="flex items-center gap-4 mb-8">
           <Shield className="w-10 h-10 text-blue-600" />
           <div>
-            <h1 className="text-3xl font-bold text-brand-navy">Sub-Master Portal</h1>
+            <h1 className="text-3xl font-bold text-brand-navy" data-testid="text-submaster-portal-title">Sub-Master Portal</h1>
             <p className="text-gray-600">Manage your team and track their performance</p>
           </div>
         </div>

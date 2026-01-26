@@ -242,6 +242,7 @@ export default function BusinessIntake() {
               type="submit"
               disabled={mutation.isPending || !formData.serviceType}
               className="w-full bg-brand-navy text-white py-3 rounded font-bold hover:bg-brand-navy/90 disabled:bg-gray-400"
+              data-testid="button-submit-business-intake"
             >
               {mutation.isPending ? "Submitting..." : "Submit Business Inquiry"}
             </button>

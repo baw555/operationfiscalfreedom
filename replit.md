@@ -67,6 +67,12 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - `private_doctor_requests` - Private doctor referral requests
 - `website_applications` - Free website grant applications
 - `general_contact` - General contact form submissions
+- `vlt_affiliates` - Multi-level affiliate system with 7-level hierarchy tracking (level1Id-level7Id)
+- `opportunities` - B2B/B2C service offerings with commission structures per level
+- `sales` - Sales transactions linked to affiliates with 7-level commission tracking
+- `commissions` - Commission payouts per level for each sale
+- `veteran_intakes` - Veteran program intake forms (disability, holistic, healthcare, financial)
+- `business_intakes` - B2B service intake forms (insurance, tax, payroll, consulting)
 
 ### Key Routes
 
@@ -94,6 +100,12 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 **Affiliate Portal:**
 - `/affiliate/login` - Affiliate authentication
 - `/affiliate/dashboard` - View and manage assigned leads
+
+**Ecosystem Portals:**
+- `/master-portal` - Full ecosystem management (all affiliates, sales, commissions, intakes)
+- `/submaster-portal` - Team management for sub-masters (downline tracking, team sales)
+- `/veteran-intake` - Veteran services intake form (disability, holistic, healthcare, financial)
+- `/business-intake` - B2B services intake form (insurance, tax, payroll, consulting)
 
 ### Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string

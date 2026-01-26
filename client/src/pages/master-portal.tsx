@@ -114,11 +114,11 @@ export default function MasterPortal() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8" data-testid="master-portal-container">
         <div className="flex items-center gap-4 mb-8">
           <Shield className="w-10 h-10 text-brand-red" />
           <div>
-            <h1 className="text-3xl font-bold text-brand-navy">Master Portal</h1>
+            <h1 className="text-3xl font-bold text-brand-navy" data-testid="text-master-portal-title">Master Portal</h1>
             <p className="text-gray-600">Complete ecosystem management - 7 levels deep</p>
           </div>
         </div>

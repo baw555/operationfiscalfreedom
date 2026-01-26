@@ -235,6 +235,7 @@ export default function VeteranIntake() {
               type="submit"
               disabled={mutation.isPending || !formData.programType}
               className="w-full bg-brand-red text-white py-3 rounded font-bold hover:bg-brand-red/90 disabled:bg-gray-400"
+              data-testid="button-submit-veteran-intake"
             >
               {mutation.isPending ? "Submitting..." : "Submit Intake Form"}
             </button>
