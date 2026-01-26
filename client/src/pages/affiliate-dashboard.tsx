@@ -29,7 +29,7 @@ export default function AffiliateDashboard() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [mainTab, setMainTab] = useState<MainTab>("overview");
-  const [leadSubTab, setLeadSubTab] = useState<"applications" | "requests">("applications");
+  const [leadSubTab, setLeadSubTab] = useState<"applications" | "requests" | "bizleads">("applications");
   const [selectedLead, setSelectedLead] = useState<any>(null);
 
   // Calculator state
@@ -112,6 +112,16 @@ export default function AffiliateDashboard() {
     queryKey: ["affiliate-help-requests"],
     queryFn: async () => {
       const res = await fetch("/api/affiliate/help-requests");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  const { data: businessLeads = [] } = useQuery({
+    queryKey: ["affiliate-business-leads"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/business-leads");
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -842,6 +852,16 @@ export default function AffiliateDashboard() {
                   <HelpCircle className="h-4 w-4 inline mr-2" /> 
                   Help Requests ({helpRequests.length})
                 </button>
+                <button
+                  onClick={() => setLeadSubTab("bizleads")}
+                  className={`flex-1 py-4 px-6 font-bold text-sm uppercase tracking-wide transition-colors ${
+                    leadSubTab === "bizleads" ? "bg-brand-navy text-white" : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                  data-testid="subtab-bizleads"
+                >
+                  <Building2 className="h-4 w-4 inline mr-2" /> 
+                  Biz Leads ({businessLeads.length})
+                </button>
               </div>
 
               <div className="p-6">
@@ -902,6 +922,47 @@ export default function AffiliateDashboard() {
                               </span>
                               <p className="text-xs text-gray-400 mt-2">
                                 {format(new Date(req.createdAt), "MMM d, yyyy")}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {leadSubTab === "bizleads" && (
+                  <div className="space-y-4">
+                    {businessLeads.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">No business leads referred by you yet</p>
+                    ) : (
+                      businessLeads.map((lead: any) => (
+                        <div 
+                          key={lead.id} 
+                          className="bg-gray-50 rounded-lg p-4 border hover:border-brand-navy/50 transition-colors"
+                          data-testid={`lead-business-${lead.id}`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-bold text-brand-navy">{lead.businessName}</h3>
+                              <p className="text-sm text-gray-600">{lead.contactName} - {lead.position}</p>
+                              <p className="text-sm text-gray-500">{lead.email} | {lead.phone}</p>
+                              <span className={`inline-block mt-2 px-2 py-1 rounded text-xs ${
+                                lead.leadType === "access_talent" ? "bg-blue-100 text-blue-700" :
+                                lead.leadType === "utilize_service" ? "bg-green-100 text-green-700" :
+                                "bg-purple-100 text-purple-700"
+                              }`}>
+                                {lead.leadType === "access_talent" ? "Access Talent" :
+                                 lead.leadType === "utilize_service" ? "Utilize Service" :
+                                 "Promote Network"}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${statusColors[lead.status as LeadStatus]}`}>
+                                {lead.status}
+                              </span>
+                              <p className="text-xs text-gray-400 mt-2">
+                                {format(new Date(lead.createdAt), "MMM d, yyyy")}
                               </p>
                             </div>
                           </div>

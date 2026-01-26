@@ -67,8 +67,26 @@ type SignedAgreement = {
   recruitedBy: string | null;
 };
 
+type BusinessLead = {
+  id: number;
+  leadType: string;
+  businessName: string;
+  contactName: string;
+  position: string;
+  phone: string;
+  email: string;
+  comment: string | null;
+  status: string;
+  assignedTo: number | null;
+  referredBy: number | null;
+  referralCode: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export default function MasterPortal() {
-  const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "opportunities" | "files" | "compplan" | "vso">("overview");
+  const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "businessleads" | "opportunities" | "files" | "compplan" | "vso">("overview");
   const [selectedVsoAffiliate, setSelectedVsoAffiliate] = useState<number | null>(null);
   const [calcGrossRevenue, setCalcGrossRevenue] = useState<number>(100000);
   const [calcContractRate, setCalcContractRate] = useState<number>(18);
@@ -105,6 +123,10 @@ export default function MasterPortal() {
 
   const { data: contractTemplates = [] } = useQuery<any[]>({
     queryKey: ["/api/contracts/templates"],
+  });
+
+  const { data: businessLeads = [] } = useQuery<BusinessLead[]>({
+    queryKey: ["/api/master/business-leads"],
   });
 
   const promoteMutation = useMutation({
@@ -157,6 +179,7 @@ export default function MasterPortal() {
             { key: "sales", label: "Sales" },
             { key: "veterans", label: "Veteran Intake" },
             { key: "businesses", label: "Business Intake" },
+            { key: "businessleads", label: "Business Leads" },
             { key: "opportunities", label: "Opportunities" },
             { key: "files", label: "Files/Agreements" },
             { key: "compplan", label: "Comp Plan" },
@@ -416,6 +439,70 @@ export default function MasterPortal() {
                       </td>
                       <td className="p-3">{bi.status}</td>
                       <td className="p-3">{new Date(bi.createdAt).toLocaleDateString()}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {tab === "businessleads" && (
+          <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+            <div className="p-4 border-b bg-gradient-to-r from-brand-navy to-brand-navy/90 text-white">
+              <h3 className="font-bold text-lg">Business Leads</h3>
+              <p className="text-sm text-white/70">Leads from the Vet Biz Owner page ({businessLeads.length} total)</p>
+            </div>
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="p-3 text-left">ID</th>
+                  <th className="p-3 text-left">Type</th>
+                  <th className="p-3 text-left">Business</th>
+                  <th className="p-3 text-left">Contact</th>
+                  <th className="p-3 text-left">Position</th>
+                  <th className="p-3 text-left">Phone</th>
+                  <th className="p-3 text-left">Email</th>
+                  <th className="p-3 text-left">Status</th>
+                  <th className="p-3 text-left">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {businessLeads.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="p-6 text-center text-gray-500">No business leads yet</td>
+                  </tr>
+                ) : (
+                  businessLeads.map((lead) => (
+                    <tr key={lead.id} className="border-t hover:bg-gray-50">
+                      <td className="p-3">{lead.id}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          lead.leadType === "access_talent" ? "bg-blue-100 text-blue-700" :
+                          lead.leadType === "utilize_service" ? "bg-green-100 text-green-700" :
+                          "bg-purple-100 text-purple-700"
+                        }`}>
+                          {lead.leadType === "access_talent" ? "Access Talent" :
+                           lead.leadType === "utilize_service" ? "Utilize Service" :
+                           "Promote Network"}
+                        </span>
+                      </td>
+                      <td className="p-3 font-medium">{lead.businessName}</td>
+                      <td className="p-3">{lead.contactName}</td>
+                      <td className="p-3">{lead.position}</td>
+                      <td className="p-3">{lead.phone}</td>
+                      <td className="p-3">{lead.email}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          lead.status === "new" ? "bg-yellow-100 text-yellow-700" :
+                          lead.status === "contacted" ? "bg-blue-100 text-blue-700" :
+                          lead.status === "in_progress" ? "bg-orange-100 text-orange-700" :
+                          "bg-green-100 text-green-700"
+                        }`}>
+                          {lead.status}
+                        </span>
+                      </td>
+                      <td className="p-3">{new Date(lead.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))
                 )}
