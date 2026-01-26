@@ -114,12 +114,20 @@ export default function CompPlan() {
                 </tr>
               </thead>
               <tbody>
-                {[0, 1, 2, 3, 4, 5, 6].map((uplines) => {
+                {[
+                  { uplines: 0, rank: "E7", title: "SFC" },
+                  { uplines: 1, rank: "E6", title: "SSG" },
+                  { uplines: 2, rank: "E5", title: "SGT" },
+                  { uplines: 3, rank: "E4", title: "SPC" },
+                  { uplines: 4, rank: "E3", title: "PFC" },
+                  { uplines: 5, rank: "E2", title: "PV2" },
+                  { uplines: 6, rank: "E1", title: "PVT" },
+                ].map(({ uplines, rank, title }) => {
                   const empty = maxUplines - uplines;
                   const prod = producerBase + empty * uplineEach;
                   return (
                     <tr key={uplines} className={`border-b border-white/10 ${uplineCount === uplines ? 'bg-brand-red/30' : ''}`}>
-                      <td className="py-2">{uplines === 0 ? 'Solo (no uplines)' : `${uplines} upline${uplines > 1 ? 's' : ''}`}</td>
+                      <td className="py-2">{rank} - {title} {uplines === 0 ? '(Solo)' : `(${uplines} upline${uplines > 1 ? 's' : ''})`}</td>
                       <td className="py-2 text-center">{uplines} × 1%</td>
                       <td className="py-2 text-center font-bold text-green-300">{pct(prod)}</td>
                       <td className="py-2 text-center">{pct(uplines * uplineEach)}</td>

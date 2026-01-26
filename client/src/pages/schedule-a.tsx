@@ -89,9 +89,17 @@ export default function ScheduleA() {
                 className="w-full border border-gray-300 rounded-lg p-3 text-lg"
                 data-testid="select-schedule-uplines"
               >
-                {[0, 1, 2, 3, 4, 5, 6].map((n) => (
-                  <option key={n} value={n}>
-                    {n === 0 ? 'Solo (no uplines) - Maximum earnings' : `${n} upline${n > 1 ? 's' : ''} above me`}
+                {[
+                  { uplines: 0, rank: "E7", title: "SFC", desc: "Solo - Maximum earnings" },
+                  { uplines: 1, rank: "E6", title: "SSG", desc: "1 upline" },
+                  { uplines: 2, rank: "E5", title: "SGT", desc: "2 uplines" },
+                  { uplines: 3, rank: "E4", title: "SPC", desc: "3 uplines" },
+                  { uplines: 4, rank: "E3", title: "PFC", desc: "4 uplines" },
+                  { uplines: 5, rank: "E2", title: "PV2", desc: "5 uplines" },
+                  { uplines: 6, rank: "E1", title: "PVT", desc: "6 uplines" },
+                ].map(({ uplines, rank, title, desc }) => (
+                  <option key={uplines} value={uplines}>
+                    {rank} - {title} ({desc})
                   </option>
                 ))}
               </select>

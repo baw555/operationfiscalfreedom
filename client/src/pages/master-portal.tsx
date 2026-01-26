@@ -600,12 +600,20 @@ export default function MasterPortal() {
                     </tr>
                   </thead>
                   <tbody>
-                    {[0, 1, 2, 3, 4, 5, 6].map((uplines) => {
+                    {[
+                      { uplines: 0, rank: "E7", title: "SFC" },
+                      { uplines: 1, rank: "E6", title: "SSG" },
+                      { uplines: 2, rank: "E5", title: "SGT" },
+                      { uplines: 3, rank: "E4", title: "SPC" },
+                      { uplines: 4, rank: "E3", title: "PFC" },
+                      { uplines: 5, rank: "E2", title: "PV2" },
+                      { uplines: 6, rank: "E1", title: "PVT" },
+                    ].map(({ uplines, rank, title }) => {
                       const empty = 6 - uplines;
                       const prod = 0.69 + empty * 0.01;
                       return (
                         <tr key={uplines} className="border-b border-white/10">
-                          <td className="py-2">{uplines === 0 ? 'Solo' : `${uplines} upline${uplines > 1 ? 's' : ''}`}</td>
+                          <td className="py-2">{rank} - {title} {uplines === 0 ? '(Solo)' : `(${uplines} upline${uplines > 1 ? 's' : ''})`}</td>
                           <td className="py-2 text-center">{uplines} × 1%</td>
                           <td className="py-2 text-center font-bold text-green-300">{(prod * 100).toFixed(0)}%</td>
                           <td className="py-2 text-center">22.5%</td>
@@ -853,7 +861,7 @@ REVENUE PROJECTIONS (ANNUAL):
 
 COMMISSION DISTRIBUTION:
 • Producer: 69-75% (+ compression bonus)
-• Uplines: 0-6% (1% per level, max 6)
+• Uplines: 0-6% (1% per upline rank)
 • House: 22.5%
 • Recruiter Bounty: 2.5%
 
@@ -1007,7 +1015,7 @@ NavigatorUSA Team`);
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white rounded-lg p-5 border-l-4 border-yellow-500 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-bold text-gray-500">MASTER (Level 0)</span>
+                      <span className="text-sm font-bold text-gray-500">E7 - SFC (Master)</span>
                       <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">3 producers</span>
                     </div>
                     <p className="text-2xl font-bold text-brand-navy">$90,273</p>
@@ -1015,7 +1023,7 @@ NavigatorUSA Team`);
                   </div>
                   <div className="bg-white rounded-lg p-5 border-l-4 border-blue-500 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-bold text-gray-500">SUBMASTER (Level 1)</span>
+                      <span className="text-sm font-bold text-gray-500">E6 - SSG (SubMaster)</span>
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">12 producers</span>
                     </div>
                     <p className="text-2xl font-bold text-brand-navy">$69,513</p>
@@ -1023,7 +1031,7 @@ NavigatorUSA Team`);
                   </div>
                   <div className="bg-white rounded-lg p-5 border-l-4 border-green-500 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-bold text-gray-500">AFFILIATE (Levels 2-6)</span>
+                      <span className="text-sm font-bold text-gray-500">E1-E5 (Affiliates)</span>
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">135 producers</span>
                     </div>
                     <p className="text-2xl font-bold text-brand-navy">$58,524</p>
@@ -1038,17 +1046,18 @@ NavigatorUSA Team`);
                 <p className="text-sm text-gray-600 mb-4">
                   Fewer uplines = higher producer rate. Empty upline slots compress TO THE PRODUCER, not the house.
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
                   {[
-                    { uplines: 0, rate: 75, count: 3, avg: 50933 },
-                    { uplines: 1, rate: 74, count: 25, avg: 60179 },
-                    { uplines: 2, rate: 73, count: 68, avg: 58738 },
-                    { uplines: 3, rate: 72, count: 44, avg: 57997 },
-                    { uplines: 4, rate: 71, count: 9, avg: 54340 },
-                    { uplines: 5, rate: 70, count: 1, avg: 45503 },
+                    { rank: "E7", title: "SFC", rate: 75, count: 3, avg: 50933 },
+                    { rank: "E6", title: "SSG", rate: 74, count: 25, avg: 60179 },
+                    { rank: "E5", title: "SGT", rate: 73, count: 68, avg: 58738 },
+                    { rank: "E4", title: "SPC", rate: 72, count: 44, avg: 57997 },
+                    { rank: "E3", title: "PFC", rate: 71, count: 9, avg: 54340 },
+                    { rank: "E2", title: "PV2", rate: 70, count: 1, avg: 45503 },
+                    { rank: "E1", title: "PVT", rate: 69, count: 0, avg: 41400 },
                   ].map((item) => (
-                    <div key={item.uplines} className="bg-white rounded-lg p-4 text-center shadow-sm">
-                      <p className="text-xs text-gray-500">{item.uplines} Uplines</p>
+                    <div key={item.rank} className="bg-white rounded-lg p-4 text-center shadow-sm">
+                      <p className="text-xs text-gray-500">{item.rank} - {item.title}</p>
                       <p className="text-2xl font-bold text-brand-red">{item.rate}%</p>
                       <p className="text-xs text-gray-500">Producer Rate</p>
                       <hr className="my-2" />
@@ -1071,7 +1080,7 @@ NavigatorUSA Team`);
                   <div className="text-center">
                     <p className="text-white/70 text-sm">Upline Pool</p>
                     <p className="text-2xl font-bold">0-6%</p>
-                    <p className="text-xs text-white/50">1% per level (max 6)</p>
+                    <p className="text-xs text-white/50">1% per upline rank</p>
                   </div>
                   <div className="text-center">
                     <p className="text-white/70 text-sm">House</p>

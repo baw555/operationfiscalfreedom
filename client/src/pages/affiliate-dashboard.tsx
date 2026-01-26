@@ -637,8 +637,8 @@ export default function AffiliateDashboard() {
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                 <h4 className="font-bold text-brand-navy mb-2">How Compression Works</h4>
                 <p className="text-sm text-gray-600">
-                  The fewer uplines above you, the more you keep. With 0 uplines, you earn 75% (69% base + 6% compression). 
-                  With 6 uplines, you earn 69% base. Empty slots compress to YOU, not the house.
+                  The higher your rank, the more you keep. At E7 (SFC) with no uplines, you earn 75% (69% base + 6% compression). 
+                  At E1 (PVT) with 6 uplines, you earn 69% base. Empty slots compress to YOU, not the house.
                 </p>
               </div>
             </div>

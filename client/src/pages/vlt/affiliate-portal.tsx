@@ -147,12 +147,12 @@ export default function VLTAffiliatePortal() {
             <tbody>
               {leads.map((lead) => {
                 let level = "-";
-                if (lead.referredByL1 === affiliate?.id) level = "L1 (Direct)";
-                else if (lead.referredByL2 === affiliate?.id) level = "L2";
-                else if (lead.referredByL3 === affiliate?.id) level = "L3";
-                else if (lead.referredByL4 === affiliate?.id) level = "L4";
-                else if (lead.referredByL5 === affiliate?.id) level = "L5";
-                else if (lead.referredByL6 === affiliate?.id) level = "L6";
+                if (lead.referredByL1 === affiliate?.id) level = "E6 (Direct)";
+                else if (lead.referredByL2 === affiliate?.id) level = "E5";
+                else if (lead.referredByL3 === affiliate?.id) level = "E4";
+                else if (lead.referredByL4 === affiliate?.id) level = "E3";
+                else if (lead.referredByL5 === affiliate?.id) level = "E2";
+                else if (lead.referredByL6 === affiliate?.id) level = "E1";
                 
                 return (
                   <tr key={lead.id} className="border-b">
