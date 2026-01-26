@@ -4,8 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { Lock, Eye, EyeOff, Shield } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 import { useLocation } from "wouter";
+const logoImage = "/attached_assets/Screenshot_2026-01-26_4.40.31_AM_1769420459727.png";
 
 export default function AffiliateLogin() {
   const { toast } = useToast();
@@ -101,11 +102,16 @@ export default function AffiliateLogin() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          {/* Shield icon */}
+          {/* Logo */}
           <div className="relative inline-block mb-4">
-            <div className="absolute inset-0 bg-brand-red/30 rounded-full blur-2xl animate-pulse"></div>
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-brand-red to-red-700 flex items-center justify-center border-4 border-brand-red/50 shadow-2xl">
-              <Shield className="w-12 h-12 text-white" />
+            <div className="absolute inset-0 bg-green-500/20 rounded-full blur-2xl animate-pulse"></div>
+            <div className="relative w-28 h-28 flex items-center justify-center">
+              <img 
+                src={logoImage} 
+                alt="Who Dares Wins" 
+                className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+                style={{ filter: 'sepia(100%) saturate(300%) brightness(0.8) hue-rotate(70deg)' }}
+              />
             </div>
           </div>
           <h1 className="text-4xl font-display text-white mb-2 tracking-wider">COMMAND HQ</h1>
