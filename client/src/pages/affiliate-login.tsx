@@ -87,8 +87,8 @@ export default function AffiliateLogin() {
           <div>SEC:LEVEL-5</div>
         </div>
         <div className="absolute top-4 right-4 text-green-500/40 font-mono text-xs text-right">
-          <div>LAT: 38.8977</div>
-          <div>LON: -77.0365</div>
+          <div>LAT: 31.77° N</div>
+          <div>LON: 35.21° E</div>
         </div>
         <div className="absolute bottom-4 left-4 text-green-500/40 font-mono text-xs">
           <div>NAVUSA-CMD</div>
