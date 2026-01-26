@@ -207,10 +207,15 @@ export default function StressTest() {
                   <Input
                     id="veteranOptIns"
                     type="number"
-                    min={1000}
-                    max={500000}
-                    value={veteranOptIns}
-                    onChange={(e) => setVeteranOptIns(Math.min(500000, Math.max(1000, parseInt(e.target.value) || 10000)))}
+                    value={veteranOptIns || ""}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      setVeteranOptIns(isNaN(val) ? 0 : val);
+                    }}
+                    onBlur={() => {
+                      if (veteranOptIns < 1000) setVeteranOptIns(1000);
+                      if (veteranOptIns > 500000) setVeteranOptIns(500000);
+                    }}
                     className="w-full"
                     data-testid="input-veteran-optins"
                   />
