@@ -289,15 +289,44 @@ export default function AffiliateNda() {
                 <li><strong>Criminal Referral:</strong> The Organization reserves the right to refer matters involving theft of trade secrets or intentional interference to appropriate law enforcement authorities</li>
               </ul>
 
-              <h3 className="text-md font-bold">9. TERM & SURVIVAL</h3>
+              <h3 className="text-md font-bold">9. ETHICS & PROFESSIONAL CONDUCT</h3>
+              <p>
+                The Signatory agrees, both directly and indirectly, for themselves and on behalf of all Affiliates 
+                and Representatives, to maintain the highest ethical standards in all dealings:
+              </p>
+              <ul className="list-disc pl-5 text-sm">
+                <li><strong>Integrity:</strong> Act with honesty, transparency, and integrity in all business activities connected with Navigator USA Corp</li>
+                <li><strong>Anti-Corruption:</strong> Not offer, solicit, accept, or pay any bribe, kickback, facilitation payment, or other improper payment directly or indirectly in connection with this Agreement or any Organization business</li>
+                <li><strong>Conflicts of Interest:</strong> Disclose any real or apparent conflicts of interest that may compromise professional judgment or the interests of the Organization</li>
+                <li><strong>Gifts & Benefits:</strong> Not offer, solicit, or accept any substantial gifts, extravagant entertainment, or payments that could create an appearance of impropriety</li>
+                <li><strong>Compliance:</strong> Comply with all applicable federal, state, and local laws, regulations, and industry standards</li>
+                <li><strong>Professional Representation:</strong> Represent the Organization professionally and accurately, never making false, misleading, or exaggerated claims about services, benefits, or compensation</li>
+                <li><strong>Veteran Community:</strong> Honor the mission of serving veteran families with respect, dignity, and genuine care for their wellbeing</li>
+              </ul>
+
+              <h3 className="text-md font-bold">10. ANTI-DEFAMATION & NON-DISPARAGEMENT</h3>
+              <p className="font-semibold text-brand-red">
+                The Signatory agrees, both DIRECTLY and INDIRECTLY, to refrain from any disparagement, defamation, 
+                libel, or slander of the Organization:
+              </p>
+              <ul className="list-disc pl-5 text-sm">
+                <li><strong>Prohibited Conduct:</strong> The Signatory shall not make, publish, or communicate to any person, entity, or public forum any defamatory, disparaging, negative, or harmful remarks, comments, or statements concerning Navigator USA Corp, its businesses, programs, services, officers, directors, employees, affiliates, volunteers, or any associated third parties</li>
+                <li><strong>Scope:</strong> This prohibition applies to all forms of communication including but not limited to: oral statements, written documents, social media posts, online reviews, blog posts, forum comments, video content, podcasts, interviews, and any electronic or digital communications</li>
+                <li><strong>Third Party Communications:</strong> The Signatory shall not encourage, induce, or assist any third party (including family members, friends, associates, or Affiliates) to make disparaging statements about the Organization</li>
+                <li><strong>Mutual Obligation:</strong> The Organization agrees to instruct its officers and directors to refrain from making disparaging statements about the Signatory that are harmful to their business or personal reputation</li>
+                <li><strong>Legal Exemptions:</strong> This provision does not restrict either party from: (a) making truthful statements required by applicable law, regulation, or legal process; (b) communicating with government agencies; (c) exercising protected rights under whistleblower provisions; or (d) enforcing this Agreement</li>
+                <li><strong>Immediate Remedies:</strong> Any breach of this anti-defamation provision shall entitle the Organization to seek immediate injunctive relief without posting bond, plus actual damages, reputational damages, and reasonable attorney fees</li>
+              </ul>
+
+              <h3 className="text-md font-bold">11. TERM & SURVIVAL</h3>
               <p>
                 This Agreement shall remain in full force and effect for a period of TEN (10) YEARS from the date of 
-                execution, or until terminated by mutual written consent. The non-disclosure, non-circumvention, and 
-                confidentiality obligations shall survive termination of this Agreement and continue in PERPETUITY 
-                for trade secrets and proprietary information, and for ten (10) years for other Confidential Information.
+                execution, or until terminated by mutual written consent. The non-disclosure, non-circumvention, ethics, 
+                anti-defamation, and confidentiality obligations shall survive termination of this Agreement and continue 
+                in PERPETUITY for trade secrets and proprietary information, and for ten (10) years for other Confidential Information.
               </p>
 
-              <h3 className="text-md font-bold">10. PRE-EXISTING RELATIONSHIPS</h3>
+              <h3 className="text-md font-bold">12. PRE-EXISTING RELATIONSHIPS</h3>
               <p>
                 Any third parties that already have a documented pre-existing working relationship with the Signatory, 
                 established PRIOR to this Agreement and verifiable through written records dated before the execution 
@@ -305,7 +334,7 @@ export default function AffiliateNda() {
                 pre-existing relationships rests solely with the Signatory.
               </p>
 
-              <h3 className="text-md font-bold">11. GOVERNING LAW & JURISDICTION</h3>
+              <h3 className="text-md font-bold">13. GOVERNING LAW & JURISDICTION</h3>
               <p>
                 This Agreement shall be governed by and construed in accordance with the laws of the State of California. 
                 The Parties expressly consent to the exclusive jurisdiction of the state and federal courts located in 
@@ -313,14 +342,14 @@ export default function AffiliateNda() {
                 recover all reasonable attorney fees and costs.
               </p>
 
-              <h3 className="text-md font-bold">12. ELECTRONIC SIGNATURES</h3>
+              <h3 className="text-md font-bold">14. ELECTRONIC SIGNATURES</h3>
               <p>
                 Signatures on this Agreement received by way of electronic signature shall be deemed valid, enforceable, 
                 and admissible for all purposes as original signatures pursuant to the Electronic Signatures in Global 
                 and National Commerce Act (ESIGN) and the Uniform Electronic Transactions Act (UETA).
               </p>
 
-              <h3 className="text-md font-bold">13. ENTIRE AGREEMENT</h3>
+              <h3 className="text-md font-bold">15. ENTIRE AGREEMENT</h3>
               <p>
                 This Agreement constitutes the entire understanding between the Parties and supersedes all prior 
                 negotiations, agreements, or understandings, whether oral or written. Any waiver, amendment, or 
