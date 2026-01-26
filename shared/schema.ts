@@ -541,6 +541,9 @@ export const contractTemplates = pgTable("contract_templates", {
   companyName: text("company_name").notNull(), // MISSION ACT HEALTH, INC.
   requiredFor: text("required_for").notNull().default("all"), // all, affiliate, sub_master, master
   isActive: text("is_active").notNull().default("true"),
+  contractType: text("contract_type").notNull().default("general"), // general, service
+  grossCommissionPct: integer("gross_commission_pct"), // e.g., 18 for 18% (for service contracts)
+  serviceName: text("service_name"), // e.g., "ICC Logistics"
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -586,17 +589,19 @@ export const insertSignedAgreementSchema = createInsertSchema(signedAgreements).
 export type InsertSignedAgreement = z.infer<typeof insertSignedAgreementSchema>;
 export type SignedAgreement = typeof signedAgreements.$inferSelect;
 
-// Commission configuration for 6-level comp model
+// Commission configuration - simplified formula
+// Producer: 69% base + compression from empty uplines (1% each, max 6 uplines)
+// Each upline: 1% each
+// House: 22.5% always
+// Recruiter: 2.5% separate bounty
 export const commissionConfig = pgTable("commission_config", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().default("default"),
-  recruiterBountyPct: integer("recruiter_bounty_pct").notNull().default(250), // 2.5% = 250 (x100)
-  l1Pct: integer("l1_pct").notNull().default(6700), // 67% = 6700 (x100)
-  l2Pct: integer("l2_pct").notNull().default(350), // 3.5% = 350
-  l3Pct: integer("l3_pct").notNull().default(200), // 2.0% = 200
-  l4Pct: integer("l4_pct").notNull().default(120), // 1.2% = 120
-  l5Pct: integer("l5_pct").notNull().default(80), // 0.8% = 80
-  l6Pct: integer("l6_pct").notNull().default(50), // 0.5% = 50
+  producerBasePct: integer("producer_base_pct").notNull().default(6900), // 69% = 6900 (x100)
+  uplinePctEach: integer("upline_pct_each").notNull().default(100), // 1% = 100 per upline
+  maxUplineLevels: integer("max_upline_levels").notNull().default(6), // max 6 uplines
+  housePct: integer("house_pct").notNull().default(2250), // 22.5% = 2250
+  recruiterBountyPct: integer("recruiter_bounty_pct").notNull().default(250), // 2.5% = 250
   isActive: text("is_active").notNull().default("true"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

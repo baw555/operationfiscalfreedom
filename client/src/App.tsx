@@ -31,6 +31,7 @@ import VeteranIntake from "@/pages/veteran-intake";
 import BusinessIntake from "@/pages/business-intake";
 import SignContract from "@/pages/sign-contract";
 import CompPlan from "@/pages/comp-plan";
+import ScheduleA from "@/pages/schedule-a";
 import ApplyStartupGrant from "@/pages/apply-startup-grant";
 import Investors from "@/pages/investors";
 import NewHomeFurniture from "@/pages/new-home-furniture";
@@ -238,6 +239,7 @@ function Router() {
       <Route path="/business-intake" component={BusinessIntake} />
       <Route path="/sign-contract" component={SignContract} />
       <Route path="/comp-plan" component={CompPlan} />
+      <Route path="/schedule-a" component={ScheduleA} />
       <Route path="/affiliate/login" component={AffiliateLogin} />
       <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
       <Route component={NotFound} />

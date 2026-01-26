@@ -1342,6 +1342,82 @@ export async function registerRoutes(
     }
   });
 
+  // Seed ICC Logistics service contract
+  app.post("/api/contracts/seed-icc", async (req, res) => {
+    try {
+      const existing = await storage.getAllContractTemplates();
+      const iccExists = existing.find(t => t.serviceName === "ICC Logistics");
+      if (iccExists) {
+        return res.json({ message: "ICC Logistics contract already exists", id: iccExists.id });
+      }
+
+      const iccContract = await storage.createContractTemplate({
+        name: "ICC Logistics Revenue Sharing Agreement",
+        version: "1.0",
+        companyName: "MISSION ACT HEALTH, INC.",
+        requiredFor: "affiliate",
+        isActive: "true",
+        contractType: "service",
+        grossCommissionPct: 18,
+        serviceName: "ICC Logistics",
+        content: `<h1>REVENUE SHARING AGREEMENT</h1>
+
+<p>This Revenue Sharing Agreement ("Agreement") is between <strong>MISSION ACT HEALTH, Inc.</strong>, a Virginia corporation ("MAH"), on behalf of services rendered by <strong>ICC LOGISTICS, INC</strong> ("ICC"), a New York corporation, and the undersigned Referral Agent.</p>
+
+<h2>RECITALS</h2>
+<p>MISSION ACT HEALTH, LLC is the Master Agent and will have the responsibility of paying all commissions due to the Referral Agent five (5) days from receipt of funds from ICC.</p>
+
+<h2>OBJECTIVES</h2>
+<p>ICC and Referral Agent both have expertise in business consulting services and wish to enter into an arrangement whereby Referral Agent will introduce to ICC certain customers and prospects in return for a share of the revenues generated from business arising as a result of those introductions.</p>
+
+<h2>RELATIONSHIP OF PARTIES</h2>
+<p>In the performance of this Agreement, the parties will at all times remain independent legal entities and operate as independent contractors, and not the other party's partner or joint venturer.</p>
+
+<h2>CONFIDENTIALITY</h2>
+<p>The identity of any prospects or customers introduced by one party to the other shall remain confidential and shall not be disclosed to any other person or entity.</p>
+
+<h2>TERM AND TERMINATION</h2>
+<p>This Agreement will commence upon its execution and continue until the expiration of all projects governed under this Agreement. Either party may terminate this Agreement at any time upon 30 days prior written notice.</p>
+
+<h2>COMPENSATION</h2>
+<p>Compensation payable to the Referral Agent network shall be governed by Schedule A.</p>
+
+<p><strong>Base Commission Rate:</strong></p>
+<ul>
+  <li><strong>All Other Services (excluding Audit):</strong> 18% of ICC's gross revenue</li>
+  <li><strong>Audit Services:</strong> 5% of ICC's net revenue</li>
+</ul>
+
+<p>The 18% gross commission shall be distributed according to the Schedule A compensation structure based on the Referral Agent's position within the MAH network:</p>
+
+<table border="1" cellpadding="8" style="width:100%; border-collapse: collapse;">
+  <tr style="background-color: #f0f0f0;"><th>Recipient</th><th>Rate</th></tr>
+  <tr><td><strong>Producer (You)</strong></td><td>69% base + compression from empty uplines</td></tr>
+  <tr><td>Each Upline (max 6)</td><td>1% each</td></tr>
+  <tr><td>House</td><td>22.5%</td></tr>
+  <tr><td>Recruiter Bounty</td><td>2.5%</td></tr>
+</table>
+
+<p><strong>Compression:</strong> Empty upline levels compress to the Producer. A solo producer with no uplines receives 75% (69% + 6%).</p>
+
+<h2>APPLICABLE LAW</h2>
+<p>This Agreement will be interpreted in accordance with the laws of the State of New York.</p>
+
+<h2>ARBITRATION</h2>
+<p>Any disputes arising out of this Agreement will be settled by binding arbitration in accordance with the Commercial Arbitration Rules of the American Arbitration Association.</p>
+
+<hr/>
+
+<p><strong>By signing below, you acknowledge that you have read, understand, and agree to be bound by this Agreement and the attached Schedule A.</strong></p>`
+      });
+
+      res.status(201).json({ success: true, template: iccContract });
+    } catch (error) {
+      console.error("Error seeding ICC contract:", error);
+      res.status(500).json({ message: "Failed to seed ICC contract template" });
+    }
+  });
+
   // Get all contract templates
   app.get("/api/contracts/templates", async (req, res) => {
     try {

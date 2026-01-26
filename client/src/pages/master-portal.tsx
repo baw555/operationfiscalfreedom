@@ -69,12 +69,10 @@ type SignedAgreement = {
 
 export default function MasterPortal() {
   const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "opportunities" | "files" | "compplan">("overview");
-  const [calcGrossRevenue, setCalcGrossRevenue] = useState<number>(10000);
+  const [calcGrossRevenue, setCalcGrossRevenue] = useState<number>(100000);
+  const [calcContractRate, setCalcContractRate] = useState<number>(18);
+  const [calcUplineCount, setCalcUplineCount] = useState<number>(0);
   const [calcRecruiter, setCalcRecruiter] = useState<boolean>(true);
-  const [calcL2Active, setCalcL2Active] = useState<boolean>(true);
-  const [calcL3Active, setCalcL3Active] = useState<boolean>(true);
-  const [calcL4Active, setCalcL4Active] = useState<boolean>(true);
-  const [calcL5Active, setCalcL5Active] = useState<boolean>(true);
   const [expandedAffiliate, setExpandedAffiliate] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
@@ -568,33 +566,61 @@ export default function MasterPortal() {
             <div className="bg-white rounded-lg border shadow-sm p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Calculator className="w-6 h-6 text-brand-navy" />
-                <h2 className="text-xl font-bold text-brand-navy">6-Level Compensation Structure</h2>
+                <h2 className="text-xl font-bold text-brand-navy">Commission Structure</h2>
               </div>
 
               <div className="prose max-w-none text-gray-700 mb-6">
                 <p className="mb-4">
-                  The Company allocates <strong className="text-brand-red">75%</strong> of Gross Revenue across six levels, 
-                  plus a separate <strong className="text-brand-red">2.5%</strong> recruiter bounty.
+                  The <strong>producer</strong> (whoever closes the sale) receives <strong className="text-brand-red">69% base</strong>, 
+                  plus <strong className="text-brand-red">1% for each empty upline level</strong>. Compression goes to the producer, not the house.
                 </p>
                 <div className="bg-gray-50 rounded-lg p-4 border">
                   <ul className="space-y-1 text-sm">
-                    <li><strong>Level 1 (Top Producer):</strong> 67% of Gross</li>
-                    <li><strong>Level 2 (Closest Upline):</strong> 3.5% (conditional)</li>
-                    <li><strong>Level 3:</strong> 2.0% (conditional)</li>
-                    <li><strong>Level 4:</strong> 1.2% (conditional)</li>
-                    <li><strong>Level 5:</strong> 0.8% (conditional)</li>
-                    <li><strong>Level 6 (Company):</strong> 0.5% + compression</li>
+                    <li><strong>Producer Base:</strong> 69% of pool</li>
+                    <li><strong>Each Upline:</strong> 1% of pool (max 6 uplines)</li>
+                    <li><strong>House:</strong> 22.5% of pool (fixed)</li>
+                    <li><strong>Recruiter Bounty:</strong> 2.5% of pool (separate)</li>
                   </ul>
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-brand-navy text-white rounded-lg p-4">
+              <h3 className="font-bold mb-3">Position Breakdown</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/20">
+                      <th className="py-2 text-left">Position</th>
+                      <th className="py-2 text-center">Uplines</th>
+                      <th className="py-2 text-center">Producer Gets</th>
+                      <th className="py-2 text-center">House</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[0, 1, 2, 3, 4, 5, 6].map((uplines) => {
+                      const empty = 6 - uplines;
+                      const prod = 0.69 + empty * 0.01;
+                      return (
+                        <tr key={uplines} className="border-b border-white/10">
+                          <td className="py-2">{uplines === 0 ? 'Solo' : `${uplines} upline${uplines > 1 ? 's' : ''}`}</td>
+                          <td className="py-2 text-center">{uplines} × 1%</td>
+                          <td className="py-2 text-center font-bold text-green-300">{(prod * 100).toFixed(0)}%</td>
+                          <td className="py-2 text-center">22.5%</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
 
             <div className="bg-white rounded-lg border shadow-sm p-6">
               <h3 className="font-bold text-brand-navy mb-4">Commission Calculator</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Gross Revenue ($)</label>
+                  <label className="block text-sm font-medium mb-1">Deal Amount ($)</label>
                   <input
                     type="number"
                     value={calcGrossRevenue}
@@ -605,131 +631,121 @@ export default function MasterPortal() {
                     data-testid="input-calc-gross"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Contract Rate (%)</label>
+                  <input
+                    type="number"
+                    value={calcContractRate}
+                    onChange={(e) => setCalcContractRate(Number(e.target.value))}
+                    className="w-full border rounded p-2"
+                    min={0}
+                    max={100}
+                    data-testid="input-contract-rate"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Uplines Above You</label>
+                  <select
+                    value={calcUplineCount}
+                    onChange={(e) => setCalcUplineCount(Number(e.target.value))}
+                    className="w-full border rounded p-2"
+                    data-testid="select-uplines"
+                  >
+                    {[0, 1, 2, 3, 4, 5, 6].map((n) => (
+                      <option key={n} value={n}>{n} {n === 0 ? '(Solo)' : ''}</option>
+                    ))}
+                  </select>
+                </div>
                 <label className="flex items-center gap-2 p-3 border rounded cursor-pointer">
                   <input type="checkbox" checked={calcRecruiter} onChange={() => setCalcRecruiter(!calcRecruiter)} />
                   <span className="text-sm">Recruiter (2.5%)</span>
                 </label>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-                <label className="flex items-center gap-2 p-2 border rounded text-sm cursor-pointer">
-                  <input type="checkbox" checked={calcL2Active} onChange={() => setCalcL2Active(!calcL2Active)} />
-                  L2 (3.5%)
-                </label>
-                <label className="flex items-center gap-2 p-2 border rounded text-sm cursor-pointer">
-                  <input type="checkbox" checked={calcL3Active} onChange={() => setCalcL3Active(!calcL3Active)} />
-                  L3 (2.0%)
-                </label>
-                <label className="flex items-center gap-2 p-2 border rounded text-sm cursor-pointer">
-                  <input type="checkbox" checked={calcL4Active} onChange={() => setCalcL4Active(!calcL4Active)} />
-                  L4 (1.2%)
-                </label>
-                <label className="flex items-center gap-2 p-2 border rounded text-sm cursor-pointer">
-                  <input type="checkbox" checked={calcL5Active} onChange={() => setCalcL5Active(!calcL5Active)} />
-                  L5 (0.8%)
-                </label>
-              </div>
-
               {(() => {
-                const gross = Math.max(0, calcGrossRevenue);
-                const pct = { recruiter: 0.025, l1: 0.67, l2: 0.035, l3: 0.020, l4: 0.012, l5: 0.008, l6: 0.005 };
-                const recruiterPay = calcRecruiter ? gross * pct.recruiter : 0;
-                const l1Pay = gross * pct.l1;
-                const l2Base = gross * pct.l2;
-                const l3Base = gross * pct.l3;
-                const l4Base = gross * pct.l4;
-                const l5Base = gross * pct.l5;
-                const l6Base = gross * pct.l6;
-                const l2Pay = calcL2Active ? l2Base : 0;
-                const l3Pay = calcL3Active ? l3Base : 0;
-                const l4Pay = calcL4Active ? l4Base : 0;
-                const l5Pay = calcL5Active ? l5Base : 0;
-                const compressedToL6 = (calcL2Active ? 0 : l2Base) + (calcL3Active ? 0 : l3Base) + (calcL4Active ? 0 : l4Base) + (calcL5Active ? 0 : l5Base);
-                const l6Pay = l6Base + compressedToL6;
-                const totalPaid = recruiterPay + l1Pay + l2Pay + l3Pay + l4Pay + l5Pay + l6Pay;
+                const deal = Math.max(0, calcGrossRevenue);
+                const rate = Math.max(0, Math.min(100, calcContractRate)) / 100;
+                const pool = deal * rate;
+                const uplines = Math.max(0, Math.min(6, calcUplineCount));
+                const emptyUplines = 6 - uplines;
+                const compression = emptyUplines * 0.01;
+                const producerPct = 0.69 + compression;
+                const producerPay = pool * producerPct;
+                const uplinePay = pool * 0.01;
+                const totalUplinePay = uplinePay * uplines;
+                const housePay = pool * 0.225;
+                const recruiterPay = calcRecruiter ? pool * 0.025 : 0;
+                const totalPaid = producerPay + totalUplinePay + housePay + recruiterPay;
                 const money = (n: number) => n.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 });
 
                 return (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-brand-navy text-white rounded p-3">
-                        <div className="text-xs opacity-80">Gross Revenue</div>
-                        <div className="text-lg font-bold">{money(gross)}</div>
+                      <div className="bg-gray-100 rounded p-3 text-center">
+                        <div className="text-xs text-gray-500">Commission Pool</div>
+                        <div className="text-lg font-bold text-brand-navy">{money(pool)}</div>
                       </div>
-                      <div className="bg-brand-red text-white rounded p-3">
-                        <div className="text-xs opacity-80">Top Rep (67%)</div>
-                        <div className="text-lg font-bold">{money(l1Pay)}</div>
+                      <div className="bg-green-100 rounded p-3 text-center">
+                        <div className="text-xs text-gray-500">You (Producer)</div>
+                        <div className="text-lg font-bold text-green-700">{money(producerPay)}</div>
+                        <div className="text-xs text-gray-500">{(producerPct * 100).toFixed(0)}%</div>
                       </div>
-                      <div className="bg-green-600 text-white rounded p-3">
-                        <div className="text-xs opacity-80">Total Paid</div>
-                        <div className="text-lg font-bold">{money(totalPaid)}</div>
+                      <div className="bg-blue-100 rounded p-3 text-center">
+                        <div className="text-xs text-gray-500">Uplines ({uplines})</div>
+                        <div className="text-lg font-bold text-blue-700">{money(totalUplinePay)}</div>
                       </div>
-                      <div className="bg-blue-600 text-white rounded p-3">
-                        <div className="text-xs opacity-80">Company (L6)</div>
-                        <div className="text-lg font-bold">{money(l6Pay)}</div>
+                      <div className="bg-brand-navy/10 rounded p-3 text-center">
+                        <div className="text-xs text-gray-500">House</div>
+                        <div className="text-lg font-bold text-brand-navy">{money(housePay)}</div>
                       </div>
                     </div>
+
+                    {emptyUplines > 0 && (
+                      <div className="bg-green-50 border border-green-200 rounded p-3 text-sm">
+                        <strong>Compression Bonus:</strong> +{emptyUplines}% ({money(pool * compression)}) from {emptyUplines} empty upline slot{emptyUplines > 1 ? 's' : ''}
+                      </div>
+                    )}
 
                     <table className="w-full border rounded text-sm">
                       <thead>
                         <tr className="bg-gray-50 border-b">
-                          <th className="p-2 text-left">Level</th>
-                          <th className="p-2 text-left">Rate</th>
-                          <th className="p-2 text-left">Payout</th>
-                          <th className="p-2 text-left">Status</th>
+                          <th className="p-2 text-left">Recipient</th>
+                          <th className="p-2 text-right">Rate</th>
+                          <th className="p-2 text-right">Amount</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="border-b bg-yellow-50">
-                          <td className="p-2">Recruiter Bounty</td>
-                          <td className="p-2">2.5%</td>
-                          <td className="p-2 font-medium">{money(recruiterPay)}</td>
-                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcRecruiter ? 'bg-green-100 text-green-700' : 'bg-gray-100'}`}>{calcRecruiter ? 'Active' : 'None'}</span></td>
+                        <tr className="border-b bg-green-50">
+                          <td className="p-2 font-medium">You (Producer)</td>
+                          <td className="p-2 text-right">{(producerPct * 100).toFixed(0)}%</td>
+                          <td className="p-2 text-right font-bold text-green-700">{money(producerPay)}</td>
                         </tr>
-                        <tr className="border-b bg-red-50 font-semibold">
-                          <td className="p-2">L1 - Top Producer</td>
-                          <td className="p-2">67%</td>
-                          <td className="p-2">{money(l1Pay)}</td>
-                          <td className="p-2"><span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">Always Paid</span></td>
+                        {Array.from({ length: uplines }, (_, i) => (
+                          <tr key={i} className="border-b">
+                            <td className="p-2">Upline {i + 1}</td>
+                            <td className="p-2 text-right">1%</td>
+                            <td className="p-2 text-right">{money(uplinePay)}</td>
+                          </tr>
+                        ))}
+                        {calcRecruiter && (
+                          <tr className="border-b bg-yellow-50">
+                            <td className="p-2">Recruiter Bounty</td>
+                            <td className="p-2 text-right">2.5%</td>
+                            <td className="p-2 text-right">{money(recruiterPay)}</td>
+                          </tr>
+                        )}
+                        <tr className="border-b bg-blue-50">
+                          <td className="p-2">House</td>
+                          <td className="p-2 text-right">22.5%</td>
+                          <td className="p-2 text-right">{money(housePay)}</td>
                         </tr>
-                        <tr className="border-b">
-                          <td className="p-2">L2 - Closest Upline</td>
-                          <td className="p-2">3.5%</td>
-                          <td className="p-2">{money(l2Pay)}</td>
-                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcL2Active ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{calcL2Active ? 'Active' : '→ L6'}</span></td>
-                        </tr>
-                        <tr className="border-b">
-                          <td className="p-2">L3</td>
-                          <td className="p-2">2.0%</td>
-                          <td className="p-2">{money(l3Pay)}</td>
-                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcL3Active ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{calcL3Active ? 'Active' : '→ L6'}</span></td>
-                        </tr>
-                        <tr className="border-b">
-                          <td className="p-2">L4</td>
-                          <td className="p-2">1.2%</td>
-                          <td className="p-2">{money(l4Pay)}</td>
-                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcL4Active ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{calcL4Active ? 'Active' : '→ L6'}</span></td>
-                        </tr>
-                        <tr className="border-b">
-                          <td className="p-2">L5</td>
-                          <td className="p-2">0.8%</td>
-                          <td className="p-2">{money(l5Pay)}</td>
-                          <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${calcL5Active ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{calcL5Active ? 'Active' : '→ L6'}</span></td>
-                        </tr>
-                        <tr className="bg-blue-50 font-bold">
-                          <td className="p-2">L6 - Company</td>
-                          <td className="p-2">0.5% + comp</td>
-                          <td className="p-2">{money(l6Pay)}</td>
-                          <td className="p-2"><span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-700">Base + Compression</span></td>
+                        <tr className="font-bold bg-gray-100">
+                          <td className="p-2">Total</td>
+                          <td className="p-2 text-right">100%</td>
+                          <td className="p-2 text-right">{money(totalPaid)}</td>
                         </tr>
                       </tbody>
                     </table>
-
-                    {compressedToL6 > 0 && (
-                      <div className="bg-orange-50 border border-orange-200 rounded p-3 text-sm">
-                        <strong>Compression:</strong> {money(compressedToL6)} from inactive levels reverted to Company (L6)
-                      </div>
-                    )}
                   </div>
                 );
               })()}
