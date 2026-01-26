@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { useLocation } from "wouter";
-import logoImage from "@/assets/images/sas-emblem.png";
+import logoImage from "@/assets/images/veteran-warrior.png";
 
 export default function AffiliateLogin() {
   const { toast } = useToast();
@@ -102,14 +102,16 @@ export default function AffiliateLogin() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          {/* Logo */}
+          {/* Veteran Portrait */}
           <div className="relative inline-block mb-4">
-            <div className="absolute inset-0 bg-green-500/20 rounded-full blur-2xl"></div>
-            <img 
-              src={logoImage} 
-              alt="Who Dares Wins" 
-              className="relative w-36 h-36 object-contain mx-auto drop-shadow-[0_0_20px_rgba(34,197,94,0.4)]"
-            />
+            <div className="absolute inset-0 bg-green-500/30 rounded-full blur-2xl animate-pulse"></div>
+            <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.5)]">
+              <img 
+                src={logoImage} 
+                alt="Veteran Warrior" 
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
           <h1 className="text-4xl font-display text-white mb-2 tracking-wider">COMMAND HQ</h1>
           <p className="text-green-400/80 font-mono text-sm tracking-widest">SECURE ACCESS TERMINAL</p>
