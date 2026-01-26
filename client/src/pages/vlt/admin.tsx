@@ -175,12 +175,12 @@ export default function VLTAdmin() {
             {showAddAffiliate && (
               <div className="mb-6 p-4 border rounded bg-gray-50">
                 <h3 className="font-semibold mb-3">Add New Affiliate</h3>
-                <form onSubmit={addAffiliate} className="grid md:grid-cols-2 gap-4">
-                  <input name="name" placeholder="Name" required className="border p-2 rounded" />
-                  <input name="email" type="email" placeholder="Email" required className="border p-2 rounded" />
-                  <input name="phone" placeholder="Phone" className="border p-2 rounded" />
-                  <input name="password" type="password" placeholder="Password" required className="border p-2 rounded" />
-                  <input name="uplineCode" placeholder="Upline Referral Code (optional)" className="border p-2 rounded" />
+                <form onSubmit={addAffiliate} className="grid md:grid-cols-2 gap-4" autoComplete="off">
+                  <input name="name" placeholder="Name" required className="border p-2 rounded" autoComplete="off" />
+                  <input name="email" type="email" placeholder="Email" required className="border p-2 rounded" autoComplete="off" />
+                  <input name="phone" placeholder="Phone" className="border p-2 rounded" autoComplete="off" />
+                  <input name="password" type="password" placeholder="Password" required className="border p-2 rounded" autoComplete="new-password" />
+                  <input name="uplineCode" placeholder="Upline Referral Code (optional)" className="border p-2 rounded" autoComplete="off" />
                   <div className="flex gap-2">
                     <button type="submit" className="px-4 py-2 bg-brand-navy text-white rounded">Create</button>
                     <button type="button" onClick={() => setShowAddAffiliate(false)} className="px-4 py-2 border rounded">Cancel</button>

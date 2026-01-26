@@ -82,10 +82,10 @@ export default function VLTAffiliatePortal() {
         <Container>
           <h1 className="text-3xl font-bold mt-12 text-brand-navy">VLT Affiliate Login</h1>
           
-          <form onSubmit={login} className="mt-6 max-w-md space-y-4">
+          <form onSubmit={login} className="mt-6 max-w-md space-y-4" autoComplete="on">
             {error && <p className="text-red-600">{error}</p>}
-            <input name="email" type="email" placeholder="Email" required className="border p-3 w-full rounded" />
-            <input name="password" type="password" placeholder="Password" required className="border p-3 w-full rounded" />
+            <input name="email" type="email" autoComplete="email" placeholder="Email" required className="border p-3 w-full rounded" />
+            <input name="password" type="password" autoComplete="current-password" placeholder="Password" required className="border p-3 w-full rounded" />
             <button type="submit" className="w-full py-3 bg-brand-red text-white font-semibold rounded hover:bg-brand-red/90">
               Login
             </button>

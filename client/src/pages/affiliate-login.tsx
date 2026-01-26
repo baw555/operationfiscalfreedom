@@ -78,7 +78,9 @@ export default function AffiliateLogin() {
               <Label htmlFor="email" className="text-white">Email Address</Label>
               <Input 
                 id="email" 
+                name="email"
                 type="email"
+                autoComplete="email"
                 placeholder="affiliate@example.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -91,7 +93,9 @@ export default function AffiliateLogin() {
               <div className="relative">
                 <Input 
                   id="password" 
+                  name="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}

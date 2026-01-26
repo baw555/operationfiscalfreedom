@@ -14,10 +14,10 @@ export default function Login() {
             <p className="text-sm sm:text-base text-gray-400">Access your dashboard.</p>
           </div>
 
-          <form className="space-y-4 sm:space-y-6">
+          <form className="space-y-4 sm:space-y-6" autoComplete="on">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-300 text-sm">Email</Label>
-              <Input id="email" type="email" className="bg-brand-black/50 border-white/10 text-white placeholder:text-gray-600" placeholder="john@example.com" />
+              <Input id="email" name="email" type="email" autoComplete="email" className="bg-brand-black/50 border-white/10 text-white placeholder:text-gray-600" placeholder="john@example.com" />
             </div>
             
             <div className="space-y-2">
@@ -25,7 +25,7 @@ export default function Login() {
                 <Label htmlFor="password" className="text-gray-300 text-sm">Password</Label>
                 <a href="#" className="text-xs text-white hover:underline">Forgot password?</a>
               </div>
-              <Input id="password" type="password" className="bg-brand-black/50 border-white/10 text-white" />
+              <Input id="password" name="password" type="password" autoComplete="current-password" className="bg-brand-black/50 border-white/10 text-white" />
             </div>
 
             <Button className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-11 sm:h-12">

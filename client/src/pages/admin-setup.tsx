@@ -142,7 +142,9 @@ export default function AdminSetup() {
               <Label htmlFor="password" className="text-white">Password</Label>
               <Input 
                 id="password" 
+                name="password"
                 type="password"
+                autoComplete="new-password"
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -154,7 +156,9 @@ export default function AdminSetup() {
               <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
               <Input 
                 id="confirmPassword" 
+                name="confirmPassword"
                 type="password"
+                autoComplete="new-password"
                 placeholder="••••••••"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}

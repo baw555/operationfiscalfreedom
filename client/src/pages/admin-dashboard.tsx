@@ -876,7 +876,9 @@ export default function AdminDashboard() {
                 <Label htmlFor="affPassword">Password</Label>
                 <Input
                   id="affPassword"
+                  name="affPassword"
                   type="password"
+                  autoComplete="new-password"
                   value={newAffiliate.password}
                   onChange={(e) => setNewAffiliate({ ...newAffiliate, password: e.target.value })}
                   placeholder="••••••••"

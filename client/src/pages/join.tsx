@@ -117,7 +117,9 @@ export default function JoinMission() {
               <Label htmlFor="password" className="text-sm">Password</Label>
               <Input 
                 id="password" 
+                name="password"
                 type="password" 
+                autoComplete="new-password"
                 placeholder="Create a password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
