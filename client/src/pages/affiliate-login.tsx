@@ -103,15 +103,12 @@ export default function AffiliateLogin() {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           {/* Logo */}
-          <div className="relative inline-block mb-4">
-            <div className="absolute inset-0 bg-amber-500/30 rounded-full blur-3xl animate-pulse"></div>
-            <div className="relative w-32 h-32 flex items-center justify-center">
-              <img 
-                src={logoImage} 
-                alt="Who Dares Wins" 
-                className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]"
-              />
-            </div>
+          <div className="mb-4">
+            <img 
+              src={logoImage} 
+              alt="Who Dares Wins" 
+              className="w-32 h-32 object-contain mx-auto"
+            />
           </div>
           <h1 className="text-4xl font-display text-white mb-2 tracking-wider">COMMAND HQ</h1>
           <p className="text-green-400/80 font-mono text-sm tracking-widest">SECURE ACCESS TERMINAL</p>
