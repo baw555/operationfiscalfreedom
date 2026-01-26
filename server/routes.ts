@@ -1347,15 +1347,32 @@ export async function registerRoutes(
   // Submit W9 form
   app.post("/api/affiliate/submit-w9", requireAffiliate, async (req, res) => {
     try {
-      const { name, businessName, taxClassification, address, city, state, zip, ssn, ein, signatureData } = req.body;
+      // Zod validation schema for W9
+      const w9Schema = z.object({
+        name: z.string().min(1, "Name is required").max(100),
+        businessName: z.string().max(100).optional().nullable(),
+        taxClassification: z.enum(["individual", "c_corp", "s_corp", "partnership", "trust", "llc"]).default("individual"),
+        address: z.string().min(1, "Address is required").max(200),
+        city: z.string().min(1, "City is required").max(100),
+        state: z.string().min(2, "State is required").max(2).transform(s => s.toUpperCase()),
+        zip: z.string().min(5, "ZIP is required").max(10).regex(/^\d{5}(-\d{4})?$/, "Invalid ZIP format"),
+        ssn: z.string().optional().nullable().transform(val => val ? val.replace(/\D/g, '') : null).refine(val => !val || /^\d{9}$/.test(val), "SSN must be 9 digits"),
+        ein: z.string().optional().nullable().refine(val => !val || /^\d{2}-?\d{7}$/.test(val), "Invalid EIN format"),
+        signatureData: z.string().optional().nullable(),
+      }).refine(data => data.ssn || data.ein, { message: "Either SSN or EIN is required" });
       
-      if (!name || !address || !city || !state || !zip) {
-        return res.status(400).json({ message: "Name and full address are required" });
+      // Verify NDA is signed before W9 submission
+      const nda = await storage.getAffiliateNdaByUserId(req.session.userId!);
+      if (!nda) {
+        return res.status(400).json({ message: "You must sign the NDA before submitting W9" });
       }
-      
-      if (!ssn && !ein) {
-        return res.status(400).json({ message: "Either SSN or EIN is required" });
+
+      const validatedData = w9Schema.safeParse(req.body);
+      if (!validatedData.success) {
+        return res.status(400).json({ message: validatedData.error.errors[0]?.message || "Invalid input" });
       }
+
+      const { name, businessName, taxClassification, address, city, state, zip, ssn, ein, signatureData } = validatedData.data;
       
       // Check if already submitted
       const alreadySubmitted = await storage.hasAffiliateSubmittedW9(req.session.userId!);
