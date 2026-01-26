@@ -336,10 +336,27 @@ export default function AffiliateNda() {
 
               <h3 className="text-md font-bold">13. GOVERNING LAW & JURISDICTION</h3>
               <p>
-                This Agreement shall be governed by and construed in accordance with the laws of the State of California. 
-                The Parties expressly consent to the exclusive jurisdiction of the state and federal courts located in 
-                Los Angeles County, California. In the event of dispute, the prevailing Party shall be entitled to 
-                recover all reasonable attorney fees and costs.
+                This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, 
+                without regard to its conflicts of laws principles. The Parties expressly consent to the exclusive 
+                jurisdiction of the courts of the State of Delaware, including the Delaware Court of Chancery, in 
+                connection with any action to enforce the provisions of this Agreement or arising under or by reason 
+                of this Agreement. Each Party waives any objection to venue in such courts and any claim that such 
+                courts are an inconvenient forum.
+              </p>
+              <p className="text-sm mt-2">
+                <strong>Delaware State Law References:</strong>
+              </p>
+              <ul className="list-disc pl-5 text-sm">
+                <li><strong>6 Del. C. § 18-305:</strong> Access to and confidentiality of information; records (Delaware Limited Liability Company Act)</li>
+                <li><strong>6 Del. C. § 17-305:</strong> Access to and confidentiality of information (Delaware Revised Uniform Limited Partnership Act)</li>
+                <li><strong>Delaware Uniform Trade Secrets Act (6 Del. C. § 2001 et seq.):</strong> Protection of trade secrets, confidential business information, and proprietary formulas</li>
+                <li><strong>Delaware Chancery Court Rules:</strong> Expedited proceedings and equitable remedies for breach of confidentiality agreements</li>
+              </ul>
+              <p className="text-sm mt-2">
+                The Parties acknowledge that Delaware law provides strong protection for confidential business information, 
+                trade secrets, and contractual non-circumvention provisions, and that the Delaware Court of Chancery 
+                possesses specialized expertise in commercial and business disputes. In the event of dispute, the 
+                prevailing Party shall be entitled to recover all reasonable attorney fees and costs.
               </p>
 
               <h3 className="text-md font-bold">14. ELECTRONIC SIGNATURES</h3>
