@@ -5,14 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, Users, DollarSign, Rocket } from "lucide-react";
-import { useLocation } from "wouter";
 
 export default function AffiliateApply() {
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
-  const [submitted, setSubmitted] = useState(false);
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: "",
     companyName: "",
@@ -36,13 +34,35 @@ export default function AffiliateApply() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      console.log("Signup successful, user:", data);
       toast({
         title: "Account Created!",
         description: "Redirecting you to sign the agreement...",
       });
-      // Redirect to NDA signing page
-      setLocation("/affiliate/nda");
+      
+      // Verify session is established before redirecting
+      try {
+        const authCheck = await fetch("/api/auth/me");
+        if (authCheck.ok) {
+          console.log("Session verified, redirecting to NDA");
+          // Invalidate any cached auth state
+          await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+          // Full page navigation ensures session is properly loaded
+          window.location.href = "/affiliate/nda";
+        } else {
+          console.error("Session not established after signup");
+          toast({
+            title: "Session Error",
+            description: "Please try logging in manually.",
+            variant: "destructive",
+          });
+          window.location.href = "/affiliate/login";
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        window.location.href = "/affiliate/nda";
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -81,11 +101,6 @@ export default function AffiliateApply() {
     }
     submitMutation.mutate(formData);
   };
-
-  // submitted state is no longer used - users are auto-redirected to NDA page
-  if (submitted) {
-    return null;
-  }
 
   return (
     <Layout>
