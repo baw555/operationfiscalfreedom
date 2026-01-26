@@ -16,7 +16,10 @@ export default function AffiliateNda() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const pendingStreamRef = useRef<MediaStream | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
+  const [strokeCount, setStrokeCount] = useState(0);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [facePhoto, setFacePhoto] = useState<string | null>(null);
   const [idPhoto, setIdPhoto] = useState<string | null>(null);
   const [idFileName, setIdFileName] = useState<string>("");
@@ -214,31 +217,187 @@ export default function AffiliateNda() {
     },
   });
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  // Initialize canvas with proper styling and resolution when component mounts
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
     
-    setIsDrawing(true);
+    const setupCanvas = () => {
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      
+      // Save existing signature before resize if user has drawn
+      let savedImageData: string | null = null;
+      let savedAspectRatio = 1;
+      if (hasDrawnSignature && canvas.width > 0 && canvas.height > 0) {
+        try {
+          savedImageData = canvas.toDataURL("image/png");
+          savedAspectRatio = canvas.width / canvas.height;
+        } catch (e) {
+          console.warn("Could not save signature before resize");
+        }
+      }
+      
+      // Get the display size from CSS
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Set canvas backing store to match display size * device pixel ratio for crispness
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      
+      // Reset transform before applying new scale (prevents compounding on multiple calls)
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      
+      // Scale context to match the device pixel ratio
+      ctx.scale(dpr, dpr);
+      
+      // Set up stroke style for signature
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      
+      // Restore saved signature if it existed, maintaining aspect ratio
+      if (savedImageData && hasDrawnSignature) {
+        const img = new Image();
+        img.onload = () => {
+          // Calculate dimensions to maintain aspect ratio (letterbox/pillarbox)
+          const newAspect = rect.width / rect.height;
+          let drawWidth = rect.width;
+          let drawHeight = rect.height;
+          let offsetX = 0;
+          let offsetY = 0;
+          
+          if (savedAspectRatio > newAspect) {
+            // Old was wider, fit to width
+            drawHeight = rect.width / savedAspectRatio;
+            offsetY = (rect.height - drawHeight) / 2;
+          } else {
+            // Old was taller, fit to height
+            drawWidth = rect.height * savedAspectRatio;
+            offsetX = (rect.width - drawWidth) / 2;
+          }
+          
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        };
+        img.src = savedImageData;
+      }
+    };
+    
+    // Debounced resize handler to prevent rapid fire issues
+    const handleResize = () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = setTimeout(setupCanvas, 150);
+    };
+    
+    setupCanvas();
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, [hasDrawnSignature]);
+
+  // Get coordinates from mouse or touch event - coordinates in CSS pixels (ctx is already scaled by DPR)
+  const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    
     const rect = canvas.getBoundingClientRect();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    
+    let clientX: number, clientY: number;
+    
+    if ('touches' in e) {
+      // Touch event
+      const touch = e.touches[0] || e.changedTouches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
+      // Mouse event
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    // Return CSS pixel coordinates (context is already scaled by DPR)
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+  // Check if canvas has actual signature content (non-empty pixels) with early exit
+  const hasSignatureContent = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return false;
+    
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return false;
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Count non-transparent pixels with early exit once threshold is met
+    let drawnPixels = 0;
+    const threshold = 100; // Minimum pixels for valid signature
+    
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] > 0) {
+        drawnPixels++;
+        if (drawnPixels >= threshold) return true; // Early exit for performance
+      }
+    }
+    
+    return false;
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault(); // Prevent scrolling on touch
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     
-    const rect = canvas.getBoundingClientRect();
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    // Re-apply stroke settings in case they were lost
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    
+    setIsDrawing(true);
+    const { x, y } = getCoordinates(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    e.preventDefault(); // Prevent scrolling on touch
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    const { x, y } = getCoordinates(e);
+    ctx.lineTo(x, y);
     ctx.stroke();
+    
+    // Mark that user has drawn something
+    if (!hasDrawnSignature) {
+      setHasDrawnSignature(true);
+    }
   };
 
   const stopDrawing = () => {
+    if (isDrawing) {
+      setStrokeCount(prev => prev + 1);
+    }
     setIsDrawing(false);
   };
 
@@ -248,6 +407,8 @@ export default function AffiliateNda() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setHasDrawnSignature(false);
+    setStrokeCount(0);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -281,11 +442,17 @@ export default function AffiliateNda() {
       return;
     }
     
+    // Verify signature was actually drawn with sufficient content (require multiple strokes and pixel content)
+    if (!hasDrawnSignature || strokeCount < 2 || !hasSignatureContent()) {
+      toast({ title: "Signature Required", description: "Please sign your full name in the signature box. A meaningful signature with multiple strokes is required.", variant: "destructive" });
+      return;
+    }
+    
     const canvas = canvasRef.current;
     const signatureData = canvas?.toDataURL("image/png") || null;
     
-    if (!signatureData || signatureData === 'data:,') {
-      toast({ title: "Signature Required", description: "Please sign in the signature box.", variant: "destructive" });
+    if (!signatureData) {
+      toast({ title: "Signature Error", description: "Could not capture signature. Please try again.", variant: "destructive" });
       return;
     }
     
@@ -771,16 +938,21 @@ export default function AffiliateNda() {
               <div className="space-y-2">
                 <Label>Electronic Signature</Label>
                 <p className="text-sm text-gray-500">Sign with your mouse or finger below</p>
-                <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
+                <div className="border-2 border-gray-300 rounded-lg overflow-hidden touch-none">
                   <canvas
                     ref={canvasRef}
                     width={600}
                     height={150}
-                    className="w-full bg-white cursor-crosshair"
+                    className="w-full bg-white cursor-crosshair touch-none"
+                    style={{ touchAction: 'none' }}
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
                     onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
+                    onTouchCancel={stopDrawing}
                     data-testid="canvas-signature"
                   />
                 </div>
