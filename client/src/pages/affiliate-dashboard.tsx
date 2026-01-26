@@ -7,8 +7,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Users, LogOut, FileText, HelpCircle, X, Home, FileSignature, 
   Calculator, DollarSign, CheckCircle, AlertCircle, Clock, 
-  ArrowRight, TrendingUp, Building2
+  ArrowRight, TrendingUp, Building2, Copy, Share2, Send, Plane
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "wouter";
 import { format } from "date-fns";
 
@@ -34,6 +35,10 @@ export default function AffiliateDashboard() {
   const [dealAmount, setDealAmount] = useState<number>(100000);
   const [contractRate, setContractRate] = useState<number>(18);
   const [uplineCount, setUplineCount] = useState<number>(0);
+
+  // VSO Air Support state
+  const [showVsoModal, setShowVsoModal] = useState(false);
+  const [vsoForm, setVsoForm] = useState({ vsoName: "", vsoEmail: "", comments: "" });
 
   // Check auth
   const { data: authData, isLoading: authLoading } = useQuery({
@@ -112,6 +117,17 @@ export default function AffiliateDashboard() {
     enabled: !!authData?.user,
   });
 
+  // Fetch referral info
+  const { data: referralInfo } = useQuery({
+    queryKey: ["affiliate-referral-info"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/referral-info");
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
   // Mutations
   const updateApplicationMutation = useMutation({
     mutationFn: async ({ id, status, notes }: { id: number; status: string; notes: string }) => {
@@ -155,6 +171,35 @@ export default function AffiliateDashboard() {
       setLocation("/affiliate/login");
     },
   });
+
+  // VSO Air Support mutation
+  const vsoAirSupportMutation = useMutation({
+    mutationFn: async (data: { vsoName: string; vsoEmail: string; comments: string }) => {
+      const res = await fetch("/api/affiliate/vso-air-support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to submit");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Air Support Requested!", description: "Master will review and send VSO projections." });
+      setShowVsoModal(false);
+      setVsoForm({ vsoName: "", vsoEmail: "", comments: "" });
+    },
+    onError: () => {
+      toast({ title: "Request Failed", description: "Please try again.", variant: "destructive" });
+    },
+  });
+
+  const copyReferralLink = () => {
+    if (referralInfo?.referralLink) {
+      const fullLink = `${window.location.origin}${referralInfo.referralLink}`;
+      navigator.clipboard.writeText(fullLink);
+      toast({ title: "Link Copied!", description: "Share this link to earn referral credit." });
+    }
+  };
 
   // Calculator logic
   const maxUplines = 6;
@@ -363,10 +408,48 @@ export default function AffiliateDashboard() {
               </div>
             </div>
 
+            {/* Referral Link Section */}
+            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-6 shadow-lg">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold mb-1 flex items-center gap-2">
+                    <Share2 className="w-5 h-5" />
+                    Your Referral Link
+                  </h3>
+                  <p className="text-white/80 text-sm">Share this link to earn credit for every veteran you help</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="bg-white/20 rounded-lg px-4 py-2 font-mono text-sm">
+                    {referralInfo?.referralCode || 'Loading...'}
+                  </div>
+                  <Button
+                    onClick={copyReferralLink}
+                    className="bg-white text-green-700 hover:bg-white/90 font-bold"
+                    data-testid="button-copy-referral"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Link
+                  </Button>
+                </div>
+              </div>
+              {referralInfo && (
+                <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold">{referralInfo.totalReferrals || 0}</p>
+                    <p className="text-sm text-white/70">Total Referrals</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{referralInfo.activeReferrals || 0}</p>
+                    <p className="text-sm text-white/70">Active Leads</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <h3 className="text-lg font-bold text-brand-navy mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {pendingContracts.length > 0 && (
                   <button
                     onClick={() => setMainTab("contracts")}
@@ -378,7 +461,7 @@ export default function AffiliateDashboard() {
                     </div>
                     <div>
                       <p className="font-bold text-brand-navy">Sign Contracts</p>
-                      <p className="text-sm text-gray-500">{pendingContracts.length} pending signature{pendingContracts.length !== 1 ? 's' : ''}</p>
+                      <p className="text-sm text-gray-500">{pendingContracts.length} pending</p>
                     </div>
                     <ArrowRight className="w-5 h-5 ml-auto text-brand-red" />
                   </button>
@@ -411,6 +494,20 @@ export default function AffiliateDashboard() {
                   </div>
                   <ArrowRight className="w-5 h-5 ml-auto text-gray-400" />
                 </Link>
+                <button
+                  onClick={() => setShowVsoModal(true)}
+                  className="flex items-center gap-3 p-4 rounded-lg border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 transition-colors text-left"
+                  data-testid="action-vso-air-support"
+                >
+                  <div className="p-2 rounded-full bg-blue-600 text-white">
+                    <Plane className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-brand-navy">VSO Projections</p>
+                    <p className="text-sm text-gray-500">Request air support</p>
+                  </div>
+                  <ArrowRight className="w-5 h-5 ml-auto text-blue-500" />
+                </button>
               </div>
             </div>
 
@@ -865,6 +962,78 @@ export default function AffiliateDashboard() {
                 data-testid="button-save-lead"
               >
                 Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VSO Air Support Modal */}
+      {showVsoModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-blue-100">
+                  <Plane className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-brand-navy">Request Air Support</h2>
+                  <p className="text-sm text-gray-500">Send VSO projections to recruit a VSO</p>
+                </div>
+              </div>
+              <button onClick={() => setShowVsoModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Recruiter Bonus:</strong> If this VSO signs up, you earn a 1% recruiter bonus on all their revenue!
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vsoName">VSO Contact Name *</Label>
+                <Input
+                  id="vsoName"
+                  placeholder="John Smith"
+                  value={vsoForm.vsoName}
+                  onChange={(e) => setVsoForm({ ...vsoForm, vsoName: e.target.value })}
+                  data-testid="input-vso-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vsoEmail">VSO Email Address *</Label>
+                <Input
+                  id="vsoEmail"
+                  type="email"
+                  placeholder="vso@organization.org"
+                  value={vsoForm.vsoEmail}
+                  onChange={(e) => setVsoForm({ ...vsoForm, vsoEmail: e.target.value })}
+                  data-testid="input-vso-email"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vsoComments">Comments (Optional)</Label>
+                <Textarea
+                  id="vsoComments"
+                  placeholder="Any context about this VSO or how you connected..."
+                  value={vsoForm.comments}
+                  onChange={(e) => setVsoForm({ ...vsoForm, comments: e.target.value })}
+                  data-testid="input-vso-comments"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowVsoModal(false)}>Cancel</Button>
+              <Button
+                onClick={() => vsoAirSupportMutation.mutate(vsoForm)}
+                disabled={!vsoForm.vsoName || !vsoForm.vsoEmail || vsoAirSupportMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700"
+                data-testid="button-submit-vso"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                {vsoAirSupportMutation.isPending ? "Sending..." : "Request Air Support"}
               </Button>
             </div>
           </div>

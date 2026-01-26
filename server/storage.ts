@@ -26,9 +26,11 @@ export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByReferralCode(code: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getAllAffiliates(): Promise<User[]>;
   updateUserPassword(id: number, passwordHash: string): Promise<User | undefined>;
+  updateUserReferralCode(id: number, referralCode: string): Promise<User | undefined>;
   deleteUser(id: number): Promise<void>;
 
   // Affiliate Applications
@@ -174,6 +176,11 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserByReferralCode(code: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.referralCode, code));
+    return user || undefined;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
@@ -185,6 +192,11 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserPassword(id: number, passwordHash: string): Promise<User | undefined> {
     const [user] = await db.update(users).set({ passwordHash }).where(eq(users.id, id)).returning();
+    return user || undefined;
+  }
+
+  async updateUserReferralCode(id: number, referralCode: string): Promise<User | undefined> {
+    const [user] = await db.update(users).set({ referralCode }).where(eq(users.id, id)).returning();
     return user || undefined;
   }
 

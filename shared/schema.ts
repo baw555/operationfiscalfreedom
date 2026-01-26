@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role").notNull(), // "admin" or "affiliate"
+  referralCode: text("referral_code").unique(), // Unique referral code for affiliates
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -59,6 +60,8 @@ export const helpRequests = pgTable("help_requests", {
   description: text("description").notNull(),
   status: text("status").notNull().default("new"), // new, contacted, in_progress, closed
   assignedTo: integer("assigned_to").references(() => users.id),
+  referredBy: integer("referred_by").references(() => users.id), // Affiliate who referred this lead
+  referralCode: text("referral_code"), // The referral code used
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

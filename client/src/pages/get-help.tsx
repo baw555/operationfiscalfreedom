@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { CheckCircle, Shield, Clock, HeartHandshake } from "lucide-react";
-import { useLocation } from "wouter";
+import { CheckCircle, Shield, Clock, HeartHandshake, Users } from "lucide-react";
+import { useLocation, Link } from "wouter";
 
 const helpTypes = [
   { value: "disability_denial", label: "Disability Rating Denial" },
@@ -18,10 +18,24 @@ const helpTypes = [
   { value: "other", label: "Other" },
 ];
 
+function getCookie(name: string): string | null {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+}
+
+function setCookie(name: string, value: string, days: number) {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+}
+
 export default function GetHelp() {
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -31,12 +45,28 @@ export default function GetHelp() {
     description: "",
   });
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refFromUrl = params.get('ref');
+    
+    if (refFromUrl) {
+      setCookie('nav_ref', refFromUrl, 30);
+      setReferralCode(refFromUrl);
+      window.history.replaceState({}, '', window.location.pathname);
+    } else {
+      const savedRef = getCookie('nav_ref');
+      if (savedRef) {
+        setReferralCode(savedRef);
+      }
+    }
+  }, []);
+
   const submitMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: typeof formData & { referralCode?: string | null }) => {
       const response = await fetch("/api/help-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, referralCode }),
       });
       if (!response.ok) throw new Error("Failed to submit request");
       return response.json();
@@ -75,7 +105,7 @@ export default function GetHelp() {
       });
       return;
     }
-    submitMutation.mutate(formData);
+    submitMutation.mutate({ ...formData, referralCode });
   };
 
   if (submitted) {
@@ -106,10 +136,10 @@ export default function GetHelp() {
     <Layout>
       <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
         <div className="container mx-auto px-4">
-          <h1 className="text-2xl sm:text-5xl font-display mb-4 sm:mb-6">Get Help With Your VA Claim</h1>
+          <h1 className="text-2xl sm:text-5xl font-display mb-4 sm:mb-6">Free VA Rating Assistance</h1>
           <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-2">
             Struggling with your disability rating or VA claim? Our veteran advocates are here to help you 
-            navigate the system and get the benefits you deserve.
+            navigate the system and get the benefits you deserve - at no cost to you.
           </p>
         </div>
       </section>
@@ -129,8 +159,8 @@ export default function GetHelp() {
             </div>
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
               <HeartHandshake className="h-8 w-8 sm:h-12 sm:w-12 text-brand-gold mx-auto mb-3 sm:mb-4" />
-              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Free Support</h3>
-              <p className="text-gray-600 text-xs sm:text-sm">No cost for initial consultation</p>
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">100% Free</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">No cost for assistance - ever</p>
             </div>
           </div>
         </div>
@@ -139,7 +169,7 @@ export default function GetHelp() {
       <section className="py-12 sm:py-20 bg-gray-50">
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="bg-white p-4 sm:p-8 rounded-xl shadow-lg border border-gray-200">
-            <h2 className="font-display text-2xl sm:text-3xl text-brand-navy mb-4 sm:mb-6 text-center">Request Help</h2>
+            <h2 className="font-display text-2xl sm:text-3xl text-brand-navy mb-4 sm:mb-6 text-center">Request Free Assistance</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
@@ -225,9 +255,19 @@ export default function GetHelp() {
                 disabled={submitMutation.isPending}
                 data-testid="button-submit-request"
               >
-                {submitMutation.isPending ? "Submitting..." : "Submit Help Request"}
+                {submitMutation.isPending ? "Submitting..." : "Get Free Help Now"}
               </Button>
             </form>
+          </div>
+          
+          <div className="mt-8 text-center">
+            <p className="text-gray-600 mb-4">Want to help fellow veterans?</p>
+            <Link href="/affiliate">
+              <Button variant="outline" className="border-brand-navy text-brand-navy hover:bg-brand-navy hover:text-white">
+                <Users className="w-4 h-4 mr-2" />
+                Become an Affiliate
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

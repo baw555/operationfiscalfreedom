@@ -91,8 +91,23 @@ export async function registerRoutes(
   // Submit help request
   app.post("/api/help-requests", async (req, res) => {
     try {
-      const data = insertHelpRequestSchema.parse(req.body);
-      const request = await storage.createHelpRequest(data);
+      const { referralCode, ...rest } = req.body;
+      const data = insertHelpRequestSchema.parse(rest);
+      
+      // Look up affiliate by referral code if provided
+      let referredById: number | undefined;
+      if (referralCode) {
+        const affiliate = await storage.getUserByReferralCode(referralCode);
+        if (affiliate) {
+          referredById = affiliate.id;
+        }
+      }
+      
+      const request = await storage.createHelpRequest({
+        ...data,
+        referralCode: referralCode || undefined,
+        referredBy: referredById,
+      } as any);
       res.status(201).json({ success: true, id: request.id });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1029,6 +1044,74 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Failed to update request" });
+    }
+  });
+
+  // Get affiliate's referral info
+  app.get("/api/affiliate/referral-info", requireAffiliate, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Generate referral code if not exists
+      let referralCode = user.referralCode;
+      if (!referralCode) {
+        referralCode = user.name.substring(0, 4).toUpperCase().replace(/[^A-Z]/g, 'X') + 
+          Math.random().toString(36).substring(2, 6).toUpperCase();
+        await storage.updateUserReferralCode(user.id, referralCode);
+      }
+      
+      // Count referrals
+      const allHelpRequests = await storage.getAllHelpRequests();
+      const referredLeads = allHelpRequests.filter(r => r.referredBy === user.id);
+      
+      res.json({
+        referralCode,
+        referralLink: `/get-help?ref=${referralCode}`,
+        totalReferrals: referredLeads.length,
+        activeReferrals: referredLeads.filter(r => r.status !== 'closed').length,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get referral info" });
+    }
+  });
+
+  // Submit VSO Air Support Request (affiliate requests master to send projections to a VSO)
+  app.post("/api/affiliate/vso-air-support", requireAffiliate, async (req, res) => {
+    try {
+      const { vsoName, vsoEmail, comments } = req.body;
+      const user = await storage.getUser(req.session.userId!);
+      
+      if (!vsoName || !vsoEmail) {
+        return res.status(400).json({ message: "VSO name and email are required" });
+      }
+      
+      // Send email notification to master/admin about the air support request
+      if (process.env.RESEND_API_KEY) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: "NavigatorUSA <no-reply@navigatorusa.com>",
+          to: process.env.ADMIN_EMAIL || "admin@navigatorusa.com",
+          subject: `VSO Air Support Request from ${user?.name}`,
+          html: `
+            <h2>VSO Air Support Request</h2>
+            <p><strong>Requesting Affiliate:</strong> ${user?.name} (${user?.email})</p>
+            <p><strong>VSO Name:</strong> ${vsoName}</p>
+            <p><strong>VSO Email:</strong> ${vsoEmail}</p>
+            <p><strong>Comments:</strong> ${comments || 'None'}</p>
+            <hr/>
+            <p>This affiliate is requesting you send VSO Revenue Projections to the above VSO contact.</p>
+            <p>If this VSO signs up, the requesting affiliate earns a 1% recruiter bonus on all VSO revenue.</p>
+          `,
+        });
+      }
+      
+      res.json({ success: true, message: "Air support request submitted. Master will review and send projections." });
+    } catch (error) {
+      console.error("VSO air support error:", error);
+      res.status(500).json({ message: "Failed to submit air support request" });
     }
   });
 
