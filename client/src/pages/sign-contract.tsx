@@ -53,7 +53,7 @@ export default function SignContract() {
     signatureDate: new Date().toLocaleDateString(),
   });
 
-  // Check auth and autofill
+  // Check auth and autofill - with retry logic for session timing
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["auth"],
     queryFn: async () => {
@@ -61,6 +61,8 @@ export default function SignContract() {
       if (!res.ok) return null;
       return res.json();
     },
+    retry: 6,
+    retryDelay: 1000,
   });
 
   // Fetch NDA data for autofill

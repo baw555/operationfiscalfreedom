@@ -45,7 +45,7 @@ export default function MasterPortal() {
   const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateFile | null>(null);
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
 
-  // Check if user is master admin
+  // Check if user is master admin - with retry logic for session timing
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
@@ -53,6 +53,8 @@ export default function MasterPortal() {
       if (!res.ok) return null;
       return res.json();
     },
+    retry: 6,
+    retryDelay: 1000,
   });
 
   // Fetch all affiliates with their files

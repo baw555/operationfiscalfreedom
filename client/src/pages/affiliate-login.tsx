@@ -50,7 +50,10 @@ export default function AffiliateLogin() {
           localStorage.removeItem("navusa_remembered_email");
         }
         toast({ title: "Welcome back, Operator!" });
-        setLocation("/affiliate/dashboard");
+        // Use full page navigation for reliable session handling
+        setTimeout(() => {
+          window.location.href = "/affiliate/dashboard";
+        }, 500);
       } else {
         toast({
           title: "Access Denied",

@@ -41,7 +41,7 @@ export default function AffiliateDashboard() {
   const [showVsoModal, setShowVsoModal] = useState(false);
   const [vsoForm, setVsoForm] = useState({ vsoName: "", vsoEmail: "", comments: "" });
 
-  // Check auth
+  // Check auth - with retry logic for session timing
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["auth"],
     queryFn: async () => {
@@ -49,6 +49,8 @@ export default function AffiliateDashboard() {
       if (!res.ok) throw new Error("Not authenticated");
       return res.json();
     },
+    retry: 6,
+    retryDelay: 1000,
   });
 
   useEffect(() => {

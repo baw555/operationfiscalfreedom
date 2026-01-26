@@ -31,7 +31,7 @@ export default function SubMasterPortal() {
   const [affiliateId, setAffiliateId] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Auth check
+  // Auth check - with retry logic for session timing
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
@@ -39,6 +39,8 @@ export default function SubMasterPortal() {
       if (!res.ok) return null;
       return res.json();
     },
+    retry: 6,
+    retryDelay: 1000,
   });
 
   // NDA status check
