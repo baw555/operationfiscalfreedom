@@ -44,10 +44,8 @@ export default function AffiliateApply() {
       // Invalidate any cached auth state
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       
-      // Small delay to ensure session cookie is set, then redirect
-      setTimeout(() => {
-        window.location.href = "/affiliate/nda";
-      }, 500);
+      // Redirect to NDA signing page
+      window.location.href = "/affiliate/nda";
     },
     onError: (error: Error) => {
       toast({

@@ -51,9 +51,7 @@ export default function AffiliateLogin() {
         }
         toast({ title: "Welcome back, Operator!" });
         // Use full page navigation for reliable session handling
-        setTimeout(() => {
-          window.location.href = "/affiliate/dashboard";
-        }, 500);
+        window.location.href = "/affiliate/dashboard";
       } else {
         toast({
           title: "Access Denied",
