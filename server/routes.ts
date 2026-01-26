@@ -69,18 +69,50 @@ export async function registerRoutes(
 
   // PostgreSQL session store for persistent sessions
   const PgStore = pgSession(session);
-  const pool = new pg.Pool({
+  
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL must be set for session storage");
+  }
+  
+  // Create session pool with error handling
+  const sessionPool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
+    max: 10,
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+  });
+  
+  // Handle pool errors to prevent crashes
+  sessionPool.on('error', (err) => {
+    console.error('Session pool error:', err);
+  });
+
+  // Verify session pool connectivity on startup
+  try {
+    const client = await sessionPool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    console.log('[session] PostgreSQL session store connected successfully');
+  } catch (err) {
+    console.error('[session] Failed to connect to session store:', err);
+    throw new Error('Session store connection failed - cannot start server');
+  }
+
+  const sessionStore = new PgStore({
+    pool: sessionPool,
+    tableName: "session",
+    createTableIfMissing: true,
+    pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
+  });
+
+  // Handle session store errors
+  sessionStore.on('error', (err: Error) => {
+    console.error('Session store error:', err);
   });
 
   // Session middleware with PostgreSQL store
   app.use(
     session({
-      store: new PgStore({
-        pool,
-        tableName: "session",
-        createTableIfMissing: true,
-      }),
+      store: sessionStore,
       secret: process.env.SESSION_SECRET || "operation-fiscal-freedom-secret-key-2024",
       resave: false,
       saveUninitialized: false,
@@ -655,15 +687,23 @@ export async function registerRoutes(
       }
       
       req.session.vltAffiliateId = affiliate.id;
-      res.json({ 
-        success: true, 
-        affiliate: { 
-          id: affiliate.id, 
-          name: affiliate.name, 
-          email: affiliate.email,
-          referralCode: affiliate.referralCode,
-          totalLeads: affiliate.totalLeads
+      
+      // Ensure session is saved before responding
+      req.session.save((err) => {
+        if (err) {
+          console.error("VLT session save error:", err);
+          return res.status(500).json({ message: "Login failed - session error" });
         }
+        res.json({ 
+          success: true, 
+          affiliate: { 
+            id: affiliate.id, 
+            name: affiliate.name, 
+            email: affiliate.email,
+            referralCode: affiliate.referralCode,
+            totalLeads: affiliate.totalLeads
+          }
+        });
       });
     } catch (error) {
       res.status(500).json({ message: "Login failed" });
@@ -850,9 +890,15 @@ export async function registerRoutes(
       req.session.userId = user.id;
       req.session.userRole = user.role;
 
-      res.status(201).json({ 
-        success: true, 
-        user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      // Ensure session is saved before responding
+      req.session.save((err) => {
+        if (err) {
+          console.error("Registration session save error:", err);
+        }
+        res.status(201).json({ 
+          success: true, 
+          user: { id: user.id, name: user.name, email: user.email, role: user.role }
+        });
       });
     } catch (error) {
       console.error("Registration error:", error);
