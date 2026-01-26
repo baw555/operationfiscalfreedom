@@ -345,8 +345,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </ul>
           </div>
         </div>
-        <div className="container mx-auto px-4 pt-8 border-t border-white/20 text-center text-gray-400 text-sm">
-          © {new Date().getFullYear()} NavigatorUSA. All rights reserved. Veterans' Family Resources.
+        <div className="container mx-auto px-4 pt-8 border-t border-white/20">
+          {/* 501(c)(3) Validation */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 bg-white/10 rounded-lg px-4 py-3 mb-3">
+              <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-white font-medium">IRS Verified 501(c)(3) Non-Profit Organization</span>
+            </div>
+            <p className="text-gray-300 text-sm">
+              Navigator USA Corp | EIN: 88-3349582 | Public Charity Status: 170(b)(1)(A)(vi)
+            </p>
+            <p className="text-gray-400 text-xs mt-1">
+              Donations are tax-deductible to the fullest extent permitted by law. <Link href="/transparency" className="text-brand-red hover:text-white underline cursor-pointer">View our transparency page</Link>
+            </p>
+          </div>
+          <div className="text-center text-gray-400 text-sm">
+            © {new Date().getFullYear()} NavigatorUSA. All rights reserved. Veterans' Family Resources.
+          </div>
         </div>
       </footer>
     </div>
