@@ -619,6 +619,45 @@ export async function registerRoutes(
     }
   });
 
+  // Register new user (public registration)
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { name, email, password, branchOfService } = req.body;
+      
+      if (!name || !email || !password) {
+        return res.status(400).json({ message: "Name, email, and password are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      // Create user with affiliate role by default
+      const bcrypt = await import("bcrypt");
+      const passwordHash = await bcrypt.hash(password, 10);
+      const user = await storage.createUser({
+        name,
+        email,
+        passwordHash,
+        role: "affiliate"
+      });
+
+      // Auto-login after registration
+      req.session.userId = user.id;
+      req.session.userRole = user.role;
+
+      res.status(201).json({ 
+        success: true, 
+        user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Failed to create account" });
+    }
+  });
+
   // ===== ADMIN ROUTES =====
 
   // Get all affiliate applications
