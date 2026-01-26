@@ -1333,6 +1333,64 @@ export async function registerRoutes(
     }
   });
 
+  // Get W9 status for affiliate
+  app.get("/api/affiliate/w9-status", requireAffiliate, async (req, res) => {
+    try {
+      const hasSubmitted = await storage.hasAffiliateSubmittedW9(req.session.userId!);
+      const w9 = hasSubmitted ? await storage.getAffiliateW9ByUserId(req.session.userId!) : null;
+      res.json({ hasSubmitted, w9: w9 ? { ...w9, ssn: w9.ssn ? "****" : null } : null });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check W9 status" });
+    }
+  });
+
+  // Submit W9 form
+  app.post("/api/affiliate/submit-w9", requireAffiliate, async (req, res) => {
+    try {
+      const { name, businessName, taxClassification, address, city, state, zip, ssn, ein, signatureData } = req.body;
+      
+      if (!name || !address || !city || !state || !zip) {
+        return res.status(400).json({ message: "Name and full address are required" });
+      }
+      
+      if (!ssn && !ein) {
+        return res.status(400).json({ message: "Either SSN or EIN is required" });
+      }
+      
+      // Check if already submitted
+      const alreadySubmitted = await storage.hasAffiliateSubmittedW9(req.session.userId!);
+      if (alreadySubmitted) {
+        return res.status(400).json({ message: "W9 already submitted" });
+      }
+
+      // Get IP address
+      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+      
+      // Only store last 4 digits of SSN for security
+      const ssnLast4 = ssn ? ssn.replace(/\D/g, '').slice(-4) : null;
+      
+      const w9 = await storage.createAffiliateW9({
+        userId: req.session.userId!,
+        name,
+        businessName: businessName || null,
+        taxClassification: taxClassification || "individual",
+        address,
+        city,
+        state,
+        zip,
+        ssn: ssnLast4,
+        ein: ein || null,
+        signatureData: signatureData || null,
+        signedIpAddress: ipAddress,
+      });
+      
+      res.json({ success: true, w9 });
+    } catch (error) {
+      console.error("W9 submission error:", error);
+      res.status(500).json({ message: "Failed to submit W9" });
+    }
+  });
+
   // ===== ECOSYSTEM / MASTER PORTAL ROUTES =====
 
   // Get all opportunities

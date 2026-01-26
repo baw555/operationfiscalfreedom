@@ -20,7 +20,8 @@ import {
   commissionConfig, type CommissionConfig, type InsertCommissionConfig,
   affiliateNda, type AffiliateNda, type InsertAffiliateNda,
   businessLeads, type BusinessLead, type InsertBusinessLead,
-  ipReferralTracking, type IpReferralTracking, type InsertIpReferralTracking
+  ipReferralTracking, type IpReferralTracking, type InsertIpReferralTracking,
+  affiliateW9, type AffiliateW9, type InsertAffiliateW9
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -185,6 +186,11 @@ export interface IStorage {
   getActiveIpReferral(ipAddress: string): Promise<IpReferralTracking | undefined>;
   getIpReferralsByAffiliate(affiliateId: number): Promise<IpReferralTracking[]>;
   getAllIpReferrals(): Promise<IpReferralTracking[]>;
+
+  // W9 Forms
+  createAffiliateW9(w9: InsertAffiliateW9): Promise<AffiliateW9>;
+  getAffiliateW9ByUserId(userId: number): Promise<AffiliateW9 | undefined>;
+  hasAffiliateSubmittedW9(userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -845,6 +851,22 @@ export class DatabaseStorage implements IStorage {
   async getAllIpReferrals(): Promise<IpReferralTracking[]> {
     return db.select().from(ipReferralTracking)
       .orderBy(desc(ipReferralTracking.createdAt));
+  }
+
+  // W9 Forms
+  async createAffiliateW9(w9: InsertAffiliateW9): Promise<AffiliateW9> {
+    const [created] = await db.insert(affiliateW9).values(w9).returning();
+    return created;
+  }
+
+  async getAffiliateW9ByUserId(userId: number): Promise<AffiliateW9 | undefined> {
+    const [w9] = await db.select().from(affiliateW9).where(eq(affiliateW9.userId, userId));
+    return w9 || undefined;
+  }
+
+  async hasAffiliateSubmittedW9(userId: number): Promise<boolean> {
+    const w9 = await this.getAffiliateW9ByUserId(userId);
+    return !!w9;
   }
 }
 

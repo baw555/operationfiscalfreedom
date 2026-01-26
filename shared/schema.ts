@@ -694,3 +694,31 @@ export const insertIpReferralTrackingSchema = createInsertSchema(ipReferralTrack
 
 export type InsertIpReferralTracking = z.infer<typeof insertIpReferralTrackingSchema>;
 export type IpReferralTracking = typeof ipReferralTracking.$inferSelect;
+
+// W9 Tax Forms - Affiliate tax information for 1099 reporting
+export const affiliateW9 = pgTable("affiliate_w9", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  businessName: text("business_name"),
+  taxClassification: text("tax_classification").notNull().default("individual"), // individual, c_corp, s_corp, partnership, trust, llc
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  zip: text("zip").notNull(),
+  ssn: text("ssn"), // Encrypted - Social Security Number (last 4 only stored)
+  ein: text("ein"), // Employer Identification Number
+  signatureData: text("signature_data"), // Base64 signature image
+  signedIpAddress: text("signed_ip_address"),
+  certificationDate: timestamp("certification_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAffiliateW9Schema = createInsertSchema(affiliateW9).omit({
+  id: true,
+  certificationDate: true,
+  createdAt: true,
+});
+
+export type InsertAffiliateW9 = z.infer<typeof insertAffiliateW9Schema>;
+export type AffiliateW9 = typeof affiliateW9.$inferSelect;

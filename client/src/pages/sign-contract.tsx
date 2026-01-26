@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout";
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileSignature, CheckCircle, AlertCircle, Loader2, Zap, ChevronRight } from "lucide-react";
+import { FileSignature, CheckCircle, AlertCircle, Loader2, Zap, ChevronRight, FileText, Download } from "lucide-react";
 import { useLocation } from "wouter";
 
 type ContractTemplate = {
@@ -19,7 +19,7 @@ export default function SignContract() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   
-  // Form state - will be autofilled from session
+  // Form state - will be autofilled from session and NDA
   const [affiliateName, setAffiliateName] = useState("");
   const [affiliateEmail, setAffiliateEmail] = useState("");
   const [physicalAddress, setPhysicalAddress] = useState("");
@@ -37,6 +37,21 @@ export default function SignContract() {
   const [allDone, setAllDone] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  
+  // W9 form state
+  const [w9Completed, setW9Completed] = useState(false);
+  const [w9Data, setW9Data] = useState({
+    name: "",
+    businessName: "",
+    taxClassification: "individual",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    ssn: "",
+    ein: "",
+    signatureDate: new Date().toLocaleDateString(),
+  });
 
   // Check auth and autofill
   const { data: authData, isLoading: authLoading } = useQuery({
@@ -48,7 +63,18 @@ export default function SignContract() {
     },
   });
 
-  // Autofill user info from session
+  // Fetch NDA data for autofill
+  const { data: ndaData } = useQuery({
+    queryKey: ["affiliate-nda-data"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/nda-status");
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  // Autofill user info from session and NDA
   useEffect(() => {
     if (authData?.user) {
       setAffiliateName(authData.user.name || "");
@@ -56,6 +82,36 @@ export default function SignContract() {
       setAchName(authData.user.name || "");
     }
   }, [authData]);
+
+  // Autofill from NDA data
+  useEffect(() => {
+    if (ndaData?.nda) {
+      const nda = ndaData.nda;
+      // Autofill address from NDA
+      if (nda.address) {
+        setPhysicalAddress(nda.address);
+        // Parse address for W9 (format: Street, City, State ZIP)
+        const addressParts = nda.address.split(",").map((s: string) => s.trim());
+        if (addressParts.length >= 2) {
+          const lastPart = addressParts[addressParts.length - 1];
+          const stateZip = lastPart.split(" ");
+          setW9Data(prev => ({
+            ...prev,
+            name: nda.fullName || prev.name,
+            address: addressParts[0] || "",
+            city: addressParts.length >= 3 ? addressParts[1] : "",
+            state: stateZip[0] || "",
+            zip: stateZip.slice(1).join(" ") || "",
+          }));
+        }
+      }
+      if (nda.fullName) {
+        setAffiliateName(nda.fullName);
+        setAchName(nda.fullName);
+        setW9Data(prev => ({ ...prev, name: nda.fullName }));
+      }
+    }
+  }, [ndaData]);
 
   // Fetch all contract templates
   const { data: contractTemplates = [] } = useQuery<ContractTemplate[]>({
@@ -76,6 +132,40 @@ export default function SignContract() {
       return res.json();
     },
     enabled: !!authData?.user,
+  });
+
+  // Fetch W9 status
+  const { data: w9Status, refetch: refetchW9 } = useQuery({
+    queryKey: ["w9-status"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/w9-status");
+      if (!res.ok) return { hasSubmitted: false };
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  // W9 submission mutation
+  const submitW9Mutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/affiliate/submit-w9", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...w9Data,
+          signatureData,
+        }),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to submit W9");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      setW9Completed(true);
+      refetchW9();
+    },
   });
 
   // Calculate pending contracts
@@ -495,6 +585,169 @@ export default function SignContract() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* W9 Tax Form Section */}
+          <div className="mt-6 bg-white rounded-lg border shadow-sm">
+            <div className="p-4 border-b bg-amber-50">
+              <div className="flex items-center gap-3">
+                <FileText className="w-6 h-6 text-amber-600" />
+                <div>
+                  <h3 className="font-bold text-brand-navy">W-9 Tax Form</h3>
+                  <p className="text-sm text-gray-600">Required for 1099 tax reporting</p>
+                </div>
+                {(w9Status?.hasSubmitted || w9Completed) && (
+                  <CheckCircle className="w-6 h-6 text-green-500 ml-auto" />
+                )}
+              </div>
+            </div>
+            
+            {w9Status?.hasSubmitted || w9Completed ? (
+              <div className="p-4 bg-green-50">
+                <p className="text-green-700 font-medium flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  W-9 form already submitted
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 space-y-4">
+                <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
+                  Your information has been pre-filled from your NDA. Please verify and complete the remaining fields.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name (as shown on tax return) *</label>
+                    <input
+                      type="text"
+                      value={w9Data.name}
+                      onChange={(e) => setW9Data({...w9Data, name: e.target.value})}
+                      className="w-full border rounded-lg px-3 py-2"
+                      data-testid="input-w9-name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Business Name (if different)</label>
+                    <input
+                      type="text"
+                      value={w9Data.businessName}
+                      onChange={(e) => setW9Data({...w9Data, businessName: e.target.value})}
+                      className="w-full border rounded-lg px-3 py-2"
+                      data-testid="input-w9-business"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tax Classification *</label>
+                  <select
+                    value={w9Data.taxClassification}
+                    onChange={(e) => setW9Data({...w9Data, taxClassification: e.target.value})}
+                    className="w-full border rounded-lg px-3 py-2"
+                    data-testid="select-w9-classification"
+                  >
+                    <option value="individual">Individual/Sole Proprietor</option>
+                    <option value="c_corp">C Corporation</option>
+                    <option value="s_corp">S Corporation</option>
+                    <option value="partnership">Partnership</option>
+                    <option value="trust">Trust/Estate</option>
+                    <option value="llc">LLC</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                  <input
+                    type="text"
+                    value={w9Data.address}
+                    onChange={(e) => setW9Data({...w9Data, address: e.target.value})}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Street address"
+                    data-testid="input-w9-address"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                    <input
+                      type="text"
+                      value={w9Data.city}
+                      onChange={(e) => setW9Data({...w9Data, city: e.target.value})}
+                      className="w-full border rounded-lg px-3 py-2"
+                      data-testid="input-w9-city"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                    <input
+                      type="text"
+                      value={w9Data.state}
+                      onChange={(e) => setW9Data({...w9Data, state: e.target.value})}
+                      className="w-full border rounded-lg px-3 py-2"
+                      maxLength={2}
+                      data-testid="input-w9-state"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP *</label>
+                    <input
+                      type="text"
+                      value={w9Data.zip}
+                      onChange={(e) => setW9Data({...w9Data, zip: e.target.value})}
+                      className="w-full border rounded-lg px-3 py-2"
+                      data-testid="input-w9-zip"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Social Security Number</label>
+                    <input
+                      type="password"
+                      value={w9Data.ssn}
+                      onChange={(e) => setW9Data({...w9Data, ssn: e.target.value})}
+                      className="w-full border rounded-lg px-3 py-2"
+                      placeholder="XXX-XX-XXXX"
+                      data-testid="input-w9-ssn"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Only last 4 digits are stored</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Employer ID Number (EIN)</label>
+                    <input
+                      type="text"
+                      value={w9Data.ein}
+                      onChange={(e) => setW9Data({...w9Data, ein: e.target.value})}
+                      className="w-full border rounded-lg px-3 py-2"
+                      placeholder="XX-XXXXXXX"
+                      data-testid="input-w9-ein"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-700">
+                  <p className="font-bold mb-2">Certification</p>
+                  <p>Under penalties of perjury, I certify that:</p>
+                  <ol className="list-decimal list-inside space-y-1 mt-2">
+                    <li>The number shown on this form is my correct taxpayer identification number</li>
+                    <li>I am not subject to backup withholding</li>
+                    <li>I am a U.S. citizen or other U.S. person</li>
+                  </ol>
+                </div>
+
+                <button
+                  onClick={() => submitW9Mutation.mutate()}
+                  disabled={submitW9Mutation.isPending || !w9Data.name || !w9Data.address || !w9Data.city || !w9Data.state || !w9Data.zip || (!w9Data.ssn && !w9Data.ein)}
+                  className="w-full bg-amber-600 text-white py-3 rounded-lg font-bold hover:bg-amber-700 disabled:bg-gray-400 flex items-center justify-center gap-2"
+                  data-testid="button-submit-w9"
+                >
+                  <FileText className="w-5 h-5" />
+                  {submitW9Mutation.isPending ? "Submitting..." : "Submit W-9 Form"}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Already signed */}

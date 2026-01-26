@@ -131,8 +131,9 @@ export default function AffiliateNda() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/affiliate/nda-status"] });
       queryClient.invalidateQueries({ queryKey: ["affiliate-nda-status"] });
-      toast({ title: "NDA Signed Successfully!", description: "Welcome to the NavigatorUSA affiliate program." });
-      setLocation("/affiliate/dashboard");
+      toast({ title: "NDA Signed Successfully!", description: "Now let's complete the remaining documents..." });
+      // Redirect to sign remaining contracts and W9
+      setLocation("/sign-contract");
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
