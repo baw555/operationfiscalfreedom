@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { useLocation } from "wouter";
-const logoImage = "/attached_assets/Screenshot_2026-01-26_4.40.31_AM_1769420459727.png";
+import logoImage from "@/assets/images/sas-emblem.png";
 
 export default function AffiliateLogin() {
   const { toast } = useToast();
@@ -103,11 +103,12 @@ export default function AffiliateLogin() {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           {/* Logo */}
-          <div className="mb-4">
+          <div className="relative inline-block mb-4">
+            <div className="absolute inset-0 bg-green-500/20 rounded-full blur-2xl"></div>
             <img 
               src={logoImage} 
               alt="Who Dares Wins" 
-              className="w-32 h-32 object-contain mx-auto"
+              className="relative w-36 h-36 object-contain mx-auto drop-shadow-[0_0_20px_rgba(34,197,94,0.4)]"
             />
           </div>
           <h1 className="text-4xl font-display text-white mb-2 tracking-wider">COMMAND HQ</h1>
