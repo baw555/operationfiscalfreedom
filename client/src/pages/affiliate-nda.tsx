@@ -233,19 +233,33 @@ export default function AffiliateNda() {
                 <li><strong>RECEIVING PARTY LIABILITY:</strong> The Signatory shall be fully liable for any breach of this Agreement by their Affiliates, Representatives, employees, agents, or any third parties to whom Confidential Information has been disclosed by such persons or entities</li>
               </ul>
 
-              <h3 className="text-md font-bold">4. NON-CIRCUMVENTION</h3>
-              <p className="font-semibold text-brand-red">
-                The Signatory agrees, both DIRECTLY and INDIRECTLY, not to circumvent, avoid, bypass, or interfere 
-                with the Organization, its Affiliates, or Representatives:
-              </p>
+              <h3 className="text-md font-bold text-brand-red bg-red-50 p-2 rounded">4. NON-CIRCUMVENTION (STRICTLY ENFORCED)</h3>
+              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 my-3">
+                <p className="font-bold text-brand-red text-center mb-3">
+                  ⚠️ CRITICAL: THE NON-CIRCUMVENTION PROVISIONS BELOW ARE THE MOST IMPORTANT TERMS OF THIS AGREEMENT ⚠️
+                </p>
+                <p className="font-semibold text-brand-red">
+                  The Signatory agrees, both DIRECTLY and INDIRECTLY, ABSOLUTELY and WITHOUT EXCEPTION, not to circumvent, 
+                  avoid, bypass, interfere with, or undermine the Organization, its Affiliates, or Representatives in ANY manner:
+                </p>
+              </div>
               <ul className="list-disc pl-5 text-sm">
-                <li><strong>Scope of Prohibition:</strong> This prohibition applies whether such circumvention is conducted (a) directly by the Signatory, (b) indirectly through Affiliates, Representatives, or third parties, (c) through any corporate restructuring, subsidiary formation, or related entity, or (d) through family members, friends, associates, or any other proxies</li>
-                <li><strong>Protected Relationships:</strong> The Signatory shall not contact, solicit, accept, or conduct any business with any clients, prospects, vendors, investors, banks, funding sources, suppliers, customers, or business opportunities introduced by or discovered through the Organization without express written permission</li>
-                <li><strong>No Bypass Attempts:</strong> The Signatory shall not attempt to bypass, circumvent, avoid, or interfere with the Organization's referral tracking, attribution systems, or commission structures by any means whatsoever</li>
+                <li><strong>ABSOLUTE PROHIBITION:</strong> The Signatory is STRICTLY PROHIBITED from circumventing this Agreement under ANY circumstances. There are NO exceptions, NO excuses, and NO justifications for circumvention. Any attempt to rationalize, minimize, or explain away circumvention will be treated as willful and intentional breach</li>
+                <li><strong>Scope of Prohibition:</strong> This prohibition applies whether such circumvention is conducted (a) directly by the Signatory, (b) indirectly through Affiliates, Representatives, or third parties, (c) through any corporate restructuring, subsidiary formation, or related entity, (d) through family members, friends, associates, or any other proxies, (e) through trusts, LLCs, shell companies, or any legal structures, (f) through verbal or "handshake" agreements designed to avoid written records, or (g) through any scheme, artifice, or device whatsoever</li>
+                <li><strong>Protected Relationships - PERPETUAL:</strong> The Signatory shall NEVER, at ANY time during or after this Agreement, contact, solicit, accept, or conduct any business with any clients, prospects, vendors, investors, banks, funding sources, suppliers, customers, or business opportunities introduced by or discovered through the Organization without express written permission. This protection is PERPETUAL and survives termination of this Agreement</li>
+                <li><strong>No Bypass Attempts - ZERO TOLERANCE:</strong> The Signatory shall not attempt to bypass, circumvent, avoid, disable, manipulate, or interfere with the Organization's referral tracking, attribution systems, IP tracking, cookie-based tracking, or commission structures by ANY means whatsoever. ANY such attempt, successful or not, constitutes a material breach</li>
                 <li><strong>No Competitive Interference:</strong> The Signatory shall not introduce clients, prospects, or contacts to competing organizations, services, or individuals that would reduce, divert, or eliminate commissions, fees, or benefits owed to any party in the affiliate network</li>
-                <li><strong>Protection of Introductions:</strong> All relationships, introductions, and business opportunities developed through the Organization belong to the Organization and its affiliate network in perpetuity</li>
-                <li><strong>No Solicitation:</strong> The Signatory shall not solicit, recruit, or encourage any affiliate, employee, contractor, or representative of the Organization to terminate their relationship or to join any competing organization</li>
+                <li><strong>Protection of Introductions - IN PERPETUITY:</strong> ALL relationships, introductions, contacts, and business opportunities developed through the Organization belong to the Organization and its affiliate network IN PERPETUITY. This includes contacts made through the Signatory's referral link, at events, through marketing materials, or by any other means connected to the Organization</li>
+                <li><strong>No Solicitation - LIFETIME BAN:</strong> The Signatory shall NEVER solicit, recruit, encourage, or induce any affiliate, employee, contractor, representative, client, or prospect of the Organization to terminate their relationship or to join any competing organization. Violation results in LIFETIME ban and maximum penalties</li>
+                <li><strong>No Side Deals:</strong> The Signatory shall not enter into any "side deals," "special arrangements," "off-the-books" agreements, or any other arrangements that would deprive any party in the affiliate network of their rightful commissions or benefits</li>
+                <li><strong>Monitoring Consent:</strong> The Signatory expressly consents to the Organization's use of tracking technologies, audits, and investigations to ensure compliance with these non-circumvention provisions</li>
               </ul>
+              <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-3 mt-3">
+                <p className="font-bold text-yellow-800 text-sm text-center">
+                  WARNING: Circumvention is treated MORE SERIOUSLY than any other breach. Penalties for circumvention are 
+                  FIVE TIMES (5X) the standard penalty amount, plus all remedies described in Section 8.
+                </p>
+              </div>
 
               <h3 className="text-md font-bold">5. BINDING EFFECT ON ALL PARTIES</h3>
               <p className="font-semibold bg-yellow-50 p-3 rounded border border-yellow-200">
@@ -276,17 +290,22 @@ export default function AffiliateNda() {
                 agrees not to share, disclose, discuss, or attempt to circumvent these systems.
               </p>
 
-              <h3 className="text-md font-bold">8. PENALTIES FOR BREACH</h3>
-              <p className="font-semibold text-brand-red">
-                In the event of circumvention or breach of this Agreement by the Signatory, directly or indirectly, 
-                or by their Affiliates, Representatives, agents, or any third parties acting on their behalf:
-              </p>
+              <h3 className="text-md font-bold text-brand-red bg-red-50 p-2 rounded">8. PENALTIES FOR BREACH (SEVERELY ENFORCED)</h3>
+              <div className="bg-red-100 border-2 border-red-400 rounded-lg p-4 my-3">
+                <p className="font-bold text-brand-red">
+                  In the event of circumvention or breach of this Agreement by the Signatory, directly or indirectly, 
+                  or by their Affiliates, Representatives, agents, or any third parties acting on their behalf:
+                </p>
+              </div>
               <ul className="list-disc pl-5 text-sm">
-                <li><strong>Monetary Penalty:</strong> The breaching party shall pay a legal monetary penalty equal to THREE (3) TIMES the commission, fee, or maximum financial benefit the non-breaching party should have realized from such transaction</li>
-                <li><strong>Additional Damages:</strong> PLUS all expenses incurred including legal costs, attorney fees, court costs, investigation costs, and lost profits and business opportunities</li>
-                <li><strong>Injunctive Relief:</strong> The Organization shall be entitled to seek injunctive relief and equitable remedies to restrain the breaching party, their Affiliates, Representatives, and agents from continuing the breach</li>
-                <li><strong>Forfeiture:</strong> Violators may be permanently removed from the affiliate network with immediate forfeiture of all pending and future commissions</li>
-                <li><strong>Criminal Referral:</strong> The Organization reserves the right to refer matters involving theft of trade secrets or intentional interference to appropriate law enforcement authorities</li>
+                <li><strong>CIRCUMVENTION PENALTY (5X):</strong> For violations of Section 4 (Non-Circumvention), the breaching party shall pay a monetary penalty equal to <span className="font-bold text-brand-red">FIVE (5) TIMES</span> the commission, fee, or maximum financial benefit the non-breaching party should have realized, with a MINIMUM penalty of $50,000 per incident</li>
+                <li><strong>General Breach Penalty (3X):</strong> For all other breaches, the breaching party shall pay a legal monetary penalty equal to THREE (3) TIMES the commission, fee, or maximum financial benefit the non-breaching party should have realized from such transaction</li>
+                <li><strong>Additional Damages:</strong> PLUS all expenses incurred including legal costs, attorney fees, court costs, investigation costs, expert witness fees, and lost profits and business opportunities</li>
+                <li><strong>Injunctive Relief - NO BOND REQUIRED:</strong> The Organization shall be entitled to seek IMMEDIATE injunctive relief and equitable remedies WITHOUT POSTING BOND to restrain the breaching party, their Affiliates, Representatives, and agents from continuing the breach</li>
+                <li><strong>IMMEDIATE FORFEITURE:</strong> Violators shall be IMMEDIATELY and PERMANENTLY removed from the affiliate network with TOTAL forfeiture of ALL pending, approved, and future commissions, with no right of appeal</li>
+                <li><strong>Criminal Referral:</strong> The Organization reserves the right to refer matters involving theft of trade secrets, wire fraud, or intentional interference to appropriate federal and state law enforcement authorities for criminal prosecution</li>
+                <li><strong>Public Disclosure:</strong> The Organization reserves the right to disclose the identity of violators to other organizations, affiliates, and the business community as a protective measure</li>
+                <li><strong>Joint and Several Liability:</strong> The Signatory shall be jointly and severally liable with any Affiliates, Representatives, or third parties who participated in or benefited from the breach</li>
               </ul>
 
               <h3 className="text-md font-bold">9. ETHICS & PROFESSIONAL CONDUCT</h3>

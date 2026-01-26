@@ -282,12 +282,28 @@ export default function AffiliateDashboard() {
 
   const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 
-  if (authLoading) {
+  if (authLoading || ndaLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
           <div className="text-xl text-white font-display">Loading Portal...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Block access until NDA is signed - redirect happens in useEffect
+  if (!ndaStatus?.hasSigned) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <div className="text-xl text-white font-display">Portal Access Locked</div>
+          <div className="text-gray-300">You must sign the Confidentiality Agreement to access this portal.</div>
+          <div className="text-sm text-gray-400">Redirecting...</div>
         </div>
       </div>
     );
