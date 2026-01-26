@@ -332,46 +332,30 @@ export default function Home() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-80 bg-white border-2 border-brand-navy/20 shadow-2xl" align="center">
-                  <Link href="/merchant-services">
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
-                      Merchant Services
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/va-software">
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
-                      Free VA Rating Tool
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/fin-ops">
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
-                      Find Fin-Ops Work
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/apply-website">
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
-                      Get Free Business Website
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/apply-startup-grant">
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
-                      Apply for Startup Grant
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/investors">
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
-                      Connect with Investors
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/private-doctor">
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
-                      VA Too Slow? Private Doctor
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/new-home-furniture">
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
-                      New Home Furniture Assistance
-                    </DropdownMenuItem>
-                  </Link>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
+                    <Link href="/merchant-services">Merchant Services</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
+                    <Link href="/va-software">Free VA Rating Tool</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
+                    <Link href="/fin-ops">Find Fin-Ops Work</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
+                    <Link href="/apply-website">Get Free Business Website</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
+                    <Link href="/apply-startup-grant">Apply for Startup Grant</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
+                    <Link href="/investors">Connect with Investors</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
+                    <Link href="/private-doctor">VA Too Slow? Private Doctor</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
+                    <Link href="/new-home-furniture">New Home Furniture Assistance</Link>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <p className="text-gray-300 text-xs sm:text-sm mt-4 text-center">
