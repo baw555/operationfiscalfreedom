@@ -37,6 +37,7 @@ import Investors from "@/pages/investors";
 import NewHomeFurniture from "@/pages/new-home-furniture";
 import PrivateDoctor from "@/pages/private-doctor";
 import BecomeInvestor from "@/pages/become-investor";
+import Transparency from "@/pages/transparency";
 import MissionActHealth from "@/pages/mission-act-health";
 import MerchantServices from "@/pages/merchant-services";
 import MyLocker from "@/pages/my-locker";
@@ -144,6 +145,7 @@ function Router() {
       <Route path="/new-home-furniture" component={NewHomeFurniture} />
       <Route path="/private-doctor" component={PrivateDoctor} />
       <Route path="/become-investor" component={BecomeInvestor} />
+      <Route path="/transparency" component={Transparency} />
       <Route path="/mission-act-health" component={MissionActHealth} />
       <Route path="/merchant-services" component={MerchantServices} />
       <Route path="/my-locker" component={MyLocker} />

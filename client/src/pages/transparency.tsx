@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, FileText, Shield, Building, Calendar, DollarSign, ExternalLink } from "lucide-react";
+import { CheckCircle, FileText, Shield, Building, Calendar, DollarSign, ExternalLink, Heart, GraduationCap, Briefcase, Stethoscope, Leaf, Wallet } from "lucide-react";
 
 export default function Transparency() {
   return (
@@ -91,6 +91,96 @@ export default function Transparency() {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400">IRS Contact</span>
                     <span className="font-semibold">877-829-5500</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Mission & Impact Section */}
+          <div className="max-w-5xl mx-auto mb-12">
+            <Card className="bg-gradient-to-br from-brand-red/20 to-brand-navy border-brand-red/30 text-white">
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="flex items-center justify-center gap-3 text-3xl">
+                  <Heart className="w-10 h-10 text-brand-red" />
+                  Our Mission & Impact
+                </CardTitle>
+                <p className="text-gray-300 mt-2 max-w-2xl mx-auto">
+                  Navigator USA Corp is dedicated to supporting veteran families through direct donations and free services in the following areas:
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                  <div className="bg-white/10 rounded-xl p-5 hover:bg-white/15 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-brand-red/20 rounded-lg">
+                        <Stethoscope className="w-6 h-6 text-brand-red" />
+                      </div>
+                      <h3 className="font-semibold text-lg">Veteran Healthcare</h3>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      Donations support veteran healthcare initiatives and education on less invasive treatment options that prioritize quality of life.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/10 rounded-xl p-5 hover:bg-white/15 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-green-500/20 rounded-lg">
+                        <Leaf className="w-6 h-6 text-green-400" />
+                      </div>
+                      <h3 className="font-semibold text-lg">Holistic Options</h3>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      We fund education and access to holistic care options including wellness programs, alternative therapies, and integrative health approaches.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/10 rounded-xl p-5 hover:bg-white/15 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-blue-500/20 rounded-lg">
+                        <GraduationCap className="w-6 h-6 text-blue-400" />
+                      </div>
+                      <h3 className="font-semibold text-lg">Free Job Training</h3>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      Veterans and their families receive free job training programs to help them transition into civilian careers and develop new skills.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/10 rounded-xl p-5 hover:bg-white/15 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-yellow-500/20 rounded-lg">
+                        <Wallet className="w-6 h-6 text-yellow-400" />
+                      </div>
+                      <h3 className="font-semibold text-lg">Financial Opportunities</h3>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      We connect veteran families with financial opportunities including business grants, investment education, and wealth-building resources.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/10 rounded-xl p-5 hover:bg-white/15 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-purple-500/20 rounded-lg">
+                        <Shield className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <h3 className="font-semibold text-lg">Free VA Rating Assistance</h3>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      No upfront cost VA disability rating assistance helps veterans get the benefits they've earned without financial barriers.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/10 rounded-xl p-5 hover:bg-white/15 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-orange-500/20 rounded-lg">
+                        <Briefcase className="w-6 h-6 text-orange-400" />
+                      </div>
+                      <h3 className="font-semibold text-lg">Free SSDI Assistance</h3>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      No upfront cost Social Security Disability Insurance (SSDI) assistance to help veterans navigate the benefits process.
+                    </p>
                   </div>
                 </div>
               </CardContent>
