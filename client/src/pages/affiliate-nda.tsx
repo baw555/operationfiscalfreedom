@@ -14,6 +14,7 @@ export default function AffiliateNda() {
   const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const pendingStreamRef = useRef<MediaStream | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [facePhoto, setFacePhoto] = useState<string | null>(null);
@@ -39,24 +40,10 @@ export default function AffiliateNda() {
           height: { ideal: 480, max: 720 }
         } 
       });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        
-        // Wait for video metadata to load before playing
-        videoRef.current.onloadedmetadata = async () => {
-          try {
-            await videoRef.current?.play();
-            setIsCameraActive(true);
-          } catch (playErr) {
-            console.error("Video play failed:", playErr);
-            toast({ 
-              title: "Camera Error", 
-              description: "Could not start video preview. Please try again.",
-              variant: "destructive" 
-            });
-          }
-        };
-      }
+      
+      // Store stream and set camera active - useEffect will handle attachment
+      pendingStreamRef.current = stream;
+      setIsCameraActive(true);
     } catch (err: any) {
       console.error("Camera error:", err);
       let message = "Please allow camera access to capture your face photo.";
@@ -74,6 +61,37 @@ export default function AffiliateNda() {
       });
     }
   }, [toast]);
+
+  // Attach stream to video element after it becomes visible
+  useEffect(() => {
+    if (isCameraActive && pendingStreamRef.current && videoRef.current) {
+      const video = videoRef.current;
+      const stream = pendingStreamRef.current;
+      
+      video.srcObject = stream;
+      
+      // Wait for video metadata to load before playing
+      video.onloadedmetadata = async () => {
+        try {
+          await video.play();
+        } catch (playErr) {
+          console.error("Video play failed:", playErr);
+          toast({ 
+            title: "Camera Error", 
+            description: "Could not start video preview. Please try again.",
+            variant: "destructive" 
+          });
+          // Stop stream and reset
+          stream.getTracks().forEach(track => track.stop());
+          pendingStreamRef.current = null;
+          setIsCameraActive(false);
+        }
+      };
+      
+      // Clear pending stream ref after attachment
+      pendingStreamRef.current = null;
+    }
+  }, [isCameraActive, toast]);
 
   // Stop webcam
   const stopCamera = useCallback(() => {
@@ -586,39 +604,47 @@ export default function AffiliateNda() {
                 
                 {!facePhoto ? (
                   <div className="space-y-3">
-                    {isCameraActive ? (
-                      <div className="space-y-3">
-                        <div className="relative rounded-lg overflow-hidden border-2 border-blue-400 bg-black">
-                          <video
-                            ref={videoRef}
-                            autoPlay
-                            playsInline
-                            muted
-                            className="w-full max-w-md mx-auto"
-                            data-testid="video-webcam"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            onClick={captureFacePhoto}
-                            className="bg-green-600 hover:bg-green-700"
-                            data-testid="button-capture-face"
-                          >
-                            <Camera className="w-4 h-4 mr-2" />
-                            Capture Photo
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={stopCamera}
-                            data-testid="button-stop-camera"
-                          >
-                            Cancel
-                          </Button>
-                        </div>
+                    {/* Always render video element so ref is available when stream attaches */}
+                    <div 
+                      className="space-y-3"
+                      style={{ 
+                        visibility: isCameraActive ? 'visible' : 'hidden',
+                        height: isCameraActive ? 'auto' : '0',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <div className="relative rounded-lg overflow-hidden border-2 border-blue-400 bg-black">
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className="w-full max-w-md mx-auto"
+                          style={{ minHeight: '240px' }}
+                          data-testid="video-webcam"
+                        />
                       </div>
-                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={captureFacePhoto}
+                          className="bg-green-600 hover:bg-green-700"
+                          data-testid="button-capture-face"
+                        >
+                          <Camera className="w-4 h-4 mr-2" />
+                          Capture Photo
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={stopCamera}
+                          data-testid="button-stop-camera"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                    {!isCameraActive && (
                       <Button
                         type="button"
                         onClick={startCamera}
