@@ -1662,6 +1662,19 @@ export async function registerRoutes(
     }
   });
 
+  // Get signed agreements for the current logged-in user
+  app.get("/api/contracts/my-signed", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.json([]);
+      }
+      const signedAgreements = await storage.getSignedAgreementsByAffiliate(req.session.userId);
+      res.json(signedAgreements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch signed agreements" });
+    }
+  });
+
   // ===== COMMISSION CALCULATION API =====
 
   // Calculate commission breakdown for a sale
