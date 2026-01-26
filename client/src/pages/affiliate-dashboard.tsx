@@ -391,7 +391,7 @@ export default function AffiliateDashboard() {
         {/* ===== OVERVIEW TAB ===== */}
         {mainTab === "overview" && (
           <div className="space-y-8">
-            {/* Anti-Circumvention Notice */}
+            {/* Security Notice */}
             <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 shadow-md">
               <div className="flex items-start gap-4">
                 <div className="p-2 bg-amber-400 rounded-full flex-shrink-0">
@@ -399,11 +399,11 @@ export default function AffiliateDashboard() {
                 </div>
                 <div>
                   <h3 className="font-bold text-amber-900 text-lg flex items-center gap-2">
-                    Anti-Circumvention Protection Active
+                    Safety, Security and Circumvention Protocols Active
                     <Lock className="w-4 h-4" />
                   </h3>
                   <p className="text-amber-800 text-sm mt-1">
-                    Our system uses advanced tracking to protect your referral commissions. All leads are tracked via 30-day 
+                    Our system protects your referral commissions. All leads are tracked via 30-day 
                     cookies with first-touch attribution - once someone uses your referral link, you're credited even if they 
                     return later without the link.
                   </p>

@@ -190,7 +190,7 @@ export default function AffiliateNda() {
               </p>
               <ul className="list-disc pl-5 text-sm">
                 <li>Commission structures and compensation details</li>
-                <li>Anti-circumvention systems and tracking methods</li>
+                <li>Safety, security and circumvention protocols</li>
                 <li>Internal business processes and procedures</li>
                 <li>Veteran and client information</li>
               </ul>
@@ -205,11 +205,11 @@ export default function AffiliateNda() {
                 <li>Create sustainable opportunities for the veteran community</li>
               </ul>
 
-              <h3 className="text-md font-bold">4. ANTI-CIRCUMVENTION</h3>
+              <h3 className="text-md font-bold">4. SAFETY, SECURITY AND CIRCUMVENTION PROTOCOLS</h3>
               <p>
-                The Affiliate acknowledges that the Organization employs anti-circumvention software to protect 
-                affiliate referrals and commissions. The Affiliate agrees not to share details of these systems 
-                with anyone outside the affiliate network.
+                The Affiliate acknowledges that the Organization employs safety, security and circumvention protocols 
+                to protect affiliate referrals and commissions. The Affiliate agrees not to share details of these 
+                protocols with anyone outside the affiliate network.
               </p>
 
               <h3 className="text-md font-bold">5. TERM</h3>
