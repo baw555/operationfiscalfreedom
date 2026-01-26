@@ -10,12 +10,8 @@ import {
 import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, ChevronDown, Pause, Play } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
-import heroBg from "@assets/generated_images/hero_background_veterans.png";
-import somethingImg from "@assets/Screenshot_2026-01-06_6.59.01_AM_1767701107020.png";
-import someoneImg from "@assets/Screenshot_2026-01-06_6.57.21_AM_1767701107023.png";
-import answerCallImg from "@assets/Screenshot_2026-01-06_6.55.18_AM_1767701107025.png";
 
 export default function Home() {
   const [animationPhase, setAnimationPhase] = useState(0);
@@ -23,6 +19,28 @@ export default function Home() {
   const [animationPaused, setAnimationPaused] = useState(false);
   const loopIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  const [animationImages, setAnimationImages] = useState<{
+    heroBg?: string;
+    somethingImg?: string;
+    someoneImg?: string;
+    answerCallImg?: string;
+  }>({});
+
+  useEffect(() => {
+    Promise.all([
+      import("@assets/generated_images/hero_background_veterans.png"),
+      import("@assets/Screenshot_2026-01-06_6.59.01_AM_1767701107020.png"),
+      import("@assets/Screenshot_2026-01-06_6.57.21_AM_1767701107023.png"),
+      import("@assets/Screenshot_2026-01-06_6.55.18_AM_1767701107025.png"),
+    ]).then(([heroBg, somethingImg, someoneImg, answerCallImg]) => {
+      setAnimationImages({
+        heroBg: heroBg.default,
+        somethingImg: somethingImg.default,
+        someoneImg: someoneImg.default,
+        answerCallImg: answerCallImg.default,
+      });
+    });
+  }, []);
 
   const clearAllTimeouts = () => {
     timeoutsRef.current.forEach(t => clearTimeout(t));
@@ -125,14 +143,17 @@ export default function Home() {
             animationPhase === 2 ? "opacity-100" : "opacity-0"
           )}>
             <div className="absolute inset-0">
-              <img 
-                src={answerCallImg} 
-                alt="Economic challenges" 
-                className={cn(
-                  "w-full h-full object-contain sm:object-cover transition-all duration-1000",
-                  animationPhase === 2 ? "opacity-60 scale-105" : "opacity-0 scale-100"
-                )}
-              />
+              {animationImages.answerCallImg && (
+                <img 
+                  src={animationImages.answerCallImg}
+                  alt="Economic challenges"
+                  loading="eager" 
+                  className={cn(
+                    "w-full h-full object-contain sm:object-cover transition-all duration-1000",
+                    animationPhase === 2 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                  )}
+                />
+              )}
               <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
@@ -149,14 +170,17 @@ export default function Home() {
             animationPhase === 3 ? "opacity-100" : "opacity-0"
           )}>
             <div className="absolute inset-0">
-              <img 
-                src={somethingImg} 
-                alt="Something is coming" 
-                className={cn(
-                  "w-full h-full object-contain sm:object-cover transition-all duration-1000",
-                  animationPhase === 3 ? "opacity-60 scale-105" : "opacity-0 scale-100"
-                )}
-              />
+              {animationImages.somethingImg && (
+                <img 
+                  src={animationImages.somethingImg}
+                  alt="Something is coming"
+                  loading="eager" 
+                  className={cn(
+                    "w-full h-full object-contain sm:object-cover transition-all duration-1000",
+                    animationPhase === 3 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                  )}
+                />
+              )}
               <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
@@ -173,14 +197,17 @@ export default function Home() {
             animationPhase === 4 ? "opacity-100" : "opacity-0"
           )}>
             <div className="absolute inset-0">
-              <img 
-                src={someoneImg} 
-                alt="Veteran needs help" 
-                className={cn(
-                  "w-full h-full object-contain sm:object-cover transition-all duration-1000",
-                  animationPhase === 4 ? "opacity-60 scale-105" : "opacity-0 scale-100"
-                )}
-              />
+              {animationImages.someoneImg && (
+                <img 
+                  src={animationImages.someoneImg}
+                  alt="Veteran needs help"
+                  loading="eager" 
+                  className={cn(
+                    "w-full h-full object-contain sm:object-cover transition-all duration-1000",
+                    animationPhase === 4 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                  )}
+                />
+              )}
               <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
@@ -245,11 +272,14 @@ export default function Home() {
           showContent ? "opacity-100" : "opacity-0"
         )}>
           <div className="absolute inset-0 z-0">
-            <img 
-              src={heroBg} 
-              alt="Veterans standing together" 
-              className="w-full h-full object-cover opacity-40"
-            />
+            {animationImages.heroBg && (
+              <img 
+                src={animationImages.heroBg}
+                alt="Veterans standing together"
+                loading="lazy" 
+                className="w-full h-full object-cover opacity-40"
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/70 to-brand-navy/50" />
           </div>
 
