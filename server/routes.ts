@@ -2251,7 +2251,8 @@ export async function registerRoutes(
   // =====================================================
   
   // Run stress test simulation with 1000 sales across 30 affiliates
-  app.post("/api/stress-test/run", requireAdmin, async (req, res) => {
+  // Public endpoint for demo purposes
+  app.post("/api/stress-test/run", async (req, res) => {
     try {
       const militaryRanks = ["E1", "E2", "E3", "E4", "E5", "E6", "E7"];
       const firstNames = ["James", "Michael", "Robert", "John", "David", "William", "Richard", "Joseph", "Thomas", "Charles", "Christopher", "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Andrew", "Paul", "Joshua", "Kenneth", "Kevin", "Brian", "George", "Timothy"];
@@ -2417,7 +2418,8 @@ export async function registerRoutes(
   });
   
   // Get stress test results
-  app.get("/api/stress-test/results", requireAdmin, async (req, res) => {
+  // Public endpoint for demo purposes
+  app.get("/api/stress-test/results", async (req, res) => {
     try {
       const affiliates = await storage.getAllVltAffiliates();
       const allSales = await storage.getAllSales();
@@ -2487,7 +2489,8 @@ export async function registerRoutes(
   });
   
   // Clear stress test data
-  app.delete("/api/stress-test/clear", requireAdmin, async (req, res) => {
+  // Public endpoint for demo purposes
+  app.delete("/api/stress-test/clear", async (req, res) => {
     try {
       // This would need a storage method to clear test data
       // For safety, we only clear affiliates with @stresstest.nav emails
