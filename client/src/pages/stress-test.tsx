@@ -319,10 +319,10 @@ export default function StressTest() {
                           <span className="text-sm text-gray-600">Veteran Opt-Ins Needed</span>
                         </div>
                         <p className="text-2xl font-bold text-red-700">
-                          {Math.ceil((results.summary.totalSales || 0) / 0.003).toLocaleString()}
+                          {Math.ceil((results.summary.totalAffiliates || 0) / 0.003).toLocaleString()}
                         </p>
                         <div className="text-xs text-gray-500 mt-1">
-                          Based on 0.3% conversion rate
+                          0.3% rate: 1,000 opt-ins = 3 affiliates
                         </div>
                       </div>
                       <div className="bg-indigo-50 rounded-lg p-4">
@@ -356,7 +356,6 @@ export default function StressTest() {
                           <th className="p-3 text-left font-semibold">Referral Code</th>
                           <th className="p-3 text-left font-semibold">Status</th>
                           <th className="p-3 text-right font-semibold">Direct Sales</th>
-                          <th className="p-3 text-right font-semibold">Veteran Opt-Ins Needed</th>
                           <th className="p-3 text-right font-semibold">Sales Volume</th>
                           <th className="p-3 text-right font-semibold">Total Commissions</th>
                           <th className="p-3 text-right font-semibold">Pending</th>
@@ -367,7 +366,7 @@ export default function StressTest() {
                       <tbody>
                         {!results?.affiliates?.length ? (
                           <tr>
-                            <td colSpan={13} className="p-8 text-center text-gray-500">
+                            <td colSpan={12} className="p-8 text-center text-gray-500">
                               No data yet. Click "Run Simulation" to generate test data.
                             </td>
                           </tr>
@@ -408,9 +407,6 @@ export default function StressTest() {
                                   </span>
                                 </td>
                                 <td className="p-3 text-right font-medium">{aff.totalDirectSales}</td>
-                                <td className="p-3 text-right font-medium text-red-600">
-                                  {Math.ceil((aff.totalDirectSales || 0) / 0.003).toLocaleString()}
-                                </td>
                                 <td className="p-3 text-right font-medium">{formatCurrency(aff.totalSalesVolume)}</td>
                                 <td className="p-3 text-right font-bold text-green-600">{formatCurrency(aff.totalCommissionsEarned)}</td>
                                 <td className="p-3 text-right text-yellow-600">{formatCurrency(aff.pendingCommissions)}</td>
@@ -419,7 +415,7 @@ export default function StressTest() {
                               </tr>
                               {expandedRows.has(aff.id) && (
                                 <tr key={`${aff.id}-details`} className="bg-gray-50 border-t">
-                                  <td colSpan={13} className="p-4">
+                                  <td colSpan={12} className="p-4">
                                     <div className="grid grid-cols-6 gap-4 text-sm">
                                       <div className="bg-white rounded p-3 border">
                                         <p className="text-gray-500 text-xs mb-1">L1 (Producer)</p>
