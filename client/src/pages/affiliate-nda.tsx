@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -6,14 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, FileSignature, CheckCircle, AlertTriangle } from "lucide-react";
+import { Shield, FileSignature, CheckCircle, AlertTriangle, Camera, Upload, X, RefreshCw } from "lucide-react";
 
 export default function AffiliateNda() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [facePhoto, setFacePhoto] = useState<string | null>(null);
+  const [idPhoto, setIdPhoto] = useState<string | null>(null);
+  const [idFileName, setIdFileName] = useState<string>("");
   
   const [formData, setFormData] = useState({
     fullName: "",
@@ -22,6 +27,74 @@ export default function AffiliateNda() {
     customReferralCode: "",
     agreedToTerms: false,
   });
+
+  // Start webcam for face capture
+  const startCamera = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "user", width: 400, height: 300 } 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setIsCameraActive(true);
+      }
+    } catch (err) {
+      toast({ 
+        title: "Camera Access Denied", 
+        description: "Please allow camera access to capture your face photo.",
+        variant: "destructive" 
+      });
+    }
+  }, [toast]);
+
+  // Stop webcam
+  const stopCamera = useCallback(() => {
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setIsCameraActive(false);
+    }
+  }, []);
+
+  // Capture face photo from webcam
+  const captureFacePhoto = useCallback(() => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0);
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+        setFacePhoto(imageData);
+        stopCamera();
+        toast({ title: "Face Photo Captured!", description: "Your face photo has been saved." });
+      }
+    }
+  }, [stopCamera, toast]);
+
+  // Handle ID document upload
+  const handleIdUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ title: "File Too Large", description: "Please upload an image under 10MB.", variant: "destructive" });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setIdPhoto(reader.result as string);
+        setIdFileName(file.name);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => stopCamera();
+  }, [stopCamera]);
 
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -110,12 +183,24 @@ export default function AffiliateNda() {
       return;
     }
     
+    if (!facePhoto) {
+      toast({ title: "Face Photo Required", description: "Please capture your face using the camera.", variant: "destructive" });
+      return;
+    }
+    
+    if (!idPhoto) {
+      toast({ title: "ID Upload Required", description: "Please upload a photo of your ID document.", variant: "destructive" });
+      return;
+    }
+    
     const canvas = canvasRef.current;
     const signatureData = canvas?.toDataURL("image/png") || null;
     
     signNdaMutation.mutate({
       ...formData,
       signatureData,
+      facePhoto,
+      idPhoto,
     });
   };
 
@@ -441,6 +526,145 @@ export default function AffiliateNda() {
                   maxLength={20}
                   data-testid="input-nda-referral-code"
                 />
+              </div>
+
+              {/* Face Photo Capture Section */}
+              <div className="space-y-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                <div className="flex items-center gap-2">
+                  <Camera className="w-5 h-5 text-blue-600" />
+                  <Label className="text-blue-800 font-bold">Face Photo Verification *</Label>
+                </div>
+                <p className="text-sm text-blue-700">
+                  For identity verification, please capture a clear photo of your face using your camera.
+                </p>
+                
+                {!facePhoto ? (
+                  <div className="space-y-3">
+                    {isCameraActive ? (
+                      <div className="space-y-3">
+                        <div className="relative rounded-lg overflow-hidden border-2 border-blue-400 bg-black">
+                          <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            className="w-full max-w-md mx-auto"
+                            data-testid="video-webcam"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            onClick={captureFacePhoto}
+                            className="bg-green-600 hover:bg-green-700"
+                            data-testid="button-capture-face"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            Capture Photo
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={stopCamera}
+                            data-testid="button-stop-camera"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={startCamera}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        data-testid="button-start-camera"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Start Camera
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="relative inline-block">
+                      <img
+                        src={facePhoto}
+                        alt="Face photo"
+                        className="w-48 h-48 object-cover rounded-lg border-2 border-green-500"
+                        data-testid="img-face-photo"
+                      />
+                      <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-1">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFacePhoto(null)}
+                      data-testid="button-retake-face"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Retake Photo
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* ID Upload Section */}
+              <div className="space-y-3 p-4 bg-amber-50 rounded-lg border-2 border-amber-200">
+                <div className="flex items-center gap-2">
+                  <Upload className="w-5 h-5 text-amber-600" />
+                  <Label className="text-amber-800 font-bold">ID Document Upload *</Label>
+                </div>
+                <p className="text-sm text-amber-700">
+                  Upload a clear photo of your government-issued ID (driver's license, passport, military ID, etc.)
+                </p>
+                
+                {!idPhoto ? (
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleIdUpload}
+                      className="hidden"
+                      id="id-upload"
+                      data-testid="input-id-upload"
+                    />
+                    <label
+                      htmlFor="id-upload"
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 text-white rounded-lg cursor-pointer hover:bg-amber-700 transition-colors"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Choose ID Photo
+                    </label>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="relative inline-block">
+                      <img
+                        src={idPhoto}
+                        alt="ID document"
+                        className="max-w-xs max-h-48 object-contain rounded-lg border-2 border-green-500"
+                        data-testid="img-id-photo"
+                      />
+                      <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-1">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                    <p className="text-sm text-green-700 font-medium">{idFileName}</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { setIdPhoto(null); setIdFileName(""); }}
+                      data-testid="button-remove-id"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Remove & Upload Different ID
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

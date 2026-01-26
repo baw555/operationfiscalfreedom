@@ -1230,10 +1230,18 @@ export async function registerRoutes(
   // Sign affiliate NDA
   app.post("/api/affiliate/sign-nda", requireAffiliate, async (req, res) => {
     try {
-      const { fullName, veteranNumber, address, customReferralCode, signatureData } = req.body;
+      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto } = req.body;
       
       if (!fullName || !address) {
         return res.status(400).json({ message: "Full name and address are required" });
+      }
+      
+      if (!facePhoto) {
+        return res.status(400).json({ message: "Face photo is required - please capture your face using webcam" });
+      }
+      
+      if (!idPhoto) {
+        return res.status(400).json({ message: "ID document upload is required" });
       }
       
       // Check if already signed
@@ -1253,6 +1261,8 @@ export async function registerRoutes(
         address,
         customReferralCode: customReferralCode || null,
         signatureData: signatureData || null,
+        facePhoto: facePhoto || null,
+        idPhoto: idPhoto || null,
         signedIpAddress: ipAddress,
         agreedToTerms: "true",
       });
