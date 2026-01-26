@@ -2352,7 +2352,11 @@ export async function registerRoutes(
       for (let i = 0; i < salesCount; i++) {
         const affiliate = createdAffiliates[Math.floor(Math.random() * createdAffiliates.length)];
         const opportunity = existingOpportunities[Math.floor(Math.random() * existingOpportunities.length)];
-        const saleAmount = Math.floor(Math.random() * 500000) + 10000; // $100 - $5100 in cents
+        // Median sale for tax is $16,000 - create distribution around this
+        // Range: $5,000 - $35,000 with median around $16,000
+        const baseAmount = 1600000; // $16,000 in cents (median)
+        const variance = Math.floor((Math.random() - 0.5) * 2 * 1900000); // +/- $19,000 variance
+        const saleAmount = Math.max(500000, baseAmount + variance); // Min $5,000
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         
         const clientFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
