@@ -141,7 +141,7 @@ export default function AffiliateDashboard() {
 
   // Check NDA status
   const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
-    queryKey: ["affiliate-nda-status"],
+    queryKey: ["/api/affiliate/nda-status"],
     queryFn: async () => {
       const res = await fetch("/api/affiliate/nda-status");
       if (!res.ok) return { hasSigned: false };

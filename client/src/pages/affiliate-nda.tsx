@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useRef, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Shield, FileSignature, CheckCircle, AlertTriangle } from "lucide-react"
 export default function AffiliateNda() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   
@@ -55,6 +56,8 @@ export default function AffiliateNda() {
       return res.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/affiliate/nda-status"] });
+      queryClient.invalidateQueries({ queryKey: ["affiliate-nda-status"] });
       toast({ title: "NDA Signed Successfully!", description: "Welcome to the NavigatorUSA affiliate program." });
       setLocation("/affiliate/dashboard");
     },
@@ -116,6 +119,20 @@ export default function AffiliateNda() {
     });
   };
 
+  // Redirect to login if not authenticated or not an affiliate
+  useEffect(() => {
+    if (!authLoading && (!authData || authData.user?.role !== "affiliate")) {
+      setLocation("/affiliate/login");
+    }
+  }, [authLoading, authData, setLocation]);
+
+  // Redirect to dashboard if NDA is already signed
+  useEffect(() => {
+    if (!ndaLoading && ndaStatus?.hasSigned) {
+      setLocation("/affiliate/dashboard");
+    }
+  }, [ndaLoading, ndaStatus, setLocation]);
+
   if (authLoading || ndaLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -125,12 +142,10 @@ export default function AffiliateNda() {
   }
 
   if (!authData || authData.user?.role !== "affiliate") {
-    setLocation("/affiliate/login");
     return null;
   }
 
   if (ndaStatus?.hasSigned) {
-    setLocation("/affiliate/dashboard");
     return null;
   }
 
