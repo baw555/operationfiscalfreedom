@@ -403,8 +403,8 @@ export default function AffiliateDashboard() {
                     <Lock className="w-4 h-4" />
                   </h3>
                   <p className="text-amber-800 text-sm mt-1">
-                    Our system protects your referral commissions. All leads are tracked via 30-day 
-                    cookies with first-touch attribution - once someone uses your referral link, you're credited even if they 
+                    Our system protects your referral commissions using IP address tracking and 30-day cookies with 
+                    first-touch attribution - once someone uses your referral link, you're credited even if they 
                     return later without the link.
                   </p>
                   <p className="text-amber-700 text-xs mt-2 italic">
