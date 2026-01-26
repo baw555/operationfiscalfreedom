@@ -1123,6 +1123,72 @@ export async function registerRoutes(
     }
   });
 
+  // ===== MASTER PORTAL ROUTES (Admin Only) =====
+
+  // Get all affiliate files/documents for master portal
+  app.get("/api/master/affiliate-files", requireAdmin, async (req, res) => {
+    try {
+      // Get all affiliates
+      const affiliates = await storage.getAllAffiliates();
+      
+      // Build file packages for each affiliate
+      const affiliateFiles = await Promise.all(
+        affiliates.map(async (affiliate) => {
+          const nda = await storage.getAffiliateNdaByUserId(affiliate.id);
+          const signedContracts = await storage.getSignedAgreementsByUser(affiliate.id);
+          const w9 = await storage.getAffiliateW9ByUserId(affiliate.id);
+          
+          // Get contract template names
+          const contractsWithNames = await Promise.all(
+            signedContracts.map(async (contract) => {
+              const template = await storage.getContractTemplate(contract.contractTemplateId);
+              return {
+                id: contract.id,
+                contractName: template?.name || 'Unknown Contract',
+                signedAt: contract.createdAt,
+                signatureData: contract.signatureData,
+              };
+            })
+          );
+          
+          return {
+            id: affiliate.id,
+            name: affiliate.name,
+            email: affiliate.email,
+            nda: nda ? {
+              fullName: nda.fullName,
+              address: nda.address,
+              facePhoto: nda.facePhoto,
+              idPhoto: nda.idPhoto,
+              signatureData: nda.signatureData,
+              signedAt: nda.createdAt,
+            } : undefined,
+            contracts: contractsWithNames.length > 0 ? contractsWithNames : undefined,
+            w9: w9 ? {
+              name: w9.name,
+              address: w9.address,
+              city: w9.city,
+              state: w9.state,
+              zip: w9.zip,
+              taxClassification: w9.taxClassification,
+              certificationDate: w9.certificationDate,
+            } : undefined,
+          };
+        })
+      );
+      
+      // Filter to only affiliates with at least one document
+      const filesWithDocs = affiliateFiles.filter(
+        (a) => a.nda || (a.contracts && a.contracts.length > 0) || a.w9
+      );
+      
+      res.json(filesWithDocs);
+    } catch (error) {
+      console.error("Master portal files error:", error);
+      res.status(500).json({ message: "Failed to fetch affiliate files" });
+    }
+  });
+
   // ===== AFFILIATE ROUTES =====
 
   // Get assigned affiliate applications

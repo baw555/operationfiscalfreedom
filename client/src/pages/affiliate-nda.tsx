@@ -131,9 +131,9 @@ export default function AffiliateNda() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/affiliate/nda-status"] });
       queryClient.invalidateQueries({ queryKey: ["affiliate-nda-status"] });
-      toast({ title: "NDA Signed Successfully!", description: "Now let's complete the remaining documents..." });
-      // Redirect to sign remaining contracts and W9
-      setLocation("/sign-contract");
+      toast({ title: "NDA Signed Successfully!", description: "Welcome to the team! You can now access the affiliate dashboard." });
+      // Redirect to affiliate dashboard - contracts can be signed later
+      setLocation("/affiliate/dashboard");
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });

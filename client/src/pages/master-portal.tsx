@@ -1,21 +1,383 @@
-import { Shield } from "lucide-react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { Shield, Users, FileText, FolderOpen, Eye, Download, ChevronRight, Camera, IdCard, FileSignature, ClipboardCheck, Receipt } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+interface AffiliateFile {
+  id: number;
+  name: string;
+  email: string;
+  nda?: {
+    fullName: string;
+    address: string;
+    facePhoto?: string;
+    idPhoto?: string;
+    signatureData?: string;
+    signedAt: string;
+  };
+  contracts?: Array<{
+    id: number;
+    contractName: string;
+    signedAt: string;
+    signatureData?: string;
+  }>;
+  w9?: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    taxClassification: string;
+    certificationDate: string;
+  };
+}
 
 export default function MasterPortal() {
-  // Master Portal is completely locked
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4 text-center max-w-md">
-        <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center">
-          <Shield className="w-10 h-10 text-white" />
-        </div>
-        <div className="text-2xl text-white font-bold">MASTER PORTAL - ACCESS DENIED</div>
-        <div className="text-gray-300">
-          This portal is completely locked and not available for access.
-        </div>
-        <div className="text-sm text-gray-500 mt-4">
-          Authorized personnel only. Contact administration.
+  const [, setLocation] = useLocation();
+  const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateFile | null>(null);
+  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
+
+  // Check if user is master admin
+  const { data: authData, isLoading: authLoading } = useQuery({
+    queryKey: ["/api/auth/me"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me");
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  // Fetch all affiliates with their files
+  const { data: affiliateFiles = [], isLoading: filesLoading } = useQuery<AffiliateFile[]>({
+    queryKey: ["master-affiliate-files"],
+    queryFn: async () => {
+      const res = await fetch("/api/master/affiliate-files");
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin",
+  });
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-white border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  // Access denied for non-admin users
+  if (!authData || authData.user?.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center">
+            <Shield className="w-10 h-10 text-white" />
+          </div>
+          <div className="text-2xl text-white font-bold">MASTER PORTAL - ACCESS DENIED</div>
+          <div className="text-gray-300">
+            This portal is restricted to authorized administrators only.
+          </div>
+          <Button 
+            onClick={() => setLocation("/admin/login")} 
+            className="mt-4 bg-brand-red hover:bg-brand-red/90"
+          >
+            Admin Login
+          </Button>
         </div>
       </div>
+    );
+  }
+
+  const viewAffiliateFolder = (affiliate: AffiliateFile) => {
+    setSelectedAffiliate(affiliate);
+    setShowDocumentViewer(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800">
+      {/* Header */}
+      <div className="bg-black/30 border-b border-white/10 px-6 py-4">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <Shield className="w-8 h-8 text-brand-red" />
+            <div>
+              <h1 className="text-xl font-bold text-white">Master Portal</h1>
+              <p className="text-sm text-gray-400">NavigatorUSA Administration</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-400">Logged in as: {authData.user.email}</span>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setLocation("/admin/dashboard")}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Admin Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto p-6">
+        <Tabs defaultValue="files" className="w-full">
+          <TabsList className="bg-black/30 border border-white/10">
+            <TabsTrigger value="files" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+              <FolderOpen className="w-4 h-4 mr-2" />
+              Files & Agreements
+            </TabsTrigger>
+            <TabsTrigger value="affiliates" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+              <Users className="w-4 h-4 mr-2" />
+              All Affiliates
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Files & Agreements Tab */}
+          <TabsContent value="files" className="mt-6">
+            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+              <div className="p-4 border-b border-white/10 bg-black/20">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <FolderOpen className="w-5 h-5 text-brand-red" />
+                  Affiliate Document Folders
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  View complete document packages for each affiliate
+                </p>
+              </div>
+
+              {filesLoading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-gray-400 mt-4">Loading affiliate files...</p>
+                </div>
+              ) : affiliateFiles.length === 0 ? (
+                <div className="p-8 text-center text-gray-400">
+                  No affiliate documents found.
+                </div>
+              ) : (
+                <div className="divide-y divide-white/10">
+                  {affiliateFiles.map((affiliate) => (
+                    <div 
+                      key={affiliate.id}
+                      className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-brand-navy rounded-lg flex items-center justify-center">
+                          <FolderOpen className="w-6 h-6 text-brand-red" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-white">{affiliate.name}</h3>
+                          <p className="text-sm text-gray-400">{affiliate.email}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {/* Document status indicators */}
+                        <div className="flex items-center gap-2 mr-4">
+                          {affiliate.nda?.facePhoto && (
+                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title="Face Photo">
+                              <Camera className="w-4 h-4 text-green-500" />
+                            </div>
+                          )}
+                          {affiliate.nda?.idPhoto && (
+                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title="ID Photo">
+                              <IdCard className="w-4 h-4 text-green-500" />
+                            </div>
+                          )}
+                          {affiliate.nda && (
+                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title="NDA Signed">
+                              <FileSignature className="w-4 h-4 text-green-500" />
+                            </div>
+                          )}
+                          {affiliate.contracts && affiliate.contracts.length > 0 && (
+                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title={`${affiliate.contracts.length} Contract(s)`}>
+                              <ClipboardCheck className="w-4 h-4 text-green-500" />
+                            </div>
+                          )}
+                          {affiliate.w9 && (
+                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title="W9 Submitted">
+                              <Receipt className="w-4 h-4 text-green-500" />
+                            </div>
+                          )}
+                        </div>
+
+                        <Button
+                          onClick={() => viewAffiliateFolder(affiliate)}
+                          className="bg-brand-red hover:bg-brand-red/90"
+                          data-testid={`button-view-folder-${affiliate.id}`}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Folder
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Affiliates Tab */}
+          <TabsContent value="affiliates" className="mt-6">
+            <div className="bg-black/20 rounded-lg border border-white/10 p-6">
+              <h2 className="text-lg font-bold text-white mb-4">All Registered Affiliates</h2>
+              <p className="text-gray-400">Coming soon - full affiliate management</p>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Document Viewer Dialog */}
+      <Dialog open={showDocumentViewer} onOpenChange={setShowDocumentViewer}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border-white/20 text-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <FolderOpen className="w-6 h-6 text-brand-red" />
+              {selectedAffiliate?.name}'s Document Folder
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedAffiliate && (
+            <div className="space-y-6 mt-4">
+              {/* Face Photo Section */}
+              {selectedAffiliate.nda?.facePhoto && (
+                <div className="bg-black/30 rounded-lg p-4 border border-white/10">
+                  <h3 className="font-bold text-white flex items-center gap-2 mb-3">
+                    <Camera className="w-5 h-5 text-brand-red" />
+                    Face Photo
+                  </h3>
+                  <img 
+                    src={selectedAffiliate.nda.facePhoto} 
+                    alt="Face Photo" 
+                    className="max-w-xs rounded-lg border border-white/20"
+                    data-testid="img-face-photo"
+                  />
+                </div>
+              )}
+
+              {/* ID Photo Section */}
+              {selectedAffiliate.nda?.idPhoto && (
+                <div className="bg-black/30 rounded-lg p-4 border border-white/10">
+                  <h3 className="font-bold text-white flex items-center gap-2 mb-3">
+                    <IdCard className="w-5 h-5 text-brand-red" />
+                    Government ID
+                  </h3>
+                  <img 
+                    src={selectedAffiliate.nda.idPhoto} 
+                    alt="ID Photo" 
+                    className="max-w-md rounded-lg border border-white/20"
+                    data-testid="img-id-photo"
+                  />
+                </div>
+              )}
+
+              {/* NDA Section */}
+              {selectedAffiliate.nda && (
+                <div className="bg-black/30 rounded-lg p-4 border border-white/10">
+                  <h3 className="font-bold text-white flex items-center gap-2 mb-3">
+                    <FileSignature className="w-5 h-5 text-brand-red" />
+                    NDA / Confidentiality Agreement
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">Full Name:</span>
+                      <p className="text-white">{selectedAffiliate.nda.fullName}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Address:</span>
+                      <p className="text-white">{selectedAffiliate.nda.address}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Signed On:</span>
+                      <p className="text-white">{new Date(selectedAffiliate.nda.signedAt).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  {selectedAffiliate.nda.signatureData && (
+                    <div className="mt-4">
+                      <span className="text-gray-400 text-sm">Signature:</span>
+                      <img 
+                        src={selectedAffiliate.nda.signatureData} 
+                        alt="NDA Signature" 
+                        className="bg-white rounded mt-2 max-w-xs"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Contracts Section */}
+              {selectedAffiliate.contracts && selectedAffiliate.contracts.length > 0 && (
+                <div className="bg-black/30 rounded-lg p-4 border border-white/10">
+                  <h3 className="font-bold text-white flex items-center gap-2 mb-3">
+                    <ClipboardCheck className="w-5 h-5 text-brand-red" />
+                    Signed Contracts ({selectedAffiliate.contracts.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {selectedAffiliate.contracts.map((contract) => (
+                      <div key={contract.id} className="bg-black/20 rounded p-3 border border-white/5">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-white">{contract.contractName}</span>
+                          <span className="text-sm text-gray-400">
+                            Signed: {new Date(contract.signedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* W9 Section */}
+              {selectedAffiliate.w9 && (
+                <div className="bg-black/30 rounded-lg p-4 border border-white/10">
+                  <h3 className="font-bold text-white flex items-center gap-2 mb-3">
+                    <Receipt className="w-5 h-5 text-brand-red" />
+                    W-9 Tax Form
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">Name:</span>
+                      <p className="text-white">{selectedAffiliate.w9.name}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Tax Classification:</span>
+                      <p className="text-white capitalize">{selectedAffiliate.w9.taxClassification.replace(/_/g, ' ')}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-gray-400">Address:</span>
+                      <p className="text-white">
+                        {selectedAffiliate.w9.address}, {selectedAffiliate.w9.city}, {selectedAffiliate.w9.state} {selectedAffiliate.w9.zip}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Certified On:</span>
+                      <p className="text-white">{new Date(selectedAffiliate.w9.certificationDate).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* No documents message */}
+              {!selectedAffiliate.nda && (!selectedAffiliate.contracts || selectedAffiliate.contracts.length === 0) && !selectedAffiliate.w9 && (
+                <div className="text-center text-gray-400 py-8">
+                  No documents found for this affiliate.
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

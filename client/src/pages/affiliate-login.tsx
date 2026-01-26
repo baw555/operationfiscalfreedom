@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { Lock, Eye, EyeOff } from "lucide-react";
@@ -12,10 +13,20 @@ export default function AffiliateLogin() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
+  // Load saved email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("navusa_remembered_email");
+    if (savedEmail) {
+      setFormData(prev => ({ ...prev, email: savedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -32,6 +43,12 @@ export default function AffiliateLogin() {
     },
     onSuccess: (data) => {
       if (data.user.role === "affiliate") {
+        // Handle remember me
+        if (rememberMe) {
+          localStorage.setItem("navusa_remembered_email", formData.email);
+        } else {
+          localStorage.removeItem("navusa_remembered_email");
+        }
         toast({ title: "Welcome back, Operator!" });
         setLocation("/affiliate/dashboard");
       } else {
@@ -171,6 +188,21 @@ export default function AffiliateLogin() {
                 </button>
               </div>
             </div>
+            
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center space-x-3">
+              <Checkbox 
+                id="rememberMe" 
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(!!checked)}
+                className="border-green-500/50 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                data-testid="checkbox-remember-me"
+              />
+              <Label htmlFor="rememberMe" className="text-green-400/80 font-mono text-sm cursor-pointer">
+                REMEMBER CREDENTIALS
+              </Label>
+            </div>
+
             <Button 
               type="submit"
               className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-12 font-mono tracking-wider"
