@@ -511,13 +511,33 @@ export async function registerRoutes(
       if (!affiliate) {
         return res.status(404).json({ message: "Affiliate not found" });
       }
+      // Calculate upline count
+      let uplineCount = 0;
+      if (affiliate.level1Id) uplineCount++;
+      if (affiliate.level2Id) uplineCount++;
+      if (affiliate.level3Id) uplineCount++;
+      if (affiliate.level4Id) uplineCount++;
+      if (affiliate.level5Id) uplineCount++;
+      if (affiliate.level6Id) uplineCount++;
+
       res.json({
         id: affiliate.id,
         name: affiliate.name,
         email: affiliate.email,
         referralCode: affiliate.referralCode,
+        role: affiliate.role,
         totalLeads: affiliate.totalLeads,
-        status: affiliate.status
+        totalSales: affiliate.totalSales,
+        totalCommissions: affiliate.totalCommissions,
+        status: affiliate.status,
+        uplineCount,
+        level1Id: affiliate.level1Id,
+        level2Id: affiliate.level2Id,
+        level3Id: affiliate.level3Id,
+        level4Id: affiliate.level4Id,
+        level5Id: affiliate.level5Id,
+        level6Id: affiliate.level6Id,
+        recruiterId: affiliate.recruiterId
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to get affiliate" });

@@ -51,6 +51,24 @@ export default function AffiliateDashboard() {
     }
   }, [authData, authLoading, setLocation]);
 
+  // Fetch VLT affiliate profile (for upline count)
+  const { data: vltProfile } = useQuery({
+    queryKey: ["vlt-affiliate-me"],
+    queryFn: async () => {
+      const res = await fetch("/api/vlt-affiliate/me");
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  // Auto-set upline count from VLT profile
+  useEffect(() => {
+    if (vltProfile?.uplineCount !== undefined) {
+      setUplineCount(vltProfile.uplineCount);
+    }
+  }, [vltProfile]);
+
   // Fetch contracts
   const { data: contractTemplates = [] } = useQuery({
     queryKey: ["contract-templates"],
@@ -514,7 +532,12 @@ export default function AffiliateDashboard() {
                   </select>
                 </div>
                 <div>
-                  <Label className="text-sm font-bold text-gray-700">Your Uplines</Label>
+                  <Label className="text-sm font-bold text-gray-700">
+                    Your Uplines
+                    {vltProfile?.uplineCount !== undefined && (
+                      <span className="ml-2 text-xs font-normal text-green-600">(Your actual: {vltProfile.uplineCount})</span>
+                    )}
+                  </Label>
                   <div className="mt-1 flex items-center gap-3">
                     <input
                       type="range"
