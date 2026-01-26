@@ -198,8 +198,11 @@ export default function AffiliateDashboard() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-xl text-white font-display">Loading Portal...</div>
+        </div>
       </div>
     );
   }
@@ -218,15 +221,53 @@ export default function AffiliateDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Patriotic Background */}
+      <div className="fixed inset-0 -z-10">
+        {/* Base gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800" />
+        
+        {/* Subtle American flag-inspired stripes */}
+        <div className="absolute inset-0 opacity-[0.03]">
+          {[...Array(13)].map((_, i) => (
+            <div 
+              key={i} 
+              className={`h-[7.69%] ${i % 2 === 0 ? 'bg-white' : 'bg-transparent'}`} 
+            />
+          ))}
+        </div>
+        
+        {/* Stars pattern overlay */}
+        <div className="absolute top-0 left-0 w-2/5 h-[54%] opacity-[0.02]"
+          style={{
+            backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
+            backgroundSize: '30px 30px'
+          }}
+        />
+        
+        {/* Uplifting light rays from top */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[60%] opacity-10"
+          style={{
+            background: 'conic-gradient(from 180deg at 50% 0%, transparent 45%, rgba(255,255,255,0.1) 50%, transparent 55%)'
+          }}
+        />
+        
+        {/* Gold accent glow */}
+        <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-yellow-500/5 blur-3xl" />
+        <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-brand-red/5 blur-3xl" />
+      </div>
+
       {/* Header */}
-      <header className="bg-brand-navy text-white shadow-lg">
+      <header className="bg-gradient-to-r from-brand-navy via-brand-navy to-slate-800 text-white shadow-xl border-b border-white/10 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Users className="h-8 w-8 text-brand-red" />
+            <div className="relative">
+              <Users className="h-8 w-8 text-brand-red" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-500 rounded-full animate-pulse" />
+            </div>
             <div>
-              <h1 className="font-display text-2xl">Affiliate Portal</h1>
-              <p className="text-sm text-gray-400">NavigatorUSA</p>
+              <h1 className="font-display text-2xl tracking-wide">Affiliate Portal</h1>
+              <p className="text-sm text-yellow-500/80 font-medium">NavigatorUSA | Veterans' Family Resources</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -245,24 +286,24 @@ export default function AffiliateDashboard() {
       </header>
 
       {/* Main Navigation Tabs */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+      <div className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4">
           <div className="flex overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setMainTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-4 font-bold text-sm uppercase tracking-wide transition-colors border-b-2 whitespace-nowrap ${
+                className={`flex items-center gap-2 px-6 py-4 font-bold text-sm uppercase tracking-wide transition-all border-b-3 whitespace-nowrap ${
                   mainTab === tab.id 
-                    ? "border-brand-red text-brand-navy" 
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? "border-brand-red text-brand-navy bg-brand-red/5" 
+                    : "border-transparent text-gray-500 hover:text-brand-navy hover:bg-gray-50"
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
                 {tab.icon}
                 {tab.label}
                 {tab.badge !== undefined && tab.badge > 0 && (
-                  <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-brand-red text-white">
+                  <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-brand-red text-white animate-pulse">
                     {tab.badge}
                   </span>
                 )}
@@ -272,7 +313,7 @@ export default function AffiliateDashboard() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-0">
         {/* ===== OVERVIEW TAB ===== */}
         {mainTab === "overview" && (
           <div className="space-y-8">
