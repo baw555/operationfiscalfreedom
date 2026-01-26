@@ -1,6 +1,8 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
+import pgSession from "connect-pg-simple";
+import pg from "pg";
 import { storage } from "./storage";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { Resend } from "resend";
@@ -62,14 +64,23 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Trust proxy for production (Replit's load balancer)
-  if (process.env.NODE_ENV === "production") {
-    app.set('trust proxy', 1);
-  }
+  // Trust proxy for Replit's load balancer (needed in both dev and production)
+  app.set('trust proxy', 1);
 
-  // Session middleware
+  // PostgreSQL session store for persistent sessions
+  const PgStore = pgSession(session);
+  const pool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+  // Session middleware with PostgreSQL store
   app.use(
     session({
+      store: new PgStore({
+        pool,
+        tableName: "session",
+        createTableIfMissing: true,
+      }),
       secret: process.env.SESSION_SECRET || "operation-fiscal-freedom-secret-key-2024",
       resave: false,
       saveUninitialized: false,
