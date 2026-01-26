@@ -180,52 +180,86 @@ export default function AffiliateNda() {
             </div>
 
             <div className="prose prose-sm max-w-none mb-8 text-gray-700 border rounded-lg p-6 bg-gray-50">
-              <h2 className="text-lg font-bold text-brand-navy">NON-DISCLOSURE, NON-CIRCUMVENTION & GOOD FAITH AGREEMENT</h2>
+              <h2 className="text-lg font-bold text-brand-navy text-center">NON-CIRCUMVENTION, NON-DISCLOSURE AND CONFIDENTIALITY AGREEMENT</h2>
               
-              <p className="text-sm">
-                <strong>Date:</strong> {today}
+              <p className="text-sm text-center">
+                <strong>Effective Date:</strong> {today}
               </p>
               
               <p>
-                This Agreement ("Agreement") is entered into between <strong>Navigator USA Corp</strong>, a 501(c)(3) 
-                non-profit organization (EIN: 88-3349582), located at 429 D Shoreline Village Dr, Long Beach, CA 90802 
-                ("Organization"), and the undersigned Affiliate ("Affiliate").
+                This Non-Circumvention, Non-Disclosure and Confidentiality Agreement ("Agreement") is entered into between 
+                <strong> Navigator USA Corp</strong>, a 501(c)(3) non-profit organization (EIN: 88-3349582), located at 
+                429 D Shoreline Village Dr, Long Beach, CA 90802 ("Organization"), and the undersigned party ("Signatory"), 
+                collectively referred to as the "Parties."
               </p>
 
-              <h3 className="text-md font-bold mt-4">1. PURPOSE & MISSION</h3>
+              <h3 className="text-md font-bold mt-4">1. DEFINITIONS</h3>
+              <p className="text-sm">
+                <strong>"Affiliates"</strong> means any entity or person controlled by, under common control with, or controlling 
+                a Party, including but not limited to: subsidiaries, parent companies, stockholders, partners, co-ventures, 
+                trading partners, joint ventures, divisions, and other associated organizations.
+              </p>
+              <p className="text-sm">
+                <strong>"Representatives"</strong> means any and all directors, officers, employees, agents, consultants, 
+                contractors, attorneys, accountants, advisors, assigns, designees, heirs, successors, family members, 
+                or representatives of a Party or its Affiliates.
+              </p>
+              <p className="text-sm">
+                <strong>"Confidential Information"</strong> includes but is not limited to: names, identities, addresses, 
+                telephone numbers, email addresses, bank codes, account numbers, financial references, trade secrets, 
+                proprietary formulas, business methods, processes, customer lists, supplier lists, pricing information, 
+                commission structures, referral tracking systems, safety protocols, and any information regarding contacts, 
+                sources, intermediaries, or potential acquisitions disclosed orally, in writing, electronically, visually, 
+                or by demonstration.
+              </p>
+
+              <h3 className="text-md font-bold">2. PURPOSE & MISSION</h3>
               <p>
                 Navigator USA Corp is a tax-exempt public charity dedicated to supporting veteran families through 
-                education, healthcare assistance, and financial empowerment programs. The Affiliate ecosystem exists 
+                education, healthcare assistance, and financial empowerment programs. The affiliate ecosystem exists 
                 to help veterans earn income while contributing to this mission.
               </p>
 
-              <h3 className="text-md font-bold">2. CONFIDENTIALITY</h3>
+              <h3 className="text-md font-bold">3. NON-DISCLOSURE & CONFIDENTIALITY</h3>
               <p>
-                The Affiliate agrees to keep strictly confidential all proprietary information, including but not limited to:
+                The Signatory agrees, both directly and indirectly, for themselves and on behalf of all Affiliates 
+                and Representatives, to the following:
               </p>
               <ul className="list-disc pl-5 text-sm">
-                <li>Commission structures, compensation details, and fee schedules</li>
-                <li>Safety, security, and circumvention protocols</li>
-                <li>Internal business processes, procedures, and trade secrets</li>
-                <li>Veteran, client, and prospect information</li>
-                <li>Marketing strategies and business development plans</li>
-                <li>Affiliate network structure and relationships</li>
+                <li>Maintain complete confidentiality regarding all Confidential Information</li>
+                <li>Not disclose, reveal, or make use of any Confidential Information without specific written permission</li>
+                <li>Cause all Affiliates and Representatives to sign confidentiality agreements at least as protective as this Agreement</li>
+                <li>Ensure that all Affiliates, Representatives, employees, officers, directors, agents, consultants, and advisors who are given access to Confidential Information shall be bound by and comply with the terms of this Agreement</li>
+                <li><strong>RECEIVING PARTY LIABILITY:</strong> The Signatory shall be fully liable for any breach of this Agreement by their Affiliates, Representatives, employees, agents, or any third parties to whom Confidential Information has been disclosed by such persons or entities</li>
               </ul>
 
-              <h3 className="text-md font-bold">3. NON-CIRCUMVENTION</h3>
-              <p>
-                The Affiliate agrees to the following non-circumvention provisions:
+              <h3 className="text-md font-bold">4. NON-CIRCUMVENTION</h3>
+              <p className="font-semibold text-brand-red">
+                The Signatory agrees, both DIRECTLY and INDIRECTLY, not to circumvent, avoid, bypass, or interfere 
+                with the Organization, its Affiliates, or Representatives:
               </p>
               <ul className="list-disc pl-5 text-sm">
-                <li><strong>No Direct Contact:</strong> The Affiliate shall not contact, solicit, or communicate directly with any client, prospect, vendor, or partner introduced through or discovered via the Organization's network without prior written consent.</li>
-                <li><strong>No Bypass Attempts:</strong> The Affiliate shall not attempt to bypass, circumvent, or avoid the Organization's referral tracking and attribution systems.</li>
-                <li><strong>No Competitive Interference:</strong> The Affiliate shall not introduce clients or prospects to competing organizations or services that would reduce or eliminate commissions owed to any party in the affiliate network.</li>
-                <li><strong>Protection of Relationships:</strong> All relationships, introductions, and business opportunities developed through the Organization belong to the Organization and its affiliate network.</li>
+                <li><strong>Scope of Prohibition:</strong> This prohibition applies whether such circumvention is conducted (a) directly by the Signatory, (b) indirectly through Affiliates, Representatives, or third parties, (c) through any corporate restructuring, subsidiary formation, or related entity, or (d) through family members, friends, associates, or any other proxies</li>
+                <li><strong>Protected Relationships:</strong> The Signatory shall not contact, solicit, accept, or conduct any business with any clients, prospects, vendors, investors, banks, funding sources, suppliers, customers, or business opportunities introduced by or discovered through the Organization without express written permission</li>
+                <li><strong>No Bypass Attempts:</strong> The Signatory shall not attempt to bypass, circumvent, avoid, or interfere with the Organization's referral tracking, attribution systems, or commission structures by any means whatsoever</li>
+                <li><strong>No Competitive Interference:</strong> The Signatory shall not introduce clients, prospects, or contacts to competing organizations, services, or individuals that would reduce, divert, or eliminate commissions, fees, or benefits owed to any party in the affiliate network</li>
+                <li><strong>Protection of Introductions:</strong> All relationships, introductions, and business opportunities developed through the Organization belong to the Organization and its affiliate network in perpetuity</li>
+                <li><strong>No Solicitation:</strong> The Signatory shall not solicit, recruit, or encourage any affiliate, employee, contractor, or representative of the Organization to terminate their relationship or to join any competing organization</li>
               </ul>
 
-              <h3 className="text-md font-bold">4. GOOD FAITH & FAIR DEALING</h3>
+              <h3 className="text-md font-bold">5. BINDING EFFECT ON ALL PARTIES</h3>
+              <p className="font-semibold bg-yellow-50 p-3 rounded border border-yellow-200">
+                This Agreement shall be binding upon all Parties and their heirs, successors, associates, Affiliates, 
+                Representatives, assigns, employees, agents, consultants, contractors, family members, friends, 
+                business partners, and any individual, firm, company, corporation, joint venture, partnership, 
+                division, subsidiary, or other entity of which the Signatory is an agent, officer, heir, successor, 
+                assign, designee, or beneficial owner. The Signatory represents that they have full authority to 
+                bind all such persons and entities to the terms of this Agreement.
+              </p>
+
+              <h3 className="text-md font-bold">6. GOOD FAITH & FAIR DEALING</h3>
               <p>
-                The Affiliate agrees to operate in good faith, understanding that this ecosystem is designed to:
+                The Signatory agrees to operate in good faith, understanding that this ecosystem is designed to:
               </p>
               <ul className="list-disc pl-5 text-sm">
                 <li>Help veterans generate income for themselves and their families</li>
@@ -234,26 +268,63 @@ export default function AffiliateNda() {
                 <li>Maintain fair commission distribution among all network participants</li>
               </ul>
 
-              <h3 className="text-md font-bold">5. SAFETY, SECURITY AND CIRCUMVENTION PROTOCOLS</h3>
+              <h3 className="text-md font-bold">7. SAFETY, SECURITY AND CIRCUMVENTION PROTOCOLS</h3>
               <p>
-                The Affiliate acknowledges that the Organization employs comprehensive safety, security, and circumvention protocols 
-                to protect affiliate referrals and commissions. These protocols are confidential and proprietary. The Affiliate 
-                agrees not to share, disclose, or discuss details of these systems with anyone outside the authorized affiliate network.
+                The Signatory acknowledges that the Organization employs comprehensive safety, security, and circumvention 
+                protocols including but not limited to IP tracking, cookie-based attribution, referral link monitoring, 
+                and 30-day first-touch attribution. These protocols are confidential and proprietary. The Signatory 
+                agrees not to share, disclose, discuss, or attempt to circumvent these systems.
               </p>
 
-              <h3 className="text-md font-bold">6. REMEDIES & DAMAGES</h3>
+              <h3 className="text-md font-bold">8. PENALTIES FOR BREACH</h3>
+              <p className="font-semibold text-brand-red">
+                In the event of circumvention or breach of this Agreement by the Signatory, directly or indirectly, 
+                or by their Affiliates, Representatives, agents, or any third parties acting on their behalf:
+              </p>
+              <ul className="list-disc pl-5 text-sm">
+                <li><strong>Monetary Penalty:</strong> The breaching party shall pay a legal monetary penalty equal to THREE (3) TIMES the commission, fee, or maximum financial benefit the non-breaching party should have realized from such transaction</li>
+                <li><strong>Additional Damages:</strong> PLUS all expenses incurred including legal costs, attorney fees, court costs, investigation costs, and lost profits and business opportunities</li>
+                <li><strong>Injunctive Relief:</strong> The Organization shall be entitled to seek injunctive relief and equitable remedies to restrain the breaching party, their Affiliates, Representatives, and agents from continuing the breach</li>
+                <li><strong>Forfeiture:</strong> Violators may be permanently removed from the affiliate network with immediate forfeiture of all pending and future commissions</li>
+                <li><strong>Criminal Referral:</strong> The Organization reserves the right to refer matters involving theft of trade secrets or intentional interference to appropriate law enforcement authorities</li>
+              </ul>
+
+              <h3 className="text-md font-bold">9. TERM & SURVIVAL</h3>
               <p>
-                The Affiliate acknowledges that any breach of this Agreement may cause irreparable harm to the Organization 
-                and other affiliates. In the event of breach, the Organization shall be entitled to seek injunctive relief, 
-                actual damages, loss of commissions, and reasonable attorney's fees. Violators may be permanently removed 
-                from the affiliate network with forfeiture of all pending commissions.
+                This Agreement shall remain in full force and effect for a period of TEN (10) YEARS from the date of 
+                execution, or until terminated by mutual written consent. The non-disclosure, non-circumvention, and 
+                confidentiality obligations shall survive termination of this Agreement and continue in PERPETUITY 
+                for trade secrets and proprietary information, and for ten (10) years for other Confidential Information.
               </p>
 
-              <h3 className="text-md font-bold">7. TERM</h3>
+              <h3 className="text-md font-bold">10. PRE-EXISTING RELATIONSHIPS</h3>
               <p>
-                This Agreement remains in effect for the duration of the Affiliate's participation in the program 
-                and for a period of two (2) years following termination. The non-circumvention and confidentiality 
-                provisions shall survive termination indefinitely.
+                Any third parties that already have a documented pre-existing working relationship with the Signatory, 
+                established PRIOR to this Agreement and verifiable through written records dated before the execution 
+                of this Agreement, are not subject to the non-circumvention restrictions. The burden of proof for 
+                pre-existing relationships rests solely with the Signatory.
+              </p>
+
+              <h3 className="text-md font-bold">11. GOVERNING LAW & JURISDICTION</h3>
+              <p>
+                This Agreement shall be governed by and construed in accordance with the laws of the State of California. 
+                The Parties expressly consent to the exclusive jurisdiction of the state and federal courts located in 
+                Los Angeles County, California. In the event of dispute, the prevailing Party shall be entitled to 
+                recover all reasonable attorney fees and costs.
+              </p>
+
+              <h3 className="text-md font-bold">12. ELECTRONIC SIGNATURES</h3>
+              <p>
+                Signatures on this Agreement received by way of electronic signature shall be deemed valid, enforceable, 
+                and admissible for all purposes as original signatures pursuant to the Electronic Signatures in Global 
+                and National Commerce Act (ESIGN) and the Uniform Electronic Transactions Act (UETA).
+              </p>
+
+              <h3 className="text-md font-bold">13. ENTIRE AGREEMENT</h3>
+              <p>
+                This Agreement constitutes the entire understanding between the Parties and supersedes all prior 
+                negotiations, agreements, or understandings, whether oral or written. Any waiver, amendment, or 
+                modification must be in writing and signed by all Parties to be effective.
               </p>
             </div>
 
@@ -336,9 +407,11 @@ export default function AffiliateNda() {
                   data-testid="checkbox-agree-terms"
                 />
                 <Label htmlFor="agreedToTerms" className="text-sm cursor-pointer">
-                  I have read and agree to the terms of this Non-Disclosure & Good Faith Agreement. I understand 
-                  that Navigator USA Corp is a 501(c)(3) non-profit organization and that this affiliate ecosystem 
-                  is designed to help veterans while supporting veteran education and healthcare programs.
+                  I have read and agree to the terms of this Non-Circumvention, Non-Disclosure and Confidentiality Agreement. 
+                  I understand and acknowledge that this Agreement is binding upon myself, my affiliates, representatives, 
+                  agents, employees, family members, and all associated parties both directly and indirectly. I understand 
+                  that Navigator USA Corp is a 501(c)(3) non-profit organization and that violations may result in penalties 
+                  of THREE (3) TIMES the damages plus attorney fees.
                 </Label>
               </div>
 
