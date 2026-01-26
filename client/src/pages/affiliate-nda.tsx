@@ -99,7 +99,7 @@ export default function AffiliateNda() {
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) throw new Error("Not authenticated");
       return res.json();
     },
@@ -110,7 +110,7 @@ export default function AffiliateNda() {
   const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
     queryKey: ["/api/affiliate/nda-status"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/nda-status");
+      const res = await fetch("/api/affiliate/nda-status", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to check NDA status");
       return res.json();
     },
@@ -123,6 +123,7 @@ export default function AffiliateNda() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+        credentials: "include",
       });
       if (!res.ok) {
         const error = await res.json();

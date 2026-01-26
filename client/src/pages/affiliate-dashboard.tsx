@@ -45,7 +45,7 @@ export default function AffiliateDashboard() {
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["auth"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) throw new Error("Not authenticated");
       return res.json();
     },
@@ -63,7 +63,7 @@ export default function AffiliateDashboard() {
   const { data: vltProfile } = useQuery({
     queryKey: ["vlt-affiliate-me"],
     queryFn: async () => {
-      const res = await fetch("/api/vlt-affiliate/me");
+      const res = await fetch("/api/vlt-affiliate/me", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -81,7 +81,7 @@ export default function AffiliateDashboard() {
   const { data: contractTemplates = [] } = useQuery({
     queryKey: ["contract-templates"],
     queryFn: async () => {
-      const res = await fetch("/api/contracts/templates");
+      const res = await fetch("/api/contracts/templates", { credentials: "include" });
       if (!res.ok) return [];
       return res.json();
     },
@@ -92,7 +92,7 @@ export default function AffiliateDashboard() {
   const { data: signedAgreements = [] } = useQuery({
     queryKey: ["my-signed-agreements"],
     queryFn: async () => {
-      const res = await fetch("/api/contracts/my-signed");
+      const res = await fetch("/api/contracts/my-signed", { credentials: "include" });
       if (!res.ok) return [];
       return res.json();
     },
@@ -103,7 +103,7 @@ export default function AffiliateDashboard() {
   const { data: applications = [] } = useQuery({
     queryKey: ["affiliate-applications"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/applications");
+      const res = await fetch("/api/affiliate/applications", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -113,7 +113,7 @@ export default function AffiliateDashboard() {
   const { data: helpRequests = [] } = useQuery({
     queryKey: ["affiliate-help-requests"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/help-requests");
+      const res = await fetch("/api/affiliate/help-requests", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -123,7 +123,7 @@ export default function AffiliateDashboard() {
   const { data: businessLeads = [] } = useQuery({
     queryKey: ["affiliate-business-leads"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/business-leads");
+      const res = await fetch("/api/affiliate/business-leads", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -134,7 +134,7 @@ export default function AffiliateDashboard() {
   const { data: referralInfo } = useQuery({
     queryKey: ["affiliate-referral-info"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/referral-info");
+      const res = await fetch("/api/affiliate/referral-info", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -145,7 +145,7 @@ export default function AffiliateDashboard() {
   const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
     queryKey: ["/api/affiliate/nda-status"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/nda-status");
+      const res = await fetch("/api/affiliate/nda-status", { credentials: "include" });
       if (!res.ok) return { hasSigned: false };
       return res.json();
     },
@@ -178,6 +178,7 @@ export default function AffiliateDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, notes }),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
@@ -195,6 +196,7 @@ export default function AffiliateDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, notes }),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
@@ -208,7 +210,7 @@ export default function AffiliateDashboard() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     },
     onSuccess: () => {
       setLocation("/affiliate/login");
@@ -222,6 +224,7 @@ export default function AffiliateDashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to submit");
       return res.json();

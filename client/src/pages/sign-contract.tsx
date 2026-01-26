@@ -57,7 +57,7 @@ export default function SignContract() {
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["auth"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -69,7 +69,7 @@ export default function SignContract() {
   const { data: ndaData } = useQuery({
     queryKey: ["affiliate-nda-data"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/nda-status");
+      const res = await fetch("/api/affiliate/nda-status", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -119,7 +119,7 @@ export default function SignContract() {
   const { data: contractTemplates = [] } = useQuery<ContractTemplate[]>({
     queryKey: ["contract-templates"],
     queryFn: async () => {
-      const res = await fetch("/api/contracts/templates");
+      const res = await fetch("/api/contracts/templates", { credentials: "include" });
       if (!res.ok) return [];
       return res.json();
     },
@@ -129,7 +129,7 @@ export default function SignContract() {
   const { data: signedAgreements = [], refetch: refetchSigned } = useQuery({
     queryKey: ["my-signed-agreements"],
     queryFn: async () => {
-      const res = await fetch("/api/contracts/my-signed");
+      const res = await fetch("/api/contracts/my-signed", { credentials: "include" });
       if (!res.ok) return [];
       return res.json();
     },
@@ -140,7 +140,7 @@ export default function SignContract() {
   const { data: w9Status, refetch: refetchW9 } = useQuery({
     queryKey: ["w9-status"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/w9-status");
+      const res = await fetch("/api/affiliate/w9-status", { credentials: "include" });
       if (!res.ok) return { hasSubmitted: false };
       return res.json();
     },
@@ -157,6 +157,7 @@ export default function SignContract() {
           ...w9Data,
           signatureData,
         }),
+        credentials: "include",
       });
       if (!res.ok) {
         const error = await res.json();
@@ -195,6 +196,7 @@ export default function SignContract() {
           achRoutingNumber: achRouting,
           agreedToTerms: "true",
         }),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to sign");
       return res.json();

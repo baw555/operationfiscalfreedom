@@ -35,7 +35,7 @@ export default function SubMasterPortal() {
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -47,7 +47,7 @@ export default function SubMasterPortal() {
   const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
     queryKey: ["/api/affiliate/nda-status"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/nda-status");
+      const res = await fetch("/api/affiliate/nda-status", { credentials: "include" });
       if (!res.ok) return { hasSigned: false };
       return res.json();
     },
@@ -65,7 +65,7 @@ export default function SubMasterPortal() {
     queryKey: ["/api/contracts/pending", affiliateId],
     queryFn: async () => {
       if (!affiliateId) return [];
-      const res = await fetch(`/api/contracts/pending/${affiliateId}`);
+      const res = await fetch(`/api/contracts/pending/${affiliateId}`, { credentials: "include" });
       return res.json();
     },
     enabled: isLoggedIn && !!affiliateId,
@@ -75,7 +75,7 @@ export default function SubMasterPortal() {
     queryKey: ["/api/submaster/downline", affiliateId],
     queryFn: async () => {
       if (!affiliateId) return [];
-      const res = await fetch(`/api/submaster/downline?affiliateId=${affiliateId}`);
+      const res = await fetch(`/api/submaster/downline?affiliateId=${affiliateId}`, { credentials: "include" });
       return res.json();
     },
     enabled: isLoggedIn && !!affiliateId,
@@ -85,7 +85,7 @@ export default function SubMasterPortal() {
     queryKey: ["/api/submaster/sales", affiliateId],
     queryFn: async () => {
       if (!affiliateId) return [];
-      const res = await fetch(`/api/submaster/sales?affiliateId=${affiliateId}`);
+      const res = await fetch(`/api/submaster/sales?affiliateId=${affiliateId}`, { credentials: "include" });
       return res.json();
     },
     enabled: isLoggedIn && !!affiliateId,

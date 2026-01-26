@@ -32,7 +32,7 @@ export default function StressTest() {
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -42,7 +42,7 @@ export default function StressTest() {
   const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
     queryKey: ["/api/affiliate/nda-status"],
     queryFn: async () => {
-      const res = await fetch("/api/affiliate/nda-status");
+      const res = await fetch("/api/affiliate/nda-status", { credentials: "include" });
       if (!res.ok) return { hasSigned: false };
       return res.json();
     },
@@ -66,7 +66,7 @@ export default function StressTest() {
   const { data: results, isLoading, refetch } = useQuery({
     queryKey: ["/api/stress-test/results"],
     queryFn: async () => {
-      const res = await fetch("/api/stress-test/results");
+      const res = await fetch("/api/stress-test/results", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch results");
       return res.json();
     },
@@ -82,6 +82,7 @@ export default function StressTest() {
           numAffiliates,
           hierarchyRandomness,
         }),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to run stress test");
       return res.json();
@@ -100,7 +101,7 @@ export default function StressTest() {
 
   const clearTestMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/stress-test/clear", { method: "DELETE" });
+      const res = await fetch("/api/stress-test/clear", { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Failed to clear test data");
       return res.json();
     },

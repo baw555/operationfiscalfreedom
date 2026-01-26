@@ -53,7 +53,7 @@ export default function AdminDashboard() {
   const { data: applications = [] } = useQuery({
     queryKey: ["admin-applications"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/affiliate-applications");
+      const res = await fetch("/api/admin/affiliate-applications", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
   const { data: helpRequests = [] } = useQuery({
     queryKey: ["admin-help-requests"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/help-requests");
+      const res = await fetch("/api/admin/help-requests", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -73,7 +73,7 @@ export default function AdminDashboard() {
   const { data: affiliates = [] } = useQuery({
     queryKey: ["admin-affiliates"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/affiliates");
+      const res = await fetch("/api/admin/affiliates", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
   const { data: investorSubmissions = [] } = useQuery({
     queryKey: ["admin-investor-submissions"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/investor-submissions");
+      const res = await fetch("/api/admin/investor-submissions", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -94,7 +94,7 @@ export default function AdminDashboard() {
   const { data: privateDoctorRequests = [] } = useQuery({
     queryKey: ["admin-private-doctor-requests"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/private-doctor-requests");
+      const res = await fetch("/api/admin/private-doctor-requests", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
   const { data: websiteApplications = [] } = useQuery({
     queryKey: ["admin-website-applications"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/website-applications");
+      const res = await fetch("/api/admin/website-applications", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
   const { data: generalContacts = [] } = useQuery({
     queryKey: ["admin-general-contact"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/general-contact");
+      const res = await fetch("/api/admin/general-contact", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -128,6 +128,7 @@ export default function AdminDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
@@ -145,6 +146,7 @@ export default function AdminDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
@@ -162,6 +164,7 @@ export default function AdminDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
@@ -179,6 +182,7 @@ export default function AdminDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
@@ -196,6 +200,7 @@ export default function AdminDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
@@ -213,6 +218,7 @@ export default function AdminDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to update");
       return res.json();
@@ -230,6 +236,7 @@ export default function AdminDashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to create affiliate");
       return res.json();
@@ -247,7 +254,7 @@ export default function AdminDashboard() {
 
   const deleteAffiliateMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`/api/admin/affiliates/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/affiliates/${id}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Failed to delete");
       return res.json();
     },
@@ -259,7 +266,7 @@ export default function AdminDashboard() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     },
     onSuccess: () => {
       setLocation("/admin/login");

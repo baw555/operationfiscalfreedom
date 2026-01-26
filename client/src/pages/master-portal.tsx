@@ -49,7 +49,7 @@ export default function MasterPortal() {
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -61,7 +61,7 @@ export default function MasterPortal() {
   const { data: affiliateFiles = [], isLoading: filesLoading } = useQuery<AffiliateFile[]>({
     queryKey: ["master-affiliate-files"],
     queryFn: async () => {
-      const res = await fetch("/api/master/affiliate-files");
+      const res = await fetch("/api/master/affiliate-files", { credentials: "include" });
       if (!res.ok) return [];
       return res.json();
     },
