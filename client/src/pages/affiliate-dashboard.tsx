@@ -13,7 +13,7 @@ import { useLocation, Link } from "wouter";
 import { format } from "date-fns";
 
 type LeadStatus = "new" | "contacted" | "in_progress" | "closed";
-type MainTab = "overview" | "contracts" | "calculator" | "leads";
+type MainTab = "overview" | "contracts" | "calculator" | "vso" | "leads";
 
 const statusColors: Record<LeadStatus, string> = {
   new: "bg-blue-100 text-blue-800",
@@ -217,6 +217,7 @@ export default function AffiliateDashboard() {
     { id: "overview", label: "Overview", icon: <Home className="w-4 h-4" /> },
     { id: "contracts", label: "Contracts", icon: <FileSignature className="w-4 h-4" />, badge: pendingContracts.length },
     { id: "calculator", label: "Calculator", icon: <Calculator className="w-4 h-4" /> },
+    { id: "vso", label: "VSO Revenue", icon: <TrendingUp className="w-4 h-4" /> },
     { id: "leads", label: "Leads", icon: <Users className="w-4 h-4" />, badge: activeLeads > 0 ? activeLeads : undefined },
   ];
 
@@ -650,6 +651,191 @@ export default function AffiliateDashboard() {
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ===== VSO REVENUE GENERATION TAB ===== */}
+        {mainTab === "vso" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-bold text-brand-navy mb-2 flex items-center gap-2">
+                <TrendingUp className="w-6 h-6" />
+                VSO Revenue Generation Model
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Project revenue for Veteran Service Organizations promoting to 50,000+ veterans with a 3% onboarding rate.
+              </p>
+
+              {/* Key Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-gradient-to-br from-brand-navy to-brand-navy/80 text-white rounded-xl p-5">
+                  <p className="text-white/70 text-sm">Target Veterans</p>
+                  <p className="text-3xl font-bold">50,000</p>
+                </div>
+                <div className="bg-gradient-to-br from-brand-red to-brand-red/80 text-white rounded-xl p-5">
+                  <p className="text-white/70 text-sm">Onboarding Rate</p>
+                  <p className="text-3xl font-bold">3%</p>
+                </div>
+                <div className="bg-gradient-to-br from-green-600 to-green-700 text-white rounded-xl p-5">
+                  <p className="text-white/70 text-sm">New Affiliates</p>
+                  <p className="text-3xl font-bold">1,500</p>
+                </div>
+                <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white rounded-xl p-5">
+                  <p className="text-white/70 text-sm">Avg Sales/Affiliate</p>
+                  <p className="text-3xl font-bold">6.7</p>
+                </div>
+              </div>
+
+              {/* Revenue Projections */}
+              <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-bold text-brand-navy mb-4">Projected Revenue (Annual)</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-brand-navy">
+                        <th className="text-left py-3 px-4 font-bold text-brand-navy">Contract Type</th>
+                        <th className="text-right py-3 px-4 font-bold text-brand-navy">Rate</th>
+                        <th className="text-right py-3 px-4 font-bold text-brand-navy">Est. Sales</th>
+                        <th className="text-right py-3 px-4 font-bold text-brand-navy">Avg Deal</th>
+                        <th className="text-right py-3 px-4 font-bold text-brand-navy">Total Revenue</th>
+                        <th className="text-right py-3 px-4 font-bold text-brand-navy">Commission Pool</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b hover:bg-white transition-colors">
+                        <td className="py-3 px-4 font-medium">Private Reinsurance</td>
+                        <td className="py-3 px-4 text-right text-brand-red font-bold">70%</td>
+                        <td className="py-3 px-4 text-right">3,350</td>
+                        <td className="py-3 px-4 text-right">$250,000</td>
+                        <td className="py-3 px-4 text-right font-bold">$837,500,000</td>
+                        <td className="py-3 px-4 text-right text-green-600 font-bold">$586,250,000</td>
+                      </tr>
+                      <tr className="border-b hover:bg-white transition-colors">
+                        <td className="py-3 px-4 font-medium">Tax Resolution</td>
+                        <td className="py-3 px-4 text-right text-brand-red font-bold">55%</td>
+                        <td className="py-3 px-4 text-right">3,325</td>
+                        <td className="py-3 px-4 text-right">$250,000</td>
+                        <td className="py-3 px-4 text-right font-bold">$831,250,000</td>
+                        <td className="py-3 px-4 text-right text-green-600 font-bold">$457,187,500</td>
+                      </tr>
+                      <tr className="border-b hover:bg-white transition-colors">
+                        <td className="py-3 px-4 font-medium">ICC Logistics</td>
+                        <td className="py-3 px-4 text-right text-brand-red font-bold">18%</td>
+                        <td className="py-3 px-4 text-right">3,325</td>
+                        <td className="py-3 px-4 text-right">$250,000</td>
+                        <td className="py-3 px-4 text-right font-bold">$831,250,000</td>
+                        <td className="py-3 px-4 text-right text-green-600 font-bold">$149,625,000</td>
+                      </tr>
+                      <tr className="bg-brand-navy text-white font-bold">
+                        <td className="py-4 px-4">TOTAL</td>
+                        <td className="py-4 px-4 text-right">-</td>
+                        <td className="py-4 px-4 text-right">10,000</td>
+                        <td className="py-4 px-4 text-right">$250,000</td>
+                        <td className="py-4 px-4 text-right">$2,500,000,000</td>
+                        <td className="py-4 px-4 text-right text-yellow-400">$1,193,062,500</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Earnings by Position */}
+              <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-bold text-brand-navy mb-4">Average Earnings by Network Position</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-lg p-5 border-l-4 border-yellow-500 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-bold text-gray-500">MASTER (Level 0)</span>
+                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">30 affiliates</span>
+                    </div>
+                    <p className="text-2xl font-bold text-brand-navy">$902,730</p>
+                    <p className="text-xs text-gray-500 mt-1">Avg annual earnings (producer + upline)</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-5 border-l-4 border-blue-500 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-bold text-gray-500">SUBMASTER (Level 1)</span>
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">120 affiliates</span>
+                    </div>
+                    <p className="text-2xl font-bold text-brand-navy">$695,127</p>
+                    <p className="text-xs text-gray-500 mt-1">Avg annual earnings (producer + upline)</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-5 border-l-4 border-green-500 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-bold text-gray-500">AFFILIATE (Levels 2-6)</span>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">1,350 affiliates</span>
+                    </div>
+                    <p className="text-2xl font-bold text-brand-navy">$585,243</p>
+                    <p className="text-xs text-gray-500 mt-1">Avg annual earnings (producer + upline)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Compression Benefits */}
+              <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-bold text-brand-navy mb-4">Compression Benefits Analysis</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Fewer uplines = higher producer rate. Empty upline slots compress TO THE PRODUCER, not the house.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                  {[
+                    { uplines: 0, rate: 75, count: 30, avg: 509325 },
+                    { uplines: 1, rate: 74, count: 245, avg: 601790 },
+                    { uplines: 2, rate: 73, count: 680, avg: 587379 },
+                    { uplines: 3, rate: 72, count: 439, avg: 579973 },
+                    { uplines: 4, rate: 71, count: 98, avg: 543399 },
+                    { uplines: 5, rate: 70, count: 8, avg: 455028 },
+                  ].map((item) => (
+                    <div key={item.uplines} className="bg-white rounded-lg p-4 text-center shadow-sm">
+                      <p className="text-xs text-gray-500">{item.uplines} Uplines</p>
+                      <p className="text-2xl font-bold text-brand-red">{item.rate}%</p>
+                      <p className="text-xs text-gray-500">Producer Rate</p>
+                      <hr className="my-2" />
+                      <p className="text-sm font-bold text-brand-navy">${(item.avg / 1000).toFixed(0)}K</p>
+                      <p className="text-xs text-gray-400">{item.count} affiliates</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Distribution Summary */}
+              <div className="bg-gradient-to-r from-brand-navy to-brand-navy/90 rounded-xl p-6 text-white">
+                <h3 className="text-lg font-bold mb-4">Commission Pool Distribution</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className="text-white/70 text-sm">Producer Pool</p>
+                    <p className="text-2xl font-bold">69-75%</p>
+                    <p className="text-xs text-yellow-400">+ Compression Bonus</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/70 text-sm">Upline Pool</p>
+                    <p className="text-2xl font-bold">0-6%</p>
+                    <p className="text-xs text-white/50">1% per level (max 6)</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/70 text-sm">House</p>
+                    <p className="text-2xl font-bold">22.5%</p>
+                    <p className="text-xs text-white/50">Fixed percentage</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/70 text-sm">Recruiter Bounty</p>
+                    <p className="text-2xl font-bold">2.5%</p>
+                    <p className="text-xs text-white/50">Separate bonus</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Call to Action */}
+              <div className="mt-6 text-center">
+                <p className="text-gray-600 mb-4">
+                  Ready to bring this revenue model to your Veteran Service Organization?
+                </p>
+                <Link href="/contact">
+                  <Button className="bg-brand-red hover:bg-brand-red/90 text-white px-8 py-3">
+                    Contact Us to Get Started
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         )}
