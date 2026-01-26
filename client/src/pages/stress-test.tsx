@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Activity, 
@@ -12,7 +15,8 @@ import {
   TrendingUp,
   ChevronDown,
   ChevronUp,
-  RefreshCw
+  RefreshCw,
+  Settings
 } from "lucide-react";
 import { Layout } from "@/components/layout";
 
@@ -20,6 +24,11 @@ export default function StressTest() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  
+  // Configuration state
+  const [numSales, setNumSales] = useState(1000);
+  const [numAffiliates, setNumAffiliates] = useState(30);
+  const [hierarchyRandomness, setHierarchyRandomness] = useState(50); // 0-100
 
   const { data: results, isLoading, refetch } = useQuery({
     queryKey: ["/api/stress-test/results"],
@@ -35,6 +44,11 @@ export default function StressTest() {
       const res = await fetch("/api/stress-test/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          numSales,
+          numAffiliates,
+          hierarchyRandomness,
+        }),
       });
       if (!res.ok) throw new Error("Failed to run stress test");
       return res.json();
@@ -141,7 +155,7 @@ export default function StressTest() {
                   <Activity className="w-10 h-10 text-white" />
                   <div>
                     <h1 className="text-2xl font-bold text-white">Stress Test Simulation</h1>
-                    <p className="text-white/70">1000 Sales Across 30 Affiliates - Commission Tracking</p>
+                    <p className="text-white/70">Configurable Commission Structure Testing</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -165,15 +179,6 @@ export default function StressTest() {
                     Export CSV
                   </Button>
                   <Button
-                    onClick={() => runTestMutation.mutate()}
-                    disabled={runTestMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    data-testid="button-run-test"
-                  >
-                    <Play className="w-4 h-4 mr-2" />
-                    {runTestMutation.isPending ? "Running..." : "Run Simulation"}
-                  </Button>
-                  <Button
                     onClick={() => clearTestMutation.mutate()}
                     disabled={clearTestMutation.isPending}
                     variant="destructive"
@@ -181,6 +186,75 @@ export default function StressTest() {
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Clear Test Data
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Configuration Panel */}
+            <div className="p-6 bg-gray-50 border-b">
+              <div className="flex items-center gap-3 mb-4">
+                <Settings className="w-5 h-5 text-brand-navy" />
+                <h2 className="text-lg font-bold text-brand-navy">Simulation Configuration</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                  <Label htmlFor="numSales" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Number of Sales
+                  </Label>
+                  <Input
+                    id="numSales"
+                    type="number"
+                    min={1}
+                    max={5000}
+                    value={numSales}
+                    onChange={(e) => setNumSales(Math.min(5000, Math.max(1, parseInt(e.target.value) || 100)))}
+                    className="w-full"
+                    data-testid="input-num-sales"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">1 - 5,000 sales</p>
+                </div>
+                <div>
+                  <Label htmlFor="numAffiliates" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Number of Affiliates
+                  </Label>
+                  <Input
+                    id="numAffiliates"
+                    type="number"
+                    min={5}
+                    max={100}
+                    value={numAffiliates}
+                    onChange={(e) => setNumAffiliates(Math.min(100, Math.max(5, parseInt(e.target.value) || 30)))}
+                    className="w-full"
+                    data-testid="input-num-affiliates"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">5 - 100 affiliates</p>
+                </div>
+                <div>
+                  <Label htmlFor="hierarchyRandomness" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Hierarchy Randomness: {hierarchyRandomness}%
+                  </Label>
+                  <Slider
+                    id="hierarchyRandomness"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={[hierarchyRandomness]}
+                    onValueChange={(value) => setHierarchyRandomness(value[0])}
+                    className="w-full"
+                    data-testid="slider-randomness"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">0% = Structured, 100% = Random</p>
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={() => runTestMutation.mutate()}
+                    disabled={runTestMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white w-full"
+                    data-testid="button-run-test"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    {runTestMutation.isPending ? "Running..." : "Run Simulation"}
                   </Button>
                 </div>
               </div>

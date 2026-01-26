@@ -2254,6 +2254,18 @@ export async function registerRoutes(
   // Public endpoint for demo purposes
   app.post("/api/stress-test/run", async (req, res) => {
     try {
+      // Get configurable parameters from request body
+      const { 
+        numSales = 1000, 
+        numAffiliates = 30, 
+        hierarchyRandomness = 50 
+      } = req.body;
+      
+      // Validate and clamp values
+      const salesCount = Math.min(Math.max(1, numSales), 5000);
+      const affiliateCount = Math.min(Math.max(5, numAffiliates), 100);
+      const randomness = Math.min(Math.max(0, hierarchyRandomness), 100) / 100;
+      
       const militaryRanks = ["E1", "E2", "E3", "E4", "E5", "E6", "E7"];
       const firstNames = ["James", "Michael", "Robert", "John", "David", "William", "Richard", "Joseph", "Thomas", "Charles", "Christopher", "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Andrew", "Paul", "Joshua", "Kenneth", "Kevin", "Brian", "George", "Timothy"];
       const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris"];
@@ -2276,22 +2288,32 @@ export async function registerRoutes(
         existingOpportunities = await storage.getAllOpportunities();
       }
       
-      // Step 2: Create 30 test affiliates with hierarchy
+      // Step 2: Create test affiliates with hierarchy (using affiliateCount)
       const createdAffiliates: any[] = [];
       const hashedPassword = await hashPassword("TestPass123!");
+      const subMasterCount = Math.max(1, Math.floor(affiliateCount * 0.15)); // 15% are sub_masters
       
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < affiliateCount; i++) {
         const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
         const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
         const rank = militaryRanks[Math.floor(Math.random() * militaryRanks.length)];
-        const role = i === 0 ? "master" : (i < 5 ? "sub_master" : "affiliate");
+        const role = i === 0 ? "master" : (i < subMasterCount ? "sub_master" : "affiliate");
         
-        // Build hierarchy - each affiliate gets assigned to higher levels
-        const level1Id = i > 0 ? createdAffiliates[Math.floor(Math.random() * Math.min(i, 5))].id : null;
-        const level2Id = i > 1 ? createdAffiliates[Math.floor(Math.random() * Math.min(i, 3))].id : null;
-        const level3Id = i > 2 ? createdAffiliates[Math.floor(Math.random() * Math.min(i, 2))].id : null;
-        const level4Id = i > 3 ? createdAffiliates[Math.max(0, Math.floor(Math.random() * 2))].id : null;
-        const level5Id = i > 4 ? createdAffiliates[0].id : null;
+        // Build hierarchy with configurable randomness
+        // Higher randomness = more varied/random hierarchy, lower = more structured
+        const getRandomParent = (maxIdx: number) => {
+          if (maxIdx <= 0) return null;
+          const structuredIdx = Math.min(i - 1, maxIdx - 1); // Structured: pick immediate parent
+          const randomIdx = Math.floor(Math.random() * maxIdx); // Random: pick any parent
+          const blendedIdx = Math.round(structuredIdx * (1 - randomness) + randomIdx * randomness);
+          return createdAffiliates[Math.min(blendedIdx, maxIdx - 1)]?.id || null;
+        };
+        
+        const level1Id = i > 0 ? getRandomParent(Math.min(i, subMasterCount + 2)) : null;
+        const level2Id = i > 1 ? getRandomParent(Math.min(i, subMasterCount)) : null;
+        const level3Id = i > 2 ? getRandomParent(Math.min(i, Math.max(2, subMasterCount - 1))) : null;
+        const level4Id = i > 3 ? getRandomParent(Math.min(i, 3)) : null;
+        const level5Id = i > 4 ? getRandomParent(2) : null;
         const level6Id = createdAffiliates[0]?.id || null;
         
         try {
@@ -2323,11 +2345,11 @@ export async function registerRoutes(
         }
       }
       
-      // Step 3: Create 1000 sales with commissions
+      // Step 3: Create sales with commissions (using salesCount)
       const salesCreated: any[] = [];
       const commissionsCreated: any[] = [];
       
-      for (let i = 0; i < 1000; i++) {
+      for (let i = 0; i < salesCount; i++) {
         const affiliate = createdAffiliates[Math.floor(Math.random() * createdAffiliates.length)];
         const opportunity = existingOpportunities[Math.floor(Math.random() * existingOpportunities.length)];
         const saleAmount = Math.floor(Math.random() * 500000) + 10000; // $100 - $5100 in cents
