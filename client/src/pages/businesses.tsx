@@ -27,7 +27,7 @@ function LeadDropdownForm({
   isOpen, 
   onToggle 
 }: { 
-  leadType: "access_talent" | "utilize_service" | "promote_network";
+  leadType: "access_talent" | "utilize_service" | "promote_network" | "list_business";
   isOpen: boolean;
   onToggle: () => void;
 }) {
@@ -73,21 +73,25 @@ function LeadDropdownForm({
     );
   }
 
+  const isHeroForm = leadType === "list_business";
+
   return (
-    <div className="mt-4">
-      <button
-        onClick={onToggle}
-        className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-brand-navy text-white rounded-lg hover:bg-brand-navy/90 transition-colors font-medium"
-        data-testid={`button-toggle-${leadType}`}
-      >
-        {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-        {isOpen ? "Close Form" : "Get Started"}
-      </button>
+    <div className={isHeroForm ? "" : "mt-4"}>
+      {!isHeroForm && (
+        <button
+          onClick={onToggle}
+          className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-brand-navy text-white rounded-lg hover:bg-brand-navy/90 transition-colors font-medium"
+          data-testid={`button-toggle-${leadType}`}
+        >
+          {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          {isOpen ? "Close Form" : "Get Started"}
+        </button>
+      )}
       
       {isOpen && (
-        <form onSubmit={handleSubmit} className="bg-gray-50 border rounded-lg p-4 mt-3 space-y-3">
+        <form onSubmit={handleSubmit} className={`${isHeroForm ? "bg-white/10 border-white/20" : "bg-gray-50"} border rounded-lg p-4 ${isHeroForm ? "" : "mt-3"} space-y-3`}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Business Name *</label>
+            <label className={`block text-sm font-medium mb-1 ${isHeroForm ? "text-white" : "text-gray-700"}`}>Business Name *</label>
             <input
               type="text"
               required
@@ -100,7 +104,7 @@ function LeadDropdownForm({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name *</label>
+              <label className={`block text-sm font-medium mb-1 ${isHeroForm ? "text-white" : "text-gray-700"}`}>Contact Name *</label>
               <input
                 type="text"
                 required
@@ -112,7 +116,7 @@ function LeadDropdownForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Position *</label>
+              <label className={`block text-sm font-medium mb-1 ${isHeroForm ? "text-white" : "text-gray-700"}`}>Position *</label>
               <input
                 type="text"
                 required
@@ -126,7 +130,7 @@ function LeadDropdownForm({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+              <label className={`block text-sm font-medium mb-1 ${isHeroForm ? "text-white" : "text-gray-700"}`}>Phone *</label>
               <input
                 type="tel"
                 required
@@ -138,7 +142,7 @@ function LeadDropdownForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+              <label className={`block text-sm font-medium mb-1 ${isHeroForm ? "text-white" : "text-gray-700"}`}>Email *</label>
               <input
                 type="email"
                 required
@@ -151,7 +155,7 @@ function LeadDropdownForm({
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+            <label className={`block text-sm font-medium mb-1 ${isHeroForm ? "text-white" : "text-gray-700"}`}>Comment</label>
             <textarea
               value={formData.comment}
               onChange={(e) => setFormData(prev => ({ ...prev, comment: e.target.value }))}
@@ -177,7 +181,7 @@ function LeadDropdownForm({
             )}
           </Button>
           {submitMutation.isError && (
-            <p className="text-red-600 text-sm text-center">Failed to submit. Please try again.</p>
+            <p className={`text-sm text-center ${isHeroForm ? "text-red-300" : "text-red-600"}`}>Failed to submit. Please try again.</p>
           )}
         </form>
       )}
@@ -186,7 +190,7 @@ function LeadDropdownForm({
 }
 
 export default function Businesses() {
-  const [openForm, setOpenForm] = useState<"access_talent" | "utilize_service" | "promote_network" | null>(null);
+  const [openForm, setOpenForm] = useState<"access_talent" | "utilize_service" | "promote_network" | "list_business" | null>(null);
 
   return (
     <Layout>
@@ -196,9 +200,23 @@ export default function Businesses() {
           <p className="text-base sm:text-xl text-gray-400 max-w-2xl mx-auto mb-6 sm:mb-10 px-2">
             Join the largest network of veteran-owned businesses. Hire reliable talent and find new partners.
           </p>
-          <Button size="lg" className="bg-brand-red hover:bg-brand-red/90 text-white h-12 sm:h-14 px-6 sm:px-10 text-sm sm:text-lg w-full sm:w-auto">
-            List Your Business
+          <Button 
+            size="lg" 
+            className="bg-brand-red hover:bg-brand-red/90 text-white h-12 sm:h-14 px-6 sm:px-10 text-sm sm:text-lg w-full sm:w-auto"
+            onClick={() => setOpenForm(openForm === "list_business" ? null : "list_business")}
+            data-testid="button-list-business"
+          >
+            {openForm === "list_business" ? "Close Form" : "List Your Business"}
           </Button>
+          {openForm === "list_business" && (
+            <div className="max-w-md mx-auto mt-6">
+              <LeadDropdownForm 
+                leadType="list_business" 
+                isOpen={true} 
+                onToggle={() => setOpenForm(null)} 
+              />
+            </div>
+          )}
         </div>
       </section>
 
