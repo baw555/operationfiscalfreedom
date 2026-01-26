@@ -21,7 +21,6 @@ import ApplyWebsite from "@/pages/apply-website";
 import AffiliateApply from "@/pages/affiliate-apply";
 import GetHelp from "@/pages/get-help";
 import AdminLogin from "@/pages/admin-login";
-import AdminDashboard from "@/pages/admin-dashboard";
 import AffiliateLogin from "@/pages/affiliate-login";
 import AffiliateDashboard from "@/pages/affiliate-dashboard";
 import AdminSetup from "@/pages/admin-setup";
@@ -232,7 +231,6 @@ function Router() {
       <Route path="/get-help" component={GetHelp} />
       <Route path="/admin/setup" component={AdminSetup} />
       <Route path="/admin/login" component={AdminLogin} />
-      <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/master-portal" component={MasterPortal} />
       <Route path="/submaster-portal" component={SubMasterPortal} />
       <Route path="/veteran-intake" component={VeteranIntake} />

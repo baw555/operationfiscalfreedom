@@ -1342,7 +1342,87 @@ export async function registerRoutes(
     }
   });
 
-  // Seed ICC Logistics service contract
+  // Seed all MAH service contracts
+  app.post("/api/contracts/seed-all-services", async (req, res) => {
+    try {
+      const existing = await storage.getAllContractTemplates();
+      const results: any[] = [];
+
+      // Define all MAH services from the BSBA contract structure
+      const services = [
+        { name: "Private Reinsurance eR3", grossPct: 70, description: "Private Reinsurance Program - eR3" },
+        { name: "Private Reinsurance eR2", grossPct: 70, description: "Private Reinsurance Program - eR2" },
+        { name: "Tax Resolution Services", grossPct: 55, description: "Legacy Tax & Resolution Services - Tier One" },
+        { name: "FICA Tips Tax Credit", grossPct: 70, description: "FICA Tips Tax Credit Recovery" },
+        { name: "Tax Recovery", grossPct: 70, description: "Tax Recovery Services" },
+        { name: "ICC Logistics", grossPct: 18, description: "ICC Logistics Revenue Sharing" },
+      ];
+
+      for (const svc of services) {
+        const exists = existing.find(t => t.serviceName === svc.name);
+        if (exists) {
+          results.push({ service: svc.name, status: "exists", id: exists.id });
+          continue;
+        }
+
+        const contract = await storage.createContractTemplate({
+          name: `${svc.name} Revenue Sharing Agreement`,
+          version: "1.0",
+          companyName: "MISSION ACT HEALTH, INC.",
+          requiredFor: "affiliate",
+          isActive: "true",
+          contractType: "service",
+          grossCommissionPct: svc.grossPct,
+          serviceName: svc.name,
+          content: `<h1>${svc.name.toUpperCase()} REVENUE SHARING AGREEMENT</h1>
+
+<p>This Revenue Sharing Agreement ("Agreement") is between <strong>MISSION ACT HEALTH, INC.</strong>, a Virginia corporation ("MAH"), and the undersigned Independent Representative ("Representative").</p>
+
+<h2>SERVICE DESCRIPTION</h2>
+<p>${svc.description}</p>
+
+<h2>COMPENSATION</h2>
+<p>Compensation payable to the Representative network shall be governed by Schedule A.</p>
+
+<p><strong>Gross Commission Rate: ${svc.grossPct}%</strong></p>
+
+<p>The ${svc.grossPct}% gross commission shall be distributed according to the Schedule A compensation structure based on the Representative's position within the MAH network:</p>
+
+<table border="1" cellpadding="8" style="width:100%; border-collapse: collapse;">
+  <tr style="background-color: #f0f0f0;"><th>Recipient</th><th>Rate</th></tr>
+  <tr><td><strong>Producer (You)</strong></td><td>69% base + compression from empty uplines</td></tr>
+  <tr><td>Each Upline (max 6)</td><td>1% each</td></tr>
+  <tr><td>House (MAH)</td><td>22.5%</td></tr>
+  <tr><td>Recruiter Bounty</td><td>2.5%</td></tr>
+</table>
+
+<p><strong>Compression:</strong> Empty upline levels compress TO THE PRODUCER. A solo producer with no uplines receives 75% (69% + 6%).</p>
+
+<h2>TERM AND TERMINATION</h2>
+<p>This Agreement will commence upon its execution and continue until terminated by either party with 30 days prior written notice.</p>
+
+<h2>RELATIONSHIP OF PARTIES</h2>
+<p>The Representative is an independent contractor, not an employee, partner, or joint venturer of MAH.</p>
+
+<h2>GOVERNING LAW</h2>
+<p>This Agreement will be governed by the laws of the Commonwealth of Virginia.</p>
+
+<hr/>
+
+<p><strong>By signing below, you acknowledge that you have read, understand, and agree to be bound by this Agreement and the attached Schedule A.</strong></p>`
+        });
+
+        results.push({ service: svc.name, status: "created", id: contract.id });
+      }
+
+      res.status(201).json({ success: true, results });
+    } catch (error) {
+      console.error("Error seeding service contracts:", error);
+      res.status(500).json({ message: "Failed to seed service contracts" });
+    }
+  });
+
+  // Seed ICC Logistics service contract (legacy endpoint)
   app.post("/api/contracts/seed-icc", async (req, res) => {
     try {
       const existing = await storage.getAllContractTemplates();
@@ -1603,29 +1683,26 @@ export async function registerRoutes(
     }
   });
 
-  // Get commission configuration
+  // Get commission configuration (simplified model)
   app.get("/api/commission/config", async (req, res) => {
     try {
       const config = await storage.getActiveCommissionConfig();
       if (!config) {
+        // Return simplified defaults
         res.json({
+          producerBasePct: 69,
+          uplinePctEach: 1,
+          maxUplineLevels: 6,
+          housePct: 22.5,
           recruiterBountyPct: 2.5,
-          l1Pct: 67,
-          l2Pct: 3.5,
-          l3Pct: 2.0,
-          l4Pct: 1.2,
-          l5Pct: 0.8,
-          l6Pct: 0.5,
         });
       } else {
         res.json({
-          recruiterBountyPct: config.recruiterBountyPct / 100,
-          l1Pct: config.l1Pct / 100,
-          l2Pct: config.l2Pct / 100,
-          l3Pct: config.l3Pct / 100,
-          l4Pct: config.l4Pct / 100,
-          l5Pct: config.l5Pct / 100,
-          l6Pct: config.l6Pct / 100,
+          producerBasePct: config.producerBasePct,
+          uplinePctEach: config.uplinePctEach,
+          maxUplineLevels: config.maxUplineLevels,
+          housePct: config.housePct,
+          recruiterBountyPct: config.recruiterBountyPct,
         });
       }
     } catch (error) {
@@ -1633,7 +1710,7 @@ export async function registerRoutes(
     }
   });
 
-  // Seed default commission config
+  // Seed default commission config (simplified model)
   app.post("/api/commission/seed", requireAdmin, async (req, res) => {
     try {
       const existing = await storage.getActiveCommissionConfig();
@@ -1642,13 +1719,11 @@ export async function registerRoutes(
       }
       const config = await storage.createCommissionConfig({
         name: "default",
-        recruiterBountyPct: 250,
-        l1Pct: 6700,
-        l2Pct: 350,
-        l3Pct: 200,
-        l4Pct: 120,
-        l5Pct: 80,
-        l6Pct: 50,
+        producerBasePct: 69,
+        uplinePctEach: 1,
+        maxUplineLevels: 6,
+        housePct: 22.5,
+        recruiterBountyPct: 2.5,
         isActive: "true",
       });
       res.json({ success: true, config });

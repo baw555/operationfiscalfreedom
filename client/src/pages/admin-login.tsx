@@ -5,7 +5,7 @@ export default function AdminLogin() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    setLocation("/admin/dashboard");
+    setLocation("/master-portal");
   }, [setLocation]);
 
   return (
