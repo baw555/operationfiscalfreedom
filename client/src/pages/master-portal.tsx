@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { Users, DollarSign, TrendingUp, Building2, Shield, ChevronDown, ChevronRight, FileText, Download, Calculator, Send, UserPlus } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Building2, Shield, ChevronDown, ChevronRight, FileText, Download, Calculator, Send, UserPlus, X } from "lucide-react";
 
 type Affiliate = {
   id: number;
@@ -75,6 +75,8 @@ export default function MasterPortal() {
   const [calcUplineCount, setCalcUplineCount] = useState<number>(0);
   const [calcRecruiter, setCalcRecruiter] = useState<boolean>(true);
   const [expandedAffiliate, setExpandedAffiliate] = useState<number | null>(null);
+  const [viewingTemplate, setViewingTemplate] = useState<any | null>(null);
+  const [viewingAgreement, setViewingAgreement] = useState<SignedAgreement | null>(null);
   const queryClient = useQueryClient();
 
   const { data: affiliates = [], isLoading: loadingAffiliates } = useQuery<Affiliate[]>({
@@ -493,11 +495,16 @@ export default function MasterPortal() {
                       signedAgreements.map((sa) => {
                         const template = contractTemplates.find(t => t.id === sa.contractTemplateId);
                         return (
-                          <tr key={sa.id} className="border-t hover:bg-gray-50">
+                          <tr 
+                            key={sa.id} 
+                            className="border-t hover:bg-blue-50 cursor-pointer transition-colors"
+                            onClick={() => setViewingAgreement(sa)}
+                            data-testid={`row-signed-agreement-${sa.id}`}
+                          >
                             <td className="p-3">{sa.id}</td>
                             <td className="p-3 font-medium">{sa.affiliateName}</td>
                             <td className="p-3">{sa.affiliateEmail}</td>
-                            <td className="p-3">{template?.name || `Contract #${sa.contractTemplateId}`}</td>
+                            <td className="p-3 text-blue-600 underline">{template?.name || `Contract #${sa.contractTemplateId}`}</td>
                             <td className="p-3">{new Date(sa.signedAt).toLocaleDateString()}</td>
                             <td className="p-3">
                               <span className={`px-2 py-1 rounded text-xs ${
@@ -541,8 +548,13 @@ export default function MasterPortal() {
                       </tr>
                     ) : (
                       contractTemplates.map((ct) => (
-                        <tr key={ct.id} className="border-t hover:bg-gray-50">
-                          <td className="p-3 font-medium">{ct.name}</td>
+                        <tr 
+                          key={ct.id} 
+                          className="border-t hover:bg-blue-50 cursor-pointer transition-colors"
+                          onClick={() => setViewingTemplate(ct)}
+                          data-testid={`row-contract-template-${ct.id}`}
+                        >
+                          <td className="p-3 font-medium text-blue-600 underline">{ct.name}</td>
                           <td className="p-3">{ct.companyName}</td>
                           <td className="p-3">{ct.version}</td>
                           <td className="p-3 capitalize">{ct.requiredFor}</td>
@@ -1098,6 +1110,132 @@ NavigatorUSA Team`);
           </div>
         )}
       </div>
+
+      {viewingTemplate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setViewingTemplate(null)}>
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b bg-brand-navy text-white flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold">{viewingTemplate.name}</h2>
+                <p className="text-sm text-white/70">{viewingTemplate.companyName} • Version {viewingTemplate.version}</p>
+              </div>
+              <button
+                onClick={() => setViewingTemplate(null)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+                data-testid="button-close-template-modal"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <div className="mb-4 flex gap-4">
+                <span className={`px-3 py-1 rounded text-sm ${
+                  viewingTemplate.isActive === "true" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                }`}>
+                  {viewingTemplate.isActive === "true" ? "Active" : "Inactive"}
+                </span>
+                <span className="px-3 py-1 rounded text-sm bg-blue-100 text-blue-700 capitalize">
+                  Required for: {viewingTemplate.requiredFor}
+                </span>
+                {viewingTemplate.grossCommissionPct && (
+                  <span className="px-3 py-1 rounded text-sm bg-yellow-100 text-yellow-700">
+                    Commission: {viewingTemplate.grossCommissionPct}%
+                  </span>
+                )}
+              </div>
+              <div 
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: viewingTemplate.content }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewingAgreement && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setViewingAgreement(null)}>
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b bg-brand-navy text-white flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold">Signed Agreement Details</h2>
+                <p className="text-sm text-white/70">Agreement #{viewingAgreement.id}</p>
+              </div>
+              <button
+                onClick={() => setViewingAgreement(null)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+                data-testid="button-close-agreement-modal"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Representative</p>
+                    <p className="font-medium">{viewingAgreement.affiliateName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium">{viewingAgreement.affiliateEmail}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Contract</p>
+                    <p className="font-medium">
+                      {contractTemplates.find(t => t.id === viewingAgreement.contractTemplateId)?.name || `Contract #${viewingAgreement.contractTemplateId}`}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Status</p>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      viewingAgreement.status === "signed" ? "bg-green-100 text-green-700" :
+                      viewingAgreement.status === "void" ? "bg-red-100 text-red-700" :
+                      "bg-gray-100 text-gray-700"
+                    }`}>
+                      {viewingAgreement.status}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Signed Date</p>
+                    <p className="font-medium">{new Date(viewingAgreement.signedAt).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Recruited By</p>
+                    <p className="font-medium">{viewingAgreement.recruitedBy || "N/A"}</p>
+                  </div>
+                </div>
+                {viewingAgreement.physicalAddress && (
+                  <div>
+                    <p className="text-sm text-gray-500">Physical Address</p>
+                    <p className="font-medium">{viewingAgreement.physicalAddress}</p>
+                  </div>
+                )}
+                <div className="pt-4 border-t">
+                  <button
+                    onClick={() => {
+                      const template = contractTemplates.find(t => t.id === viewingAgreement.contractTemplateId);
+                      if (template) {
+                        setViewingAgreement(null);
+                        setViewingTemplate(template);
+                      }
+                    }}
+                    className="px-4 py-2 bg-brand-navy text-white rounded hover:bg-brand-navy/90 transition-colors"
+                    data-testid="button-view-contract-template"
+                  >
+                    View Contract Template
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
