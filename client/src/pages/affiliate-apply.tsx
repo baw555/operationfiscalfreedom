@@ -122,7 +122,7 @@ export default function AffiliateApply() {
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="bg-white p-4 sm:p-8 rounded-xl shadow-lg border border-gray-200">
             <h2 className="font-display text-2xl sm:text-3xl text-brand-navy mb-4 sm:mb-6 text-center">Affiliate Application</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} method="post" action="#" className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
                 <Input 

@@ -1,10 +1,62 @@
+import { useState } from "react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
 
 export default function Login() {
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+
+  const loginMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Login failed");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "Welcome back!" });
+      // Redirect based on role
+      if (data.user.role === "admin" || data.user.role === "master") {
+        window.location.href = "/admin/dashboard";
+      } else if (data.user.role === "affiliate") {
+        window.location.href = "/affiliate/dashboard";
+      } else {
+        window.location.href = "/";
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) {
+      toast({
+        title: "Missing Credentials",
+        description: "Please enter email and password.",
+        variant: "destructive",
+      });
+      return;
+    }
+    loginMutation.mutate(formData);
+  };
+
   return (
     <Layout>
       <div className="min-h-[80vh] flex items-center justify-center bg-brand-black py-10 sm:py-20 px-4">
@@ -14,10 +66,19 @@ export default function Login() {
             <p className="text-sm sm:text-base text-gray-400">Access your dashboard.</p>
           </div>
 
-          <form className="space-y-4 sm:space-y-6" autoComplete="on">
+          <form onSubmit={handleSubmit} method="post" action="#" className="space-y-4 sm:space-y-6" autoComplete="on">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-300 text-sm">Email</Label>
-              <Input id="email" name="email" type="email" autoComplete="email" className="bg-brand-black/50 border-white/10 text-white placeholder:text-gray-600" placeholder="john@example.com" />
+              <Input 
+                id="email" 
+                name="email" 
+                type="email" 
+                autoComplete="email" 
+                className="bg-brand-black/50 border-white/10 text-white placeholder:text-gray-600" 
+                placeholder="john@example.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
             </div>
             
             <div className="space-y-2">
@@ -25,11 +86,23 @@ export default function Login() {
                 <Label htmlFor="password" className="text-gray-300 text-sm">Password</Label>
                 <a href="#" className="text-xs text-white hover:underline">Forgot password?</a>
               </div>
-              <Input id="password" name="password" type="password" autoComplete="current-password" className="bg-brand-black/50 border-white/10 text-white" />
+              <Input 
+                id="password" 
+                name="password" 
+                type="password" 
+                autoComplete="current-password" 
+                className="bg-brand-black/50 border-white/10 text-white"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
             </div>
 
-            <Button className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-11 sm:h-12">
-              Login
+            <Button 
+              type="submit"
+              className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-11 sm:h-12"
+              disabled={loginMutation.isPending}
+            >
+              {loginMutation.isPending ? "Logging in..." : "Login"}
             </Button>
 
             <p className="text-center text-xs sm:text-sm text-gray-500 mt-4">

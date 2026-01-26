@@ -150,7 +150,7 @@ export default function AffiliateLogin() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} method="post" action="#" className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-green-400/80 font-mono text-sm">OPERATOR ID</Label>
               <Input 
