@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { Users, Lock, Eye, EyeOff } from "lucide-react";
+import { Shield, Lock, Eye, EyeOff, Star } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function AffiliateLogin() {
@@ -31,19 +31,19 @@ export default function AffiliateLogin() {
     },
     onSuccess: (data) => {
       if (data.user.role === "affiliate") {
-        toast({ title: "Welcome back!" });
+        toast({ title: "Welcome back, Operator!" });
         setLocation("/affiliate/dashboard");
       } else {
         toast({
           title: "Access Denied",
-          description: "This portal is for affiliates only.",
+          description: "This portal is for authorized operators only.",
           variant: "destructive",
         });
       }
     },
     onError: (error: Error) => {
       toast({
-        title: "Login Failed",
+        title: "Authentication Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -54,7 +54,7 @@ export default function AffiliateLogin() {
     e.preventDefault();
     if (!formData.email || !formData.password) {
       toast({
-        title: "Missing Fields",
+        title: "Missing Credentials",
         description: "Please enter email and password.",
         variant: "destructive",
       });
@@ -64,48 +64,103 @@ export default function AffiliateLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-navy flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden">
+      {/* Military/Security themed background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0a1628] via-[#0d1f35] to-[#0a1628]">
+        {/* Radar sweep effect */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-green-500/30 rounded-full"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-green-500/20 rounded-full"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-green-500/30 rounded-full"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] border border-green-500/20 rounded-full"></div>
+        </div>
+        {/* Grid overlay */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(rgba(30, 64, 100, 0.1) 1px, transparent 1px),
+                           linear-gradient(90deg, rgba(30, 64, 100, 0.1) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
+        }}></div>
+        {/* Corner tactical elements */}
+        <div className="absolute top-4 left-4 text-green-500/40 font-mono text-xs">
+          <div>SYS:ONLINE</div>
+          <div>SEC:LEVEL-5</div>
+        </div>
+        <div className="absolute top-4 right-4 text-green-500/40 font-mono text-xs text-right">
+          <div>LAT: 33.7701</div>
+          <div>LON: -118.1937</div>
+        </div>
+        <div className="absolute bottom-4 left-4 text-green-500/40 font-mono text-xs">
+          <div>NAVUSA-CMD</div>
+          <div>v2.0.26</div>
+        </div>
+        <div className="absolute bottom-4 right-4 text-green-500/40 font-mono text-xs text-right">
+          <div>ENCRYPTED</div>
+          <div>256-BIT AES</div>
+        </div>
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <Users className="h-16 w-16 text-brand-red mx-auto mb-4" />
-          <h1 className="text-3xl font-display text-white mb-2">Affiliate Portal</h1>
-          <p className="text-gray-400">NavigatorUSA Partner Access</p>
+          {/* Military star emblem */}
+          <div className="relative inline-block mb-4">
+            <div className="absolute inset-0 bg-brand-red/20 rounded-full blur-xl animate-pulse"></div>
+            <div className="relative bg-gradient-to-b from-[#1a365d] to-[#0d1f35] p-4 rounded-full border-2 border-brand-red/50">
+              <Shield className="h-12 w-12 text-brand-red" />
+              <Star className="absolute -top-1 -right-1 h-6 w-6 text-yellow-500 fill-yellow-500" />
+            </div>
+          </div>
+          <h1 className="text-4xl font-display text-white mb-2 tracking-wider">COMMAND HQ</h1>
+          <p className="text-green-400/80 font-mono text-sm tracking-widest">SECURE ACCESS TERMINAL</p>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-green-500/60 text-xs font-mono">SYSTEM ACTIVE</span>
+          </div>
         </div>
 
-        <div className="bg-brand-black p-8 rounded-xl border border-brand-red/30 shadow-xl">
+        <div className="bg-gradient-to-b from-[#0d1f35]/95 to-[#0a1628]/95 p-8 rounded-xl border border-green-500/20 shadow-2xl backdrop-blur-sm">
+          {/* Top security bar */}
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-green-500/20">
+            <span className="text-green-400/60 text-xs font-mono">OPERATOR LOGIN</span>
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+              <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">Email Address</Label>
+              <Label htmlFor="email" className="text-green-400/80 font-mono text-sm">OPERATOR ID</Label>
               <Input 
                 id="email" 
                 name="email"
                 type="email"
                 autoComplete="email"
-                placeholder="affiliate@example.com"
+                placeholder="operator@navusa.mil"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="bg-brand-navy/50 border-gray-600 text-white placeholder:text-gray-500"
+                className="bg-[#0a1628] border-green-500/30 text-green-400 placeholder:text-green-600/40 font-mono focus:border-green-500 focus:ring-green-500/20"
                 data-testid="input-email"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
+              <Label htmlFor="password" className="text-green-400/80 font-mono text-sm">ACCESS CODE</Label>
               <div className="relative">
                 <Input 
                   id="password" 
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="••••••••"
+                  placeholder="••••••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="bg-brand-navy/50 border-gray-600 text-white placeholder:text-gray-500 pr-10"
+                  className="bg-[#0a1628] border-green-500/30 text-green-400 placeholder:text-green-600/40 font-mono pr-10 focus:border-green-500 focus:ring-green-500/20"
                   data-testid="input-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500/50 hover:text-green-400"
                   data-testid="button-toggle-password"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -114,18 +169,25 @@ export default function AffiliateLogin() {
             </div>
             <Button 
               type="submit"
-              className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-12"
+              className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-12 font-mono tracking-wider"
               disabled={loginMutation.isPending}
               data-testid="button-login"
             >
               <Lock className="mr-2 h-4 w-4" />
-              {loginMutation.isPending ? "Authenticating..." : "Access Partner Portal"}
+              {loginMutation.isPending ? "AUTHENTICATING..." : "INITIATE ACCESS"}
             </Button>
           </form>
+
+          {/* Bottom security info */}
+          <div className="mt-6 pt-4 border-t border-green-500/20 text-center">
+            <p className="text-green-500/40 text-xs font-mono">
+              CONNECTION SECURED | TLS 1.3
+            </p>
+          </div>
         </div>
 
-        <p className="text-center text-gray-500 text-sm mt-6">
-          Authorized affiliate partners only.
+        <p className="text-center text-green-500/40 text-xs mt-6 font-mono tracking-wider">
+          AUTHORIZED PERSONNEL ONLY | CLEARANCE REQUIRED
         </p>
       </div>
     </div>
