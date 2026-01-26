@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, DollarSign, TrendingUp, Shield, AlertCircle, Lock, FileText } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -30,6 +30,34 @@ export default function SubMasterPortal() {
   const [, setLocation] = useLocation();
   const [affiliateId, setAffiliateId] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Auth check
+  const { data: authData, isLoading: authLoading } = useQuery({
+    queryKey: ["/api/auth/me"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me");
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  // NDA status check
+  const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
+    queryKey: ["/api/affiliate/nda-status"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/nda-status");
+      if (!res.ok) return { hasSigned: false };
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  // Redirect to NDA page if not signed
+  useEffect(() => {
+    if (!ndaLoading && authData?.user && ndaStatus && !ndaStatus.hasSigned) {
+      setLocation("/affiliate/nda");
+    }
+  }, [ndaLoading, authData, ndaStatus, setLocation]);
 
   const { data: pendingContracts = [] } = useQuery<any[]>({
     queryKey: ["/api/contracts/pending", affiliateId],
@@ -82,6 +110,34 @@ export default function SubMasterPortal() {
   };
 
   const totalSalesAmount = sales.reduce((acc, s) => acc + (s.saleAmount || 0), 0);
+
+  // Loading state
+  if (authLoading || ndaLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-xl text-white font-display">Loading Sub-Master Portal...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Block access until NDA is signed
+  if (!ndaStatus?.hasSigned) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <div className="text-xl text-white font-display">Sub-Master Portal Access Locked</div>
+          <div className="text-gray-300">You must sign the Confidentiality Agreement to access this portal.</div>
+          <div className="text-sm text-gray-400">Redirecting to NDA signing page...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoggedIn && pendingContracts.length > 0) {
     return (

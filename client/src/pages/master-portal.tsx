@@ -1,6 +1,7 @@
 import { Layout } from "@/components/layout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Users, DollarSign, TrendingUp, Building2, Shield, ChevronDown, ChevronRight, FileText, Download, Calculator, Send, UserPlus, X } from "lucide-react";
 
 type Affiliate = {
@@ -86,6 +87,7 @@ type BusinessLead = {
 };
 
 export default function MasterPortal() {
+  const [, setLocation] = useLocation();
   const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "businessleads" | "opportunities" | "files" | "compplan" | "vso" | "security">("overview");
   const [selectedVsoAffiliate, setSelectedVsoAffiliate] = useState<number | null>(null);
   const [calcGrossRevenue, setCalcGrossRevenue] = useState<number>(100000);
@@ -97,6 +99,34 @@ export default function MasterPortal() {
   const [viewingTemplate, setViewingTemplate] = useState<any | null>(null);
   const [viewingAgreement, setViewingAgreement] = useState<SignedAgreement | null>(null);
   const queryClient = useQueryClient();
+
+  // Auth check
+  const { data: authData, isLoading: authLoading } = useQuery({
+    queryKey: ["/api/auth/me"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me");
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  // NDA status check
+  const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
+    queryKey: ["/api/affiliate/nda-status"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/nda-status");
+      if (!res.ok) return { hasSigned: false };
+      return res.json();
+    },
+    enabled: !!authData?.user,
+  });
+
+  // Redirect to NDA page if not signed
+  useEffect(() => {
+    if (!ndaLoading && authData?.user && ndaStatus && !ndaStatus.hasSigned) {
+      setLocation("/affiliate/nda");
+    }
+  }, [ndaLoading, authData, ndaStatus, setLocation]);
 
   const { data: affiliates = [], isLoading: loadingAffiliates } = useQuery<Affiliate[]>({
     queryKey: ["/api/master/affiliates"],
@@ -174,6 +204,34 @@ export default function MasterPortal() {
         a.level7Id === affiliateId
     ).length;
   };
+
+  // Loading state
+  if (authLoading || ndaLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-xl text-white font-display">Loading Master Portal...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Block access until NDA is signed
+  if (!ndaStatus?.hasSigned) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <div className="text-xl text-white font-display">Master Portal Access Locked</div>
+          <div className="text-gray-300">You must sign the Confidentiality Agreement to access this portal.</div>
+          <div className="text-sm text-gray-400">Redirecting to NDA signing page...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Layout>
