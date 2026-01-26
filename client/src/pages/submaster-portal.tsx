@@ -1,7 +1,8 @@
 import { Layout } from "@/components/layout";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Users, DollarSign, TrendingUp, Shield } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Shield, AlertCircle } from "lucide-react";
+import { useLocation } from "wouter";
 
 type Affiliate = {
   id: number;
@@ -26,8 +27,19 @@ type Sale = {
 };
 
 export default function SubMasterPortal() {
+  const [, setLocation] = useLocation();
   const [affiliateId, setAffiliateId] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const { data: pendingContracts = [] } = useQuery<any[]>({
+    queryKey: ["/api/contracts/pending", affiliateId],
+    queryFn: async () => {
+      if (!affiliateId) return [];
+      const res = await fetch(`/api/contracts/pending/${affiliateId}`);
+      return res.json();
+    },
+    enabled: isLoggedIn && !!affiliateId,
+  });
 
   const { data: downline = [], refetch: refetchDownline } = useQuery<Affiliate[]>({
     queryKey: ["/api/submaster/downline", affiliateId],
@@ -58,6 +70,29 @@ export default function SubMasterPortal() {
   };
 
   const totalSalesAmount = sales.reduce((acc, s) => acc + (s.saleAmount || 0), 0);
+
+  if (isLoggedIn && pendingContracts.length > 0) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-xl mx-auto text-center">
+            <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-brand-navy mb-4">Contracts Required</h2>
+            <p className="text-gray-600 mb-6">
+              You have {pendingContracts.length} agreement(s) that must be signed before accessing your portal.
+            </p>
+            <button
+              onClick={() => setLocation("/sign-contract")}
+              className="bg-brand-red text-white px-6 py-3 rounded font-bold hover:bg-brand-red/90"
+              data-testid="button-sign-contracts"
+            >
+              Sign Required Contracts
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!isLoggedIn) {
     return (

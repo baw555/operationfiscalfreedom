@@ -29,6 +29,7 @@ import MasterPortal from "@/pages/master-portal";
 import SubMasterPortal from "@/pages/submaster-portal";
 import VeteranIntake from "@/pages/veteran-intake";
 import BusinessIntake from "@/pages/business-intake";
+import SignContract from "@/pages/sign-contract";
 import ApplyStartupGrant from "@/pages/apply-startup-grant";
 import Investors from "@/pages/investors";
 import NewHomeFurniture from "@/pages/new-home-furniture";
@@ -234,6 +235,7 @@ function Router() {
       <Route path="/submaster-portal" component={SubMasterPortal} />
       <Route path="/veteran-intake" component={VeteranIntake} />
       <Route path="/business-intake" component={BusinessIntake} />
+      <Route path="/sign-contract" component={SignContract} />
       <Route path="/affiliate/login" component={AffiliateLogin} />
       <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
       <Route component={NotFound} />

@@ -520,3 +520,57 @@ export const insertVltIntakeSchema = createInsertSchema(vltIntake).omit({
 
 export type InsertVltIntake = z.infer<typeof insertVltIntakeSchema>;
 export type VltIntake = typeof vltIntake.$inferSelect;
+
+// Contract templates for e-signature
+export const contractTemplates = pgTable("contract_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "MAH Independent Representative Agreement"
+  version: text("version").notNull().default("1.0"),
+  content: text("content").notNull(), // Full contract text in markdown/HTML
+  companyName: text("company_name").notNull(), // MISSION ACT HEALTH, INC.
+  requiredFor: text("required_for").notNull().default("all"), // all, affiliate, sub_master, master
+  isActive: text("is_active").notNull().default("true"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertContractTemplateSchema = createInsertSchema(contractTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertContractTemplate = z.infer<typeof insertContractTemplateSchema>;
+export type ContractTemplate = typeof contractTemplates.$inferSelect;
+
+// Signed agreements tracking
+export const signedAgreements = pgTable("signed_agreements", {
+  id: serial("id").primaryKey(),
+  contractTemplateId: integer("contract_template_id").references(() => contractTemplates.id).notNull(),
+  affiliateId: integer("affiliate_id").references(() => vltAffiliates.id).notNull(),
+  affiliateName: text("affiliate_name").notNull(),
+  affiliateEmail: text("affiliate_email").notNull(),
+  signatureData: text("signature_data"), // Base64 signature image
+  signedIpAddress: text("signed_ip_address"),
+  agreedToTerms: text("agreed_to_terms").notNull().default("true"),
+  physicalAddress: text("physical_address"),
+  businessActivities: text("business_activities"),
+  achName: text("ach_name"),
+  achBank: text("ach_bank"),
+  achAccountNumber: text("ach_account_number"),
+  achRoutingNumber: text("ach_routing_number"),
+  recruitedBy: text("recruited_by"),
+  status: text("status").notNull().default("signed"), // signed, void, superseded
+  signedAt: timestamp("signed_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertSignedAgreementSchema = createInsertSchema(signedAgreements).omit({
+  id: true,
+  status: true,
+  signedAt: true,
+  createdAt: true,
+});
+
+export type InsertSignedAgreement = z.infer<typeof insertSignedAgreementSchema>;
+export type SignedAgreement = typeof signedAgreements.$inferSelect;

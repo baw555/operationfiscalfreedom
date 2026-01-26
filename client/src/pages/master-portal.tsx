@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Users, DollarSign, TrendingUp, Building2, Shield, ChevronDown, ChevronRight } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Building2, Shield, ChevronDown, ChevronRight, FileText, Download } from "lucide-react";
 
 type Affiliate = {
   id: number;
@@ -55,8 +55,20 @@ type BusinessIntake = {
   createdAt: string;
 };
 
+type SignedAgreement = {
+  id: number;
+  contractTemplateId: number;
+  affiliateId: number;
+  affiliateName: string;
+  affiliateEmail: string;
+  signedAt: string;
+  status: string;
+  physicalAddress: string | null;
+  recruitedBy: string | null;
+};
+
 export default function MasterPortal() {
-  const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "opportunities">("overview");
+  const [tab, setTab] = useState<"overview" | "affiliates" | "sales" | "veterans" | "businesses" | "opportunities" | "files">("overview");
   const [expandedAffiliate, setExpandedAffiliate] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
@@ -78,6 +90,14 @@ export default function MasterPortal() {
 
   const { data: opportunities = [] } = useQuery<any[]>({
     queryKey: ["/api/opportunities"],
+  });
+
+  const { data: signedAgreements = [] } = useQuery<SignedAgreement[]>({
+    queryKey: ["/api/contracts/signed"],
+  });
+
+  const { data: contractTemplates = [] } = useQuery<any[]>({
+    queryKey: ["/api/contracts/templates"],
   });
 
   const promoteMutation = useMutation({
@@ -131,6 +151,7 @@ export default function MasterPortal() {
             { key: "veterans", label: "Veteran Intake" },
             { key: "businesses", label: "Business Intake" },
             { key: "opportunities", label: "Opportunities" },
+            { key: "files", label: "Files/Agreements" },
           ].map((t) => (
             <button
               key={t.key}
@@ -430,6 +451,108 @@ export default function MasterPortal() {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {tab === "files" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+              <div className="p-4 border-b flex items-center gap-3">
+                <FileText className="w-6 h-6 text-brand-navy" />
+                <div>
+                  <h3 className="font-bold">Signed Agreements</h3>
+                  <p className="text-sm text-gray-600">All executed contracts on file ({signedAgreements.length} total)</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="p-3 text-left">ID</th>
+                      <th className="p-3 text-left">Representative</th>
+                      <th className="p-3 text-left">Email</th>
+                      <th className="p-3 text-left">Contract</th>
+                      <th className="p-3 text-left">Signed Date</th>
+                      <th className="p-3 text-left">Status</th>
+                      <th className="p-3 text-left">Recruited By</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {signedAgreements.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-6 text-center text-gray-500">No signed agreements yet</td>
+                      </tr>
+                    ) : (
+                      signedAgreements.map((sa) => {
+                        const template = contractTemplates.find(t => t.id === sa.contractTemplateId);
+                        return (
+                          <tr key={sa.id} className="border-t hover:bg-gray-50">
+                            <td className="p-3">{sa.id}</td>
+                            <td className="p-3 font-medium">{sa.affiliateName}</td>
+                            <td className="p-3">{sa.affiliateEmail}</td>
+                            <td className="p-3">{template?.name || `Contract #${sa.contractTemplateId}`}</td>
+                            <td className="p-3">{new Date(sa.signedAt).toLocaleDateString()}</td>
+                            <td className="p-3">
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                sa.status === "signed" ? "bg-green-100 text-green-700" :
+                                sa.status === "void" ? "bg-red-100 text-red-700" :
+                                "bg-gray-100 text-gray-700"
+                              }`}>
+                                {sa.status}
+                              </span>
+                            </td>
+                            <td className="p-3">{sa.recruitedBy || "-"}</td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+              <div className="p-4 border-b">
+                <h3 className="font-bold">Contract Templates</h3>
+                <p className="text-sm text-gray-600">Available agreement templates</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="p-3 text-left">Name</th>
+                      <th className="p-3 text-left">Company</th>
+                      <th className="p-3 text-left">Version</th>
+                      <th className="p-3 text-left">Required For</th>
+                      <th className="p-3 text-left">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contractTemplates.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-6 text-center text-gray-500">No contract templates configured</td>
+                      </tr>
+                    ) : (
+                      contractTemplates.map((ct) => (
+                        <tr key={ct.id} className="border-t hover:bg-gray-50">
+                          <td className="p-3 font-medium">{ct.name}</td>
+                          <td className="p-3">{ct.companyName}</td>
+                          <td className="p-3">{ct.version}</td>
+                          <td className="p-3 capitalize">{ct.requiredFor}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              ct.isActive === "true" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                            }`}>
+                              {ct.isActive === "true" ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
       </div>

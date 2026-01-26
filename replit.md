@@ -73,6 +73,8 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - `commissions` - Commission payouts per level for each sale
 - `veteran_intakes` - Veteran program intake forms (disability, holistic, healthcare, financial)
 - `business_intakes` - B2B service intake forms (insurance, tax, payroll, consulting)
+- `contract_templates` - Contract templates for e-signature (MAH Independent Representative Agreement)
+- `signed_agreements` - Tracked signed contracts with signature data, IP address, and ACH info
 
 ### Key Routes
 
@@ -102,10 +104,11 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - `/affiliate/dashboard` - View and manage assigned leads
 
 **Ecosystem Portals:**
-- `/master-portal` - Full ecosystem management (all affiliates, sales, commissions, intakes)
+- `/master-portal` - Full ecosystem management (all affiliates, sales, commissions, intakes, Files/Agreements tab)
 - `/submaster-portal` - Team management for sub-masters (downline tracking, team sales)
 - `/veteran-intake` - Veteran services intake form (disability, holistic, healthcare, financial)
 - `/business-intake` - B2B services intake form (insurance, tax, payroll, consulting)
+- `/sign-contract` - E-signature portal for affiliates to sign required agreements (blocks portal access until signed)
 
 ### Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string

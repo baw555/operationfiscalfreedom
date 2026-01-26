@@ -19,7 +19,9 @@ import {
   insertOpportunitySchema,
   insertSaleSchema,
   insertVeteranIntakeSchema,
-  insertBusinessIntakeSchema
+  insertBusinessIntakeSchema,
+  insertContractTemplateSchema,
+  insertSignedAgreementSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -1226,6 +1228,241 @@ export async function registerRoutes(
       res.json(sales);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch sales" });
+    }
+  });
+
+  // ===== CONTRACT MANAGEMENT ROUTES =====
+
+  // Seed MAH contract template (one-time setup)
+  app.post("/api/contracts/seed-mah", async (req, res) => {
+    try {
+      const existingTemplates = await storage.getAllContractTemplates();
+      if (existingTemplates.length > 0) {
+        return res.json({ message: "Templates already exist", count: existingTemplates.length });
+      }
+      
+      const mahContract = await storage.createContractTemplate({
+        name: "Independent Representative Non-Disclosure, Non-Circumvention and Referral Agreement",
+        version: "1.0",
+        companyName: "MISSION ACT HEALTH, INC.",
+        requiredFor: "all",
+        isActive: "true",
+        content: `<h1>INDEPENDENT REPRESENTATIVE NON-DISCLOSURE, NON-CIRCUMVENTION AND REFERRAL AGREEMENT</h1>
+
+<p>THIS AGREEMENT is made by <strong>MISSION ACT HEALTH, INC.</strong>, a Virginia corporation taxed as a C-Corporation ("MAH") located at [Company Address], and the undersigned Independent Contractor ("Representative"), collectively referred to as the "Parties".</p>
+
+<h2>RECITALS</h2>
+
+<p>WHEREAS MAH engages in business development, marketing, and sales services generally, provides clients with advice and expertise relating to healthcare navigation, veteran services, disability assistance, holistic health education, financial planning, and a wide range of strategic, management, marketing, and financial services (MAH services); and,</p>
+
+<p>WHEREAS, Representative wishes to offer to MAH, and MAH desires to receive from Representative, referrals of potential customers who may be interested in MAH's services, pursuant to the terms and conditions of this Agreement.</p>
+
+<h2>NOW THEREFORE</h2>
+<p>In consideration of the mutual covenants and promises contained in this Agreement as set forth below, MAH and Representative agree as follows:</p>
+
+<h3>Section 1. Description of Work</h3>
+<p>The services provided by the Representative to MAH shall be provided on an as-needed basis. MAH shall have sole discretion to establish the minimum qualifications necessary for the performance of any service rendered by the Representative under this Agreement.</p>
+
+<h3>Section 2. Compensation</h3>
+<p>MAH agrees to pay the Representative for services provided under this Agreement as outlined in Addendum A below.</p>
+
+<h3>Section 3. Relationships of the Parties</h3>
+<p>The Representative shall be considered an independent Contractor and is not an employee, partner, or joint venturer of MAH. Consistent with the foregoing, MAH shall not deduct withholding taxes, social security taxes, or any other taxes or fees required to be deducted by an employer from Representative's compensation.</p>
+
+<h3>Section 4. Term of Engagement</h3>
+<p>This Agreement will become effective upon electronic signature and will continue until Terminated under Section 16 below.</p>
+
+<h3>Section 5. Responsibilities of the Representative</h3>
+<p>The Representative shall have complete control over the time spent, the manner, and the disposition of the services provided. The Representative agrees to devote sufficient time and energy to fulfill the spirit and purpose of this Agreement.</p>
+
+<h3>Section 6. Responsibilities of MAH</h3>
+<p>MAH agrees to follow all reasonable requests of the Representative necessary to the performance of the Representative's duties under this Agreement. MAH agrees to provide the Representative with such information, marketing materials, customer relationship management (CRM) software, and other software as may be necessary to facilitate the efficient flow of business between the Parties.</p>
+
+<h3>Section 7. Representations and Warranties</h3>
+<p>Representative expressly represents and warrants that he/she is over the age of 18 and has the authority to enter into this Agreement.</p>
+
+<h3>Section 8-11. [Standard Provisions]</h3>
+<p>Waiver, Compliance, Representative's Employees, and Liability provisions apply as standard.</p>
+
+<h3>Section 12. Confidentiality</h3>
+<p>The Representative agrees that all proprietary knowledge and information shall be regarded as strictly confidential and held in confidence solely for MAH's benefit and use.</p>
+
+<h3>Section 13. Non-Competition</h3>
+<p>Representative agrees not to contact or initiate contact at any time for any purpose, either directly or indirectly, with any MAH referral without prior written consent.</p>
+
+<h3>Section 14. Non-Solicitation and Non-Circumvention</h3>
+<p>Neither Party will solicit or hire any Employee, Consultant, Customer, Referral, Client, Strategic Partner, or Service Provider of the other Party for a period of one year following termination.</p>
+
+<h3>Section 15. Indemnity</h3>
+<p>The Representative shall indemnify and hold MAH free and harmless from any obligations, debts, suits, costs, claims, judgments, liabilities, attorneys' fees, liens, and attachments.</p>
+
+<h3>Section 16. Termination of Agreement</h3>
+<p>Either Party may terminate this Agreement at any time, with or without cause, provided the Terminating Party provides 30-day prior written notice. All commissions owed shall survive the termination of this Agreement.</p>
+
+<h3>Section 17-28. [Standard Legal Provisions]</h3>
+<p>Partial Invalidity, Entire Agreement, Assignment, Counterparts, Acknowledgment, Notices, Governing Law (Commonwealth of Virginia), Attorney's Fees, Arbitration, Force Majeure, Amendment, and Headings provisions apply as standard.</p>
+
+<hr/>
+
+<h2>ADDENDUM A - TIERED SALES STRUCTURE COMPENSATION</h2>
+
+<p>With respect to the Products/Services, the following Commission Structures will apply:</p>
+
+<table border="1" cellpadding="8" style="width:100%; border-collapse: collapse;">
+  <tr style="background-color: #f0f0f0;"><th>Role</th><th>Commission Rate</th></tr>
+  <tr><td><strong>Primary Referral Agent (Top Rep)</strong></td><td>75% of Net Vendor/Client Claim Fee (NVCCF)</td></tr>
+  <tr><td>Level One Referral Partner</td><td>10% of NVCCF</td></tr>
+  <tr><td>Level Two Referral Partner</td><td>10% of NVCCF</td></tr>
+  <tr><td>Level Three Referral Partner</td><td>5% of NVCCF</td></tr>
+</table>
+
+<p><em>Note: Tiers are static and not compressed. Breakage rolls up to the Company (MAH).</em></p>
+
+<h3>Commission Payment Process</h3>
+<ul>
+  <li>Active Representatives will be paid by the 15th of the month for funds received by MAH in the preceding month for Net Sales of Paid Invoices on Accounts generated by the Representative.</li>
+  <li>Representative will provide ACH account information to be paid electronically by MAH.</li>
+</ul>
+
+<h3>Definitions</h3>
+<ul>
+  <li><strong>Commission Entitlement:</strong> The Active Representative shall be entitled to receive a "Commission" on "Net Sales" of fully "Paid Invoices" from "Active Accounts".</li>
+  <li><strong>Client:</strong> Any business account, individual, group, organization, or entity to whom the Products or Services are marketed, solicited, sold, or purchased.</li>
+  <li><strong>Net Sales of Paid Invoices:</strong> Amounts specified by MAH's generated invoices issued in any month, less taxes, refunds, credits, returns, rebates, discounts, shipping costs, adjustments, and bad debts.</li>
+</ul>
+
+<p style="margin-top: 30px;"><strong>By signing below, you acknowledge that you have read, understand, and agree to be bound by this Agreement.</strong></p>`
+      });
+      
+      res.status(201).json({ success: true, template: mahContract });
+    } catch (error) {
+      console.error("Error seeding MAH contract:", error);
+      res.status(500).json({ message: "Failed to seed contract template" });
+    }
+  });
+
+  // Get all contract templates
+  app.get("/api/contracts/templates", async (req, res) => {
+    try {
+      const templates = await storage.getAllContractTemplates();
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  // Get active contract templates
+  app.get("/api/contracts/templates/active", async (req, res) => {
+    try {
+      const templates = await storage.getActiveContractTemplates();
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  // Get a single contract template
+  app.get("/api/contracts/templates/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getContractTemplate(id);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch template" });
+    }
+  });
+
+  // Create contract template (admin only)
+  app.post("/api/contracts/templates", requireAdmin, async (req, res) => {
+    try {
+      const data = insertContractTemplateSchema.parse(req.body);
+      const template = await storage.createContractTemplate(data);
+      res.status(201).json(template);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  // Update contract template (admin only)
+  app.patch("/api/contracts/templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateContractTemplate(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
+  // Get all signed agreements (admin/master)
+  app.get("/api/contracts/signed", requireAdmin, async (req, res) => {
+    try {
+      const agreements = await storage.getAllSignedAgreements();
+      res.json(agreements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch agreements" });
+    }
+  });
+
+  // Get signed agreements for a specific affiliate
+  app.get("/api/contracts/signed/affiliate/:affiliateId", async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.params.affiliateId);
+      const agreements = await storage.getSignedAgreementsByAffiliate(affiliateId);
+      res.json(agreements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch agreements" });
+    }
+  });
+
+  // Check if affiliate has signed a specific contract
+  app.get("/api/contracts/check/:affiliateId/:templateId", async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.params.affiliateId);
+      const templateId = parseInt(req.params.templateId);
+      const hasSigned = await storage.hasAffiliateSignedContract(affiliateId, templateId);
+      res.json({ hasSigned });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check signature" });
+    }
+  });
+
+  // Sign a contract
+  app.post("/api/contracts/sign", async (req, res) => {
+    try {
+      const data = insertSignedAgreementSchema.parse(req.body);
+      const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      const signedAgreement = await storage.createSignedAgreement({
+        ...data,
+        signedIpAddress: Array.isArray(clientIp) ? clientIp[0] : clientIp || 'unknown'
+      });
+      res.status(201).json({ success: true, id: signedAgreement.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Contract signing error:", error);
+      res.status(500).json({ message: "Failed to sign contract" });
+    }
+  });
+
+  // Get pending contracts for an affiliate (contracts they haven't signed yet)
+  app.get("/api/contracts/pending/:affiliateId", async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.params.affiliateId);
+      const allTemplates = await storage.getActiveContractTemplates();
+      const signedAgreements = await storage.getSignedAgreementsByAffiliate(affiliateId);
+      const signedTemplateIds = signedAgreements.map(sa => sa.contractTemplateId);
+      const pendingTemplates = allTemplates.filter(t => !signedTemplateIds.includes(t.id));
+      res.json(pendingTemplates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch pending contracts" });
     }
   });
 

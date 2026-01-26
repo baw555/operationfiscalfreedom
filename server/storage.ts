@@ -14,7 +14,9 @@ import {
   sales, type Sale, type InsertSale,
   commissions, type Commission, type InsertCommission,
   veteranIntake, type VeteranIntake, type InsertVeteranIntake,
-  businessIntake, type BusinessIntake, type InsertBusinessIntake
+  businessIntake, type BusinessIntake, type InsertBusinessIntake,
+  contractTemplates, type ContractTemplate, type InsertContractTemplate,
+  signedAgreements, type SignedAgreement, type InsertSignedAgreement
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
@@ -137,6 +139,21 @@ export interface IStorage {
   getAllBusinessIntakes(): Promise<BusinessIntake[]>;
   getBusinessIntakesByService(serviceType: string): Promise<BusinessIntake[]>;
   updateBusinessIntake(id: number, updates: Partial<BusinessIntake>): Promise<BusinessIntake | undefined>;
+
+  // Contract Templates
+  createContractTemplate(template: InsertContractTemplate): Promise<ContractTemplate>;
+  getContractTemplate(id: number): Promise<ContractTemplate | undefined>;
+  getAllContractTemplates(): Promise<ContractTemplate[]>;
+  getActiveContractTemplates(): Promise<ContractTemplate[]>;
+  updateContractTemplate(id: number, updates: Partial<ContractTemplate>): Promise<ContractTemplate | undefined>;
+
+  // Signed Agreements
+  createSignedAgreement(agreement: InsertSignedAgreement): Promise<SignedAgreement>;
+  getSignedAgreement(id: number): Promise<SignedAgreement | undefined>;
+  getAllSignedAgreements(): Promise<SignedAgreement[]>;
+  getSignedAgreementsByAffiliate(affiliateId: number): Promise<SignedAgreement[]>;
+  hasAffiliateSignedContract(affiliateId: number, contractTemplateId: number): Promise<boolean>;
+  updateSignedAgreement(id: number, updates: Partial<SignedAgreement>): Promise<SignedAgreement | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -636,6 +653,64 @@ export class DatabaseStorage implements IStorage {
   async updateBusinessIntake(id: number, updates: Partial<BusinessIntake>): Promise<BusinessIntake | undefined> {
     const [bi] = await db.update(businessIntake).set({ ...updates, updatedAt: new Date() }).where(eq(businessIntake.id, id)).returning();
     return bi || undefined;
+  }
+
+  // Contract Templates
+  async createContractTemplate(template: InsertContractTemplate): Promise<ContractTemplate> {
+    const [result] = await db.insert(contractTemplates).values(template).returning();
+    return result;
+  }
+
+  async getContractTemplate(id: number): Promise<ContractTemplate | undefined> {
+    const [ct] = await db.select().from(contractTemplates).where(eq(contractTemplates.id, id));
+    return ct || undefined;
+  }
+
+  async getAllContractTemplates(): Promise<ContractTemplate[]> {
+    return db.select().from(contractTemplates).orderBy(desc(contractTemplates.createdAt));
+  }
+
+  async getActiveContractTemplates(): Promise<ContractTemplate[]> {
+    return db.select().from(contractTemplates).where(eq(contractTemplates.isActive, "true")).orderBy(desc(contractTemplates.createdAt));
+  }
+
+  async updateContractTemplate(id: number, updates: Partial<ContractTemplate>): Promise<ContractTemplate | undefined> {
+    const [ct] = await db.update(contractTemplates).set({ ...updates, updatedAt: new Date() }).where(eq(contractTemplates.id, id)).returning();
+    return ct || undefined;
+  }
+
+  // Signed Agreements
+  async createSignedAgreement(agreement: InsertSignedAgreement): Promise<SignedAgreement> {
+    const [result] = await db.insert(signedAgreements).values(agreement).returning();
+    return result;
+  }
+
+  async getSignedAgreement(id: number): Promise<SignedAgreement | undefined> {
+    const [sa] = await db.select().from(signedAgreements).where(eq(signedAgreements.id, id));
+    return sa || undefined;
+  }
+
+  async getAllSignedAgreements(): Promise<SignedAgreement[]> {
+    return db.select().from(signedAgreements).orderBy(desc(signedAgreements.signedAt));
+  }
+
+  async getSignedAgreementsByAffiliate(affiliateId: number): Promise<SignedAgreement[]> {
+    return db.select().from(signedAgreements).where(eq(signedAgreements.affiliateId, affiliateId)).orderBy(desc(signedAgreements.signedAt));
+  }
+
+  async hasAffiliateSignedContract(affiliateId: number, contractTemplateId: number): Promise<boolean> {
+    const [sa] = await db.select().from(signedAgreements)
+      .where(and(
+        eq(signedAgreements.affiliateId, affiliateId),
+        eq(signedAgreements.contractTemplateId, contractTemplateId),
+        eq(signedAgreements.status, "signed")
+      ));
+    return !!sa;
+  }
+
+  async updateSignedAgreement(id: number, updates: Partial<SignedAgreement>): Promise<SignedAgreement | undefined> {
+    const [sa] = await db.update(signedAgreements).set(updates).where(eq(signedAgreements.id, id)).returning();
+    return sa || undefined;
   }
 }
 
