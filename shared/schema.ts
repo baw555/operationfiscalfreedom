@@ -643,3 +643,34 @@ export const insertAffiliateNdaSchema = createInsertSchema(affiliateNda).omit({
 
 export type InsertAffiliateNda = z.infer<typeof insertAffiliateNdaSchema>;
 export type AffiliateNda = typeof affiliateNda.$inferSelect;
+
+// Business Leads - Submissions from the Vet Biz Owner page
+export const businessLeads = pgTable("business_leads", {
+  id: serial("id").primaryKey(),
+  leadType: text("lead_type").notNull(), // "access_talent", "utilize_service", "promote_network"
+  businessName: text("business_name").notNull(),
+  contactName: text("contact_name").notNull(),
+  position: text("position").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").notNull(),
+  comment: text("comment"),
+  status: text("status").notNull().default("new"), // new, contacted, in_progress, closed
+  assignedTo: integer("assigned_to").references(() => users.id),
+  referredBy: integer("referred_by").references(() => users.id),
+  referralCode: text("referral_code"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBusinessLeadSchema = createInsertSchema(businessLeads).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertBusinessLead = z.infer<typeof insertBusinessLeadSchema>;
+export type BusinessLead = typeof businessLeads.$inferSelect;
