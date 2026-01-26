@@ -103,6 +103,8 @@ export default function AffiliateNda() {
       if (!res.ok) throw new Error("Not authenticated");
       return res.json();
     },
+    retry: 6,
+    retryDelay: 1000,
   });
 
   const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
