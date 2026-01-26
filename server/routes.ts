@@ -78,7 +78,7 @@ export async function registerRoutes(
 
   // ===== PUBLIC ROUTES =====
 
-  // Submit affiliate application
+  // Submit affiliate application (legacy - just stores application)
   app.post("/api/affiliate-applications", async (req, res) => {
     try {
       const data = insertAffiliateApplicationSchema.parse(req.body);
@@ -89,6 +89,60 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to submit application" });
+    }
+  });
+
+  // New affiliate self-signup - creates account and logs in immediately
+  app.post("/api/affiliate-signup", async (req, res) => {
+    try {
+      const { name, companyName, phone, email, password, description } = req.body;
+      
+      if (!name || !email || !password) {
+        return res.status(400).json({ message: "Name, email, and password are required" });
+      }
+      
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+      
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists. Please login instead." });
+      }
+      
+      // Create the affiliate user account
+      const affiliate = await createAffiliateUser(name, email, password);
+      
+      // Also store the application info for admin reference
+      try {
+        await storage.createAffiliateApplication({
+          name,
+          companyName: companyName || "",
+          phone: phone || "",
+          email,
+          description: description || "",
+        });
+      } catch (appError) {
+        // Application storage is optional, don't fail the signup
+        console.log("Note: Could not store application details:", appError);
+      }
+      
+      // Log the user in automatically
+      req.session.userId = affiliate.id;
+      
+      res.status(201).json({ 
+        success: true,
+        user: {
+          id: affiliate.id, 
+          name: affiliate.name, 
+          email: affiliate.email, 
+          role: affiliate.role 
+        }
+      });
+    } catch (error) {
+      console.error("Affiliate signup error:", error);
+      res.status(500).json({ message: "Failed to create account. Please try again." });
     }
   });
 

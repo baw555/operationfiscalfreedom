@@ -18,30 +18,36 @@ export default function AffiliateApply() {
     companyName: "",
     phone: "",
     email: "",
+    password: "",
+    confirmPassword: "",
     description: "",
   });
 
   const submitMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await fetch("/api/affiliate-applications", {
+      const response = await fetch("/api/affiliate-signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to submit application");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to submit application");
+      }
       return response.json();
     },
     onSuccess: () => {
-      setSubmitted(true);
       toast({
-        title: "Application Submitted!",
-        description: "We'll review your application and get back to you soon.",
+        title: "Account Created!",
+        description: "Redirecting you to sign the agreement...",
       });
+      // Redirect to NDA signing page
+      setLocation("/affiliate/nda");
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Submission Failed",
-        description: "Please try again or contact support.",
+        title: "Signup Failed",
+        description: error.message || "Please try again or contact support.",
         variant: "destructive",
       });
     },
@@ -49,7 +55,7 @@ export default function AffiliateApply() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.companyName || !formData.phone || !formData.email || !formData.description) {
+    if (!formData.name || !formData.companyName || !formData.phone || !formData.email || !formData.password || !formData.description) {
       toast({
         title: "Missing Fields",
         description: "Please fill in all required fields.",
@@ -57,31 +63,28 @@ export default function AffiliateApply() {
       });
       return;
     }
+    if (formData.password.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Passwords Don't Match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
     submitMutation.mutate(formData);
   };
 
+  // submitted state is no longer used - users are auto-redirected to NDA page
   if (submitted) {
-    return (
-      <Layout>
-        <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
-          <div className="container mx-auto px-4">
-            <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-red mx-auto mb-4 sm:mb-6" />
-            <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6">Application Received!</h1>
-            <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-              Thank you for your interest in becoming a NavigatorUSA affiliate. 
-              Our team will review your application and contact you within 24-48 hours.
-            </p>
-            <Button 
-              onClick={() => setLocation("/")}
-              className="bg-brand-red hover:bg-brand-red/90 text-white font-bold px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg"
-              data-testid="button-return-home"
-            >
-              Return to Home
-            </Button>
-          </div>
-        </section>
-      </Layout>
-    );
+    return null;
   }
 
   return (
@@ -170,6 +173,32 @@ export default function AffiliateApply() {
                   />
                 </div>
               </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="password">Create Password *</Label>
+                  <Input 
+                    id="password" 
+                    type="password"
+                    placeholder="Min. 6 characters"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    data-testid="input-password"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                  <Input 
+                    id="confirmPassword" 
+                    type="password"
+                    placeholder="Re-enter password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    data-testid="input-confirm-password"
+                    required
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Describe Everything You Need *</Label>
                 <Textarea 
@@ -188,7 +217,7 @@ export default function AffiliateApply() {
                 disabled={submitMutation.isPending}
                 data-testid="button-submit-application"
               >
-                {submitMutation.isPending ? "Submitting..." : "Submit Application"}
+                {submitMutation.isPending ? "Creating Account..." : "Create Account & Continue"}
               </Button>
             </form>
           </div>
