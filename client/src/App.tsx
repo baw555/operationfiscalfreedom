@@ -121,6 +121,7 @@ import VLTFinOpsRefer from "@/pages/vlt/finops-refer";
 import VLTBusinessOwner from "@/pages/vlt/business-owner";
 import VLTIntakeRefer from "@/pages/vlt/intake-refer";
 import VLTIntakeClient from "@/pages/vlt/intake-client";
+import StressTest from "@/pages/stress-test";
 
 function Router() {
   return (
@@ -242,6 +243,7 @@ function Router() {
       <Route path="/affiliate/login" component={AffiliateLogin} />
       <Route path="/affiliate/nda" component={AffiliateNda} />
       <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
+      <Route path="/stress-test" component={StressTest} />
       <Route component={NotFound} />
     </Switch>
   );

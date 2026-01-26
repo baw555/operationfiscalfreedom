@@ -14,7 +14,7 @@ import {
   ChevronUp,
   RefreshCw
 } from "lucide-react";
-import Layout from "@/components/layout";
+import { Layout } from "@/components/layout";
 
 export default function StressTest() {
   const { toast } = useToast();

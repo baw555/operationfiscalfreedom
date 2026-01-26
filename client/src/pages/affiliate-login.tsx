@@ -4,8 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { Shield, Lock, Eye, EyeOff, Star } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 import { useLocation } from "wouter";
+import soldierImage from "@/assets/images/soldier-salute.png";
 
 export default function AffiliateLogin() {
   const { toast } = useToast();
@@ -101,12 +102,15 @@ export default function AffiliateLogin() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          {/* Military star emblem */}
+          {/* Soldier saluting image */}
           <div className="relative inline-block mb-4">
-            <div className="absolute inset-0 bg-brand-red/20 rounded-full blur-xl animate-pulse"></div>
-            <div className="relative bg-gradient-to-b from-[#1a365d] to-[#0d1f35] p-4 rounded-full border-2 border-brand-red/50">
-              <Shield className="h-12 w-12 text-brand-red" />
-              <Star className="absolute -top-1 -right-1 h-6 w-6 text-yellow-500 fill-yellow-500" />
+            <div className="absolute inset-0 bg-brand-red/30 rounded-full blur-2xl animate-pulse"></div>
+            <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-brand-red/50 shadow-2xl">
+              <img 
+                src={soldierImage} 
+                alt="American Soldier Saluting" 
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
           <h1 className="text-4xl font-display text-white mb-2 tracking-wider">COMMAND HQ</h1>
