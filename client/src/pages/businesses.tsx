@@ -222,7 +222,7 @@ export default function Businesses() {
                 <Building2 size={24} className="sm:w-8 sm:h-8" />
               </div>
               <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-2 sm:mb-3">Utilize a Service</h3>
-              <p className="text-sm sm:text-base text-gray-600 mb-2">Partial proceeds benefit veteran education and healthcare.</p>
+              <p className="text-sm sm:text-base text-gray-600 mb-4">Partial proceeds benefit veteran education and healthcare.</p>
               <LeadDropdownForm 
                 leadType="utilize_service" 
                 isOpen={openForm === "utilize_service"} 
@@ -234,7 +234,7 @@ export default function Businesses() {
                 <TrendingUp size={24} className="sm:w-8 sm:h-8" />
               </div>
               <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-2 sm:mb-3">Promote to Your Network</h3>
-              <p className="text-sm sm:text-base text-gray-600 mb-2">Promote to your clients the opportunity.</p>
+              <p className="text-sm sm:text-base text-gray-600 mb-4">Share this opportunity with your clients and partners.</p>
               <LeadDropdownForm 
                 leadType="promote_network" 
                 isOpen={openForm === "promote_network"} 
