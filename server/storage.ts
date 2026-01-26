@@ -9,7 +9,12 @@ import {
   websiteApplications, type WebsiteApplication, type InsertWebsiteApplication,
   generalContact, type GeneralContact, type InsertGeneralContact,
   vltIntake, type VltIntake, type InsertVltIntake,
-  vltAffiliates, type VltAffiliate, type InsertVltAffiliate
+  vltAffiliates, type VltAffiliate, type InsertVltAffiliate,
+  opportunities, type Opportunity, type InsertOpportunity,
+  sales, type Sale, type InsertSale,
+  commissions, type Commission, type InsertCommission,
+  veteranIntake, type VeteranIntake, type InsertVeteranIntake,
+  businessIntake, type BusinessIntake, type InsertBusinessIntake
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike } from "drizzle-orm";
@@ -92,8 +97,46 @@ export interface IStorage {
   getVltAffiliateByEmail(email: string): Promise<VltAffiliate | undefined>;
   getVltAffiliateByReferralCode(code: string): Promise<VltAffiliate | undefined>;
   getAllVltAffiliates(): Promise<VltAffiliate[]>;
+  getVltAffiliatesByRole(role: string): Promise<VltAffiliate[]>;
+  getVltAffiliateDownline(affiliateId: number): Promise<VltAffiliate[]>;
   updateVltAffiliate(id: number, updates: Partial<VltAffiliate>): Promise<VltAffiliate | undefined>;
   deleteVltAffiliate(id: number): Promise<void>;
+
+  // Opportunities
+  createOpportunity(opp: InsertOpportunity): Promise<Opportunity>;
+  getOpportunity(id: number): Promise<Opportunity | undefined>;
+  getAllOpportunities(): Promise<Opportunity[]>;
+  getOpportunitiesByCategory(category: string): Promise<Opportunity[]>;
+  updateOpportunity(id: number, updates: Partial<Opportunity>): Promise<Opportunity | undefined>;
+
+  // Sales
+  createSale(sale: InsertSale): Promise<Sale>;
+  getSale(id: number): Promise<Sale | undefined>;
+  getAllSales(): Promise<Sale[]>;
+  getSalesByAffiliate(affiliateId: number): Promise<Sale[]>;
+  getSalesByDownline(affiliateId: number): Promise<Sale[]>;
+  updateSale(id: number, updates: Partial<Sale>): Promise<Sale | undefined>;
+
+  // Commissions
+  createCommission(commission: InsertCommission): Promise<Commission>;
+  getCommission(id: number): Promise<Commission | undefined>;
+  getCommissionsByAffiliate(affiliateId: number): Promise<Commission[]>;
+  getCommissionsBySale(saleId: number): Promise<Commission[]>;
+  updateCommission(id: number, updates: Partial<Commission>): Promise<Commission | undefined>;
+
+  // Veteran Intake
+  createVeteranIntake(intake: InsertVeteranIntake): Promise<VeteranIntake>;
+  getVeteranIntake(id: number): Promise<VeteranIntake | undefined>;
+  getAllVeteranIntakes(): Promise<VeteranIntake[]>;
+  getVeteranIntakesByProgram(programType: string): Promise<VeteranIntake[]>;
+  updateVeteranIntake(id: number, updates: Partial<VeteranIntake>): Promise<VeteranIntake | undefined>;
+
+  // Business Intake
+  createBusinessIntake(intake: InsertBusinessIntake): Promise<BusinessIntake>;
+  getBusinessIntake(id: number): Promise<BusinessIntake | undefined>;
+  getAllBusinessIntakes(): Promise<BusinessIntake[]>;
+  getBusinessIntakesByService(serviceType: string): Promise<BusinessIntake[]>;
+  updateBusinessIntake(id: number, updates: Partial<BusinessIntake>): Promise<BusinessIntake | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -441,6 +484,158 @@ export class DatabaseStorage implements IStorage {
 
   async deleteVltAffiliate(id: number): Promise<void> {
     await db.delete(vltAffiliates).where(eq(vltAffiliates.id, id));
+  }
+
+  async getVltAffiliatesByRole(role: string): Promise<VltAffiliate[]> {
+    return db.select().from(vltAffiliates).where(eq(vltAffiliates.role, role)).orderBy(desc(vltAffiliates.createdAt));
+  }
+
+  async getVltAffiliateDownline(affiliateId: number): Promise<VltAffiliate[]> {
+    return db.select().from(vltAffiliates).where(
+      or(
+        eq(vltAffiliates.level1Id, affiliateId),
+        eq(vltAffiliates.level2Id, affiliateId),
+        eq(vltAffiliates.level3Id, affiliateId),
+        eq(vltAffiliates.level4Id, affiliateId),
+        eq(vltAffiliates.level5Id, affiliateId),
+        eq(vltAffiliates.level6Id, affiliateId),
+        eq(vltAffiliates.level7Id, affiliateId)
+      )
+    ).orderBy(desc(vltAffiliates.createdAt));
+  }
+
+  // Opportunities
+  async createOpportunity(opp: InsertOpportunity): Promise<Opportunity> {
+    const [result] = await db.insert(opportunities).values(opp).returning();
+    return result;
+  }
+
+  async getOpportunity(id: number): Promise<Opportunity | undefined> {
+    const [opp] = await db.select().from(opportunities).where(eq(opportunities.id, id));
+    return opp || undefined;
+  }
+
+  async getAllOpportunities(): Promise<Opportunity[]> {
+    return db.select().from(opportunities).orderBy(desc(opportunities.createdAt));
+  }
+
+  async getOpportunitiesByCategory(category: string): Promise<Opportunity[]> {
+    return db.select().from(opportunities).where(eq(opportunities.category, category)).orderBy(desc(opportunities.createdAt));
+  }
+
+  async updateOpportunity(id: number, updates: Partial<Opportunity>): Promise<Opportunity | undefined> {
+    const [opp] = await db.update(opportunities).set(updates).where(eq(opportunities.id, id)).returning();
+    return opp || undefined;
+  }
+
+  // Sales
+  async createSale(sale: InsertSale): Promise<Sale> {
+    const [result] = await db.insert(sales).values(sale).returning();
+    return result;
+  }
+
+  async getSale(id: number): Promise<Sale | undefined> {
+    const [sale] = await db.select().from(sales).where(eq(sales.id, id));
+    return sale || undefined;
+  }
+
+  async getAllSales(): Promise<Sale[]> {
+    return db.select().from(sales).orderBy(desc(sales.createdAt));
+  }
+
+  async getSalesByAffiliate(affiliateId: number): Promise<Sale[]> {
+    return db.select().from(sales).where(eq(sales.affiliateId, affiliateId)).orderBy(desc(sales.createdAt));
+  }
+
+  async getSalesByDownline(affiliateId: number): Promise<Sale[]> {
+    return db.select().from(sales).where(
+      or(
+        eq(sales.referredByL1, affiliateId),
+        eq(sales.referredByL2, affiliateId),
+        eq(sales.referredByL3, affiliateId),
+        eq(sales.referredByL4, affiliateId),
+        eq(sales.referredByL5, affiliateId),
+        eq(sales.referredByL6, affiliateId),
+        eq(sales.referredByL7, affiliateId)
+      )
+    ).orderBy(desc(sales.createdAt));
+  }
+
+  async updateSale(id: number, updates: Partial<Sale>): Promise<Sale | undefined> {
+    const [sale] = await db.update(sales).set({ ...updates, updatedAt: new Date() }).where(eq(sales.id, id)).returning();
+    return sale || undefined;
+  }
+
+  // Commissions
+  async createCommission(commission: InsertCommission): Promise<Commission> {
+    const [result] = await db.insert(commissions).values(commission).returning();
+    return result;
+  }
+
+  async getCommission(id: number): Promise<Commission | undefined> {
+    const [comm] = await db.select().from(commissions).where(eq(commissions.id, id));
+    return comm || undefined;
+  }
+
+  async getCommissionsByAffiliate(affiliateId: number): Promise<Commission[]> {
+    return db.select().from(commissions).where(eq(commissions.affiliateId, affiliateId)).orderBy(desc(commissions.createdAt));
+  }
+
+  async getCommissionsBySale(saleId: number): Promise<Commission[]> {
+    return db.select().from(commissions).where(eq(commissions.saleId, saleId)).orderBy(desc(commissions.createdAt));
+  }
+
+  async updateCommission(id: number, updates: Partial<Commission>): Promise<Commission | undefined> {
+    const [comm] = await db.update(commissions).set(updates).where(eq(commissions.id, id)).returning();
+    return comm || undefined;
+  }
+
+  // Veteran Intake
+  async createVeteranIntake(intake: InsertVeteranIntake): Promise<VeteranIntake> {
+    const [result] = await db.insert(veteranIntake).values(intake).returning();
+    return result;
+  }
+
+  async getVeteranIntake(id: number): Promise<VeteranIntake | undefined> {
+    const [vi] = await db.select().from(veteranIntake).where(eq(veteranIntake.id, id));
+    return vi || undefined;
+  }
+
+  async getAllVeteranIntakes(): Promise<VeteranIntake[]> {
+    return db.select().from(veteranIntake).orderBy(desc(veteranIntake.createdAt));
+  }
+
+  async getVeteranIntakesByProgram(programType: string): Promise<VeteranIntake[]> {
+    return db.select().from(veteranIntake).where(eq(veteranIntake.programType, programType)).orderBy(desc(veteranIntake.createdAt));
+  }
+
+  async updateVeteranIntake(id: number, updates: Partial<VeteranIntake>): Promise<VeteranIntake | undefined> {
+    const [vi] = await db.update(veteranIntake).set({ ...updates, updatedAt: new Date() }).where(eq(veteranIntake.id, id)).returning();
+    return vi || undefined;
+  }
+
+  // Business Intake
+  async createBusinessIntake(intake: InsertBusinessIntake): Promise<BusinessIntake> {
+    const [result] = await db.insert(businessIntake).values(intake).returning();
+    return result;
+  }
+
+  async getBusinessIntake(id: number): Promise<BusinessIntake | undefined> {
+    const [bi] = await db.select().from(businessIntake).where(eq(businessIntake.id, id));
+    return bi || undefined;
+  }
+
+  async getAllBusinessIntakes(): Promise<BusinessIntake[]> {
+    return db.select().from(businessIntake).orderBy(desc(businessIntake.createdAt));
+  }
+
+  async getBusinessIntakesByService(serviceType: string): Promise<BusinessIntake[]> {
+    return db.select().from(businessIntake).where(eq(businessIntake.serviceType, serviceType)).orderBy(desc(businessIntake.createdAt));
+  }
+
+  async updateBusinessIntake(id: number, updates: Partial<BusinessIntake>): Promise<BusinessIntake | undefined> {
+    const [bi] = await db.update(businessIntake).set({ ...updates, updatedAt: new Date() }).where(eq(businessIntake.id, id)).returning();
+    return bi || undefined;
   }
 }
 

@@ -25,6 +25,10 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AffiliateLogin from "@/pages/affiliate-login";
 import AffiliateDashboard from "@/pages/affiliate-dashboard";
 import AdminSetup from "@/pages/admin-setup";
+import MasterPortal from "@/pages/master-portal";
+import SubMasterPortal from "@/pages/submaster-portal";
+import VeteranIntake from "@/pages/veteran-intake";
+import BusinessIntake from "@/pages/business-intake";
 import ApplyStartupGrant from "@/pages/apply-startup-grant";
 import Investors from "@/pages/investors";
 import NewHomeFurniture from "@/pages/new-home-furniture";
@@ -226,6 +230,10 @@ function Router() {
       <Route path="/admin/setup" component={AdminSetup} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/master-portal" component={MasterPortal} />
+      <Route path="/submaster-portal" component={SubMasterPortal} />
+      <Route path="/veteran-intake" component={VeteranIntake} />
+      <Route path="/business-intake" component={BusinessIntake} />
       <Route path="/affiliate/login" component={AffiliateLogin} />
       <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
       <Route component={NotFound} />

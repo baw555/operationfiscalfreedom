@@ -260,7 +260,7 @@ export const insertGeneralContactSchema = createInsertSchema(generalContact).omi
 export type InsertGeneralContact = z.infer<typeof insertGeneralContactSchema>;
 export type GeneralContact = typeof generalContact.$inferSelect;
 
-// VLT Affiliates with 6-level hierarchy
+// VLT Affiliates with 7-level hierarchy
 export const vltAffiliates = pgTable("vlt_affiliates", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -268,17 +268,198 @@ export const vltAffiliates = pgTable("vlt_affiliates", {
   phone: text("phone"),
   passwordHash: text("password_hash").notNull(),
   referralCode: text("referral_code").notNull().unique(),
+  role: text("role").notNull().default("affiliate"), // master, sub_master, affiliate
   level1Id: integer("level1_id"), // Direct upline
   level2Id: integer("level2_id"), // 2nd level upline
   level3Id: integer("level3_id"), // 3rd level upline
   level4Id: integer("level4_id"), // 4th level upline
   level5Id: integer("level5_id"), // 5th level upline
-  level6Id: integer("level6_id"), // 6th level upline (master)
+  level6Id: integer("level6_id"), // 6th level upline
+  level7Id: integer("level7_id"), // 7th level upline (master)
   status: text("status").notNull().default("active"), // active, inactive, suspended
   totalLeads: integer("total_leads").default(0),
+  totalSales: integer("total_sales").default(0),
+  totalCommissions: integer("total_commissions").default(0), // cents
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Opportunities/Services (modular - B2B and B2C)
+export const opportunities = pgTable("opportunities", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // disability, holistic, healthcare, insurance, tax_credits, sales, b2b, b2c
+  description: text("description"),
+  commissionType: text("commission_type").notNull().default("percentage"), // percentage, flat
+  commissionL1: integer("commission_l1").default(0), // Level 1 commission (percentage x100 or cents)
+  commissionL2: integer("commission_l2").default(0),
+  commissionL3: integer("commission_l3").default(0),
+  commissionL4: integer("commission_l4").default(0),
+  commissionL5: integer("commission_l5").default(0),
+  commissionL6: integer("commission_l6").default(0),
+  commissionL7: integer("commission_l7").default(0),
+  isActive: text("is_active").notNull().default("true"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertOpportunitySchema = createInsertSchema(opportunities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;
+export type Opportunity = typeof opportunities.$inferSelect;
+
+// Sales tracking
+export const sales = pgTable("sales", {
+  id: serial("id").primaryKey(),
+  opportunityId: integer("opportunity_id").references(() => opportunities.id),
+  affiliateId: integer("affiliate_id").references(() => vltAffiliates.id),
+  clientName: text("client_name").notNull(),
+  clientEmail: text("client_email"),
+  clientPhone: text("client_phone"),
+  saleAmount: integer("sale_amount").notNull(), // cents
+  status: text("status").notNull().default("pending"), // pending, approved, paid, cancelled
+  referredByL1: integer("referred_by_l1"),
+  referredByL2: integer("referred_by_l2"),
+  referredByL3: integer("referred_by_l3"),
+  referredByL4: integer("referred_by_l4"),
+  referredByL5: integer("referred_by_l5"),
+  referredByL6: integer("referred_by_l6"),
+  referredByL7: integer("referred_by_l7"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSaleSchema = createInsertSchema(sales).omit({
+  id: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSale = z.infer<typeof insertSaleSchema>;
+export type Sale = typeof sales.$inferSelect;
+
+// Commission payouts
+export const commissions = pgTable("commissions", {
+  id: serial("id").primaryKey(),
+  saleId: integer("sale_id").references(() => sales.id),
+  affiliateId: integer("affiliate_id").references(() => vltAffiliates.id),
+  level: integer("level").notNull(), // 1-7
+  amount: integer("amount").notNull(), // cents
+  status: text("status").notNull().default("pending"), // pending, approved, paid
+  paidAt: timestamp("paid_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCommissionSchema = createInsertSchema(commissions).omit({
+  id: true,
+  status: true,
+  paidAt: true,
+  createdAt: true,
+});
+
+export type InsertCommission = z.infer<typeof insertCommissionSchema>;
+export type Commission = typeof commissions.$inferSelect;
+
+// Veteran intake for various programs
+export const veteranIntake = pgTable("veteran_intake", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  branch: text("branch"),
+  serviceStatus: text("service_status"), // active, veteran, reserve, guard
+  programType: text("program_type").notNull(), // disability, holistic, healthcare, sales_opportunity
+  currentRating: text("current_rating"), // For disability assistance
+  desiredRating: text("desired_rating"),
+  healthInterests: text("health_interests"), // For holistic/healthcare
+  salesInterest: text("sales_interest"), // For sales opportunities
+  additionalInfo: text("additional_info"),
+  referralCode: text("referral_code"),
+  referredByL1: integer("referred_by_l1"),
+  referredByL2: integer("referred_by_l2"),
+  referredByL3: integer("referred_by_l3"),
+  referredByL4: integer("referred_by_l4"),
+  referredByL5: integer("referred_by_l5"),
+  referredByL6: integer("referred_by_l6"),
+  referredByL7: integer("referred_by_l7"),
+  status: text("status").notNull().default("new"),
+  assignedTo: integer("assigned_to"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertVeteranIntakeSchema = createInsertSchema(veteranIntake).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  referredByL1: true,
+  referredByL2: true,
+  referredByL3: true,
+  referredByL4: true,
+  referredByL5: true,
+  referredByL6: true,
+  referredByL7: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVeteranIntake = z.infer<typeof insertVeteranIntakeSchema>;
+export type VeteranIntake = typeof veteranIntake.$inferSelect;
+
+// Business intake for B2B services
+export const businessIntake = pgTable("business_intake", {
+  id: serial("id").primaryKey(),
+  businessName: text("business_name").notNull(),
+  contactName: text("contact_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  businessType: text("business_type"), // llc, s_corp, c_corp, sole_prop, partnership
+  industry: text("industry"),
+  annualRevenue: text("annual_revenue"),
+  employeeCount: text("employee_count"),
+  serviceType: text("service_type").notNull(), // insurance, tax_credits, payroll, accounting, other
+  serviceDetails: text("service_details"),
+  isVeteranOwned: text("is_veteran_owned"),
+  referralCode: text("referral_code"),
+  referredByL1: integer("referred_by_l1"),
+  referredByL2: integer("referred_by_l2"),
+  referredByL3: integer("referred_by_l3"),
+  referredByL4: integer("referred_by_l4"),
+  referredByL5: integer("referred_by_l5"),
+  referredByL6: integer("referred_by_l6"),
+  referredByL7: integer("referred_by_l7"),
+  status: text("status").notNull().default("new"),
+  assignedTo: integer("assigned_to"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBusinessIntakeSchema = createInsertSchema(businessIntake).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  referredByL1: true,
+  referredByL2: true,
+  referredByL3: true,
+  referredByL4: true,
+  referredByL5: true,
+  referredByL6: true,
+  referredByL7: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertBusinessIntake = z.infer<typeof insertBusinessIntakeSchema>;
+export type BusinessIntake = typeof businessIntake.$inferSelect;
 
 export const insertVltAffiliateSchema = createInsertSchema(vltAffiliates).omit({
   id: true,

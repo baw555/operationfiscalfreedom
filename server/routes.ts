@@ -15,7 +15,11 @@ import {
   insertPrivateDoctorRequestSchema,
   insertWebsiteApplicationSchema,
   insertGeneralContactSchema,
-  insertVltIntakeSchema
+  insertVltIntakeSchema,
+  insertOpportunitySchema,
+  insertSaleSchema,
+  insertVeteranIntakeSchema,
+  insertBusinessIntakeSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -963,6 +967,265 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Failed to update request" });
+    }
+  });
+
+  // ===== ECOSYSTEM / MASTER PORTAL ROUTES =====
+
+  // Get all opportunities
+  app.get("/api/opportunities", async (req, res) => {
+    try {
+      const opps = await storage.getAllOpportunities();
+      res.json(opps);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch opportunities" });
+    }
+  });
+
+  // Create opportunity (admin only)
+  app.post("/api/opportunities", requireAdmin, async (req, res) => {
+    try {
+      const data = insertOpportunitySchema.parse(req.body);
+      const opp = await storage.createOpportunity(data);
+      res.status(201).json(opp);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create opportunity" });
+    }
+  });
+
+  // Update opportunity (admin only)
+  app.patch("/api/opportunities/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateOpportunity(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update opportunity" });
+    }
+  });
+
+  // Get all sales (master portal)
+  app.get("/api/master/sales", requireAdmin, async (req, res) => {
+    try {
+      const allSales = await storage.getAllSales();
+      res.json(allSales);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sales" });
+    }
+  });
+
+  // Get all affiliates with stats (master portal)
+  app.get("/api/master/affiliates", requireAdmin, async (req, res) => {
+    try {
+      const affiliates = await storage.getAllVltAffiliates();
+      res.json(affiliates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch affiliates" });
+    }
+  });
+
+  // Get affiliates by role
+  app.get("/api/master/affiliates/:role", requireAdmin, async (req, res) => {
+    try {
+      const affiliates = await storage.getVltAffiliatesByRole(req.params.role);
+      res.json(affiliates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch affiliates" });
+    }
+  });
+
+  // Get downline for an affiliate
+  app.get("/api/master/downline/:affiliateId", requireAdmin, async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.params.affiliateId);
+      const downline = await storage.getVltAffiliateDownline(affiliateId);
+      res.json(downline);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch downline" });
+    }
+  });
+
+  // Get all commissions (master portal)
+  app.get("/api/master/commissions", requireAdmin, async (req, res) => {
+    try {
+      const affiliates = await storage.getAllVltAffiliates();
+      const commissionsData = [];
+      for (const aff of affiliates) {
+        const comms = await storage.getCommissionsByAffiliate(aff.id);
+        commissionsData.push({ affiliate: aff, commissions: comms });
+      }
+      res.json(commissionsData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch commissions" });
+    }
+  });
+
+  // Create sale with commission calculation
+  app.post("/api/sales", async (req, res) => {
+    try {
+      const data = insertSaleSchema.parse(req.body);
+      const sale = await storage.createSale(data);
+      res.status(201).json(sale);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create sale" });
+    }
+  });
+
+  // Update sale status
+  app.patch("/api/sales/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateSale(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update sale" });
+    }
+  });
+
+  // Veteran Intake - multiple programs
+  app.post("/api/veteran-intake", async (req, res) => {
+    try {
+      const data = insertVeteranIntakeSchema.parse(req.body);
+      
+      // If referral code provided, look up affiliate chain
+      if (data.referralCode) {
+        const affiliate = await storage.getVltAffiliateByReferralCode(data.referralCode);
+        if (affiliate) {
+          (data as any).referredByL1 = affiliate.id;
+          (data as any).referredByL2 = affiliate.level1Id;
+          (data as any).referredByL3 = affiliate.level2Id;
+          (data as any).referredByL4 = affiliate.level3Id;
+          (data as any).referredByL5 = affiliate.level4Id;
+          (data as any).referredByL6 = affiliate.level5Id;
+          (data as any).referredByL7 = affiliate.level6Id;
+        }
+      }
+      
+      const intake = await storage.createVeteranIntake(data);
+      res.status(201).json({ success: true, id: intake.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit intake" });
+    }
+  });
+
+  // Get all veteran intakes (admin)
+  app.get("/api/admin/veteran-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllVeteranIntakes();
+      res.json(intakes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  // Update veteran intake
+  app.patch("/api/admin/veteran-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateVeteranIntake(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
+  // Business Intake - B2B services
+  app.post("/api/business-intake", async (req, res) => {
+    try {
+      const data = insertBusinessIntakeSchema.parse(req.body);
+      
+      // If referral code provided, look up affiliate chain
+      if (data.referralCode) {
+        const affiliate = await storage.getVltAffiliateByReferralCode(data.referralCode);
+        if (affiliate) {
+          (data as any).referredByL1 = affiliate.id;
+          (data as any).referredByL2 = affiliate.level1Id;
+          (data as any).referredByL3 = affiliate.level2Id;
+          (data as any).referredByL4 = affiliate.level3Id;
+          (data as any).referredByL5 = affiliate.level4Id;
+          (data as any).referredByL6 = affiliate.level5Id;
+          (data as any).referredByL7 = affiliate.level6Id;
+        }
+      }
+      
+      const intake = await storage.createBusinessIntake(data);
+      res.status(201).json({ success: true, id: intake.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit intake" });
+    }
+  });
+
+  // Get all business intakes (admin)
+  app.get("/api/admin/business-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllBusinessIntakes();
+      res.json(intakes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  // Update business intake
+  app.patch("/api/admin/business-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateBusinessIntake(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
+  // Promote affiliate to sub-master
+  app.patch("/api/master/promote/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { role } = req.body; // 'sub_master' or 'master'
+      const updated = await storage.updateVltAffiliate(id, { role });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to promote affiliate" });
+    }
+  });
+
+  // Sub-master portal - get own downline
+  app.get("/api/submaster/downline", async (req, res) => {
+    try {
+      // For now, accept affiliate ID from query param (will use session in production)
+      const affiliateId = parseInt(req.query.affiliateId as string);
+      if (!affiliateId) {
+        return res.status(400).json({ message: "Affiliate ID required" });
+      }
+      const downline = await storage.getVltAffiliateDownline(affiliateId);
+      res.json(downline);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch downline" });
+    }
+  });
+
+  // Sub-master - get sales from downline
+  app.get("/api/submaster/sales", async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.query.affiliateId as string);
+      if (!affiliateId) {
+        return res.status(400).json({ message: "Affiliate ID required" });
+      }
+      const sales = await storage.getSalesByDownline(affiliateId);
+      res.json(sales);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sales" });
     }
   });
 
