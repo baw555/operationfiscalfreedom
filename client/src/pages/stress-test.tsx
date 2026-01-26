@@ -25,9 +25,9 @@ export default function StressTest() {
   const queryClient = useQueryClient();
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   
-  // Configuration state
-  const [numSales, setNumSales] = useState(1000);
+  // Configuration state - average 7 sales per affiliate
   const [numAffiliates, setNumAffiliates] = useState(30);
+  const [numSales, setNumSales] = useState(30 * 7); // 7 sales per affiliate average
   const [hierarchyRandomness, setHierarchyRandomness] = useState(50); // 0-100
 
   const { data: results, isLoading, refetch } = useQuery({
@@ -224,11 +224,15 @@ export default function StressTest() {
                     min={5}
                     max={100}
                     value={numAffiliates}
-                    onChange={(e) => setNumAffiliates(Math.min(100, Math.max(5, parseInt(e.target.value) || 30)))}
+                    onChange={(e) => {
+                      const newAffiliates = Math.min(100, Math.max(5, parseInt(e.target.value) || 30));
+                      setNumAffiliates(newAffiliates);
+                      setNumSales(newAffiliates * 7);
+                    }}
                     className="w-full"
                     data-testid="input-num-affiliates"
                   />
-                  <p className="text-xs text-gray-500 mt-1">5 - 100 affiliates</p>
+                  <p className="text-xs text-gray-500 mt-1">5 - 100 affiliates (auto-sets 7 sales each)</p>
                 </div>
                 <div>
                   <Label htmlFor="hierarchyRandomness" className="text-sm font-medium text-gray-700 mb-2 block">
