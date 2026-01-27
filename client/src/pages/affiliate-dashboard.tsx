@@ -29,7 +29,7 @@ export default function AffiliateDashboard() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [mainTab, setMainTab] = useState<MainTab>("overview");
-  const [leadSubTab, setLeadSubTab] = useState<"applications" | "requests" | "bizleads" | "disability">("applications");
+  const [leadSubTab, setLeadSubTab] = useState<"applications" | "requests" | "bizleads" | "disability" | "vetpros">("applications");
   const [selectedLead, setSelectedLead] = useState<any>(null);
 
   // Calculator state
@@ -140,6 +140,16 @@ export default function AffiliateDashboard() {
     queryKey: ["affiliate-disability-referrals"],
     queryFn: async () => {
       const res = await fetch("/api/affiliate/disability-referrals", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: authSuccess && !!authData?.user,
+  });
+
+  const { data: vetProfessionalIntakes = [] } = useQuery({
+    queryKey: ["affiliate-vet-professional-intakes"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/vet-professional-intakes", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -965,6 +975,16 @@ export default function AffiliateDashboard() {
                   <Shield className="h-4 w-4 inline mr-2" /> 
                   Disability ({disabilityReferrals.length})
                 </button>
+                <button
+                  onClick={() => setLeadSubTab("vetpros")}
+                  className={`flex-1 py-4 px-6 font-bold text-sm uppercase tracking-wide transition-colors ${
+                    leadSubTab === "vetpros" ? "bg-brand-navy text-white" : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                  data-testid="subtab-vetpros"
+                >
+                  <Users className="h-4 w-4 inline mr-2" /> 
+                  Vet Pros ({vetProfessionalIntakes.length})
+                </button>
               </div>
 
               {/* Search and Filter Bar */}
@@ -1161,6 +1181,55 @@ export default function AffiliateDashboard() {
                               </span>
                               <p className="text-xs text-gray-400 mt-2">
                                 {format(new Date(referral.createdAt), "MMM d, yyyy")}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {leadSubTab === "vetpros" && (
+                  <div className="space-y-4">
+                    {vetProfessionalIntakes.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">
+                        No vet professional referrals yet. Share your referral link with attorneys, insurance agents, CPAs, and medical professionals who serve veterans.
+                      </p>
+                    ) : (
+                      vetProfessionalIntakes.map((professional: any) => (
+                        <div 
+                          key={professional.id} 
+                          className="bg-gray-50 rounded-lg p-4 border hover:border-brand-navy/50 transition-colors"
+                          data-testid={`lead-vetpro-${professional.id}`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-bold text-brand-navy">{professional.firstName} {professional.lastName}</h3>
+                              <p className="text-sm text-gray-600">{professional.email} | {professional.phone}</p>
+                              {professional.businessName && (
+                                <p className="text-sm text-gray-500">{professional.businessName}</p>
+                              )}
+                              <span className={`inline-block mt-2 px-2 py-1 rounded text-xs capitalize ${
+                                professional.professionType === "attorneys" ? "bg-blue-100 text-blue-700" :
+                                professional.professionType === "insurance" ? "bg-green-100 text-green-700" :
+                                professional.professionType === "cpa" ? "bg-yellow-100 text-yellow-700" :
+                                "bg-purple-100 text-purple-700"
+                              }`}>
+                                {professional.professionType}
+                              </span>
+                              {professional.licenseNumber && (
+                                <span className="inline-block ml-2 mt-2 px-2 py-1 rounded text-xs bg-gray-100 text-gray-700">
+                                  License: {professional.licenseNumber}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${statusColors[professional.status as LeadStatus] || "bg-blue-100 text-blue-800"}`}>
+                                {professional.status}
+                              </span>
+                              <p className="text-xs text-gray-400 mt-2">
+                                {format(new Date(professional.createdAt), "MMM d, yyyy")}
                               </p>
                             </div>
                           </div>

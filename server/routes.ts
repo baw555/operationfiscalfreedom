@@ -579,6 +579,21 @@ export async function registerRoutes(
     }
   });
 
+  // Get vet professional intakes for affiliate
+  app.get("/api/affiliate/vet-professional-intakes", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    try {
+      const intakes = await storage.getVetProfessionalIntakesByAffiliate(req.session.userId);
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching affiliate vet professional intakes:", error);
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
   // Update disability referral status (admin/master only)
   app.patch("/api/admin/disability-referrals/:id", async (req, res) => {
     if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
