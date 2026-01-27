@@ -42,7 +42,7 @@ export default function AffiliateLogin() {
       }
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.user.role === "affiliate") {
         // Handle remember me
         if (rememberMe) {
@@ -50,6 +50,35 @@ export default function AffiliateLogin() {
         } else {
           localStorage.removeItem("navusa_remembered_email");
         }
+        
+        // CRITICAL: Verify session is established before redirecting
+        // This prevents the race condition where redirect happens before cookie is set
+        let sessionVerified = false;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          try {
+            const verifyResponse = await fetch("/api/auth/me", {
+              credentials: "include",
+            });
+            if (verifyResponse.ok) {
+              sessionVerified = true;
+              break;
+            }
+          } catch {
+            // Retry on network error
+          }
+          // Small delay between retries to allow cookie to be set
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        
+        if (!sessionVerified) {
+          toast({
+            title: "Session Error",
+            description: "Please try logging in again.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         toast({ title: "Welcome back, Operator!" });
         // Use full page navigation for reliable session handling
         window.location.href = "/affiliate/dashboard";

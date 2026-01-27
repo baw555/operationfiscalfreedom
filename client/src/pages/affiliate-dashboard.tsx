@@ -45,16 +45,18 @@ export default function AffiliateDashboard() {
   const [leadSearch, setLeadSearch] = useState("");
   const [leadStatusFilter, setLeadStatusFilter] = useState<string>("all");
 
-  // Check auth - with retry logic for session timing
-  const { data: authData, isLoading: authLoading } = useQuery({
+  // Check auth - single attempt since session should be verified before redirect
+  // If this fails, the user needs to log in again (session was not properly established)
+  const { data: authData, isLoading: authLoading, isSuccess: authSuccess } = useQuery({
     queryKey: ["auth"],
     queryFn: async () => {
       const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) throw new Error("Not authenticated");
       return res.json();
     },
-    retry: 6,
-    retryDelay: 1000,
+    retry: 2, // Limited retries - login page now verifies session before redirect
+    retryDelay: 500,
+    staleTime: 30000, // Keep auth data fresh for 30 seconds to prevent unnecessary refetches
   });
 
   useEffect(() => {
@@ -63,7 +65,7 @@ export default function AffiliateDashboard() {
     }
   }, [authData, authLoading, setLocation]);
 
-  // Fetch VLT affiliate profile (for upline count)
+  // Fetch VLT affiliate profile (for upline count) - only after auth confirmed
   const { data: vltProfile } = useQuery({
     queryKey: ["vlt-affiliate-me"],
     queryFn: async () => {
@@ -71,7 +73,7 @@ export default function AffiliateDashboard() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!authData?.user,
+    enabled: authSuccess && !!authData?.user,
   });
 
   // Auto-set upline count from VLT profile
@@ -81,7 +83,7 @@ export default function AffiliateDashboard() {
     }
   }, [vltProfile]);
 
-  // Fetch contracts
+  // Fetch contracts - only after auth confirmed
   const { data: contractTemplates = [], error: contractsError } = useQuery({
     queryKey: ["contract-templates"],
     queryFn: async () => {
@@ -89,10 +91,10 @@ export default function AffiliateDashboard() {
       if (!res.ok) throw new Error("Failed to fetch contracts");
       return res.json();
     },
-    enabled: !!authData?.user,
+    enabled: authSuccess && !!authData?.user,
   });
 
-  // Fetch signed agreements for this user
+  // Fetch signed agreements for this user - only after auth confirmed
   const { data: signedAgreements = [], error: signedError } = useQuery({
     queryKey: ["my-signed-agreements"],
     queryFn: async () => {
@@ -100,10 +102,10 @@ export default function AffiliateDashboard() {
       if (!res.ok) throw new Error("Failed to fetch signed agreements");
       return res.json();
     },
-    enabled: !!authData?.user,
+    enabled: authSuccess && !!authData?.user,
   });
 
-  // Fetch assigned leads
+  // Fetch assigned leads - only after auth confirmed
   const { data: applications = [] } = useQuery({
     queryKey: ["affiliate-applications"],
     queryFn: async () => {
@@ -111,7 +113,7 @@ export default function AffiliateDashboard() {
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
-    enabled: !!authData?.user,
+    enabled: authSuccess && !!authData?.user,
   });
 
   const { data: helpRequests = [] } = useQuery({
@@ -121,7 +123,7 @@ export default function AffiliateDashboard() {
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
-    enabled: !!authData?.user,
+    enabled: authSuccess && !!authData?.user,
   });
 
   const { data: businessLeads = [] } = useQuery({
@@ -131,10 +133,10 @@ export default function AffiliateDashboard() {
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
-    enabled: !!authData?.user,
+    enabled: authSuccess && !!authData?.user,
   });
 
-  // Fetch referral info
+  // Fetch referral info - only after auth confirmed
   const { data: referralInfo } = useQuery({
     queryKey: ["affiliate-referral-info"],
     queryFn: async () => {
@@ -142,10 +144,10 @@ export default function AffiliateDashboard() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!authData?.user,
+    enabled: authSuccess && !!authData?.user,
   });
 
-  // Check NDA status
+  // Check NDA status - only after auth is confirmed successful
   const { data: ndaStatus, isLoading: ndaLoading, error: ndaError } = useQuery({
     queryKey: ["/api/affiliate/nda-status"],
     queryFn: async () => {
@@ -153,11 +155,12 @@ export default function AffiliateDashboard() {
       if (!res.ok) throw new Error("Failed to check NDA status");
       return res.json();
     },
-    enabled: !!authData?.user,
-    retry: 3,
+    enabled: authSuccess && !!authData?.user, // Wait for auth to be confirmed successful
+    retry: 2,
+    staleTime: 30000,
   });
 
-  // Fetch security tracking data
+  // Fetch security tracking data - only after auth confirmed
   const { data: securityData, isLoading: securityLoading, error: securityError } = useQuery<{
     ipTracking: any[];
     totalTrackedIPs: number;
@@ -171,7 +174,7 @@ export default function AffiliateDashboard() {
       if (!res.ok) throw new Error("Failed to fetch security data");
       return res.json();
     },
-    enabled: !!authData?.user,
+    enabled: authSuccess && !!authData?.user,
   });
 
   // Redirect to NDA page if not signed - use effect to avoid render-time navigation

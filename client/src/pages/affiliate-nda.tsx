@@ -170,15 +170,16 @@ export default function AffiliateNda() {
     return () => stopCamera();
   }, [stopCamera]);
 
-  const { data: authData, isLoading: authLoading } = useQuery({
+  const { data: authData, isLoading: authLoading, isSuccess: authSuccess } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
       const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) throw new Error("Not authenticated");
       return res.json();
     },
-    retry: 6,
-    retryDelay: 1000,
+    retry: 2, // Limited retries - login page now verifies session before redirect
+    retryDelay: 500,
+    staleTime: 30000,
   });
 
   const { data: ndaStatus, isLoading: ndaLoading } = useQuery({
@@ -188,7 +189,8 @@ export default function AffiliateNda() {
       if (!res.ok) throw new Error("Failed to check NDA status");
       return res.json();
     },
-    enabled: !!authData,
+    enabled: authSuccess && !!authData, // Wait for auth to be confirmed
+    staleTime: 30000,
   });
 
   const signNdaMutation = useMutation({
@@ -200,8 +202,19 @@ export default function AffiliateNda() {
         credentials: "include",
       });
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to sign NDA");
+        // Handle specific error cases
+        if (res.status === 413) {
+          throw new Error("Photos are too large. Please use smaller images or reduce photo quality.");
+        }
+        if (res.status === 401) {
+          throw new Error("Session expired. Please log in again.");
+        }
+        try {
+          const error = await res.json();
+          throw new Error(error.message || "Failed to sign NDA");
+        } catch {
+          throw new Error("Failed to sign NDA. Please try again.");
+        }
       }
       return res.json();
     },
@@ -213,7 +226,14 @@ export default function AffiliateNda() {
       setLocation("/affiliate/dashboard");
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      // Provide helpful error messages for common issues
+      let description = error.message;
+      if (error.message.includes("Session expired")) {
+        description = "Your session has expired. Please log in again and try signing the NDA.";
+      } else if (error.message.includes("too large")) {
+        description = "Your photos are too large. Try taking photos with a lower resolution camera setting.";
+      }
+      toast({ title: "Error Signing NDA", description, variant: "destructive" });
     },
   });
 

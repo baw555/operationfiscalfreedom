@@ -177,23 +177,40 @@ export async function registerRoutes(
         console.log("Note: Could not store application details:", appError);
       }
       
-      // Log the user in automatically
-      req.session.userId = affiliate.id;
-      req.session.userRole = affiliate.role;
-      
-      // Ensure session is saved before responding
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
+      // Log the user in automatically with session regeneration for security
+      req.session.regenerate((regenerateErr) => {
+        if (regenerateErr) {
+          console.error("Session regenerate error:", regenerateErr);
+          // Still return success since account was created
+          return res.status(201).json({ 
+            success: true,
+            user: {
+              id: affiliate.id, 
+              name: affiliate.name, 
+              email: affiliate.email, 
+              role: affiliate.role 
+            }
+          });
         }
-        res.status(201).json({ 
-          success: true,
-          user: {
-            id: affiliate.id, 
-            name: affiliate.name, 
-            email: affiliate.email, 
-            role: affiliate.role 
+        
+        req.session.userId = affiliate.id;
+        req.session.userRole = affiliate.role;
+        
+        // Ensure session is saved before responding
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
           }
+          console.log(`[auth] Affiliate signup successful for user ${affiliate.id}, session saved`);
+          res.status(201).json({ 
+            success: true,
+            user: {
+              id: affiliate.id, 
+              name: affiliate.name, 
+              email: affiliate.email, 
+              role: affiliate.role 
+            }
+          });
         });
       });
     } catch (error) {
@@ -686,26 +703,36 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      req.session.vltAffiliateId = affiliate.id;
-      
-      // Ensure session is saved before responding
-      req.session.save((err) => {
-        if (err) {
-          console.error("VLT session save error:", err);
+      // Regenerate session to prevent session fixation and ensure clean session
+      req.session.regenerate((regenerateErr) => {
+        if (regenerateErr) {
+          console.error("VLT session regenerate error:", regenerateErr);
           return res.status(500).json({ message: "Login failed - session error" });
         }
-        res.json({ 
-          success: true, 
-          affiliate: { 
-            id: affiliate.id, 
-            name: affiliate.name, 
-            email: affiliate.email,
-            referralCode: affiliate.referralCode,
-            totalLeads: affiliate.totalLeads
+        
+        req.session.vltAffiliateId = affiliate.id;
+        
+        // Ensure session is saved before responding
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("VLT session save error:", saveErr);
+            return res.status(500).json({ message: "Login failed - session error" });
           }
+          console.log(`[auth] VLT login successful for affiliate ${affiliate.id}, session saved`);
+          res.json({ 
+            success: true, 
+            affiliate: { 
+              id: affiliate.id, 
+              name: affiliate.name, 
+              email: affiliate.email,
+              referralCode: affiliate.referralCode,
+              totalLeads: affiliate.totalLeads
+            }
+          });
         });
       });
     } catch (error) {
+      console.error("VLT login error:", error);
       res.status(500).json({ message: "Login failed" });
     }
   });
@@ -788,21 +815,31 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      req.session.userId = user.id;
-      req.session.userRole = user.role;
-
-      // Ensure session is saved before responding
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
+      // Regenerate session to prevent session fixation attacks and ensure clean session
+      req.session.regenerate((regenerateErr) => {
+        if (regenerateErr) {
+          console.error("Session regenerate error:", regenerateErr);
           return res.status(500).json({ message: "Login failed - session error" });
         }
-        res.json({ 
-          success: true, 
-          user: { id: user.id, name: user.name, email: user.email, role: user.role }
+        
+        req.session.userId = user.id;
+        req.session.userRole = user.role;
+
+        // Ensure session is saved before responding
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+            return res.status(500).json({ message: "Login failed - session error" });
+          }
+          console.log(`[auth] Login successful for user ${user.id}, session saved`);
+          res.json({ 
+            success: true, 
+            user: { id: user.id, name: user.name, email: user.email, role: user.role }
+          });
         });
       });
     } catch (error) {
+      console.error("Login error:", error);
       res.status(500).json({ message: "Login failed" });
     }
   });
@@ -886,18 +923,30 @@ export async function registerRoutes(
         role: "affiliate"
       });
 
-      // Auto-login after registration
-      req.session.userId = user.id;
-      req.session.userRole = user.role;
-
-      // Ensure session is saved before responding
-      req.session.save((err) => {
-        if (err) {
-          console.error("Registration session save error:", err);
+      // Auto-login after registration with session regeneration for security
+      req.session.regenerate((regenerateErr) => {
+        if (regenerateErr) {
+          console.error("Registration session regenerate error:", regenerateErr);
+          // Still return success since account was created
+          return res.status(201).json({ 
+            success: true, 
+            user: { id: user.id, name: user.name, email: user.email, role: user.role }
+          });
         }
-        res.status(201).json({ 
-          success: true, 
-          user: { id: user.id, name: user.name, email: user.email, role: user.role }
+        
+        req.session.userId = user.id;
+        req.session.userRole = user.role;
+
+        // Ensure session is saved before responding
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Registration session save error:", saveErr);
+          }
+          console.log(`[auth] Registration successful for user ${user.id}, session saved`);
+          res.status(201).json({ 
+            success: true, 
+            user: { id: user.id, name: user.name, email: user.email, role: user.role }
+          });
         });
       });
     } catch (error) {
