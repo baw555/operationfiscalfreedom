@@ -4,7 +4,7 @@ import { Menu, X, Star, LogIn, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import logoImage from "@assets/Navigaor_USA_Logo_396x86_1767699671480.png";
-import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
+import logoStacked from "@assets/NavStar-Stacked_(2)_1769496493964.png";
 
 const animatedTextStyles = `
   @keyframes letterWave {
