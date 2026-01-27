@@ -11,6 +11,16 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - **Four Pillars**: Financial, Spiritual, Medical, Holistic
 
 ## Recent Changes
+- **January 2026**: Master Portal Comprehensive Redesign
+  - Converted to comprehensive admin operations hub with Dashboard, organized tabs
+  - Dashboard tab: Real-time KPIs for all data sources, pending action alerts, quick stats grid
+  - Applications tab: Affiliate apps, startup grants, website grants with sub-tabs
+  - Intakes tab: Veteran, business, insurance, medical sales, business dev, healthcare, vet professionals
+  - Leads & Requests tab: Help requests, private doctor, furniture, general contact, business leads
+  - Sales & Referrals tab: Partner referrals with stats, disability referrals, sales transactions
+  - Documents tab: Affiliate folders, Schedule A signatures with sub-tabs
+  - Reusable DataTable component at module level for consistent data display
+  - All 14+ data sources now accessible from organized tabbed interface
 - **January 2026**: Operational Excellence Security Hardening
   - Fixed admin dashboard auth bypass vulnerability (now properly verifies session)
   - Fixed error middleware that could crash server (removed throw-after-response)

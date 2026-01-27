@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Shield, Users, FileText, FolderOpen, Eye, Download, ChevronRight, Camera, IdCard, FileSignature, ClipboardCheck, Receipt, Link2, Store, CreditCard, Gift, LogIn } from "lucide-react";
+import { 
+  Shield, Users, FileText, FolderOpen, Eye, Download, ChevronRight, Camera, IdCard, 
+  FileSignature, ClipboardCheck, Receipt, Link2, Store, CreditCard, Gift, LogIn,
+  LayoutDashboard, ClipboardList, HelpCircle, DollarSign, Stethoscope, Globe, 
+  Mail, Briefcase, TrendingUp, Building, Target, Heart, Truck, UserCheck, AlertCircle,
+  Clock, CheckCircle, XCircle, Sofa
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +18,67 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+const DataTable = ({ title, icon, data, columns, hideHeader }: { title: string; icon: React.ReactNode; data: any[]; columns: string[]; hideHeader?: boolean }) => (
+  <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden" data-testid={`datatable-${title.toLowerCase().replace(/\s+/g, '-') || 'table'}`}>
+    {!hideHeader && (
+      <div className="p-4 border-b border-white/10">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2" data-testid={`datatable-title-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+          {icon}
+          {title}
+        </h2>
+      </div>
+    )}
+    {data.length === 0 ? (
+      <div className="p-8 text-center text-gray-400" data-testid="datatable-empty">No records found.</div>
+    ) : (
+      <div className="overflow-x-auto">
+        <table className="w-full" data-testid="datatable-content">
+          <thead className="bg-black/30">
+            <tr>
+              {columns.map((col) => (
+                <th key={col} className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider" data-testid={`header-${col}`}>
+                  {col.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/10" data-testid="datatable-body">
+            {data.slice(0, 50).map((item: any, idx: number) => (
+              <tr key={item.id || idx} className="hover:bg-white/5" data-testid={`row-${item.id || idx}`}>
+                {columns.map((col) => (
+                  <td key={col} className="px-4 py-3 text-sm text-gray-300" data-testid={`cell-${col}-${item.id || idx}`}>
+                    {col === 'status' ? (
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        item[col] === 'pending' || item[col] === 'new' ? 'bg-yellow-500/20 text-yellow-400' :
+                        item[col] === 'approved' || item[col] === 'completed' || item[col] === 'converted' ? 'bg-green-500/20 text-green-400' :
+                        item[col] === 'rejected' || item[col] === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                        'bg-gray-500/20 text-gray-400'
+                      }`} data-testid={`status-badge-${item.id || idx}`}>
+                        {item[col] || 'pending'}
+                      </span>
+                    ) : col === 'createdAt' ? (
+                      new Date(item[col]).toLocaleDateString()
+                    ) : col === 'amount' ? (
+                      `$${(item[col] || 0).toLocaleString()}`
+                    ) : (
+                      item[col] || '-'
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {data.length > 50 && (
+          <div className="p-3 text-center text-sm text-gray-400 border-t border-white/10" data-testid="datatable-pagination">
+            Showing 50 of {data.length} records
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+);
 
 interface AffiliateFile {
   id: number;
@@ -124,6 +191,160 @@ export default function MasterPortal() {
     queryKey: ["schedule-a-signatures"],
     queryFn: async () => {
       const res = await fetch("/api/admin/schedule-a-signatures", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch affiliate applications
+  const { data: affiliateApplications = [] } = useQuery<any[]>({
+    queryKey: ["affiliate-applications"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/affiliate-applications", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch help requests
+  const { data: helpRequests = [] } = useQuery<any[]>({
+    queryKey: ["help-requests"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/help-requests", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch startup grants
+  const { data: startupGrants = [] } = useQuery<any[]>({
+    queryKey: ["startup-grants"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/startup-grants", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch furniture assistance
+  const { data: furnitureAssistance = [] } = useQuery<any[]>({
+    queryKey: ["furniture-assistance"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/furniture-assistance", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch private doctor requests
+  const { data: privateDoctorRequests = [] } = useQuery<any[]>({
+    queryKey: ["private-doctor-requests"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/private-doctor-requests", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch website applications
+  const { data: websiteApplications = [] } = useQuery<any[]>({
+    queryKey: ["website-applications"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/website-applications", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch general contact
+  const { data: generalContact = [] } = useQuery<any[]>({
+    queryKey: ["general-contact"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/general-contact", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch veteran intakes
+  const { data: veteranIntakes = [] } = useQuery<any[]>({
+    queryKey: ["veteran-intakes"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/veteran-intakes", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch business intakes
+  const { data: businessIntakes = [] } = useQuery<any[]>({
+    queryKey: ["business-intakes"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/business-intakes", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch insurance intakes
+  const { data: insuranceIntakes = [] } = useQuery<any[]>({
+    queryKey: ["insurance-intakes"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/insurance-intakes", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch medical sales intakes
+  const { data: medicalSalesIntakes = [] } = useQuery<any[]>({
+    queryKey: ["medical-sales-intakes"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/medical-sales-intakes", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch business dev intakes
+  const { data: businessDevIntakes = [] } = useQuery<any[]>({
+    queryKey: ["business-dev-intakes"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/business-dev-intakes", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch business leads
+  const { data: businessLeads = [] } = useQuery<any[]>({
+    queryKey: ["business-leads"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/business-leads", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch sales data
+  const { data: salesData = [] } = useQuery<any[]>({
+    queryKey: ["sales-data"],
+    queryFn: async () => {
+      const res = await fetch("/api/master/sales", { credentials: "include" });
       if (!res.ok) return [];
       return res.json();
     },
@@ -283,52 +504,314 @@ export default function MasterPortal() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-6">
-        <Tabs defaultValue="files" className="w-full">
-          <TabsList className="bg-black/30 border border-white/10">
-            <TabsTrigger value="files" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
-              <FolderOpen className="w-4 h-4 mr-2" />
-              Files & Agreements
-            </TabsTrigger>
-            <TabsTrigger value="affiliates" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
-              <Users className="w-4 h-4 mr-2" />
-              All Affiliates
-            </TabsTrigger>
-            <TabsTrigger value="partner-referrals" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
-              <Link2 className="w-4 h-4 mr-2" />
-              Partner Referrals
-            </TabsTrigger>
-            <TabsTrigger value="disability-referrals" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
-              <FileText className="w-4 h-4 mr-2" />
-              Disability Referrals
-            </TabsTrigger>
-            <TabsTrigger value="vet-professionals" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
-              <Users className="w-4 h-4 mr-2" />
-              Vet Professionals
-            </TabsTrigger>
-            <TabsTrigger value="healthcare" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
-              <FileText className="w-4 h-4 mr-2" />
-              Healthcare
-            </TabsTrigger>
-            <TabsTrigger value="schedule-a" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400" data-testid="tab-trigger-schedule-a">
-              <Shield className="w-4 h-4 mr-2" />
-              Schedule A
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="dashboard" className="w-full">
+          <div className="overflow-x-auto pb-2">
+            <TabsList className="bg-black/30 border border-white/10 inline-flex min-w-max">
+              <TabsTrigger value="dashboard" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+                <LayoutDashboard className="w-4 h-4 mr-2" />
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger value="applications" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+                <ClipboardList className="w-4 h-4 mr-2" />
+                Applications
+              </TabsTrigger>
+              <TabsTrigger value="intakes" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+                <UserCheck className="w-4 h-4 mr-2" />
+                Intakes
+              </TabsTrigger>
+              <TabsTrigger value="leads" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Leads & Requests
+              </TabsTrigger>
+              <TabsTrigger value="sales" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Sales & Referrals
+              </TabsTrigger>
+              <TabsTrigger value="files" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+                <FolderOpen className="w-4 h-4 mr-2" />
+                Documents
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* Files & Agreements Tab */}
-          <TabsContent value="files" className="mt-6">
-            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
-              <div className="p-4 border-b border-white/10 bg-black/20">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FolderOpen className="w-5 h-5 text-brand-red" />
-                  Affiliate Document Folders
-                </h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  View complete document packages for each affiliate
-                </p>
+          {/* Dashboard Tab */}
+          <TabsContent value="dashboard" className="mt-6">
+            <div className="space-y-6">
+              {/* KPI Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="bg-brand-red/20 border border-brand-red/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ClipboardList className="w-5 h-5 text-brand-red" />
+                    <span className="text-xs text-gray-400">Applications</span>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{affiliateApplications.length}</div>
+                  <div className="text-xs text-gray-400">{affiliateApplications.filter((a: any) => a.status === 'pending').length} pending</div>
+                </div>
+                <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <HelpCircle className="w-5 h-5 text-blue-400" />
+                    <span className="text-xs text-gray-400">Help Requests</span>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{helpRequests.length}</div>
+                  <div className="text-xs text-gray-400">{helpRequests.filter((h: any) => h.status === 'pending').length} pending</div>
+                </div>
+                <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-green-400" />
+                    <span className="text-xs text-gray-400">Startup Grants</span>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{startupGrants.length}</div>
+                  <div className="text-xs text-gray-400">{startupGrants.filter((s: any) => s.status === 'pending').length} pending</div>
+                </div>
+                <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <UserCheck className="w-5 h-5 text-purple-400" />
+                    <span className="text-xs text-gray-400">Veteran Intakes</span>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{veteranIntakes.length}</div>
+                  <div className="text-xs text-gray-400">{veteranIntakes.filter((v: any) => v.status === 'pending').length} pending</div>
+                </div>
+                <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Briefcase className="w-5 h-5 text-yellow-400" />
+                    <span className="text-xs text-gray-400">Business Leads</span>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{businessLeads.length}</div>
+                  <div className="text-xs text-gray-400">{businessLeads.filter((b: any) => b.status === 'new').length} new</div>
+                </div>
+                <div className="bg-cyan-500/20 border border-cyan-500/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-5 h-5 text-cyan-400" />
+                    <span className="text-xs text-gray-400">Total Sales</span>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{salesData.length}</div>
+                  <div className="text-xs text-gray-400">${salesData.reduce((sum: number, s: any) => sum + (s.amount || 0), 0).toLocaleString()}</div>
+                </div>
               </div>
 
-              {filesLoading ? (
+              {/* Alerts Section */}
+              <div className="bg-black/20 rounded-lg border border-white/10 p-4">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-yellow-400" />
+                  Pending Actions
+                </h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {affiliateApplications.filter((a: any) => a.status === 'pending').length > 0 && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-yellow-400" />
+                      <div>
+                        <div className="text-white font-medium">{affiliateApplications.filter((a: any) => a.status === 'pending').length} Affiliate Apps</div>
+                        <div className="text-xs text-gray-400">Awaiting review</div>
+                      </div>
+                    </div>
+                  )}
+                  {helpRequests.filter((h: any) => h.status === 'pending').length > 0 && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-yellow-400" />
+                      <div>
+                        <div className="text-white font-medium">{helpRequests.filter((h: any) => h.status === 'pending').length} Help Requests</div>
+                        <div className="text-xs text-gray-400">Need attention</div>
+                      </div>
+                    </div>
+                  )}
+                  {privateDoctorRequests.filter((p: any) => p.status === 'pending').length > 0 && (
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-center gap-3">
+                      <Stethoscope className="w-5 h-5 text-red-400" />
+                      <div>
+                        <div className="text-white font-medium">{privateDoctorRequests.filter((p: any) => p.status === 'pending').length} Doctor Requests</div>
+                        <div className="text-xs text-gray-400">Urgent - medical</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Stats Grid */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-black/20 rounded-lg border border-white/10 p-4">
+                  <h4 className="text-sm font-bold text-gray-400 mb-3">APPLICATIONS</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between"><span className="text-gray-300">Affiliate Apps</span><span className="text-white font-bold">{affiliateApplications.length}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-300">Startup Grants</span><span className="text-white font-bold">{startupGrants.length}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-300">Website Grants</span><span className="text-white font-bold">{websiteApplications.length}</span></div>
+                  </div>
+                </div>
+                <div className="bg-black/20 rounded-lg border border-white/10 p-4">
+                  <h4 className="text-sm font-bold text-gray-400 mb-3">INTAKES</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between"><span className="text-gray-300">Veteran</span><span className="text-white font-bold">{veteranIntakes.length}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-300">Business</span><span className="text-white font-bold">{businessIntakes.length}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-300">Insurance</span><span className="text-white font-bold">{insuranceIntakes.length}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-300">Medical Sales</span><span className="text-white font-bold">{medicalSalesIntakes.length}</span></div>
+                  </div>
+                </div>
+                <div className="bg-black/20 rounded-lg border border-white/10 p-4">
+                  <h4 className="text-sm font-bold text-gray-400 mb-3">LEADS & REQUESTS</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between"><span className="text-gray-300">Help Requests</span><span className="text-white font-bold">{helpRequests.length}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-300">Private Doctor</span><span className="text-white font-bold">{privateDoctorRequests.length}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-300">Furniture</span><span className="text-white font-bold">{furnitureAssistance.length}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-300">General Contact</span><span className="text-white font-bold">{generalContact.length}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Applications Tab */}
+          <TabsContent value="applications" className="mt-6">
+            <Tabs defaultValue="affiliate-apps" className="w-full">
+              <TabsList className="bg-black/20 border border-white/10 mb-4">
+                <TabsTrigger value="affiliate-apps" className="data-[state=active]:bg-brand-navy text-gray-400">Affiliate Apps ({affiliateApplications.length})</TabsTrigger>
+                <TabsTrigger value="startup-grants" className="data-[state=active]:bg-brand-navy text-gray-400">Startup Grants ({startupGrants.length})</TabsTrigger>
+                <TabsTrigger value="website-apps" className="data-[state=active]:bg-brand-navy text-gray-400">Website Grants ({websiteApplications.length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="affiliate-apps">
+                <DataTable title="Affiliate Applications" icon={<ClipboardList className="w-5 h-5 text-brand-red" />} data={affiliateApplications} columns={["name", "email", "phone", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="startup-grants">
+                <DataTable title="Startup Grant Applications" icon={<DollarSign className="w-5 h-5 text-green-400" />} data={startupGrants} columns={["businessName", "firstName", "lastName", "email", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="website-apps">
+                <DataTable title="Website Grant Applications" icon={<Globe className="w-5 h-5 text-blue-400" />} data={websiteApplications} columns={["businessName", "firstName", "lastName", "email", "status", "createdAt"]} />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          {/* Intakes Tab */}
+          <TabsContent value="intakes" className="mt-6">
+            <Tabs defaultValue="veteran" className="w-full">
+              <TabsList className="bg-black/20 border border-white/10 mb-4 flex-wrap">
+                <TabsTrigger value="veteran" className="data-[state=active]:bg-brand-navy text-gray-400">Veteran ({veteranIntakes.length})</TabsTrigger>
+                <TabsTrigger value="business" className="data-[state=active]:bg-brand-navy text-gray-400">Business ({businessIntakes.length})</TabsTrigger>
+                <TabsTrigger value="insurance" className="data-[state=active]:bg-brand-navy text-gray-400">Insurance ({insuranceIntakes.length})</TabsTrigger>
+                <TabsTrigger value="medical-sales" className="data-[state=active]:bg-brand-navy text-gray-400">Medical Sales ({medicalSalesIntakes.length})</TabsTrigger>
+                <TabsTrigger value="business-dev" className="data-[state=active]:bg-brand-navy text-gray-400">Business Dev ({businessDevIntakes.length})</TabsTrigger>
+                <TabsTrigger value="healthcare-tab" className="data-[state=active]:bg-brand-navy text-gray-400">Healthcare ({healthcareIntakes.length})</TabsTrigger>
+                <TabsTrigger value="vet-prof" className="data-[state=active]:bg-brand-navy text-gray-400">Vet Professionals ({vetProfessionalIntakes.length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="veteran">
+                <DataTable title="Veteran Intakes" icon={<Shield className="w-5 h-5 text-brand-red" />} data={veteranIntakes} columns={["firstName", "lastName", "email", "phone", "intakeType", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="business">
+                <DataTable title="Business Intakes" icon={<Briefcase className="w-5 h-5 text-yellow-400" />} data={businessIntakes} columns={["businessName", "contactName", "email", "phone", "serviceType", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="insurance">
+                <DataTable title="Insurance Intakes" icon={<Shield className="w-5 h-5 text-blue-400" />} data={insuranceIntakes} columns={["businessName", "contactName", "email", "phone", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="medical-sales">
+                <DataTable title="Medical Sales Intakes" icon={<Stethoscope className="w-5 h-5 text-green-400" />} data={medicalSalesIntakes} columns={["firstName", "lastName", "email", "phone", "role", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="business-dev">
+                <DataTable title="Business Development Intakes" icon={<Target className="w-5 h-5 text-purple-400" />} data={businessDevIntakes} columns={["businessName", "contactName", "email", "phone", "serviceType", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="healthcare-tab">
+                <DataTable title="Healthcare Intakes" icon={<Heart className="w-5 h-5 text-red-400" />} data={healthcareIntakes} columns={["firstName", "lastName", "email", "phone", "treatmentType", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="vet-prof">
+                <DataTable title="Vet Professional Intakes" icon={<UserCheck className="w-5 h-5 text-cyan-400" />} data={vetProfessionalIntakes} columns={["firstName", "lastName", "email", "phone", "profession", "status", "createdAt"]} />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          {/* Leads & Requests Tab */}
+          <TabsContent value="leads" className="mt-6">
+            <Tabs defaultValue="help-requests" className="w-full">
+              <TabsList className="bg-black/20 border border-white/10 mb-4 flex-wrap">
+                <TabsTrigger value="help-requests" className="data-[state=active]:bg-brand-navy text-gray-400">Help Requests ({helpRequests.length})</TabsTrigger>
+                <TabsTrigger value="private-doctor" className="data-[state=active]:bg-brand-navy text-gray-400">Private Doctor ({privateDoctorRequests.length})</TabsTrigger>
+                <TabsTrigger value="furniture" className="data-[state=active]:bg-brand-navy text-gray-400">Furniture ({furnitureAssistance.length})</TabsTrigger>
+                <TabsTrigger value="contact" className="data-[state=active]:bg-brand-navy text-gray-400">General Contact ({generalContact.length})</TabsTrigger>
+                <TabsTrigger value="business-leads-tab" className="data-[state=active]:bg-brand-navy text-gray-400">Business Leads ({businessLeads.length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="help-requests">
+                <DataTable title="VA Help Requests" icon={<HelpCircle className="w-5 h-5 text-blue-400" />} data={helpRequests} columns={["name", "email", "phone", "claimType", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="private-doctor">
+                <DataTable title="Private Doctor Requests" icon={<Stethoscope className="w-5 h-5 text-red-400" />} data={privateDoctorRequests} columns={["firstName", "lastName", "email", "phone", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="furniture">
+                <DataTable title="Furniture Assistance" icon={<Sofa className="w-5 h-5 text-yellow-400" />} data={furnitureAssistance} columns={["firstName", "lastName", "email", "phone", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="contact">
+                <DataTable title="General Contact" icon={<Mail className="w-5 h-5 text-gray-400" />} data={generalContact} columns={["name", "email", "phone", "subject", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="business-leads-tab">
+                <DataTable title="Business Leads" icon={<Building className="w-5 h-5 text-green-400" />} data={businessLeads} columns={["businessName", "contactName", "email", "phone", "leadType", "status", "createdAt"]} />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          {/* Sales & Referrals Tab */}
+          <TabsContent value="sales" className="mt-6">
+            <Tabs defaultValue="partner-refs" className="w-full">
+              <TabsList className="bg-black/20 border border-white/10 mb-4">
+                <TabsTrigger value="partner-refs" className="data-[state=active]:bg-brand-navy text-gray-400">Partner Referrals ({finopsReferrals.length})</TabsTrigger>
+                <TabsTrigger value="disability-refs" className="data-[state=active]:bg-brand-navy text-gray-400">Disability Referrals ({disabilityReferrals.length})</TabsTrigger>
+                <TabsTrigger value="sales-data" className="data-[state=active]:bg-brand-navy text-gray-400">Sales ({salesData.length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="partner-refs">
+                <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+                  <div className="p-4 border-b border-white/10">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Link2 className="w-5 h-5 text-brand-red" />
+                      Partner Referral Tracking
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border-b border-white/10">
+                    <div className="bg-brand-gold/20 rounded-lg p-4 text-center">
+                      <Store className="w-6 h-6 text-brand-gold mx-auto mb-2" />
+                      <div className="text-xl font-bold text-white">{finopsReferrals.filter((r: any) => r.partnerType === 'my_locker').length}</div>
+                      <div className="text-xs text-gray-400">MY LOCKER</div>
+                    </div>
+                    <div className="bg-brand-red/20 rounded-lg p-4 text-center">
+                      <CreditCard className="w-6 h-6 text-brand-red mx-auto mb-2" />
+                      <div className="text-xl font-bold text-white">{finopsReferrals.filter((r: any) => r.partnerType === 'merchant_services').length}</div>
+                      <div className="text-xs text-gray-400">Merchant</div>
+                    </div>
+                    <div className="bg-brand-blue/20 rounded-lg p-4 text-center">
+                      <Gift className="w-6 h-6 text-brand-blue mx-auto mb-2" />
+                      <div className="text-xl font-bold text-white">{finopsReferrals.filter((r: any) => r.partnerType === 'vgift_cards').length}</div>
+                      <div className="text-xs text-gray-400">vGift Cards</div>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-4 text-center">
+                      <Link2 className="w-6 h-6 text-white mx-auto mb-2" />
+                      <div className="text-xl font-bold text-white">{finopsReferrals.length}</div>
+                      <div className="text-xs text-gray-400">Total</div>
+                    </div>
+                  </div>
+                  <DataTable title="" icon={null} data={finopsReferrals} columns={["referralCode", "partnerType", "status", "createdAt"]} hideHeader />
+                </div>
+              </TabsContent>
+              <TabsContent value="disability-refs">
+                <DataTable title="Disability Referrals" icon={<Shield className="w-5 h-5 text-brand-red" />} data={disabilityReferrals} columns={["firstName", "lastName", "email", "phone", "ratingType", "status", "createdAt"]} />
+              </TabsContent>
+              <TabsContent value="sales-data">
+                <DataTable title="Sales Transactions" icon={<TrendingUp className="w-5 h-5 text-green-400" />} data={salesData} columns={["affiliateId", "opportunityId", "amount", "status", "createdAt"]} />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          {/* Documents Tab */}
+          <TabsContent value="files" className="mt-6">
+            <Tabs defaultValue="folders" className="w-full">
+              <TabsList className="bg-black/20 border border-white/10 mb-4">
+                <TabsTrigger value="folders" className="data-[state=active]:bg-brand-navy text-gray-400">Affiliate Folders ({affiliateFiles.length})</TabsTrigger>
+                <TabsTrigger value="schedule-a-sub" className="data-[state=active]:bg-brand-navy text-gray-400">Schedule A ({scheduleASignatures.length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="folders">
+                <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+                  <div className="p-4 border-b border-white/10 bg-black/20">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <FolderOpen className="w-5 h-5 text-brand-red" />
+                      Affiliate Document Folders
+                    </h2>
+                    <p className="text-sm text-gray-400 mt-1">
+                      View complete document packages for each affiliate
+                    </p>
+                  </div>
+
+                  {filesLoading ? (
                 <div className="p-8 text-center">
                   <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
                   <p className="text-gray-400 mt-4">Loading affiliate files...</p>
@@ -398,493 +881,19 @@ export default function MasterPortal() {
                   ))}
                 </div>
               )}
-            </div>
-          </TabsContent>
-
-          {/* Affiliates Tab */}
-          <TabsContent value="affiliates" className="mt-6">
-            <div className="bg-black/20 rounded-lg border border-white/10 p-6">
-              <h2 className="text-lg font-bold text-white mb-4">All Registered Affiliates</h2>
-              <p className="text-gray-400">Coming soon - full affiliate management</p>
-            </div>
-          </TabsContent>
-
-          {/* Partner Referrals Tab */}
-          <TabsContent value="partner-referrals" className="mt-6">
-            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
-              <div className="p-4 border-b border-white/10 bg-black/20">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Link2 className="w-5 h-5 text-brand-red" />
-                  Partner Referral Tracking
-                </h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  Track all clicks and signups from affiliate referral links to partner services
-                </p>
               </div>
-
-              {/* Stats Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border-b border-white/10">
-                <div className="bg-brand-gold/20 rounded-lg p-4 text-center">
-                  <Store className="w-8 h-8 text-brand-gold mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">
-                    {finopsReferrals.filter(r => r.partnerType === 'my_locker').length}
+              </TabsContent>
+              <TabsContent value="schedule-a-sub">
+                <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+                  <div className="p-4 border-b border-white/10 bg-black/20">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-brand-red" />
+                      Schedule A Signatures
+                    </h2>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Track affiliate acknowledgments of the commission structure
+                    </p>
                   </div>
-                  <div className="text-xs text-gray-400">MY LOCKER Clicks</div>
-                </div>
-                <div className="bg-brand-red/20 rounded-lg p-4 text-center">
-                  <CreditCard className="w-8 h-8 text-brand-red mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">
-                    {finopsReferrals.filter(r => r.partnerType === 'merchant_services').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Merchant Clicks</div>
-                </div>
-                <div className="bg-brand-blue/20 rounded-lg p-4 text-center">
-                  <Gift className="w-8 h-8 text-brand-blue mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">
-                    {finopsReferrals.filter(r => r.partnerType === 'vgift_cards').length}
-                  </div>
-                  <div className="text-xs text-gray-400">vGift Card Clicks</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-4 text-center">
-                  <Link2 className="w-8 h-8 text-white mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">
-                    {finopsReferrals.length}
-                  </div>
-                  <div className="text-xs text-gray-400">Total Referrals</div>
-                </div>
-              </div>
-
-              {referralsLoading ? (
-                <div className="p-8 text-center">
-                  <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
-                  <p className="text-gray-400 mt-4">Loading referrals...</p>
-                </div>
-              ) : finopsReferrals.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
-                  No partner referrals tracked yet.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-black/30 text-left">
-                      <tr>
-                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Date</th>
-                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Partner</th>
-                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Affiliate</th>
-                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Referral Code</th>
-                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Status</th>
-                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">IP</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10">
-                      {finopsReferrals.map((referral: any) => (
-                        <tr key={referral.id} className="hover:bg-white/5">
-                          <td className="px-4 py-3 text-white text-sm">
-                            {new Date(referral.createdAt).toLocaleString()}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
-                              referral.partnerType === 'my_locker' ? 'bg-brand-gold/20 text-brand-gold' :
-                              referral.partnerType === 'merchant_services' ? 'bg-brand-red/20 text-brand-red' :
-                              'bg-brand-blue/20 text-brand-blue'
-                            }`}>
-                              {referral.partnerType === 'my_locker' && <Store className="w-3 h-3" />}
-                              {referral.partnerType === 'merchant_services' && <CreditCard className="w-3 h-3" />}
-                              {referral.partnerType === 'vgift_cards' && <Gift className="w-3 h-3" />}
-                              {referral.partnerType.replace(/_/g, ' ').toUpperCase()}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-white text-sm">
-                            {referral.affiliateName || <span className="text-gray-500">Direct</span>}
-                          </td>
-                          <td className="px-4 py-3 text-gray-400 text-sm font-mono">
-                            {referral.referralCode || '-'}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              referral.status === 'clicked' ? 'bg-yellow-500/20 text-yellow-400' :
-                              referral.status === 'registered' ? 'bg-blue-500/20 text-blue-400' :
-                              'bg-green-500/20 text-green-400'
-                            }`}>
-                              {referral.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-500 text-xs font-mono">
-                            {referral.visitorIp?.substring(0, 15)}...
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Disability Referrals Tab */}
-          <TabsContent value="disability-referrals" className="mt-6">
-            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
-              <div className="p-4 border-b border-white/10 bg-black/20">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-brand-red" />
-                  Disability Claim Referrals
-                </h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  Track veteran disability claim intake submissions from affiliates
-                </p>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 border-b border-white/10">
-                <div className="bg-green-500/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-green-400">
-                    {disabilityReferrals.filter((r: any) => r.claimType === 'initial').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Initial Claims</div>
-                </div>
-                <div className="bg-brand-red/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-brand-red">
-                    {disabilityReferrals.filter((r: any) => r.claimType === 'increase').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Rating Increase</div>
-                </div>
-                <div className="bg-yellow-500/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-yellow-400">
-                    {disabilityReferrals.filter((r: any) => r.claimType === 'denial').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Denial Appeals</div>
-                </div>
-                <div className="bg-brand-blue/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-brand-blue">
-                    {disabilityReferrals.filter((r: any) => r.claimType === 'ssdi').length}
-                  </div>
-                  <div className="text-xs text-gray-400">SSDI Claims</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-white">
-                    {disabilityReferrals.length}
-                  </div>
-                  <div className="text-xs text-gray-400">Total Referrals</div>
-                </div>
-              </div>
-
-              {disabilityLoading ? (
-                <div className="p-8 text-center text-gray-400">Loading referrals...</div>
-              ) : disabilityReferrals.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
-                  No disability referrals tracked yet.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-black/20">
-                      <tr>
-                        <th className="text-left text-gray-400 px-4 py-3 text-sm font-medium">Date</th>
-                        <th className="text-left text-gray-400 px-4 py-3 text-sm font-medium">Veteran</th>
-                        <th className="text-left text-gray-400 px-4 py-3 text-sm font-medium">Claim Type</th>
-                        <th className="text-left text-gray-400 px-4 py-3 text-sm font-medium">Current Rating</th>
-                        <th className="text-left text-gray-400 px-4 py-3 text-sm font-medium">Affiliate</th>
-                        <th className="text-left text-gray-400 px-4 py-3 text-sm font-medium">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {disabilityReferrals.map((referral: any) => (
-                        <tr key={referral.id} className="hover:bg-white/5">
-                          <td className="px-4 py-3 text-white text-sm">
-                            {new Date(referral.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="text-white text-sm font-medium">
-                              {referral.firstName} {referral.lastName}
-                            </div>
-                            <div className="text-gray-400 text-xs">{referral.email}</div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              referral.claimType === 'initial' ? 'bg-green-500/20 text-green-400' :
-                              referral.claimType === 'increase' ? 'bg-brand-red/20 text-brand-red' :
-                              referral.claimType === 'denial' ? 'bg-yellow-500/20 text-yellow-400' :
-                              referral.claimType === 'ssdi' ? 'bg-blue-500/20 text-blue-400' :
-                              'bg-purple-500/20 text-purple-400'
-                            }`}>
-                              {referral.claimType}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-white text-sm">
-                            {referral.currentRating ? `${referral.currentRating}%` : 'N/A'}
-                          </td>
-                          <td className="px-4 py-3">
-                            {referral.referralCode ? (
-                              <span className="text-brand-red text-sm font-mono">{referral.referralCode}</span>
-                            ) : (
-                              <span className="text-gray-500 text-sm">Direct</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              referral.status === 'new' ? 'bg-blue-500/20 text-blue-400' :
-                              referral.status === 'contacted' ? 'bg-yellow-500/20 text-yellow-400' :
-                              referral.status === 'in_progress' ? 'bg-purple-500/20 text-purple-400' :
-                              referral.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                              'bg-gray-500/20 text-gray-400'
-                            }`}>
-                              {referral.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Vet Professionals Tab */}
-          <TabsContent value="vet-professionals" className="mt-6">
-            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
-              <div className="p-4 border-b border-white/10 bg-black/20">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Users className="w-5 h-5 text-brand-red" />
-                  Vet Professionals Network
-                </h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  Professional network applications from attorneys, insurance agents, CPAs, and doctors
-                </p>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border-b border-white/10">
-                <div className="bg-blue-500/20 rounded-lg p-4 text-center" data-testid="stat-attorneys">
-                  <div className="text-2xl font-bold text-blue-400" data-testid="text-attorneys-count">
-                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'attorneys').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Attorneys</div>
-                </div>
-                <div className="bg-green-500/20 rounded-lg p-4 text-center" data-testid="stat-insurance">
-                  <div className="text-2xl font-bold text-green-400" data-testid="text-insurance-count">
-                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'insurance').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Insurance</div>
-                </div>
-                <div className="bg-yellow-500/20 rounded-lg p-4 text-center" data-testid="stat-cpa">
-                  <div className="text-2xl font-bold text-yellow-400" data-testid="text-cpa-count">
-                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'cpa').length}
-                  </div>
-                  <div className="text-xs text-gray-400">CPAs</div>
-                </div>
-                <div className="bg-purple-500/20 rounded-lg p-4 text-center" data-testid="stat-medical">
-                  <div className="text-2xl font-bold text-purple-400" data-testid="text-medical-count">
-                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'medical').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Medical</div>
-                </div>
-              </div>
-
-              {vetProfessionalsLoading ? (
-                <div className="p-8 text-center">
-                  <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
-                  <p className="text-gray-400 mt-4">Loading professional intakes...</p>
-                </div>
-              ) : vetProfessionalIntakes.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
-                  No professional network applications yet.
-                </div>
-              ) : (
-                <div className="overflow-x-auto" data-testid="table-vet-professionals">
-                  <table className="w-full">
-                    <thead className="bg-black/30">
-                      <tr>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-name">Name</th>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-profession">Profession</th>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-business">Business</th>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-license">License</th>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-referral">Referral</th>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-status">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {vetProfessionalIntakes.map((professional: any) => (
-                        <tr key={professional.id} className="hover:bg-white/5" data-testid={`row-vet-professional-${professional.id}`}>
-                          <td className="px-4 py-3">
-                            <div className="text-white font-medium">{professional.firstName} {professional.lastName}</div>
-                            <div className="text-gray-400 text-xs">{professional.email}</div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${
-                              professional.professionType === 'attorneys' ? 'bg-blue-500/20 text-blue-400' :
-                              professional.professionType === 'insurance' ? 'bg-green-500/20 text-green-400' :
-                              professional.professionType === 'cpa' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-purple-500/20 text-purple-400'
-                            }`}>
-                              {professional.professionType}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-white text-sm">
-                            {professional.businessName || 'N/A'}
-                          </td>
-                          <td className="px-4 py-3 text-white text-sm">
-                            {professional.licenseNumber || 'N/A'}
-                          </td>
-                          <td className="px-4 py-3">
-                            {professional.referralCode ? (
-                              <span className="text-brand-red text-sm font-mono">{professional.referralCode}</span>
-                            ) : (
-                              <span className="text-gray-500 text-sm">Direct</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              professional.status === 'new' ? 'bg-blue-500/20 text-blue-400' :
-                              professional.status === 'contacted' ? 'bg-yellow-500/20 text-yellow-400' :
-                              professional.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                              'bg-gray-500/20 text-gray-400'
-                            }`}>
-                              {professional.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Healthcare Intakes Tab */}
-          <TabsContent value="healthcare" className="mt-6">
-            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
-              <div className="p-4 border-b border-white/10 bg-black/20">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-brand-red" />
-                  Healthcare Intakes
-                </h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  Healthcare navigation requests and provider applications
-                </p>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-4 p-4 border-b border-white/10">
-                <div className="bg-purple-500/20 rounded-lg p-4 text-center" data-testid="stat-ptsd">
-                  <div className="text-2xl font-bold text-purple-400" data-testid="text-ptsd-count">
-                    {healthcareIntakes.filter((h: any) => h.category === 'ptsd').length}
-                  </div>
-                  <div className="text-xs text-gray-400">PTSD</div>
-                </div>
-                <div className="bg-blue-500/20 rounded-lg p-4 text-center" data-testid="stat-exosomes">
-                  <div className="text-2xl font-bold text-blue-400" data-testid="text-exosomes-count">
-                    {healthcareIntakes.filter((h: any) => h.category === 'exosomes').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Exosomes</div>
-                </div>
-                <div className="bg-green-500/20 rounded-lg p-4 text-center" data-testid="stat-less-invasive">
-                  <div className="text-2xl font-bold text-green-400" data-testid="text-less-invasive-count">
-                    {healthcareIntakes.filter((h: any) => h.category === 'less_invasive').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Less Invasive</div>
-                </div>
-                <div className="bg-yellow-500/20 rounded-lg p-4 text-center" data-testid="stat-new-treatments">
-                  <div className="text-2xl font-bold text-yellow-400" data-testid="text-new-treatments-count">
-                    {healthcareIntakes.filter((h: any) => h.category === 'new_treatments').length}
-                  </div>
-                  <div className="text-xs text-gray-400">New Treatments</div>
-                </div>
-                <div className="bg-brand-red/20 rounded-lg p-4 text-center" data-testid="stat-guidance">
-                  <div className="text-2xl font-bold text-brand-red" data-testid="text-guidance-count">
-                    {healthcareIntakes.filter((h: any) => h.category === 'guidance').length}
-                  </div>
-                  <div className="text-xs text-gray-400">Guidance</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-4 text-center" data-testid="stat-providers">
-                  <div className="text-2xl font-bold text-white" data-testid="text-providers-count">
-                    {healthcareIntakes.filter((h: any) => h.isOfferingServices).length}
-                  </div>
-                  <div className="text-xs text-gray-400">Providers</div>
-                </div>
-              </div>
-
-              {healthcareLoading ? (
-                <div className="p-8 text-center">
-                  <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
-                  <p className="text-gray-400 mt-4">Loading healthcare intakes...</p>
-                </div>
-              ) : healthcareIntakes.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
-                  No healthcare intake requests yet.
-                </div>
-              ) : (
-                <div className="overflow-x-auto" data-testid="table-healthcare">
-                  <table className="w-full">
-                    <thead className="bg-black/30">
-                      <tr>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">Name</th>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">Category</th>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">Type</th>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">VA Rating</th>
-                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {healthcareIntakes.map((intake: any) => (
-                        <tr key={intake.id} className="hover:bg-white/5" data-testid={`row-healthcare-${intake.id}`}>
-                          <td className="px-4 py-3">
-                            <div className="text-white font-medium">{intake.firstName} {intake.lastName}</div>
-                            <div className="text-gray-400 text-xs">{intake.email}</div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${
-                              intake.category === 'ptsd' ? 'bg-purple-500/20 text-purple-400' :
-                              intake.category === 'exosomes' ? 'bg-blue-500/20 text-blue-400' :
-                              intake.category === 'less_invasive' ? 'bg-green-500/20 text-green-400' :
-                              intake.category === 'new_treatments' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-brand-red/20 text-brand-red'
-                            }`}>
-                              {intake.category?.replace(/_/g, ' ')}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              intake.isOfferingServices ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
-                            }`}>
-                              {intake.isOfferingServices ? 'Provider' : 'Seeking Care'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-white text-sm">
-                            {intake.currentVaRating || 'N/A'}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              intake.status === 'new' ? 'bg-blue-500/20 text-blue-400' :
-                              intake.status === 'contacted' ? 'bg-yellow-500/20 text-yellow-400' :
-                              intake.status === 'in_progress' ? 'bg-purple-500/20 text-purple-400' :
-                              'bg-green-500/20 text-green-400'
-                            }`}>
-                              {intake.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Schedule A Signatures Tab */}
-          <TabsContent value="schedule-a" className="mt-6">
-            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
-              <div className="p-4 border-b border-white/10 bg-black/20">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-brand-red" />
-                  Schedule A Signatures
-                </h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  Track affiliate acknowledgments of the commission structure
-                </p>
-              </div>
 
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border-b border-white/10" data-testid="schedule-a-stats">
@@ -966,8 +975,10 @@ export default function MasterPortal() {
                     </tbody>
                   </table>
                 </div>
-              )}
-            </div>
+                )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>
