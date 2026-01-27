@@ -31,7 +31,7 @@ export default function AdminLogin() {
       }
 
       if (data.user?.role === "admin") {
-        setLocation("/admin/dashboard");
+        setLocation("/master-portal");
       } else {
         setError("Access denied. Admin credentials required.");
         setLoading(false);
