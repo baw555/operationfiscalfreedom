@@ -230,6 +230,99 @@ export default function ScheduleA() {
           )}
         </div>
 
+        {/* Merchant Processing Section */}
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden mt-8">
+          <div className="bg-green-700 text-white p-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Building2 className="w-6 h-6" />
+              Merchant Processing Compensation
+            </h2>
+            <p className="text-sm text-white/70">Revenue share from credit card processing volume</p>
+          </div>
+
+          <div className="p-6">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-gray-700">
+                <strong>How it works:</strong> Merchant Processing compensation is generated from the profit on credit card processing (approximately 3% of business transaction volume). 
+                As an agent, you receive <span className="text-green-700 font-bold">20%</span> of the NET Transaction Revenue.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-brand-navy text-white">
+                    <th className="py-3 px-4 text-left">Metric</th>
+                    <th className="py-3 px-4 text-right">Small Business</th>
+                    <th className="py-3 px-4 text-right">Medium Business</th>
+                    <th className="py-3 px-4 text-right">Large Business</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b bg-gray-50">
+                    <td className="py-3 px-4 font-medium">Monthly Card Charges</td>
+                    <td className="py-3 px-4 text-right">$25,000</td>
+                    <td className="py-3 px-4 text-right">$50,000</td>
+                    <td className="py-3 px-4 text-right">$100,000</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-3 px-4 font-medium">Avg. Total NET Transaction Revenue</td>
+                    <td className="py-3 px-4 text-right">$720.00</td>
+                    <td className="py-3 px-4 text-right">$965.00</td>
+                    <td className="py-3 px-4 text-right">$1,945.00</td>
+                  </tr>
+                  <tr className="border-b bg-green-50">
+                    <td className="py-3 px-4 font-medium">Agent Compensation Rate</td>
+                    <td className="py-3 px-4 text-right font-bold text-green-700">20%</td>
+                    <td className="py-3 px-4 text-right font-bold text-green-700">20%</td>
+                    <td className="py-3 px-4 text-right font-bold text-green-700">20%</td>
+                  </tr>
+                  <tr className="border-b bg-green-100">
+                    <td className="py-3 px-4 font-bold">Your Monthly Earnings</td>
+                    <td className="py-3 px-4 text-right font-bold text-green-700">$144.00</td>
+                    <td className="py-3 px-4 text-right font-bold text-green-700">$193.00</td>
+                    <td className="py-3 px-4 text-right font-bold text-green-700">$389.00</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-3 px-4 font-medium">Annual Income per Account</td>
+                    <td className="py-3 px-4 text-right">$1,728.00</td>
+                    <td className="py-3 px-4 text-right">$2,316.00</td>
+                    <td className="py-3 px-4 text-right">$4,668.00</td>
+                  </tr>
+                  <tr className="bg-brand-navy text-white">
+                    <td className="py-3 px-4 font-bold">Annual Income with 25 Accounts</td>
+                    <td className="py-3 px-4 text-right font-bold text-green-400">$43,200.00</td>
+                    <td className="py-3 px-4 text-right font-bold text-green-400">$57,900.00</td>
+                    <td className="py-3 px-4 text-right font-bold text-green-400">$116,700.00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-green-600 to-green-700 text-white rounded-lg p-4 text-center">
+                <div className="text-sm opacity-80">25 Small Businesses</div>
+                <div className="text-2xl font-bold">$43,200/yr</div>
+                <div className="text-xs opacity-70">$3,600/month</div>
+              </div>
+              <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg p-4 text-center">
+                <div className="text-sm opacity-80">25 Medium Businesses</div>
+                <div className="text-2xl font-bold">$57,900/yr</div>
+                <div className="text-xs opacity-70">$4,825/month</div>
+              </div>
+              <div className="bg-gradient-to-br from-brand-red to-red-700 text-white rounded-lg p-4 text-center">
+                <div className="text-sm opacity-80">25 Large Businesses</div>
+                <div className="text-2xl font-bold">$116,700/yr</div>
+                <div className="text-xs opacity-70">$9,725/month</div>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
+              <strong className="text-yellow-800">Note:</strong> <span className="text-gray-700">Merchant Processing income is <strong>residual</strong> - you continue earning as long as the business processes transactions. Build a portfolio of accounts for long-term passive income.</span>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-8 bg-gray-50 rounded-lg p-6 text-sm text-gray-600">
           <h3 className="font-bold text-brand-navy mb-2">Schedule A Terms</h3>
           <ul className="space-y-2">
@@ -238,6 +331,7 @@ export default function ScheduleA() {
             <li><strong>Compression:</strong> Empty upline levels (up to 6) compress to the producer, not the house.</li>
             <li><strong>House:</strong> Fixed 22.5% of all commissions.</li>
             <li><strong>Recruiter Bounty:</strong> Separate 2.5% to the person who recruited the producing representative.</li>
+            <li><strong>Merchant Processing:</strong> 20% of NET Transaction Revenue from credit card processing volume. Residual income as long as merchant remains active.</li>
           </ul>
         </div>
       </div>
