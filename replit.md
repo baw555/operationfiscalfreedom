@@ -11,6 +11,13 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - **Four Pillars**: Financial, Spiritual, Medical, Holistic
 
 ## Recent Changes
+- **January 2026**: Operational Excellence Security Hardening
+  - Fixed admin dashboard auth bypass vulnerability (now properly verifies session)
+  - Fixed error middleware that could crash server (removed throw-after-response)
+  - Added Zod schema validation to finops API endpoints
+  - Aligned all portal auth gating with backend requireAdmin/requireAffiliate patterns
+  - Verified session.regenerate() pattern on all login/signup routes
+  - Confirmed secure session cookies: httpOnly, secure in production, sameSite, 24hr expiry
 - **January 2026**: Fin-Ops Partner Tracking System
   - Created `finops_referrals` table for tracking affiliate clicks to partner services
   - Added tracking endpoints: POST /api/finops/track-click, GET/PATCH /api/admin/finops-referrals
