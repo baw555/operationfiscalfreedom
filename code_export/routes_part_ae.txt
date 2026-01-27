@@ -1,0 +1,393 @@
+      for (let i = 0; i < salesCount; i++) {
+        const affiliate = stressTestAffiliates[Math.floor(Math.random() * stressTestAffiliates.length)];
+        const opportunity = existingOpportunities[Math.floor(Math.random() * existingOpportunities.length)];
+        // Median sale for tax is $16,000 - create distribution around this
+        // Range: $5,000 - $35,000 with median around $16,000
+        const baseAmount = 1600000; // $16,000 in cents (median)
+        const variance = Math.floor((Math.random() - 0.5) * 2 * 1900000); // +/- $19,000 variance
+        const saleAmount = Math.max(500000, baseAmount + variance); // Min $5,000
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        
+        const clientFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+        const clientLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+        
+        try {
+          const sale = await storage.createSale({
+            opportunityId: opportunity.id,
+            affiliateId: affiliate.id,
+            clientName: `${clientFirstName} ${clientLastName}`,
+            clientEmail: `${clientFirstName.toLowerCase()}.${clientLastName.toLowerCase()}@client.com`,
+            clientPhone: `555-${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+            saleAmount,
+            referredByL1: affiliate.id,
+            referredByL2: affiliate.level1Id,
+            referredByL3: affiliate.level2Id,
+            referredByL4: affiliate.level3Id,
+            referredByL5: affiliate.level4Id,
+            referredByL6: affiliate.level5Id,
+            referredByL7: affiliate.level6Id,
+            recruiterId: affiliate.recruiterId,
+            recruiterBounty: Math.floor(saleAmount * 0.025),
+            l2Active: affiliate.isCompActive,
+            l3Active: "true",
+            l4Active: "true",
+            l5Active: "true",
+            compressedToL6: 0,
+            notes: `Stress test sale #${i + 1}`,
+          });
+          
+          // Update sale status
+          await storage.updateSale(sale.id, { status });
+          salesCreated.push({ ...sale, status });
+          
+          // Create commissions for each level
+          const commissionPool = saleAmount;
+          const commissionRates = [0.69, 0.01, 0.01, 0.01, 0.01, 0.01, 0.225]; // Producer + 6 uplines + house
+          
+          // Level 1 - Producer
+          if (affiliate.id) {
+            const comm = await storage.createCommission({
+              saleId: sale.id,
+              affiliateId: affiliate.id,
+              level: 1,
+              amount: Math.floor(commissionPool * commissionRates[0]),
+            });
+            await storage.updateCommission(comm.id, { status });
+            commissionsCreated.push(comm);
+          }
+          
+          // Levels 2-6 uplines
+          const uplineIds = [affiliate.level1Id, affiliate.level2Id, affiliate.level3Id, affiliate.level4Id, affiliate.level5Id];
+          for (let lvl = 0; lvl < uplineIds.length; lvl++) {
+            if (uplineIds[lvl]) {
+              const comm = await storage.createCommission({
+                saleId: sale.id,
+                affiliateId: uplineIds[lvl],
+                level: lvl + 2,
+                amount: Math.floor(commissionPool * commissionRates[lvl + 1]),
+              });
+              await storage.updateCommission(comm.id, { status });
+              commissionsCreated.push(comm);
+            }
+          }
+        } catch (e) {
+          console.log(`Error creating sale ${i}:`, e);
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: "Stress test simulation completed",
+        stats: {
+          affiliatesUsed: stressTestAffiliates.length,
+          salesCreated: salesCreated.length,
+          commissionsCreated: commissionsCreated.length,
+          totalSalesVolume: salesCreated.reduce((sum, s) => sum + s.saleAmount, 0),
+          totalCommissions: commissionsCreated.reduce((sum, c) => sum + c.amount, 0),
+        },
+      });
+    } catch (error) {
+      console.error("Error running stress test:", error);
+      res.status(500).json({ message: "Failed to run stress test simulation" });
+    }
+  });
+  
+  // Get stress test results
+  // Public endpoint for demo purposes
+  app.get("/api/stress-test/results", async (req, res) => {
+    try {
+      const affiliates = await storage.getAllVltAffiliates();
+      const allSales = await storage.getAllSales();
+      const opportunities = await storage.getAllOpportunities();
+      
+      // Get commissions for each affiliate
+      const affiliateData = await Promise.all(affiliates.map(async (aff) => {
+        const affSales = allSales.filter(s => s.affiliateId === aff.id);
+        const affCommissions = await storage.getCommissionsByAffiliate(aff.id);
+        
+        return {
+          id: aff.id,
+          name: aff.name,
+          email: aff.email,
+          role: aff.role,
+          referralCode: aff.referralCode,
+          status: aff.status,
+          isCompActive: aff.isCompActive,
+          level1Id: aff.level1Id,
+          level2Id: aff.level2Id,
+          level3Id: aff.level3Id,
+          totalDirectSales: affSales.length,
+          totalSalesVolume: affSales.reduce((sum, s) => sum + s.saleAmount, 0),
+          totalCommissionsEarned: affCommissions.reduce((sum, c) => sum + c.amount, 0),
+          pendingCommissions: affCommissions.filter(c => c.status === "pending").reduce((sum, c) => sum + c.amount, 0),
+          approvedCommissions: affCommissions.filter(c => c.status === "approved").reduce((sum, c) => sum + c.amount, 0),
+          paidCommissions: affCommissions.filter(c => c.status === "paid").reduce((sum, c) => sum + c.amount, 0),
+          commissionsByLevel: {
+            level1: affCommissions.filter(c => c.level === 1).reduce((sum, c) => sum + c.amount, 0),
+            level2: affCommissions.filter(c => c.level === 2).reduce((sum, c) => sum + c.amount, 0),
+            level3: affCommissions.filter(c => c.level === 3).reduce((sum, c) => sum + c.amount, 0),
+            level4: affCommissions.filter(c => c.level === 4).reduce((sum, c) => sum + c.amount, 0),
+            level5: affCommissions.filter(c => c.level === 5).reduce((sum, c) => sum + c.amount, 0),
+            level6: affCommissions.filter(c => c.level === 6).reduce((sum, c) => sum + c.amount, 0),
+          },
+        };
+      }));
+      
+      // Summary stats
+      const summary = {
+        totalAffiliates: affiliates.length,
+        totalSales: allSales.length,
+        totalSalesVolume: allSales.reduce((sum, s) => sum + s.saleAmount, 0),
+        salesByStatus: {
+          pending: allSales.filter(s => s.status === "pending").length,
+          approved: allSales.filter(s => s.status === "approved").length,
+          paid: allSales.filter(s => s.status === "paid").length,
+        },
+        affiliatesByRole: {
+          master: affiliates.filter(a => a.role === "master").length,
+          sub_master: affiliates.filter(a => a.role === "sub_master").length,
+          affiliate: affiliates.filter(a => a.role === "affiliate").length,
+        },
+        averageSaleAmount: allSales.length > 0 ? Math.floor(allSales.reduce((sum, s) => sum + s.saleAmount, 0) / allSales.length) : 0,
+        topPerformers: affiliateData.sort((a, b) => b.totalCommissionsEarned - a.totalCommissionsEarned).slice(0, 10),
+      };
+      
+      res.json({
+        summary,
+        affiliates: affiliateData,
+        opportunities,
+      });
+    } catch (error) {
+      console.error("Error fetching stress test results:", error);
+      res.status(500).json({ message: "Failed to fetch stress test results" });
+    }
+  });
+  
+  // Clear stress test data
+  // Public endpoint for demo purposes
+  app.delete("/api/stress-test/clear", async (req, res) => {
+    try {
+      // This would need a storage method to clear test data
+      // For safety, we only clear affiliates with @stresstest.nav emails
+      const affiliates = await storage.getAllVltAffiliates();
+      const testAffiliates = affiliates.filter(a => a.email.includes("@stresstest.nav"));
+      
+      for (const aff of testAffiliates) {
+        // Delete commissions for this affiliate
+        const commissions = await storage.getCommissionsByAffiliate(aff.id);
+        for (const comm of commissions) {
+          // Would need delete commission method
+        }
+        // Delete sales by this affiliate
+        const sales = await storage.getSalesByAffiliate(aff.id);
+        for (const sale of sales) {
+          // Would need delete sale method
+        }
+        // Delete the affiliate
+        await storage.deleteVltAffiliate(aff.id);
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Cleared ${testAffiliates.length} test affiliates and their data` 
+      });
+    } catch (error) {
+      console.error("Error clearing stress test data:", error);
+      res.status(500).json({ message: "Failed to clear stress test data" });
+    }
+  });
+
+  // Schedule A Signature Routes
+  
+  // Check if current user has signed Schedule A
+  app.get("/api/schedule-a/status", requireAuth, async (req, res) => {
+    try {
+      const signature = await storage.getScheduleASignatureByUserId(req.session.userId!);
+      res.json({ 
+        signed: !!signature, 
+        signature: signature || null 
+      });
+    } catch (error) {
+      console.error("Error checking Schedule A status:", error);
+      res.status(500).json({ message: "Failed to check signature status" });
+    }
+  });
+
+  // Sign Schedule A
+  app.post("/api/schedule-a/sign", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUserById(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const existingSignature = await storage.getScheduleASignatureByUserId(req.session.userId!);
+      if (existingSignature) {
+        return res.status(400).json({ message: "Schedule A already signed" });
+      }
+
+      const uplineCount = typeof req.body.uplineCount === 'number' ? req.body.uplineCount : 0;
+      if (uplineCount < 0 || uplineCount > 6) {
+        return res.status(400).json({ message: "Invalid upline count. Must be between 0 and 6." });
+      }
+
+      const forwardedFor = req.headers['x-forwarded-for'];
+      const clientIp = req.ip || (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor?.split(',')[0]?.trim()) || 'unknown';
+
+      const validatedData = insertScheduleASignatureSchema.parse({
+        userId: req.session.userId!,
+        affiliateName: user.name,
+        affiliateEmail: user.email,
+        ipAddress: clientIp,
+        userAgent: req.headers['user-agent'] || 'unknown',
+        acknowledgedUplineCount: uplineCount,
+        version: "1.0"
+      });
+
+      const signature = await storage.createScheduleASignature(validatedData);
+      res.json({ success: true, signature });
+    } catch (error) {
+      console.error("Error signing Schedule A:", error);
+      res.status(500).json({ message: "Failed to sign Schedule A" });
+    }
+  });
+
+  // Admin: Get all Schedule A signatures
+  app.get("/api/admin/schedule-a-signatures", requireAdmin, async (req, res) => {
+    try {
+      const signatures = await storage.getAllScheduleASignatures();
+      res.json(signatures);
+    } catch (error) {
+      console.error("Error fetching Schedule A signatures:", error);
+      res.status(500).json({ message: "Failed to fetch signatures" });
+    }
+  });
+
+  // Insurance Intake Routes
+  
+  // Public: Submit insurance intake
+  app.post("/api/insurance-intakes", async (req, res) => {
+    try {
+      const validatedData = insertInsuranceIntakeSchema.parse(req.body);
+      const intake = await storage.createInsuranceIntake(validatedData);
+      res.json({ success: true, intake });
+    } catch (error) {
+      console.error("Error creating insurance intake:", error);
+      res.status(500).json({ message: "Failed to submit insurance request" });
+    }
+  });
+
+  // Admin: Get all insurance intakes
+  app.get("/api/admin/insurance-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllInsuranceIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching insurance intakes:", error);
+      res.status(500).json({ message: "Failed to fetch insurance intakes" });
+    }
+  });
+
+  // Admin: Update insurance intake
+  app.patch("/api/admin/insurance-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const intake = await storage.updateInsuranceIntake(id, updates);
+      res.json(intake);
+    } catch (error) {
+      console.error("Error updating insurance intake:", error);
+      res.status(500).json({ message: "Failed to update insurance intake" });
+    }
+  });
+
+  // Medical Sales Intake Routes
+  app.post("/api/medical-sales-intakes", async (req, res) => {
+    try {
+      const validatedData = insertMedicalSalesIntakeSchema.parse(req.body);
+      const intake = await storage.createMedicalSalesIntake(validatedData);
+      res.json({ success: true, intake });
+    } catch (error) {
+      console.error("Error creating medical sales intake:", error);
+      res.status(500).json({ message: "Failed to submit medical sales inquiry" });
+    }
+  });
+
+  app.get("/api/admin/medical-sales-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllMedicalSalesIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching medical sales intakes:", error);
+      res.status(500).json({ message: "Failed to fetch medical sales intakes" });
+    }
+  });
+
+  app.patch("/api/admin/medical-sales-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const intake = await storage.updateMedicalSalesIntake(id, updates);
+      res.json(intake);
+    } catch (error) {
+      console.error("Error updating medical sales intake:", error);
+      res.status(500).json({ message: "Failed to update medical sales intake" });
+    }
+  });
+
+  app.get("/api/affiliate/medical-sales-intakes", requireAffiliate, async (req, res) => {
+    try {
+      const intakes = await storage.getMedicalSalesIntakesByAffiliate(req.session.userId!);
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching affiliate medical sales intakes:", error);
+      res.status(500).json({ message: "Failed to fetch medical sales intakes" });
+    }
+  });
+
+  // Business Development Intake Routes
+  app.post("/api/business-dev-intakes", async (req, res) => {
+    try {
+      const validatedData = insertBusinessDevIntakeSchema.parse(req.body);
+      const intake = await storage.createBusinessDevIntake(validatedData);
+      res.json({ success: true, intake });
+    } catch (error) {
+      console.error("Error creating business dev intake:", error);
+      res.status(500).json({ message: "Failed to submit business development inquiry" });
+    }
+  });
+
+  app.get("/api/admin/business-dev-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllBusinessDevIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching business dev intakes:", error);
+      res.status(500).json({ message: "Failed to fetch business development intakes" });
+    }
+  });
+
+  app.patch("/api/admin/business-dev-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const intake = await storage.updateBusinessDevIntake(id, updates);
+      res.json(intake);
+    } catch (error) {
+      console.error("Error updating business dev intake:", error);
+      res.status(500).json({ message: "Failed to update business development intake" });
+    }
+  });
+
+  app.get("/api/affiliate/business-dev-intakes", requireAffiliate, async (req, res) => {
+    try {
+      const intakes = await storage.getBusinessDevIntakesByAffiliate(req.session.userId!);
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching affiliate business dev intakes:", error);
+      res.status(500).json({ message: "Failed to fetch business development intakes" });
+    }
+  });
+
+  return httpServer;
+}

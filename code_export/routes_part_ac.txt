@@ -1,0 +1,800 @@
+
+  // Get all website applications
+  app.get("/api/admin/website-applications", requireAdmin, async (req, res) => {
+    try {
+      const applications = await storage.getAllWebsiteApplications();
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch website applications" });
+    }
+  });
+
+  // Update website application
+  app.patch("/api/admin/website-applications/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const application = await storage.updateWebsiteApplication(id, updates);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update website application" });
+    }
+  });
+
+  // Get all general contacts
+  app.get("/api/admin/general-contact", requireAdmin, async (req, res) => {
+    try {
+      const contacts = await storage.getAllGeneralContacts();
+      res.json(contacts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch general contacts" });
+    }
+  });
+
+  // Update general contact
+  app.patch("/api/admin/general-contact/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const contact = await storage.updateGeneralContact(id, updates);
+      
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      res.json(contact);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update general contact" });
+    }
+  });
+
+  // ===== MASTER PORTAL ROUTES (Admin Only) =====
+
+  // Get all affiliate files/documents for master portal
+  app.get("/api/master/affiliate-files", requireAdmin, async (req, res) => {
+    try {
+      // Get ALL signed NDAs directly from the affiliate_nda table
+      const allNdas = await storage.getAllAffiliateNdas();
+      console.log("[DEBUG] affiliate-files: Found", allNdas.length, "signed NDAs");
+      
+      // Get all affiliates for contracts and W9
+      const affiliates = await storage.getAllAffiliates();
+      console.log("[DEBUG] affiliate-files: Found", affiliates.length, "affiliates");
+      
+      // Create a combined result map keyed by user ID
+      const resultMap = new Map<number, {
+        id: number;
+        name: string;
+        email: string;
+        nda?: any;
+        contracts?: any[];
+        w9?: any;
+      }>();
+      
+      // First, add all NDAs (this ensures ALL signed NDAs appear regardless of user role)
+      for (const nda of allNdas) {
+        // Try to get user info, fall back to NDA data if user doesn't exist
+        const user = await storage.getUser(nda.userId);
+        resultMap.set(nda.userId, {
+          id: nda.userId,
+          name: user?.name || nda.fullName,
+          email: user?.email || 'Unknown',
+          nda: {
+            id: nda.id,
+            fullName: nda.fullName,
+            address: nda.address,
+            facePhoto: nda.facePhoto,
+            idPhoto: nda.idPhoto,
+            signatureData: nda.signatureData,
+            signedAt: nda.signedAt,
+          },
+        });
+      }
+      
+      // Then, add/merge affiliate data (contracts, W9)
+      await Promise.all(
+        affiliates.map(async (affiliate) => {
+          const signedContracts = await storage.getSignedAgreementsByAffiliate(affiliate.id);
+          const w9 = await storage.getAffiliateW9ByUserId(affiliate.id);
+          
+          // Get contract template names
+          const contractsWithNames = await Promise.all(
+            signedContracts.map(async (contract: { id: number; contractTemplateId: number; signatureData: string | null; createdAt: Date | null }) => {
+              const template = await storage.getContractTemplate(contract.contractTemplateId);
+              return {
+                id: contract.id,
+                contractName: template?.name || 'Unknown Contract',
+                signedAt: contract.createdAt,
+                signatureData: contract.signatureData,
+              };
+            })
+          );
+          
+          // Check if this affiliate already exists in result (from NDA)
+          const existing = resultMap.get(affiliate.id);
+          if (existing) {
+            // Merge contracts and W9
+            existing.contracts = contractsWithNames.length > 0 ? contractsWithNames : undefined;
+            existing.w9 = w9 ? {
+              name: w9.name,
+              address: w9.address,
+              city: w9.city,
+              state: w9.state,
+              zip: w9.zip,
+              taxClassification: w9.taxClassification,
+              certificationDate: w9.certificationDate,
+            } : undefined;
+          } else if (contractsWithNames.length > 0 || w9) {
+            // Add new entry for affiliates with contracts/W9 but no NDA
+            resultMap.set(affiliate.id, {
+              id: affiliate.id,
+              name: affiliate.name,
+              email: affiliate.email,
+              contracts: contractsWithNames.length > 0 ? contractsWithNames : undefined,
+              w9: w9 ? {
+                name: w9.name,
+                address: w9.address,
+                city: w9.city,
+                state: w9.state,
+                zip: w9.zip,
+                taxClassification: w9.taxClassification,
+                certificationDate: w9.certificationDate,
+              } : undefined,
+            });
+          }
+        })
+      );
+      
+      // Convert map to array and filter to only entries with at least one document
+      const filesWithDocs = Array.from(resultMap.values()).filter(
+        (a) => a.nda || (a.contracts && a.contracts.length > 0) || a.w9
+      );
+      
+      console.log("[DEBUG] affiliate-files: Returning", filesWithDocs.length, "entries with documents");
+      if (filesWithDocs.length > 0) {
+        console.log("[DEBUG] First entry with docs:", JSON.stringify({ id: filesWithDocs[0].id, name: filesWithDocs[0].name, hasNda: !!filesWithDocs[0].nda, hasContracts: !!filesWithDocs[0].contracts }));
+      }
+      
+      res.json(filesWithDocs);
+    } catch (error) {
+      console.error("Master portal files error:", error);
+      res.status(500).json({ message: "Failed to fetch affiliate files" });
+    }
+  });
+
+  // ===== AFFILIATE ROUTES =====
+
+  // Get assigned affiliate applications
+  app.get("/api/affiliate/applications", requireAffiliate, async (req, res) => {
+    try {
+      const applications = await storage.getAffiliateApplicationsByAssignee(req.session.userId!);
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  // Get assigned help requests
+  app.get("/api/affiliate/help-requests", requireAffiliate, async (req, res) => {
+    try {
+      const requests = await storage.getHelpRequestsByAssignee(req.session.userId!);
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch requests" });
+    }
+  });
+
+  // Update affiliate application status (affiliate)
+  app.patch("/api/affiliate/applications/:id", requireAffiliate, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, notes } = req.body;
+      
+      // Verify this application is assigned to this affiliate
+      const app = await storage.getAffiliateApplication(id);
+      if (!app || app.assignedTo !== req.session.userId) {
+        return res.status(403).json({ message: "Not authorized to update this application" });
+      }
+      
+      const updated = await storage.updateAffiliateApplication(id, { status, notes });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update application" });
+    }
+  });
+
+  // Update help request status (affiliate)
+  app.patch("/api/affiliate/help-requests/:id", requireAffiliate, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, notes } = req.body;
+      
+      // Verify this request is assigned to this affiliate
+      const request = await storage.getHelpRequest(id);
+      if (!request || request.assignedTo !== req.session.userId) {
+        return res.status(403).json({ message: "Not authorized to update this request" });
+      }
+      
+      const updated = await storage.updateHelpRequest(id, { status, notes });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update request" });
+    }
+  });
+
+  // Get affiliate's referral info
+  app.get("/api/affiliate/referral-info", requireAffiliate, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Generate referral code if not exists
+      let referralCode = user.referralCode;
+      if (!referralCode) {
+        const crypto = await import('crypto');
+        const namePrefix = user.name.substring(0, 4).toUpperCase().replace(/[^A-Z]/g, 'X');
+        const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
+        referralCode = namePrefix + randomSuffix;
+        await storage.updateUserReferralCode(user.id, referralCode);
+      }
+      
+      // Count referrals
+      const allHelpRequests = await storage.getAllHelpRequests();
+      const referredLeads = allHelpRequests.filter(r => r.referredBy === user.id);
+      
+      res.json({
+        referralCode,
+        referralLink: `/get-help?ref=${referralCode}`,
+        totalReferrals: referredLeads.length,
+        activeReferrals: referredLeads.filter(r => r.status !== 'closed').length,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get referral info" });
+    }
+  });
+
+  // Submit VSO Air Support Request (affiliate requests master to send projections to a VSO)
+  app.post("/api/affiliate/vso-air-support", requireAffiliate, async (req, res) => {
+    try {
+      const { vsoName, vsoEmail, comments } = req.body;
+      const user = await storage.getUser(req.session.userId!);
+      
+      if (!vsoName || !vsoEmail) {
+        return res.status(400).json({ message: "VSO name and email are required" });
+      }
+      
+      // Send email notification to master/admin about the air support request
+      if (process.env.RESEND_API_KEY) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: "NavigatorUSA <no-reply@navigatorusa.com>",
+          to: process.env.ADMIN_EMAIL || "admin@navigatorusa.com",
+          subject: `VSO Air Support Request from ${user?.name}`,
+          html: `
+            <h2>VSO Air Support Request</h2>
+            <p><strong>Requesting Affiliate:</strong> ${user?.name} (${user?.email})</p>
+            <p><strong>VSO Name:</strong> ${vsoName}</p>
+            <p><strong>VSO Email:</strong> ${vsoEmail}</p>
+            <p><strong>Comments:</strong> ${comments || 'None'}</p>
+            <hr/>
+            <p>This affiliate is requesting you send VSO Revenue Projections to the above VSO contact.</p>
+            <p>If this VSO signs up, the requesting affiliate earns a 1% recruiter bonus on all VSO revenue.</p>
+          `,
+        });
+      }
+      
+      res.json({ success: true, message: "Air support request submitted. Master will review and send projections." });
+    } catch (error) {
+      console.error("VSO air support error:", error);
+      res.status(500).json({ message: "Failed to submit air support request" });
+    }
+  });
+
+  // Check if affiliate has signed NDA
+  app.get("/api/affiliate/nda-status", requireAffiliate, async (req, res) => {
+    try {
+      const hasSigned = await storage.hasAffiliateSignedNda(req.session.userId!);
+      const nda = hasSigned ? await storage.getAffiliateNdaByUserId(req.session.userId!) : null;
+      res.json({ hasSigned, nda });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check NDA status" });
+    }
+  });
+
+  // Get all NDAs for master portal
+  app.get("/api/master/ndas", requireAdmin, async (req, res) => {
+    try {
+      const ndas = await storage.getAllAffiliateNdas();
+      // Enrich with user details
+      const enrichedNdas = await Promise.all(ndas.map(async (nda) => {
+        const user = await storage.getUser(nda.userId);
+        return {
+          ...nda,
+          affiliateName: user?.name || 'Unknown',
+          affiliateEmail: user?.email || 'Unknown',
+        };
+      }));
+      res.json(enrichedNdas);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch NDAs" });
+    }
+  });
+
+  // Generate NDA PDF for download
+  app.post("/api/master/affiliate-nda-pdf/:ndaId", requireAdmin, async (req, res) => {
+    try {
+      const ndaId = parseInt(req.params.ndaId);
+      const { securityKey } = req.body;
+      
+      // Validate security key
+      const expectedKey = process.env.ADMIN_SETUP_KEY;
+      if (!expectedKey || securityKey !== expectedKey) {
+        return res.status(403).json({ message: "Invalid security key" });
+      }
+      
+      // Get NDA data
+      const nda = await storage.getAffiliateNdaById(ndaId);
+      if (!nda) {
+        return res.status(404).json({ message: "NDA not found" });
+      }
+      
+      // Import PDF generator dynamically
+      const { generateNdaPdf } = await import('./pdfGenerator');
+      
+      const pdfBuffer = await generateNdaPdf({
+        fullName: nda.fullName,
+        veteranNumber: nda.veteranNumber || undefined,
+        address: nda.address || undefined,
+        signedAt: nda.signedAt?.toISOString() || new Date().toISOString(),
+        signedIpAddress: nda.signedIpAddress || undefined,
+        signatureData: nda.signatureData || undefined,
+        facePhoto: nda.facePhoto || undefined,
+        idPhoto: nda.idPhoto || undefined
+      });
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="NDA-${nda.fullName.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
+  // Sign affiliate NDA
+  app.post("/api/affiliate/sign-nda", requireAffiliate, async (req, res) => {
+    try {
+      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms } = req.body;
+      
+      // Validate required fields
+      if (!fullName || typeof fullName !== 'string' || fullName.trim().length < 2) {
+        return res.status(400).json({ message: "Full legal name is required (at least 2 characters)" });
+      }
+      
+      if (!address || typeof address !== 'string' || address.trim().length < 5) {
+        return res.status(400).json({ message: "Address is required (at least 5 characters)" });
+      }
+      
+      if (!signatureData || typeof signatureData !== 'string' || !signatureData.startsWith('data:image/')) {
+        return res.status(400).json({ message: "Your signature is required - please sign in the signature box" });
+      }
+      
+      if (!facePhoto || typeof facePhoto !== 'string' || !facePhoto.startsWith('data:image/')) {
+        return res.status(400).json({ message: "Face photo is required - please capture your face using webcam" });
+      }
+      
+      if (!idPhoto || typeof idPhoto !== 'string' || !idPhoto.startsWith('data:image/')) {
+        return res.status(400).json({ message: "ID document upload is required - must be an image file" });
+      }
+      
+      if (agreedToTerms !== true && agreedToTerms !== 'true') {
+        return res.status(400).json({ message: "You must agree to the terms to proceed" });
+      }
+      
+      // Check if already signed
+      const alreadySigned = await storage.hasAffiliateSignedNda(req.session.userId!);
+      if (alreadySigned) {
+        return res.status(400).json({ message: "NDA already signed" });
+      }
+
+      // Get IP address
+      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+      
+      // Create NDA record
+      const nda = await storage.createAffiliateNda({
+        userId: req.session.userId!,
+        fullName,
+        veteranNumber: veteranNumber || null,
+        address,
+        customReferralCode: customReferralCode || null,
+        signatureData: signatureData || null,
+        facePhoto: facePhoto || null,
+        idPhoto: idPhoto || null,
+        signedIpAddress: ipAddress,
+        agreedToTerms: "true",
+      });
+      
+      // Update user's referral code if custom one provided
+      if (customReferralCode) {
+        await storage.updateUserReferralCode(req.session.userId!, customReferralCode.toUpperCase());
+      }
+      
+      res.json({ success: true, nda });
+    } catch (error) {
+      console.error("NDA signing error:", error);
+      res.status(500).json({ message: "Failed to sign NDA" });
+    }
+  });
+
+  // Get W9 status for affiliate
+  app.get("/api/affiliate/w9-status", requireAffiliate, async (req, res) => {
+    try {
+      const hasSubmitted = await storage.hasAffiliateSubmittedW9(req.session.userId!);
+      const w9 = hasSubmitted ? await storage.getAffiliateW9ByUserId(req.session.userId!) : null;
+      res.json({ hasSubmitted, w9: w9 ? { ...w9, ssn: w9.ssn ? "****" : null } : null });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check W9 status" });
+    }
+  });
+
+  // Submit W9 form
+  app.post("/api/affiliate/submit-w9", requireAffiliate, async (req, res) => {
+    try {
+      // Zod validation schema for W9
+      const w9Schema = z.object({
+        name: z.string().min(1, "Name is required").max(100),
+        businessName: z.string().max(100).optional().nullable(),
+        taxClassification: z.enum(["individual", "c_corp", "s_corp", "partnership", "trust", "llc"]).default("individual"),
+        address: z.string().min(1, "Address is required").max(200),
+        city: z.string().min(1, "City is required").max(100),
+        state: z.string().min(2, "State is required").max(2).transform(s => s.toUpperCase()),
+        zip: z.string().min(5, "ZIP is required").max(10).regex(/^\d{5}(-\d{4})?$/, "Invalid ZIP format"),
+        ssn: z.string().optional().nullable().transform(val => val ? val.replace(/\D/g, '') : null).refine(val => !val || /^\d{9}$/.test(val), "SSN must be 9 digits"),
+        ein: z.string().optional().nullable().refine(val => !val || /^\d{2}-?\d{7}$/.test(val), "Invalid EIN format"),
+        signatureData: z.string().optional().nullable(),
+      }).refine(data => data.ssn || data.ein, { message: "Either SSN or EIN is required" });
+      
+      // Verify NDA is signed before W9 submission
+      const nda = await storage.getAffiliateNdaByUserId(req.session.userId!);
+      if (!nda) {
+        return res.status(400).json({ message: "You must sign the NDA before submitting W9" });
+      }
+
+      const validatedData = w9Schema.safeParse(req.body);
+      if (!validatedData.success) {
+        return res.status(400).json({ message: validatedData.error.errors[0]?.message || "Invalid input" });
+      }
+
+      const { name, businessName, taxClassification, address, city, state, zip, ssn, ein, signatureData } = validatedData.data;
+      
+      // Check if already submitted
+      const alreadySubmitted = await storage.hasAffiliateSubmittedW9(req.session.userId!);
+      if (alreadySubmitted) {
+        return res.status(400).json({ message: "W9 already submitted" });
+      }
+
+      // Get IP address
+      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+      
+      // Only store last 4 digits of SSN for security
+      const ssnLast4 = ssn ? ssn.replace(/\D/g, '').slice(-4) : null;
+      
+      const w9 = await storage.createAffiliateW9({
+        userId: req.session.userId!,
+        name,
+        businessName: businessName || null,
+        taxClassification: taxClassification || "individual",
+        address,
+        city,
+        state,
+        zip,
+        ssn: ssnLast4,
+        ein: ein || null,
+        signatureData: signatureData || null,
+        signedIpAddress: ipAddress,
+      });
+      
+      res.json({ success: true, w9 });
+    } catch (error) {
+      console.error("W9 submission error:", error);
+      res.status(500).json({ message: "Failed to submit W9" });
+    }
+  });
+
+  // ===== ECOSYSTEM / MASTER PORTAL ROUTES =====
+
+  // Get all opportunities
+  app.get("/api/opportunities", async (req, res) => {
+    try {
+      const opps = await storage.getAllOpportunities();
+      res.json(opps);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch opportunities" });
+    }
+  });
+
+  // Create opportunity (admin only)
+  app.post("/api/opportunities", requireAdmin, async (req, res) => {
+    try {
+      const data = insertOpportunitySchema.parse(req.body);
+      const opp = await storage.createOpportunity(data);
+      res.status(201).json(opp);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create opportunity" });
+    }
+  });
+
+  // Update opportunity (admin only)
+  app.patch("/api/opportunities/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateOpportunity(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update opportunity" });
+    }
+  });
+
+  // Get all sales (master portal)
+  app.get("/api/master/sales", requireAdmin, async (req, res) => {
+    try {
+      const allSales = await storage.getAllSales();
+      res.json(allSales);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sales" });
+    }
+  });
+
+  // Get all affiliates with stats (master portal)
+  app.get("/api/master/affiliates", requireAdmin, async (req, res) => {
+    try {
+      const affiliates = await storage.getAllVltAffiliates();
+      res.json(affiliates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch affiliates" });
+    }
+  });
+
+  // Get affiliates by role
+  app.get("/api/master/affiliates/:role", requireAdmin, async (req, res) => {
+    try {
+      const affiliates = await storage.getVltAffiliatesByRole(req.params.role);
+      res.json(affiliates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch affiliates" });
+    }
+  });
+
+  // Get downline for an affiliate
+  app.get("/api/master/downline/:affiliateId", requireAdmin, async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.params.affiliateId);
+      const downline = await storage.getVltAffiliateDownline(affiliateId);
+      res.json(downline);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch downline" });
+    }
+  });
+
+  // Get all commissions (master portal)
+  app.get("/api/master/commissions", requireAdmin, async (req, res) => {
+    try {
+      const affiliates = await storage.getAllVltAffiliates();
+      const commissionsData = [];
+      for (const aff of affiliates) {
+        const comms = await storage.getCommissionsByAffiliate(aff.id);
+        commissionsData.push({ affiliate: aff, commissions: comms });
+      }
+      res.json(commissionsData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch commissions" });
+    }
+  });
+
+  // Create sale with commission calculation
+  app.post("/api/sales", async (req, res) => {
+    try {
+      const data = insertSaleSchema.parse(req.body);
+      const sale = await storage.createSale(data);
+      res.status(201).json(sale);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create sale" });
+    }
+  });
+
+  // Update sale status
+  app.patch("/api/sales/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateSale(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update sale" });
+    }
+  });
+
+  // Veteran Intake - multiple programs
+  app.post("/api/veteran-intake", async (req, res) => {
+    try {
+      const data = insertVeteranIntakeSchema.parse(req.body);
+      
+      // If referral code provided, look up affiliate chain
+      if (data.referralCode) {
+        const affiliate = await storage.getVltAffiliateByReferralCode(data.referralCode);
+        if (affiliate) {
+          (data as any).referredByL1 = affiliate.id;
+          (data as any).referredByL2 = affiliate.level1Id;
+          (data as any).referredByL3 = affiliate.level2Id;
+          (data as any).referredByL4 = affiliate.level3Id;
+          (data as any).referredByL5 = affiliate.level4Id;
+          (data as any).referredByL6 = affiliate.level5Id;
+          (data as any).referredByL7 = affiliate.level6Id;
+        }
+      }
+      
+      const intake = await storage.createVeteranIntake(data);
+      res.status(201).json({ success: true, id: intake.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit intake" });
+    }
+  });
+
+  // Get all veteran intakes (admin)
+  app.get("/api/admin/veteran-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllVeteranIntakes();
+      res.json(intakes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  // Update veteran intake
+  app.patch("/api/admin/veteran-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateVeteranIntake(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
+  // Business Intake - B2B services
+  app.post("/api/business-intake", async (req, res) => {
+    try {
+      const data = insertBusinessIntakeSchema.parse(req.body);
+      
+      // If referral code provided, look up affiliate chain
+      if (data.referralCode) {
+        const affiliate = await storage.getVltAffiliateByReferralCode(data.referralCode);
+        if (affiliate) {
+          (data as any).referredByL1 = affiliate.id;
+          (data as any).referredByL2 = affiliate.level1Id;
+          (data as any).referredByL3 = affiliate.level2Id;
+          (data as any).referredByL4 = affiliate.level3Id;
+          (data as any).referredByL5 = affiliate.level4Id;
+          (data as any).referredByL6 = affiliate.level5Id;
+          (data as any).referredByL7 = affiliate.level6Id;
+        }
+      }
+      
+      const intake = await storage.createBusinessIntake(data);
+      res.status(201).json({ success: true, id: intake.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit intake" });
+    }
+  });
+
+  // Get all business intakes (admin)
+  app.get("/api/admin/business-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllBusinessIntakes();
+      res.json(intakes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  // Update business intake
+  app.patch("/api/admin/business-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateBusinessIntake(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
+  // Promote affiliate to sub-master
+  app.patch("/api/master/promote/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { role } = req.body; // 'sub_master' or 'master'
+      const updated = await storage.updateVltAffiliate(id, { role });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to promote affiliate" });
+    }
+  });
+
+  // Sub-master portal - get own downline
+  app.get("/api/submaster/downline", async (req, res) => {
+    try {
+      // For now, accept affiliate ID from query param (will use session in production)
+      const affiliateId = parseInt(req.query.affiliateId as string);
+      if (!affiliateId) {
+        return res.status(400).json({ message: "Affiliate ID required" });
+      }
+      const downline = await storage.getVltAffiliateDownline(affiliateId);
+      res.json(downline);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch downline" });
+    }
+  });
+
+  // Sub-master - get sales from downline
+  app.get("/api/submaster/sales", async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.query.affiliateId as string);
+      if (!affiliateId) {
+        return res.status(400).json({ message: "Affiliate ID required" });
+      }
+      const sales = await storage.getSalesByDownline(affiliateId);
+      res.json(sales);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sales" });
+    }
+  });
+
+  // ===== CONTRACT MANAGEMENT ROUTES =====
+
+  // Seed MAH contract template (one-time setup)
+  app.post("/api/contracts/seed-mah", async (req, res) => {
+    try {
+      const existingTemplates = await storage.getAllContractTemplates();
+      if (existingTemplates.length > 0) {
+        return res.json({ message: "Templates already exist", count: existingTemplates.length });
+      }
+      
+      const mahContract = await storage.createContractTemplate({
+        name: "Independent Representative Non-Disclosure, Non-Circumvention and Referral Agreement",
+        version: "1.0",
+        companyName: "MISSION ACT HEALTH, INC.",
+        requiredFor: "all",
+        isActive: "true",
+        content: `<h1>INDEPENDENT REPRESENTATIVE NON-DISCLOSURE, NON-CIRCUMVENTION AND REFERRAL AGREEMENT</h1>
+
+<p>THIS AGREEMENT is made by <strong>MISSION ACT HEALTH, INC.</strong>, a Virginia corporation taxed as a C-Corporation ("MAH") located at [Company Address], and the undersigned Independent Contractor ("Representative"), collectively referred to as the "Parties".</p>
+
+<h2>RECITALS</h2>
+
+<p>WHEREAS MAH engages in business development, marketing, and sales services generally, provides clients with advice and expertise relating to healthcare navigation, veteran services, disability assistance, holistic health education, financial planning, and a wide range of strategic, management, marketing, and financial services (MAH services); and,</p>
+
+<p>WHEREAS, Representative wishes to offer to MAH, and MAH desires to receive from Representative, referrals of potential customers who may be interested in MAH's services, pursuant to the terms and conditions of this Agreement.</p>
+
+<h2>NOW THEREFORE</h2>
+<p>In consideration of the mutual covenants and promises contained in this Agreement as set forth below, MAH and Representative agree as follows:</p>
+
+<h3>Section 1. Description of Work</h3>
+<p>The services provided by the Representative to MAH shall be provided on an as-needed basis. MAH shall have sole discretion to establish the minimum qualifications necessary for the performance of any service rendered by the Representative under this Agreement.</p>

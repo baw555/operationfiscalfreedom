@@ -1,0 +1,800 @@
+import type { Express, Request, Response, NextFunction } from "express";
+import { createServer, type Server } from "http";
+import session from "express-session";
+import pgSession from "connect-pg-simple";
+import pg from "pg";
+import { storage } from "./storage";
+import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
+import { Resend } from "resend";
+import twilio from "twilio";
+import Stripe from "stripe";
+import { 
+  insertAffiliateApplicationSchema, 
+  insertHelpRequestSchema, 
+  insertStartupGrantSchema, 
+  insertFurnitureAssistanceSchema,
+  insertInvestorSubmissionSchema,
+  insertPrivateDoctorRequestSchema,
+  insertWebsiteApplicationSchema,
+  insertGeneralContactSchema,
+  insertVltIntakeSchema,
+  insertOpportunitySchema,
+  insertSaleSchema,
+  insertVeteranIntakeSchema,
+  insertBusinessIntakeSchema,
+  insertContractTemplateSchema,
+  insertSignedAgreementSchema,
+  insertBusinessLeadSchema,
+  insertDisabilityReferralSchema,
+  insertJobPlacementIntakeSchema,
+  insertScheduleASignatureSchema,
+  insertInsuranceIntakeSchema,
+  insertMedicalSalesIntakeSchema,
+  insertBusinessDevIntakeSchema
+} from "@shared/schema";
+import { z } from "zod";
+
+declare module "express-session" {
+  interface SessionData {
+    userId: number;
+    userRole: string;
+    vltAffiliateId: number;
+  }
+}
+
+// Middleware to check if user is authenticated
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  next();
+}
+
+// Middleware to check if user is admin or master
+function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+    return res.status(403).json({ message: "Forbidden - Admin access required" });
+  }
+  next();
+}
+
+// Middleware to check if user is affiliate
+function requireAffiliate(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId || req.session.userRole !== "affiliate") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  next();
+}
+
+export async function registerRoutes(
+  httpServer: Server,
+  app: Express
+): Promise<Server> {
+  // Trust proxy for Replit's load balancer (needed in both dev and production)
+  app.set('trust proxy', 1);
+
+  // PostgreSQL session store for persistent sessions
+  const PgStore = pgSession(session);
+  
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL must be set for session storage");
+  }
+  
+  // Create session pool with error handling
+  const sessionPool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+  });
+  
+  // Handle pool errors to prevent crashes
+  sessionPool.on('error', (err) => {
+    console.error('Session pool error:', err);
+  });
+
+  // Verify session pool connectivity on startup
+  try {
+    const client = await sessionPool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    console.log('[session] PostgreSQL session store connected successfully');
+  } catch (err) {
+    console.error('[session] Failed to connect to session store:', err);
+    throw new Error('Session store connection failed - cannot start server');
+  }
+
+  const sessionStore = new PgStore({
+    pool: sessionPool,
+    tableName: "session",
+    createTableIfMissing: true,
+    pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
+  });
+
+  // Handle session store errors
+  sessionStore.on('error', (err: Error) => {
+    console.error('Session store error:', err);
+  });
+
+  // Session middleware with PostgreSQL store
+  app.use(
+    session({
+      store: sessionStore,
+      secret: process.env.SESSION_SECRET || "operation-fiscal-freedom-secret-key-2024",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      },
+    })
+  );
+
+  // ===== PUBLIC ROUTES =====
+
+  // Submit affiliate application (legacy - just stores application)
+  app.post("/api/affiliate-applications", async (req, res) => {
+    try {
+      const data = insertAffiliateApplicationSchema.parse(req.body);
+      const application = await storage.createAffiliateApplication(data);
+      res.status(201).json({ success: true, id: application.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit application" });
+    }
+  });
+
+  // New affiliate self-signup - creates account and logs in immediately
+  app.post("/api/affiliate-signup", async (req, res) => {
+    try {
+      const { name, companyName, phone, email, password, description } = req.body;
+      
+      if (!name || !email || !password) {
+        return res.status(400).json({ message: "Name, email, and password are required" });
+      }
+      
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+      
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists. Please login instead." });
+      }
+      
+      // Create the affiliate user account
+      const affiliate = await createAffiliateUser(name, email, password);
+      
+      // Also store the application info for admin reference
+      try {
+        await storage.createAffiliateApplication({
+          name,
+          companyName: companyName || "",
+          phone: phone || "",
+          email,
+          description: description || "",
+        });
+      } catch (appError) {
+        // Application storage is optional, don't fail the signup
+        console.log("Note: Could not store application details:", appError);
+      }
+      
+      // Log the user in automatically with session regeneration for security
+      req.session.regenerate((regenerateErr) => {
+        if (regenerateErr) {
+          console.error("Session regenerate error:", regenerateErr);
+          // Still return success since account was created
+          return res.status(201).json({ 
+            success: true,
+            user: {
+              id: affiliate.id, 
+              name: affiliate.name, 
+              email: affiliate.email, 
+              role: affiliate.role 
+            }
+          });
+        }
+        
+        req.session.userId = affiliate.id;
+        req.session.userRole = affiliate.role;
+        
+        // Ensure session is saved before responding
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+          }
+          console.log(`[auth] Affiliate signup successful for user ${affiliate.id}, session saved`);
+          res.status(201).json({ 
+            success: true,
+            user: {
+              id: affiliate.id, 
+              name: affiliate.name, 
+              email: affiliate.email, 
+              role: affiliate.role 
+            }
+          });
+        });
+      });
+    } catch (error) {
+      console.error("Affiliate signup error:", error);
+      res.status(500).json({ message: "Failed to create account. Please try again." });
+    }
+  });
+
+  // Track referral link visit - locks IP to affiliate for 30 days (first-touch attribution)
+  app.post("/api/track-referral", async (req, res) => {
+    try {
+      const { referralCode } = req.body;
+      
+      if (!referralCode) {
+        return res.status(400).json({ message: "Referral code required" });
+      }
+      
+      // Get client IP address
+      const clientIp = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+      
+      // Check if this IP is already tracked
+      const existingTracking = await storage.getActiveIpReferral(clientIp);
+      if (existingTracking) {
+        // IP already tracked - return existing affiliate info (first-touch attribution)
+        return res.json({ 
+          success: true, 
+          message: "IP already attributed",
+          referralCode: existingTracking.referralCode,
+          expiresAt: existingTracking.expiresAt
+        });
+      }
+      
+      // Look up affiliate by referral code
+      const affiliate = await storage.getUserByReferralCode(referralCode);
+      if (!affiliate) {
+        return res.status(404).json({ message: "Invalid referral code" });
+      }
+      
+      // Create IP tracking record (30 day expiration)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+      
+      await storage.createIpReferralTracking({
+        ipAddress: clientIp,
+        affiliateId: affiliate.id,
+        referralCode: referralCode,
+        expiresAt,
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Referral tracked",
+        referralCode,
+        expiresAt
+      });
+    } catch (error) {
+      console.error("Error tracking referral:", error);
+      res.status(500).json({ message: "Failed to track referral" });
+    }
+  });
+
+  // ===== FIN-OPS PARTNER TRACKING =====
+  
+  // Partner service URLs mapping
+  const FINOPS_PARTNER_URLS: Record<string, string> = {
+    my_locker: "https://www.moq1.com/imaginate-pod/navigatorusa",
+    merchant_services: "https://staging.fluidfintec.com/merchant-signup",
+    vgift_cards: "https://ptogiftcardprogram.com/navigator-usa-virtual-gift-cards/?group="
+  };
+
+  // Zod schema for finops track-click validation
+  const trackClickSchema = z.object({
+    partnerType: z.enum(["my_locker", "merchant_services", "vgift_cards"]),
+    referralCode: z.string().optional().nullable()
+  });
+
+  // Track finops partner click and redirect
+  app.post("/api/finops/track-click", async (req, res) => {
+    try {
+      const validationResult = trackClickSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ message: "Invalid request body", errors: validationResult.error.errors });
+      }
+      
+      const { partnerType, referralCode } = validationResult.data;
+      
+      if (!FINOPS_PARTNER_URLS[partnerType]) {
+        return res.status(400).json({ message: "Invalid partner type" });
+      }
+      
+      const clientIp = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      const externalUrl = FINOPS_PARTNER_URLS[partnerType];
+      
+      // Look up affiliate by referral code if provided
+      let affiliateId: number | undefined;
+      if (referralCode) {
+        const affiliate = await storage.getUserByReferralCode(referralCode);
+        if (affiliate) {
+          affiliateId = affiliate.id;
+        }
+      }
+      
+      // Create tracking record
+      const referral = await storage.createFinopsReferral({
+        affiliateId: affiliateId || null,
+        referralCode: referralCode || null,
+        partnerType,
+        externalUrl,
+        visitorIp: clientIp,
+        userAgent
+      });
+      
+      console.log(`[finops] Tracked ${partnerType} click - ref: ${referralCode || 'direct'}, ip: ${clientIp}`);
+      
+      res.json({ 
+        success: true, 
+        trackingId: referral.id,
+        redirectUrl: externalUrl
+      });
+    } catch (error) {
+      console.error("Error tracking finops click:", error);
+      res.status(500).json({ message: "Failed to track click" });
+    }
+  });
+
+  // Get all finops referrals (admin/master only)
+  app.get("/api/admin/finops-referrals", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || (user.role !== "admin" && user.role !== "master")) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const referrals = await storage.getAllFinopsReferrals();
+      
+      // Enrich with affiliate names
+      const enrichedReferrals = await Promise.all(referrals.map(async (r) => {
+        let affiliateName = null;
+        if (r.affiliateId) {
+          const affiliate = await storage.getUser(r.affiliateId);
+          affiliateName = affiliate?.name || null;
+        }
+        return { ...r, affiliateName };
+      }));
+      
+      res.json(enrichedReferrals);
+    } catch (error) {
+      console.error("Error fetching finops referrals:", error);
+      res.status(500).json({ message: "Failed to fetch referrals" });
+    }
+  });
+
+  // Update finops referral status (admin/master only)
+  app.patch("/api/admin/finops-referrals/:id", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || (user.role !== "admin" && user.role !== "master")) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateFinopsReferral(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Referral not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating finops referral:", error);
+      res.status(500).json({ message: "Failed to update referral" });
+    }
+  });
+
+  // ============================================
+  // DISABILITY REFERRAL TRACKING ENDPOINTS
+  // ============================================
+
+  // Submit disability referral (public endpoint)
+  app.post("/api/disability-referrals", async (req, res) => {
+    try {
+      const data = insertDisabilityReferralSchema.parse(req.body);
+      
+      // Get client IP and user agent
+      const clientIp = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      
+      // Look up affiliate by referral code if provided
+      let affiliateId: number | undefined;
+      if (data.referralCode) {
+        const affiliate = await storage.getUserByReferralCode(data.referralCode);
+        if (affiliate) {
+          affiliateId = affiliate.id;
+        }
+      }
+      
+      const referral = await storage.createDisabilityReferral({
+        ...data,
+        affiliateId,
+        visitorIp: clientIp,
+        userAgent,
+      });
+      
+      console.log(`[disability] New ${data.claimType} referral - ref: ${data.referralCode || 'direct'}, email: ${data.email}`);
+      
+      res.status(201).json({ 
+        message: "Referral submitted successfully", 
+        id: referral.id 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid form data", errors: error.errors });
+      }
+      console.error("Error creating disability referral:", error);
+      res.status(500).json({ message: "Failed to submit referral" });
+    }
+  });
+
+  // Submit job placement intake (public endpoint)
+  app.post("/api/job-placement-intakes", async (req, res) => {
+    try {
+      const data = insertJobPlacementIntakeSchema.parse(req.body);
+      
+      // Look up affiliate by referral code if provided
+      let affiliateId: number | undefined;
+      if (data.referralCode) {
+        const affiliate = await storage.getUserByReferralCode(data.referralCode);
+        if (affiliate) {
+          affiliateId = affiliate.id;
+        }
+      }
+      
+      const intake = await storage.createJobPlacementIntake({
+        ...data,
+        affiliateId,
+      });
+      
+      console.log(`[job-placement] New ${data.intakeType} intake - ref: ${data.referralCode || 'direct'}, email: ${data.email}`);
+      
+      res.status(201).json({ 
+        message: "Application submitted successfully", 
+        id: intake.id 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid form data", errors: error.errors });
+      }
+      console.error("Error creating job placement intake:", error);
+      res.status(500).json({ message: "Failed to submit application" });
+    }
+  });
+
+  // Get all job placement intakes (admin/master only)
+  app.get("/api/admin/job-placement-intakes", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const intakes = await storage.getAllJobPlacementIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching job placement intakes:", error);
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  // Update job placement intake (admin/master only)
+  app.patch("/api/admin/job-placement-intakes/:id", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateJobPlacementIntake(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Intake not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating job placement intake:", error);
+      res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
+  // Vet Professional Intakes
+  app.post("/api/vet-professional-intakes", async (req, res) => {
+    try {
+      const intake = await storage.createVetProfessionalIntake(req.body);
+      res.status(201).json(intake);
+    } catch (error) {
+      console.error("Error creating vet professional intake:", error);
+      res.status(500).json({ message: "Failed to submit intake" });
+    }
+  });
+
+  app.get("/api/admin/vet-professional-intakes", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const intakes = await storage.getAllVetProfessionalIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching vet professional intakes:", error);
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  app.patch("/api/admin/vet-professional-intakes/:id", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateVetProfessionalIntake(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Intake not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating vet professional intake:", error);
+      res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
+  // Healthcare Intakes - public submission
+  app.post("/api/healthcare-intakes", async (req, res) => {
+    try {
+      const intake = await storage.createHealthcareIntake(req.body);
+      res.status(201).json(intake);
+    } catch (error) {
+      console.error("Error creating healthcare intake:", error);
+      res.status(500).json({ message: "Failed to submit intake" });
+    }
+  });
+
+  // Healthcare Intakes - master portal only
+  app.get("/api/admin/healthcare-intakes", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Master access required" });
+    }
+    
+    try {
+      const intakes = await storage.getAllHealthcareIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching healthcare intakes:", error);
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  app.patch("/api/admin/healthcare-intakes/:id", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Master access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateHealthcareIntake(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Intake not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating healthcare intake:", error);
+      res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
+  // Get all disability referrals (admin/master only)
+  app.get("/api/admin/disability-referrals", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const referrals = await storage.getAllDisabilityReferrals();
+      res.json(referrals);
+    } catch (error) {
+      console.error("Error fetching disability referrals:", error);
+      res.status(500).json({ message: "Failed to fetch referrals" });
+    }
+  });
+
+  // Get disability referrals for a specific affiliate
+  app.get("/api/affiliate/disability-referrals", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    try {
+      const referrals = await storage.getDisabilityReferralsByAffiliate(req.session.userId);
+      res.json(referrals);
+    } catch (error) {
+      console.error("Error fetching affiliate disability referrals:", error);
+      res.status(500).json({ message: "Failed to fetch referrals" });
+    }
+  });
+
+  // Get vet professional intakes for affiliate
+  app.get("/api/affiliate/vet-professional-intakes", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    try {
+      const intakes = await storage.getVetProfessionalIntakesByAffiliate(req.session.userId);
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching affiliate vet professional intakes:", error);
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  // Update disability referral status (admin/master only)
+  app.patch("/api/admin/disability-referrals/:id", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateDisabilityReferral(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Referral not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating disability referral:", error);
+      res.status(500).json({ message: "Failed to update referral" });
+    }
+  });
+
+  // Get disability referral stats (admin/master only)
+  app.get("/api/admin/disability-referrals/stats", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const stats = await storage.getDisabilityReferralStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching disability referral stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Submit help request
+  app.post("/api/help-requests", async (req, res) => {
+    try {
+      const { referralCode, ...rest } = req.body;
+      const data = insertHelpRequestSchema.parse(rest);
+      
+      // Get client IP address
+      const clientIp = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+      
+      // Look up affiliate by referral code if provided, or check IP tracking
+      let referredById: number | undefined;
+      let finalReferralCode = referralCode;
+      
+      if (referralCode) {
+        // Referral code provided - use it and track IP
+        const affiliate = await storage.getUserByReferralCode(referralCode);
+        if (affiliate) {
+          referredById = affiliate.id;
+          // Track this IP if not already tracked
+          const existingIpTracking = await storage.getActiveIpReferral(clientIp);
+          if (!existingIpTracking) {
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 30); // 30 day expiration
+            await storage.createIpReferralTracking({
+              ipAddress: clientIp,
+              affiliateId: affiliate.id,
+              referralCode: referralCode,
+              expiresAt,
+            });
+          }
+        }
+      } else {
+        // No referral code - check if IP is already tracked
+        const ipTracking = await storage.getActiveIpReferral(clientIp);
+        if (ipTracking && ipTracking.affiliateId) {
+          referredById = ipTracking.affiliateId;
+          finalReferralCode = ipTracking.referralCode;
+        }
+      }
+      
+      const request = await storage.createHelpRequest({
+        ...data,
+        referralCode: finalReferralCode || undefined,
+        referredBy: referredById,
+      } as any);
+      res.status(201).json({ success: true, id: request.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit request" });
+    }
+  });
+
+  // Submit startup grant application
+  app.post("/api/startup-grants", async (req, res) => {
+    try {
+      const data = insertStartupGrantSchema.parse(req.body);
+      const grant = await storage.createStartupGrant(data);
+      res.status(201).json({ success: true, id: grant.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit grant application" });
+    }
+  });
+
+  // Submit furniture assistance request
+  app.post("/api/furniture-assistance", async (req, res) => {
+    try {
+      const data = insertFurnitureAssistanceSchema.parse(req.body);
+      const request = await storage.createFurnitureAssistance(data);
+      res.status(201).json({ success: true, id: request.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit furniture assistance request" });
+    }
+  });
+
+  // Submit investor submission
+  app.post("/api/investor-submissions", async (req, res) => {
+    try {
+      const data = insertInvestorSubmissionSchema.parse(req.body);
+      const submission = await storage.createInvestorSubmission(data);
+      res.status(201).json({ success: true, id: submission.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit investor information" });
+    }
+  });
+
+  // Submit private doctor request
+  app.post("/api/private-doctor-requests", async (req, res) => {
+    try {
+      const data = insertPrivateDoctorRequestSchema.parse(req.body);
+      const request = await storage.createPrivateDoctorRequest(data);
+      res.status(201).json({ success: true, id: request.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit private doctor request" });
+    }
+  });
+
+  // Submit website application
+  app.post("/api/website-applications", async (req, res) => {
+    try {
+      const data = insertWebsiteApplicationSchema.parse(req.body);
+      const application = await storage.createWebsiteApplication(data);
+      res.status(201).json({ success: true, id: application.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit website application" });
+    }
