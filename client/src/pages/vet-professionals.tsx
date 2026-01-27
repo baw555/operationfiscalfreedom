@@ -14,7 +14,7 @@ const PROFESSION_TYPES = [
   { id: "attorneys", label: "Attorneys", icon: Scale, description: "Legal professionals serving veterans" },
   { id: "insurance", label: "Insurance", icon: Shield, description: "Insurance agents and brokers" },
   { id: "cpa", label: "CPA", icon: Calculator, description: "Certified Public Accountants" },
-  { id: "doctors", label: "Doctors", icon: Stethoscope, description: "Medical professionals" },
+  { id: "medical", label: "Medical", icon: Stethoscope, description: "Medical professionals" },
 ];
 
 export default function VetProfessionals() {

@@ -548,11 +548,11 @@ export default function MasterPortal() {
                   </div>
                   <div className="text-xs text-gray-400">CPAs</div>
                 </div>
-                <div className="bg-purple-500/20 rounded-lg p-4 text-center" data-testid="stat-doctors">
-                  <div className="text-2xl font-bold text-purple-400" data-testid="text-doctors-count">
-                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'doctors').length}
+                <div className="bg-purple-500/20 rounded-lg p-4 text-center" data-testid="stat-medical">
+                  <div className="text-2xl font-bold text-purple-400" data-testid="text-medical-count">
+                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'medical').length}
                   </div>
-                  <div className="text-xs text-gray-400">Doctors</div>
+                  <div className="text-xs text-gray-400">Medical</div>
                 </div>
               </div>
 
