@@ -1,0 +1,66 @@
+Two things in this snippet can make the **page render “nothing” in production** even though it seems fine locally:
+
+## 1) `affiliateFiles.filter(...)` will crash if `affiliateFiles` is ever `undefined` / `null`
+
+You call `affiliateFiles.filter(...)` in **3 different places** (badge count, empty-state check, and `.map`). If your query/data loads asynchronously and `affiliateFiles` starts as `undefined` on first render, React will throw:
+
+> `Cannot read properties of undefined (reading 'filter')`
+
+In prod that often looks like “the site is blank / section doesn’t show.”
+
+**Fix: normalize to an array once, then reuse it:**
+
+```tsx
+const affiliateFilesSafe: AffiliateFile[] = Array.isArray(affiliateFiles) ? affiliateFiles : [];
+const ndaFiles = affiliateFilesSafe.filter((af) => Boolean(af.nda));
+```
+
+Then replace every `affiliateFiles.filter((af) => af.nda)` with `ndaFiles`.
+
+Example:
+
+```tsx
+Signed NDAs ({ndaFiles.length})
+...
+) : ndaFiles.length === 0 ? (
+...
+{ndaFiles.map((affiliate) => ( ... ))}
+```
+
+Also do the same kind of safety for `scheduleASignatures` if that can be undefined:
+
+```tsx
+const scheduleASignaturesSafe = Array.isArray(scheduleASignatures) ? scheduleASignatures : [];
+```
+
+## 2) Your outer `<TabsContent value="files">` only renders if the *parent Tabs* is actually set to `"files"`
+
+You’re showing:
+
+```tsx
+<TabsContent value="files">
+  <Tabs defaultValue="signed-ndas">
+```
+
+But `TabsContent` must be a child of the **matching Tabs root** that has `value/defaultValue="files"`.
+
+If, on the deployed site, the parent Tabs defaultValue is different (or the parent Tabs isn’t wrapping this the way you think), then **this entire block never mounts**, so no docs show.
+
+**Quick sanity check:** search for the parent `<Tabs ...>` that this `TabsContent value="files"` belongs to and make sure it has something like:
+
+```tsx
+<Tabs defaultValue="files">  // or value="files"
+```
+
+…and that the trigger is also `value="files"`.
+
+---
+
+### Fast way to confirm which one it is
+
+Open the deployed site → DevTools → Console.
+
+* If you see **`Cannot read properties of undefined (reading 'filter')`** → it’s #1.
+* If there are **no errors**, but the block never renders → it’s likely #2 (parent Tabs value mismatch).
+
+If you paste the **parent tabs code** (the `<Tabs>` that owns this `<TabsContent value="files">`), I can point to the exact mismatch in 10 seconds.
