@@ -931,3 +931,24 @@ export const insertHealthcareIntakeSchema = createInsertSchema(healthcareIntakes
 
 export type InsertHealthcareIntake = z.infer<typeof insertHealthcareIntakeSchema>;
 export type HealthcareIntake = typeof healthcareIntakes.$inferSelect;
+
+// Schedule A Signatures - Track affiliate acknowledgment of commission structure
+export const scheduleASignatures = pgTable("schedule_a_signatures", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  affiliateName: text("affiliate_name").notNull(),
+  affiliateEmail: text("affiliate_email").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  acknowledgedUplineCount: integer("acknowledged_upline_count").notNull().default(0),
+  version: text("version").notNull().default("1.0"),
+  signedAt: timestamp("signed_at").defaultNow().notNull(),
+});
+
+export const insertScheduleASignatureSchema = createInsertSchema(scheduleASignatures).omit({
+  id: true,
+  signedAt: true,
+});
+
+export type InsertScheduleASignature = z.infer<typeof insertScheduleASignatureSchema>;
+export type ScheduleASignature = typeof scheduleASignatures.$inferSelect;

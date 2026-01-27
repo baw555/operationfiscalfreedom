@@ -112,6 +112,17 @@ export default function MasterPortal() {
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
   });
 
+  // Fetch Schedule A signatures
+  const { data: scheduleASignatures = [], isLoading: scheduleALoading } = useQuery<any[]>({
+    queryKey: ["schedule-a-signatures"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/schedule-a-signatures", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
@@ -205,6 +216,10 @@ export default function MasterPortal() {
             <TabsTrigger value="healthcare" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
               <FileText className="w-4 h-4 mr-2" />
               Healthcare
+            </TabsTrigger>
+            <TabsTrigger value="schedule-a" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400" data-testid="tab-trigger-schedule-a">
+              <Shield className="w-4 h-4 mr-2" />
+              Schedule A
             </TabsTrigger>
           </TabsList>
 
@@ -755,6 +770,103 @@ export default function MasterPortal() {
                               'bg-green-500/20 text-green-400'
                             }`}>
                               {intake.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Schedule A Signatures Tab */}
+          <TabsContent value="schedule-a" className="mt-6">
+            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+              <div className="p-4 border-b border-white/10 bg-black/20">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-brand-red" />
+                  Schedule A Signatures
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Track affiliate acknowledgments of the commission structure
+                </p>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border-b border-white/10" data-testid="schedule-a-stats">
+                <div className="bg-black/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-bold text-green-400" data-testid="stat-schedule-a-total">{scheduleASignatures.length}</div>
+                  <div className="text-sm text-gray-400">Total Signatures</div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-bold text-blue-400" data-testid="stat-schedule-a-30days">
+                    {scheduleASignatures.filter((s: any) => {
+                      const signedDate = new Date(s.signedAt);
+                      const thirtyDaysAgo = new Date();
+                      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                      return signedDate >= thirtyDaysAgo;
+                    }).length}
+                  </div>
+                  <div className="text-sm text-gray-400">Last 30 Days</div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-bold text-purple-400" data-testid="stat-schedule-a-7days">
+                    {scheduleASignatures.filter((s: any) => {
+                      const signedDate = new Date(s.signedAt);
+                      const sevenDaysAgo = new Date();
+                      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                      return signedDate >= sevenDaysAgo;
+                    }).length}
+                  </div>
+                  <div className="text-sm text-gray-400">Last 7 Days</div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-bold text-yellow-400" data-testid="stat-schedule-a-version">1.0</div>
+                  <div className="text-sm text-gray-400">Current Version</div>
+                </div>
+              </div>
+
+              {scheduleALoading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-gray-400 mt-4">Loading signatures...</p>
+                </div>
+              ) : scheduleASignatures.length === 0 ? (
+                <div className="p-8 text-center text-gray-400">
+                  No Schedule A signatures yet.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-black/30 text-gray-400">
+                      <tr>
+                        <th className="text-left p-3">Name</th>
+                        <th className="text-left p-3">Email</th>
+                        <th className="text-left p-3">Signed At</th>
+                        <th className="text-left p-3">IP Address</th>
+                        <th className="text-left p-3">Version</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10" data-testid="schedule-a-table-body">
+                      {scheduleASignatures.map((sig: any) => (
+                        <tr key={sig.id} className="hover:bg-white/5" data-testid={`row-schedule-a-${sig.id}`}>
+                          <td className="p-3 text-white font-medium" data-testid={`text-schedule-a-name-${sig.id}`}>{sig.affiliateName}</td>
+                          <td className="p-3 text-gray-400" data-testid={`text-schedule-a-email-${sig.id}`}>{sig.affiliateEmail}</td>
+                          <td className="p-3 text-gray-400">
+                            {new Date(sig.signedAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </td>
+                          <td className="p-3 text-gray-500 font-mono text-xs">{sig.ipAddress || 'N/A'}</td>
+                          <td className="p-3">
+                            <span className="px-2 py-1 rounded text-xs bg-green-500/20 text-green-400">
+                              v{sig.version}
                             </span>
                           </td>
                         </tr>

@@ -26,7 +26,8 @@ import {
   insertSignedAgreementSchema,
   insertBusinessLeadSchema,
   insertDisabilityReferralSchema,
-  insertJobPlacementIntakeSchema
+  insertJobPlacementIntakeSchema,
+  insertScheduleASignatureSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -3301,6 +3302,72 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error clearing stress test data:", error);
       res.status(500).json({ message: "Failed to clear stress test data" });
+    }
+  });
+
+  // Schedule A Signature Routes
+  
+  // Check if current user has signed Schedule A
+  app.get("/api/schedule-a/status", requireAuth, async (req, res) => {
+    try {
+      const signature = await storage.getScheduleASignatureByUserId(req.session.userId!);
+      res.json({ 
+        signed: !!signature, 
+        signature: signature || null 
+      });
+    } catch (error) {
+      console.error("Error checking Schedule A status:", error);
+      res.status(500).json({ message: "Failed to check signature status" });
+    }
+  });
+
+  // Sign Schedule A
+  app.post("/api/schedule-a/sign", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUserById(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const existingSignature = await storage.getScheduleASignatureByUserId(req.session.userId!);
+      if (existingSignature) {
+        return res.status(400).json({ message: "Schedule A already signed" });
+      }
+
+      const uplineCount = typeof req.body.uplineCount === 'number' ? req.body.uplineCount : 0;
+      if (uplineCount < 0 || uplineCount > 6) {
+        return res.status(400).json({ message: "Invalid upline count. Must be between 0 and 6." });
+      }
+
+      const forwardedFor = req.headers['x-forwarded-for'];
+      const clientIp = req.ip || (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor?.split(',')[0]?.trim()) || 'unknown';
+
+      const validatedData = insertScheduleASignatureSchema.parse({
+        userId: req.session.userId!,
+        affiliateName: user.name,
+        affiliateEmail: user.email,
+        ipAddress: clientIp,
+        userAgent: req.headers['user-agent'] || 'unknown',
+        acknowledgedUplineCount: uplineCount,
+        version: "1.0"
+      });
+
+      const signature = await storage.createScheduleASignature(validatedData);
+      res.json({ success: true, signature });
+    } catch (error) {
+      console.error("Error signing Schedule A:", error);
+      res.status(500).json({ message: "Failed to sign Schedule A" });
+    }
+  });
+
+  // Admin: Get all Schedule A signatures
+  app.get("/api/admin/schedule-a-signatures", requireAdmin, async (req, res) => {
+    try {
+      const signatures = await storage.getAllScheduleASignatures();
+      res.json(signatures);
+    } catch (error) {
+      console.error("Error fetching Schedule A signatures:", error);
+      res.status(500).json({ message: "Failed to fetch signatures" });
     }
   });
 

@@ -1,7 +1,10 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { FileText, DollarSign, Users, Building2, ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, DollarSign, Users, Building2, ChevronDown, ChevronUp, CheckCircle, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 interface ContractTemplate {
   id: number;
@@ -19,6 +22,23 @@ interface SignedAgreement {
   signedAt: string;
 }
 
+interface ScheduleASignature {
+  id: number;
+  affiliateName: string;
+  affiliateEmail: string;
+  signedAt: string;
+  acknowledgedUplineCount: number;
+}
+
+interface SignatureStatus {
+  signed: boolean;
+  signature: ScheduleASignature | null;
+}
+
+interface AuthData {
+  user: { id: number; email: string; name: string; role: string } | null;
+}
+
 /**
  * Schedule A - Aggregate Commission Distribution
  * Shows all service contracts with their gross rates and calculates
@@ -27,6 +47,8 @@ interface SignedAgreement {
 export default function ScheduleA() {
   const [uplineCount, setUplineCount] = useState<number>(0);
   const [expandedContract, setExpandedContract] = useState<number | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const maxUplines = 6;
   const producerBase = 0.69;
@@ -34,6 +56,38 @@ export default function ScheduleA() {
 
   const { data: templates = [] } = useQuery<ContractTemplate[]>({
     queryKey: ["/api/contracts/templates"],
+  });
+
+  const { data: authData } = useQuery<AuthData>({
+    queryKey: ["/api/auth/me"],
+  });
+
+  const { data: signatureStatus } = useQuery<SignatureStatus>({
+    queryKey: ["/api/schedule-a/status"],
+    enabled: !!authData?.user,
+  });
+
+  const signMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/schedule-a/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ uplineCount }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to sign");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Schedule A Acknowledged", description: "Your agreement has been recorded." });
+      queryClient.invalidateQueries({ queryKey: ["/api/schedule-a/status"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
   });
 
   const serviceContracts = useMemo(() => 
@@ -442,6 +496,69 @@ export default function ScheduleA() {
             <li><strong>vGift Cards:</strong> Earn ~$5 per $100 gift card sold (~5%). Average customer worth $25/year.</li>
             <li><strong>My Locker:</strong> Earn 20% of gross profit on all print-on-demand apparel and corporate branding sales you refer.</li>
           </ul>
+        </div>
+
+        {/* Signature Section */}
+        <div className="mt-8 border-2 border-brand-navy rounded-lg overflow-hidden">
+          <div className="bg-brand-navy text-white p-4 flex items-center gap-3">
+            <Shield className="w-6 h-6" />
+            <h3 className="font-bold text-lg">Schedule A Acknowledgment</h3>
+          </div>
+          
+          <div className="p-6 bg-white">
+            {signatureStatus?.signed ? (
+              <div className="flex items-center gap-4 p-4 bg-green-50 border border-green-200 rounded-lg" data-testid="schedule-a-signed-status">
+                <CheckCircle className="w-10 h-10 text-green-600 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-green-800" data-testid="text-schedule-a-signed">Schedule A Acknowledged</p>
+                  <p className="text-sm text-green-700">
+                    Signed by {signatureStatus.signature?.affiliateName} on{" "}
+                    {signatureStatus.signature?.signedAt 
+                      ? new Date(signatureStatus.signature.signedAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
+                      : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            ) : authData?.user ? (
+              <div className="space-y-4">
+                <p className="text-gray-700">
+                  By clicking "I Agree" below, I acknowledge that I have read and understand the commission 
+                  structure outlined in this Schedule A. I understand that my earnings are based on my position 
+                  in the network and the services I help provide to clients.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                  <div className="text-sm text-gray-600">
+                    Signing as: <strong>{authData.user.name}</strong> ({authData.user.email})
+                  </div>
+                  <Button
+                    onClick={() => signMutation.mutate()}
+                    disabled={signMutation.isPending}
+                    className="bg-brand-navy hover:bg-brand-navy/90 text-white font-bold px-8"
+                    data-testid="button-schedule-a-sign"
+                  >
+                    {signMutation.isPending ? "Processing..." : "I Agree - Sign Schedule A"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4" data-testid="schedule-a-login-prompt">
+                <p className="text-gray-600 mb-4">
+                  Please log in to acknowledge Schedule A.
+                </p>
+                <Link href="/login">
+                  <Button className="bg-brand-navy hover:bg-brand-navy/90" data-testid="button-schedule-a-login">
+                    Login to Sign
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Layout>

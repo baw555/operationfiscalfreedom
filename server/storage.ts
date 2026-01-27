@@ -26,7 +26,8 @@ import {
   disabilityReferrals, type DisabilityReferral, type InsertDisabilityReferral,
   jobPlacementIntakes, type JobPlacementIntake, type InsertJobPlacementIntake,
   vetProfessionalIntakes, type VetProfessionalIntake, type InsertVetProfessionalIntake,
-  healthcareIntakes, type HealthcareIntake, type InsertHealthcareIntake
+  healthcareIntakes, type HealthcareIntake, type InsertHealthcareIntake,
+  scheduleASignatures, type ScheduleASignature, type InsertScheduleASignature
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -212,6 +213,11 @@ export interface IStorage {
   getDisabilityReferralsByAffiliate(affiliateId: number): Promise<DisabilityReferral[]>;
   updateDisabilityReferral(id: number, updates: Partial<DisabilityReferral>): Promise<DisabilityReferral | undefined>;
   getDisabilityReferralStats(): Promise<{ total: number; byType: Record<string, number>; byStatus: Record<string, number> }>;
+
+  // Schedule A Signatures
+  createScheduleASignature(signature: InsertScheduleASignature): Promise<ScheduleASignature>;
+  getScheduleASignatureByUserId(userId: number): Promise<ScheduleASignature | undefined>;
+  getAllScheduleASignatures(): Promise<ScheduleASignature[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1041,6 +1047,26 @@ export class DatabaseStorage implements IStorage {
       .where(eq(healthcareIntakes.id, id))
       .returning();
     return updated || undefined;
+  }
+
+  // Schedule A Signatures
+  async createScheduleASignature(signature: InsertScheduleASignature): Promise<ScheduleASignature> {
+    const [created] = await db.insert(scheduleASignatures).values(signature).returning();
+    return created;
+  }
+
+  async getScheduleASignatureByUserId(userId: number): Promise<ScheduleASignature | undefined> {
+    const [signature] = await db.select().from(scheduleASignatures)
+      .where(eq(scheduleASignatures.userId, userId));
+    return signature || undefined;
+  }
+
+  async getAllScheduleASignatures(): Promise<ScheduleASignature[]> {
+    return db.select().from(scheduleASignatures).orderBy(desc(scheduleASignatures.signedAt));
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    return this.getUser(id);
   }
 }
 
