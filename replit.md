@@ -11,6 +11,14 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - **Four Pillars**: Financial, Spiritual, Medical, Holistic
 
 ## Recent Changes
+- **January 2026**: UI/UX Polish Improvements
+  - Fixed form input text visibility (dark navy text on white backgrounds)
+  - Fixed select dropdown contrast issues across all forms
+  - Fixed master portal tab text visibility (active tabs now show white text on red)
+  - Added scroll-to-top behavior when forms show success screens
+  - Added page fade-in animations for smoother navigation
+  - Added button hover lift effects for better interactivity
+  - Navigation header already sticky for easy access
 - **January 2026**: Master Portal Comprehensive Redesign
   - Converted to comprehensive admin operations hub with Dashboard, organized tabs
   - Dashboard tab: Real-time KPIs for all data sources, pending action alerts, quick stats grid
