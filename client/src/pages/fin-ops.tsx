@@ -122,25 +122,26 @@ export default function FinOps() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* Insurance */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+            {/* Row 1: RED - WHITE - BLUE */}
+            {/* Insurance - RED */}
             <Link href={buildLink("/insurance")} data-testid="link-insurance">
-              <div className="p-6 border-2 border-brand-red rounded-xl hover:bg-brand-red/5 cursor-pointer group transition-all hover:shadow-lg h-full">
-                <div className="w-14 h-14 bg-brand-red rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <div className="p-6 bg-brand-red rounded-xl hover:bg-brand-red/90 cursor-pointer group transition-all hover:shadow-xl h-full shadow-lg">
+                <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-brand-red mb-4 group-hover:scale-110 transition-transform">
                   <Shield size={28} />
                 </div>
-                <h3 className="font-display text-xl text-brand-navy mb-2">Insurance Savings</h3>
-                <p className="text-sm text-gray-600 mb-3">Save 20-40% on life, disability, health, and business insurance through provider-direct model</p>
-                <div className="flex items-center text-brand-red font-bold text-sm">
+                <h3 className="font-display text-xl text-white mb-2">Insurance Savings</h3>
+                <p className="text-sm text-white/80 mb-3">Save 20-40% on life, disability, health, and business insurance through provider-direct model</p>
+                <div className="flex items-center text-white font-bold text-sm">
                   <span>Get Quote</span>
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </div>
               </div>
             </Link>
 
-            {/* Tax Preparation */}
+            {/* Tax Preparation - WHITE */}
             <Link href={buildLink("/veteran-led-tax/services/tax-preparation")} data-testid="link-tax-prep">
-              <div className="p-6 border-2 border-brand-navy rounded-xl hover:bg-brand-navy/5 cursor-pointer group transition-all hover:shadow-lg h-full">
+              <div className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-brand-navy cursor-pointer group transition-all hover:shadow-xl h-full shadow-lg">
                 <div className="w-14 h-14 bg-brand-navy rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
                   <FileText size={28} />
                 </div>
@@ -153,24 +154,25 @@ export default function FinOps() {
               </div>
             </Link>
 
-            {/* Tax Planning */}
+            {/* Tax Planning - BLUE */}
             <Link href={buildLink("/veteran-led-tax/services/tax-planning")} data-testid="link-tax-planning">
-              <div className="p-6 border-2 border-brand-blue rounded-xl hover:bg-brand-blue/5 cursor-pointer group transition-all hover:shadow-lg h-full">
-                <div className="w-14 h-14 bg-brand-blue rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <div className="p-6 bg-brand-navy rounded-xl hover:bg-brand-navy/90 cursor-pointer group transition-all hover:shadow-xl h-full shadow-lg">
+                <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-brand-navy mb-4 group-hover:scale-110 transition-transform">
                   <Calculator size={28} />
                 </div>
-                <h3 className="font-display text-xl text-brand-navy mb-2">Tax Planning</h3>
-                <p className="text-sm text-gray-600 mb-3">Strategic tax planning to minimize liability and maximize savings year-round</p>
-                <div className="flex items-center text-brand-blue font-bold text-sm">
+                <h3 className="font-display text-xl text-white mb-2">Tax Planning</h3>
+                <p className="text-sm text-white/80 mb-3">Strategic tax planning to minimize liability and maximize savings year-round</p>
+                <div className="flex items-center text-white font-bold text-sm">
                   <span>Learn More</span>
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </div>
               </div>
             </Link>
 
-            {/* Tax Resolution */}
+            {/* Row 2: WHITE - BLUE - RED */}
+            {/* Tax Resolution - WHITE */}
             <Link href={buildLink("/veteran-led-tax/services/tax-resolution")} data-testid="link-tax-resolution">
-              <div className="p-6 border-2 border-brand-red rounded-xl hover:bg-brand-red/5 cursor-pointer group transition-all hover:shadow-lg h-full">
+              <div className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-brand-red cursor-pointer group transition-all hover:shadow-xl h-full shadow-lg">
                 <div className="w-14 h-14 bg-brand-red rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
                   <Landmark size={28} />
                 </div>
@@ -183,69 +185,70 @@ export default function FinOps() {
               </div>
             </Link>
 
-            {/* Payroll Services */}
+            {/* Payroll Services - BLUE */}
             <Link href={buildLink("/veteran-led-tax/services/payroll")} data-testid="link-payroll">
-              <div className="p-6 border-2 border-brand-navy rounded-xl hover:bg-brand-navy/5 cursor-pointer group transition-all hover:shadow-lg h-full">
-                <div className="w-14 h-14 bg-brand-navy rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <div className="p-6 bg-brand-navy rounded-xl hover:bg-brand-navy/90 cursor-pointer group transition-all hover:shadow-xl h-full shadow-lg">
+                <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-brand-navy mb-4 group-hover:scale-110 transition-transform">
                   <Receipt size={28} />
                 </div>
-                <h3 className="font-display text-xl text-brand-navy mb-2">Payroll Services</h3>
-                <p className="text-sm text-gray-600 mb-3">Full-service payroll processing, tax filings, and compliance management</p>
-                <div className="flex items-center text-brand-navy font-bold text-sm">
+                <h3 className="font-display text-xl text-white mb-2">Payroll Services</h3>
+                <p className="text-sm text-white/80 mb-3">Full-service payroll processing, tax filings, and compliance management</p>
+                <div className="flex items-center text-white font-bold text-sm">
                   <span>Learn More</span>
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </div>
               </div>
             </Link>
 
-            {/* Tax Credits */}
+            {/* Tax Credits - RED */}
             <Link href={buildLink("/veteran-led-tax/services/tax-credits")} data-testid="link-tax-credits">
-              <div className="p-6 border-2 border-brand-blue rounded-xl hover:bg-brand-blue/5 cursor-pointer group transition-all hover:shadow-lg h-full">
-                <div className="w-14 h-14 bg-brand-blue rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <div className="p-6 bg-brand-red rounded-xl hover:bg-brand-red/90 cursor-pointer group transition-all hover:shadow-xl h-full shadow-lg">
+                <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-brand-red mb-4 group-hover:scale-110 transition-transform">
                   <PiggyBank size={28} />
                 </div>
-                <h3 className="font-display text-xl text-brand-navy mb-2">Tax Credits & Incentives</h3>
-                <p className="text-sm text-gray-600 mb-3">R&D credits, WOTC, utility credits, and other business incentives</p>
-                <div className="flex items-center text-brand-blue font-bold text-sm">
+                <h3 className="font-display text-xl text-white mb-2">Tax Credits & Incentives</h3>
+                <p className="text-sm text-white/80 mb-3">R&D credits, WOTC, utility credits, and other business incentives</p>
+                <div className="flex items-center text-white font-bold text-sm">
                   <span>Learn More</span>
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </div>
               </div>
             </Link>
 
-            {/* Medical Sales */}
+            {/* Row 3: BLUE - RED - WHITE */}
+            {/* Medical Sales - BLUE */}
             <Link href={buildLink("/medical-sales")} data-testid="link-medical-sales">
-              <div className="p-6 border-2 border-brand-red rounded-xl hover:bg-brand-red/5 cursor-pointer group transition-all hover:shadow-lg h-full">
-                <div className="w-14 h-14 bg-brand-red rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <div className="p-6 bg-brand-navy rounded-xl hover:bg-brand-navy/90 cursor-pointer group transition-all hover:shadow-xl h-full shadow-lg">
+                <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-brand-navy mb-4 group-hover:scale-110 transition-transform">
                   <HeartPulse size={28} />
                 </div>
-                <h3 className="font-display text-xl text-brand-navy mb-2">Medical Sales</h3>
-                <p className="text-sm text-gray-600 mb-3">Connect with medical device, equipment, and pharmaceutical sales opportunities</p>
-                <div className="flex items-center text-brand-red font-bold text-sm">
+                <h3 className="font-display text-xl text-white mb-2">Medical Sales</h3>
+                <p className="text-sm text-white/80 mb-3">Connect with medical device, equipment, and pharmaceutical sales opportunities</p>
+                <div className="flex items-center text-white font-bold text-sm">
                   <span>Submit Inquiry</span>
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </div>
               </div>
             </Link>
 
-            {/* Business Development */}
+            {/* Business Development - RED */}
             <Link href={buildLink("/business-development")} data-testid="link-business-dev">
-              <div className="p-6 border-2 border-brand-navy rounded-xl hover:bg-brand-navy/5 cursor-pointer group transition-all hover:shadow-lg h-full">
-                <div className="w-14 h-14 bg-brand-navy rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+              <div className="p-6 bg-brand-red rounded-xl hover:bg-brand-red/90 cursor-pointer group transition-all hover:shadow-xl h-full shadow-lg">
+                <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-brand-red mb-4 group-hover:scale-110 transition-transform">
                   <Briefcase size={28} />
                 </div>
-                <h3 className="font-display text-xl text-brand-navy mb-2">Business Development</h3>
-                <p className="text-sm text-gray-600 mb-3">Consulting, partnerships, vendor relations, and lead generation services</p>
-                <div className="flex items-center text-brand-navy font-bold text-sm">
+                <h3 className="font-display text-xl text-white mb-2">Business Development</h3>
+                <p className="text-sm text-white/80 mb-3">Consulting, partnerships, vendor relations, and lead generation services</p>
+                <div className="flex items-center text-white font-bold text-sm">
                   <span>Submit Inquiry</span>
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </div>
               </div>
             </Link>
 
-            {/* Outsourced Accounting */}
+            {/* Outsourced Accounting - WHITE */}
             <Link href={buildLink("/veteran-led-tax/services/outsourced-accounting")} data-testid="link-accounting">
-              <div className="p-6 border-2 border-brand-blue rounded-xl hover:bg-brand-blue/5 cursor-pointer group transition-all hover:shadow-lg h-full">
+              <div className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-brand-blue cursor-pointer group transition-all hover:shadow-xl h-full shadow-lg">
                 <div className="w-14 h-14 bg-brand-blue rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
                   <Building2 size={28} />
                 </div>
