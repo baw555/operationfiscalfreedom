@@ -24,7 +24,8 @@ import {
   affiliateW9, type AffiliateW9, type InsertAffiliateW9,
   finopsReferrals, type FinopsReferral, type InsertFinopsReferral,
   disabilityReferrals, type DisabilityReferral, type InsertDisabilityReferral,
-  jobPlacementIntakes, type JobPlacementIntake, type InsertJobPlacementIntake
+  jobPlacementIntakes, type JobPlacementIntake, type InsertJobPlacementIntake,
+  vetProfessionalIntakes, type VetProfessionalIntake, type InsertVetProfessionalIntake
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -990,6 +991,35 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db.update(jobPlacementIntakes)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(jobPlacementIntakes.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Vet Professional Intakes
+  async createVetProfessionalIntake(intake: InsertVetProfessionalIntake): Promise<VetProfessionalIntake> {
+    const [created] = await db.insert(vetProfessionalIntakes).values(intake).returning();
+    return created;
+  }
+
+  async getVetProfessionalIntake(id: number): Promise<VetProfessionalIntake | undefined> {
+    const [intake] = await db.select().from(vetProfessionalIntakes).where(eq(vetProfessionalIntakes.id, id));
+    return intake || undefined;
+  }
+
+  async getAllVetProfessionalIntakes(): Promise<VetProfessionalIntake[]> {
+    return db.select().from(vetProfessionalIntakes).orderBy(desc(vetProfessionalIntakes.createdAt));
+  }
+
+  async getVetProfessionalIntakesByAffiliate(affiliateId: number): Promise<VetProfessionalIntake[]> {
+    return db.select().from(vetProfessionalIntakes)
+      .where(eq(vetProfessionalIntakes.affiliateId, affiliateId))
+      .orderBy(desc(vetProfessionalIntakes.createdAt));
+  }
+
+  async updateVetProfessionalIntake(id: number, updates: Partial<VetProfessionalIntake>): Promise<VetProfessionalIntake | undefined> {
+    const [updated] = await db.update(vetProfessionalIntakes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(vetProfessionalIntakes.id, id))
       .returning();
     return updated || undefined;
   }

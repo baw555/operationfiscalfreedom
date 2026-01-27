@@ -506,6 +506,49 @@ export async function registerRoutes(
     }
   });
 
+  // Vet Professional Intakes
+  app.post("/api/vet-professional-intakes", async (req, res) => {
+    try {
+      const intake = await storage.createVetProfessionalIntake(req.body);
+      res.status(201).json(intake);
+    } catch (error) {
+      console.error("Error creating vet professional intake:", error);
+      res.status(500).json({ message: "Failed to submit intake" });
+    }
+  });
+
+  app.get("/api/admin/vet-professional-intakes", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const intakes = await storage.getAllVetProfessionalIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching vet professional intakes:", error);
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  app.patch("/api/admin/vet-professional-intakes/:id", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateVetProfessionalIntake(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Intake not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating vet professional intake:", error);
+      res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
   // Get all disability referrals (admin/master only)
   app.get("/api/admin/disability-referrals", async (req, res) => {
     if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {

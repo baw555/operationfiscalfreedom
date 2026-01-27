@@ -842,3 +842,48 @@ export const insertJobPlacementIntakeSchema = createInsertSchema(jobPlacementInt
 
 export type InsertJobPlacementIntake = z.infer<typeof insertJobPlacementIntakeSchema>;
 export type JobPlacementIntake = typeof jobPlacementIntakes.$inferSelect;
+
+// Vet Professionals Intakes
+export const vetProfessionalIntakes = pgTable("vet_professional_intakes", {
+  id: serial("id").primaryKey(),
+  // Affiliate tracking
+  affiliateId: integer("affiliate_id").references(() => users.id),
+  referralCode: text("referral_code"),
+  // Profession type
+  professionType: text("profession_type").notNull(), // attorneys, insurance, cpa, doctors
+  // Personal info
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  // Veteran status
+  isVeteran: text("is_veteran"),
+  branchOfService: text("branch_of_service"),
+  // Business info
+  businessName: text("business_name"),
+  businessType: text("business_type"),
+  licenseNumber: text("license_number"),
+  yearsExperience: text("years_experience"),
+  specializations: text("specializations"),
+  serviceArea: text("service_area"),
+  // Additional
+  additionalNotes: text("additional_notes"),
+  // Admin fields
+  status: text("status").notNull().default("new"),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertVetProfessionalIntakeSchema = createInsertSchema(vetProfessionalIntakes).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVetProfessionalIntake = z.infer<typeof insertVetProfessionalIntakeSchema>;
+export type VetProfessionalIntake = typeof vetProfessionalIntakes.$inferSelect;

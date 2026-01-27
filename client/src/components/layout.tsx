@@ -72,6 +72,7 @@ const disabilityRatingSubItems = [
 
 const finOpsSubItems = [
   { name: "Fin-Ops Overview", href: "/fin-ops" },
+  { name: "Vet Professionals", href: "/vet-professionals" },
   { name: "Merchant Services", href: "/merchant-services" },
   { name: "MY LOCKER", href: "/my-locker" },
   { name: "vGift Cards", href: "/vgift-cards" },
