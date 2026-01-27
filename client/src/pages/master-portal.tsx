@@ -101,6 +101,17 @@ export default function MasterPortal() {
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
   });
 
+  // Fetch healthcare intakes
+  const { data: healthcareIntakes = [], isLoading: healthcareLoading } = useQuery<any[]>({
+    queryKey: ["healthcare-intakes"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/healthcare-intakes", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
@@ -187,6 +198,10 @@ export default function MasterPortal() {
             <TabsTrigger value="vet-professionals" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
               <Users className="w-4 h-4 mr-2" />
               Vet Professionals
+            </TabsTrigger>
+            <TabsTrigger value="healthcare" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+              <FileText className="w-4 h-4 mr-2" />
+              Healthcare
             </TabsTrigger>
           </TabsList>
 
@@ -616,6 +631,127 @@ export default function MasterPortal() {
                               'bg-gray-500/20 text-gray-400'
                             }`}>
                               {professional.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Healthcare Intakes Tab */}
+          <TabsContent value="healthcare" className="mt-6">
+            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+              <div className="p-4 border-b border-white/10 bg-black/20">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-brand-red" />
+                  Healthcare Intakes
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Healthcare navigation requests and provider applications
+                </p>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4 p-4 border-b border-white/10">
+                <div className="bg-purple-500/20 rounded-lg p-4 text-center" data-testid="stat-ptsd">
+                  <div className="text-2xl font-bold text-purple-400" data-testid="text-ptsd-count">
+                    {healthcareIntakes.filter((h: any) => h.category === 'ptsd').length}
+                  </div>
+                  <div className="text-xs text-gray-400">PTSD</div>
+                </div>
+                <div className="bg-blue-500/20 rounded-lg p-4 text-center" data-testid="stat-exosomes">
+                  <div className="text-2xl font-bold text-blue-400" data-testid="text-exosomes-count">
+                    {healthcareIntakes.filter((h: any) => h.category === 'exosomes').length}
+                  </div>
+                  <div className="text-xs text-gray-400">Exosomes</div>
+                </div>
+                <div className="bg-green-500/20 rounded-lg p-4 text-center" data-testid="stat-less-invasive">
+                  <div className="text-2xl font-bold text-green-400" data-testid="text-less-invasive-count">
+                    {healthcareIntakes.filter((h: any) => h.category === 'less_invasive').length}
+                  </div>
+                  <div className="text-xs text-gray-400">Less Invasive</div>
+                </div>
+                <div className="bg-yellow-500/20 rounded-lg p-4 text-center" data-testid="stat-new-treatments">
+                  <div className="text-2xl font-bold text-yellow-400" data-testid="text-new-treatments-count">
+                    {healthcareIntakes.filter((h: any) => h.category === 'new_treatments').length}
+                  </div>
+                  <div className="text-xs text-gray-400">New Treatments</div>
+                </div>
+                <div className="bg-brand-red/20 rounded-lg p-4 text-center" data-testid="stat-guidance">
+                  <div className="text-2xl font-bold text-brand-red" data-testid="text-guidance-count">
+                    {healthcareIntakes.filter((h: any) => h.category === 'guidance').length}
+                  </div>
+                  <div className="text-xs text-gray-400">Guidance</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-4 text-center" data-testid="stat-providers">
+                  <div className="text-2xl font-bold text-white" data-testid="text-providers-count">
+                    {healthcareIntakes.filter((h: any) => h.isOfferingServices).length}
+                  </div>
+                  <div className="text-xs text-gray-400">Providers</div>
+                </div>
+              </div>
+
+              {healthcareLoading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-gray-400 mt-4">Loading healthcare intakes...</p>
+                </div>
+              ) : healthcareIntakes.length === 0 ? (
+                <div className="p-8 text-center text-gray-400">
+                  No healthcare intake requests yet.
+                </div>
+              ) : (
+                <div className="overflow-x-auto" data-testid="table-healthcare">
+                  <table className="w-full">
+                    <thead className="bg-black/30">
+                      <tr>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">Name</th>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">Category</th>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">Type</th>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">VA Rating</th>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {healthcareIntakes.map((intake: any) => (
+                        <tr key={intake.id} className="hover:bg-white/5" data-testid={`row-healthcare-${intake.id}`}>
+                          <td className="px-4 py-3">
+                            <div className="text-white font-medium">{intake.firstName} {intake.lastName}</div>
+                            <div className="text-gray-400 text-xs">{intake.email}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${
+                              intake.category === 'ptsd' ? 'bg-purple-500/20 text-purple-400' :
+                              intake.category === 'exosomes' ? 'bg-blue-500/20 text-blue-400' :
+                              intake.category === 'less_invasive' ? 'bg-green-500/20 text-green-400' :
+                              intake.category === 'new_treatments' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-brand-red/20 text-brand-red'
+                            }`}>
+                              {intake.category?.replace(/_/g, ' ')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              intake.isOfferingServices ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
+                            }`}>
+                              {intake.isOfferingServices ? 'Provider' : 'Seeking Care'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-white text-sm">
+                            {intake.currentVaRating || 'N/A'}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              intake.status === 'new' ? 'bg-blue-500/20 text-blue-400' :
+                              intake.status === 'contacted' ? 'bg-yellow-500/20 text-yellow-400' :
+                              intake.status === 'in_progress' ? 'bg-purple-500/20 text-purple-400' :
+                              'bg-green-500/20 text-green-400'
+                            }`}>
+                              {intake.status}
                             </span>
                           </td>
                         </tr>

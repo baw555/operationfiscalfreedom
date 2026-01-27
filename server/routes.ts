@@ -549,6 +549,50 @@ export async function registerRoutes(
     }
   });
 
+  // Healthcare Intakes - public submission
+  app.post("/api/healthcare-intakes", async (req, res) => {
+    try {
+      const intake = await storage.createHealthcareIntake(req.body);
+      res.status(201).json(intake);
+    } catch (error) {
+      console.error("Error creating healthcare intake:", error);
+      res.status(500).json({ message: "Failed to submit intake" });
+    }
+  });
+
+  // Healthcare Intakes - master portal only
+  app.get("/api/admin/healthcare-intakes", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Master access required" });
+    }
+    
+    try {
+      const intakes = await storage.getAllHealthcareIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching healthcare intakes:", error);
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  app.patch("/api/admin/healthcare-intakes/:id", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Master access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateHealthcareIntake(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Intake not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating healthcare intake:", error);
+      res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
   // Get all disability referrals (admin/master only)
   app.get("/api/admin/disability-referrals", async (req, res) => {
     if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {

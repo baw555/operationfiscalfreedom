@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, serial, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -887,3 +887,47 @@ export const insertVetProfessionalIntakeSchema = createInsertSchema(vetProfessio
 
 export type InsertVetProfessionalIntake = z.infer<typeof insertVetProfessionalIntakeSchema>;
 export type VetProfessionalIntake = typeof vetProfessionalIntakes.$inferSelect;
+
+// Healthcare Intakes - for veterans seeking treatment info/services
+export const healthcareIntakes = pgTable("healthcare_intakes", {
+  id: serial("id").primaryKey(),
+  referralCode: text("referral_code"),
+  // Treatment category
+  category: text("category").notNull(), // ptsd, exosomes, less_invasive, new_treatments, guidance
+  // Personal info
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  // Veteran info
+  branchOfService: text("branch_of_service"),
+  yearsOfService: text("years_of_service"),
+  currentVaRating: text("current_va_rating"),
+  // Healthcare needs
+  currentConditions: text("current_conditions"),
+  treatmentHistory: text("treatment_history"),
+  treatmentGoals: text("treatment_goals"),
+  preferredLocation: text("preferred_location"),
+  insuranceType: text("insurance_type"),
+  additionalNotes: text("additional_notes"),
+  // Provider offering services
+  isOfferingServices: boolean("is_offering_services").default(false),
+  providerType: text("provider_type"), // If offering services
+  providerCredentials: text("provider_credentials"),
+  // Status tracking
+  status: text("status").notNull().default("new"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertHealthcareIntakeSchema = createInsertSchema(healthcareIntakes).omit({
+  id: true,
+  status: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertHealthcareIntake = z.infer<typeof insertHealthcareIntakeSchema>;
+export type HealthcareIntake = typeof healthcareIntakes.$inferSelect;

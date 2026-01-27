@@ -69,6 +69,7 @@ const FinOp = lazy(() => import("@/pages/fin-op"));
 const StressTest = lazy(() => import("@/pages/stress-test"));
 const JobPlacement = lazy(() => import("@/pages/job-placement"));
 const VetProfessionals = lazy(() => import("@/pages/vet-professionals"));
+const HealthcarePage = lazy(() => import("@/pages/healthcare"));
 
 // Disability Rating pages
 const DisabilityInitial = lazy(() => import("@/pages/disability-rating/initial"));
@@ -289,6 +290,12 @@ function Router() {
         <Route path="/stress-test" component={StressTest} />
         <Route path="/job-placement" component={JobPlacement} />
         <Route path="/vet-professionals" component={VetProfessionals} />
+        <Route path="/healthcare" component={HealthcarePage} />
+        <Route path="/healthcare/ptsd" component={HealthcarePage} />
+        <Route path="/healthcare/exosomes" component={HealthcarePage} />
+        <Route path="/healthcare/less-invasive" component={HealthcarePage} />
+        <Route path="/healthcare/new-treatments" component={HealthcarePage} />
+        <Route path="/healthcare/guidance" component={HealthcarePage} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

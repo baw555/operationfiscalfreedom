@@ -25,7 +25,8 @@ import {
   finopsReferrals, type FinopsReferral, type InsertFinopsReferral,
   disabilityReferrals, type DisabilityReferral, type InsertDisabilityReferral,
   jobPlacementIntakes, type JobPlacementIntake, type InsertJobPlacementIntake,
-  vetProfessionalIntakes, type VetProfessionalIntake, type InsertVetProfessionalIntake
+  vetProfessionalIntakes, type VetProfessionalIntake, type InsertVetProfessionalIntake,
+  healthcareIntakes, type HealthcareIntake, type InsertHealthcareIntake
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -1020,6 +1021,24 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db.update(vetProfessionalIntakes)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(vetProfessionalIntakes.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Healthcare Intakes
+  async createHealthcareIntake(intake: InsertHealthcareIntake): Promise<HealthcareIntake> {
+    const [created] = await db.insert(healthcareIntakes).values(intake).returning();
+    return created;
+  }
+
+  async getAllHealthcareIntakes(): Promise<HealthcareIntake[]> {
+    return db.select().from(healthcareIntakes).orderBy(desc(healthcareIntakes.createdAt));
+  }
+
+  async updateHealthcareIntake(id: number, updates: Partial<HealthcareIntake>): Promise<HealthcareIntake | undefined> {
+    const [updated] = await db.update(healthcareIntakes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(healthcareIntakes.id, id))
       .returning();
     return updated || undefined;
   }
