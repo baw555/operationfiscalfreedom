@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { FileText, Calculator, DollarSign, Users, Building2, ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, DollarSign, Users, Building2, ChevronDown, ChevronUp } from "lucide-react";
 
 interface ContractTemplate {
   id: number;
@@ -31,8 +31,6 @@ export default function ScheduleA() {
   const maxUplines = 6;
   const producerBase = 0.69;
   const uplineEach = 0.01;
-  const housePct = 0.225;
-  const recruiterPct = 0.025;
 
   const { data: templates = [] } = useQuery<ContractTemplate[]>({
     queryKey: ["/api/contracts/templates"],
@@ -51,10 +49,6 @@ export default function ScheduleA() {
     const pool = grossPct / 100;
     return {
       producer: pool * producerPct,
-      eachUpline: pool * uplineEach,
-      totalUplines: pool * uplineEach * uplineCount,
-      house: pool * housePct,
-      recruiter: pool * recruiterPct,
     };
   };
 
@@ -109,33 +103,8 @@ export default function ScheduleA() {
               <div className="text-sm text-gray-600 mb-1">Your Commission Rate</div>
               <div className="text-3xl font-bold text-green-700">{pct(producerPct)}</div>
               <div className="text-sm text-gray-500">
-                {producerBase * 100}% base {emptyUplines > 0 && `+ ${emptyUplines}% compression`}
+                Based on your position in the network
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gray-100 rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-bold text-brand-navy mb-4 flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
-            Distribution Formula
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="bg-white rounded p-3 text-center">
-              <div className="text-xs text-gray-500">You (Producer)</div>
-              <div className="text-xl font-bold text-green-600">{pct(producerPct)}</div>
-            </div>
-            <div className="bg-white rounded p-3 text-center">
-              <div className="text-xs text-gray-500">Each Upline ({uplineCount})</div>
-              <div className="text-xl font-bold text-blue-600">1.00%</div>
-            </div>
-            <div className="bg-white rounded p-3 text-center">
-              <div className="text-xs text-gray-500">House</div>
-              <div className="text-xl font-bold text-brand-navy">22.50%</div>
-            </div>
-            <div className="bg-white rounded p-3 text-center">
-              <div className="text-xs text-gray-500">Recruiter</div>
-              <div className="text-xl font-bold text-yellow-600">2.50%</div>
             </div>
           </div>
         </div>
@@ -179,48 +148,23 @@ export default function ScheduleA() {
 
                     {isExpanded && (
                       <div className="mt-4 bg-gray-50 rounded-lg p-4">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="py-2 text-left">Recipient</th>
-                              <th className="py-2 text-right">Rate</th>
-                              <th className="py-2 text-right">Of Deal</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="border-b bg-green-50">
-                              <td className="py-2 font-medium">You (Producer)</td>
-                              <td className="py-2 text-right">{pct(producerPct)} of {contract.grossCommissionPct}%</td>
-                              <td className="py-2 text-right font-bold text-green-600">{pct(dist.producer)}</td>
-                            </tr>
-                            {Array.from({ length: uplineCount }, (_, i) => (
-                              <tr key={i} className="border-b">
-                                <td className="py-2">Upline {i + 1}</td>
-                                <td className="py-2 text-right">1.00% of {contract.grossCommissionPct}%</td>
-                                <td className="py-2 text-right">{pct(dist.eachUpline)}</td>
-                              </tr>
-                            ))}
-                            <tr className="border-b bg-yellow-50">
-                              <td className="py-2">Recruiter</td>
-                              <td className="py-2 text-right">2.50% of {contract.grossCommissionPct}%</td>
-                              <td className="py-2 text-right">{pct(dist.recruiter)}</td>
-                            </tr>
-                            <tr className="border-b bg-blue-50">
-                              <td className="py-2">House</td>
-                              <td className="py-2 text-right">22.50% of {contract.grossCommissionPct}%</td>
-                              <td className="py-2 text-right">{pct(dist.house)}</td>
-                            </tr>
-                            <tr className="font-bold bg-gray-100">
-                              <td className="py-2">Total</td>
-                              <td className="py-2 text-right">100% of {contract.grossCommissionPct}%</td>
-                              <td className="py-2 text-right">{contract.grossCommissionPct}%</td>
-                            </tr>
-                          </tbody>
-                        </table>
-
-                        <div className="mt-4 p-3 bg-green-100 rounded text-sm">
-                          <strong>Example:</strong> On a $100,000 deal, you would receive {pct(dist.producer)} = <strong>${(100000 * dist.producer).toLocaleString()}</strong>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div className="bg-green-100 rounded-lg p-4 text-center">
+                            <div className="text-sm text-gray-600">$50,000 Deal</div>
+                            <div className="text-2xl font-bold text-green-700">${(50000 * dist.producer).toLocaleString()}</div>
+                          </div>
+                          <div className="bg-green-100 rounded-lg p-4 text-center">
+                            <div className="text-sm text-gray-600">$100,000 Deal</div>
+                            <div className="text-2xl font-bold text-green-700">${(100000 * dist.producer).toLocaleString()}</div>
+                          </div>
+                          <div className="bg-green-100 rounded-lg p-4 text-center">
+                            <div className="text-sm text-gray-600">$250,000 Deal</div>
+                            <div className="text-2xl font-bold text-green-700">${(250000 * dist.producer).toLocaleString()}</div>
+                          </div>
                         </div>
+                        <p className="text-sm text-gray-600 text-center">
+                          You earn <span className="font-bold text-green-700">{pct(dist.producer)}</span> on every deal you close
+                        </p>
                       </div>
                     )}
                   </div>
@@ -491,16 +435,12 @@ export default function ScheduleA() {
         </div>
 
         <div className="mt-8 bg-gray-50 rounded-lg p-6 text-sm text-gray-600">
-          <h3 className="font-bold text-brand-navy mb-2">Schedule A Terms</h3>
+          <h3 className="font-bold text-brand-navy mb-2">Your Compensation Summary</h3>
           <ul className="space-y-2">
-            <li><strong>Producer:</strong> The representative who closes the sale receives 69% base + compression from empty upline slots.</li>
-            <li><strong>Uplines:</strong> Each level above the producer receives 1% of the commission pool.</li>
-            <li><strong>Compression:</strong> Empty upline levels (up to 6) compress to the producer, not the house.</li>
-            <li><strong>House:</strong> Fixed 22.5% of all commissions.</li>
-            <li><strong>Recruiter Bounty:</strong> Separate 2.5% to the person who recruited the producing representative.</li>
-            <li><strong>Merchant Processing:</strong> 20% of NET Transaction Revenue from credit card processing volume. Residual income as long as merchant remains active.</li>
-            <li><strong>vGift Cards:</strong> ~5% per gift card purchase ($5 per $100). Broker receives 70% of MAH revenue. Volume-based income averaging $25/customer/year.</li>
-            <li><strong>My Locker:</strong> 20% of gross profit on all referred print-on-demand apparel and corporate branding sales.</li>
+            <li><strong>Service Contracts:</strong> Your rate increases based on your position in the network - up to 75% on every deal you close.</li>
+            <li><strong>Merchant Processing:</strong> Earn 20% of NET Transaction Revenue. Residual income as long as the merchant remains active.</li>
+            <li><strong>vGift Cards:</strong> Earn ~$5 per $100 gift card sold (~5%). Average customer worth $25/year.</li>
+            <li><strong>My Locker:</strong> Earn 20% of gross profit on all print-on-demand apparel and corporate branding sales you refer.</li>
           </ul>
         </div>
       </div>
