@@ -7,6 +7,20 @@ export default function DisabilityInitial() {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800">
+        {/* No Upfront Fee Banner - Top of Page */}
+        <div className="bg-gradient-to-r from-green-600 to-green-700 py-6 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <DollarSign className="w-8 h-8 text-white" />
+              <h2 className="font-display text-2xl md:text-3xl text-white">NO UPFRONT FEES - EVER</h2>
+            </div>
+            <p className="text-white/90 text-lg max-w-3xl mx-auto">
+              None of our attorneys or consulting companies charge upfront, if at all. 
+              You only benefit - there's no cost to you.
+            </p>
+          </div>
+        </div>
+
         {/* Hero Section */}
         <div className="relative py-16 px-4">
           <div className="max-w-6xl mx-auto text-center">
@@ -18,23 +32,8 @@ export default function DisabilityInitial() {
               INITIAL VA DISABILITY CLAIM
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
-              Get the rating you deserve. We don't charge upfront and we work with some of the 
-              largest groups in the country that will pay referral fees even though they do not 
-              charge for initial VA rating applications.
-            </p>
-          </div>
-        </div>
-
-        {/* No Upfront Fee Banner */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 py-8 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <DollarSign className="w-10 h-10 text-white" />
-              <h2 className="font-display text-3xl md:text-4xl text-white">NO UPFRONT FEES</h2>
-            </div>
-            <p className="text-white/90 text-lg max-w-2xl mx-auto">
-              NavigatorUSA connects you with accredited representatives who don't charge for initial claims. 
-              You only benefit - there's no cost to you.
+              Get the rating you deserve. We work with some of the largest groups in the country 
+              that will pay referral fees even though they do not charge for initial VA rating applications.
             </p>
           </div>
         </div>

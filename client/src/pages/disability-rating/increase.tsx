@@ -1,5 +1,5 @@
 import { Layout } from "@/components/layout";
-import { TrendingUp, Shield, CheckCircle, FileText, Clock, ArrowRight } from "lucide-react";
+import { TrendingUp, Shield, CheckCircle, FileText, Clock, ArrowRight, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
@@ -7,6 +7,20 @@ export default function DisabilityIncrease() {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800">
+        {/* No Upfront Fee Banner - Top of Page */}
+        <div className="bg-gradient-to-r from-green-600 to-green-700 py-6 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <DollarSign className="w-8 h-8 text-white" />
+              <h2 className="font-display text-2xl md:text-3xl text-white">NO UPFRONT FEES - EVER</h2>
+            </div>
+            <p className="text-white/90 text-lg max-w-3xl mx-auto">
+              None of our attorneys or consulting companies charge upfront, if at all. 
+              You only benefit - there's no cost to you.
+            </p>
+          </div>
+        </div>
+
         {/* Hero Section */}
         <div className="relative py-16 px-4">
           <div className="max-w-6xl mx-auto text-center">
