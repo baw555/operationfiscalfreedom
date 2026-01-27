@@ -745,3 +745,52 @@ export const insertFinopsReferralSchema = createInsertSchema(finopsReferrals).om
 
 export type InsertFinopsReferral = z.infer<typeof insertFinopsReferralSchema>;
 export type FinopsReferral = typeof finopsReferrals.$inferSelect;
+
+// Disability Referrals - Tracking intakes from disability rating pages
+export const disabilityReferrals = pgTable("disability_referrals", {
+  id: serial("id").primaryKey(),
+  // Affiliate tracking
+  affiliateId: integer("affiliate_id").references(() => users.id),
+  referralCode: text("referral_code"),
+  // Claim type
+  claimType: text("claim_type").notNull(), // initial, increase, denial, ssdi, widow
+  // Veteran/applicant info
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  // Veteran details
+  veteranStatus: text("veteran_status"), // veteran, spouse, dependent
+  branchOfService: text("branch_of_service"),
+  dischargeStatus: text("discharge_status"),
+  currentRating: text("current_rating"), // 0-100% or "none"
+  // Case details
+  conditions: text("conditions"), // List of conditions
+  caseDescription: text("case_description"),
+  hasDocumentation: text("has_documentation"), // yes, no, partial
+  // Contact preferences
+  bestTimeToCall: text("best_time_to_call"),
+  preferredContact: text("preferred_contact"), // phone, email, text
+  // Status tracking
+  status: text("status").notNull().default("new"), // new, contacted, in_progress, assigned, closed
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("notes"),
+  // Metadata
+  visitorIp: text("visitor_ip"),
+  userAgent: text("user_agent"),
+  sourcePage: text("source_page"), // Which page they came from
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertDisabilityReferralSchema = createInsertSchema(disabilityReferrals).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDisabilityReferral = z.infer<typeof insertDisabilityReferralSchema>;
+export type DisabilityReferral = typeof disabilityReferrals.$inferSelect;

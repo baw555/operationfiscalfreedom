@@ -22,7 +22,8 @@ import {
   businessLeads, type BusinessLead, type InsertBusinessLead,
   ipReferralTracking, type IpReferralTracking, type InsertIpReferralTracking,
   affiliateW9, type AffiliateW9, type InsertAffiliateW9,
-  finopsReferrals, type FinopsReferral, type InsertFinopsReferral
+  finopsReferrals, type FinopsReferral, type InsertFinopsReferral,
+  disabilityReferrals, type DisabilityReferral, type InsertDisabilityReferral
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -200,6 +201,14 @@ export interface IStorage {
   getFinopsReferralsByAffiliate(affiliateId: number): Promise<FinopsReferral[]>;
   getFinopsReferralsByPartnerType(partnerType: string): Promise<FinopsReferral[]>;
   updateFinopsReferral(id: number, updates: Partial<FinopsReferral>): Promise<FinopsReferral | undefined>;
+
+  // Disability Referral Tracking
+  createDisabilityReferral(referral: InsertDisabilityReferral): Promise<DisabilityReferral>;
+  getDisabilityReferral(id: number): Promise<DisabilityReferral | undefined>;
+  getAllDisabilityReferrals(): Promise<DisabilityReferral[]>;
+  getDisabilityReferralsByAffiliate(affiliateId: number): Promise<DisabilityReferral[]>;
+  updateDisabilityReferral(id: number, updates: Partial<DisabilityReferral>): Promise<DisabilityReferral | undefined>;
+  getDisabilityReferralStats(): Promise<{ total: number; byType: Record<string, number>; byStatus: Record<string, number> }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -911,6 +920,48 @@ export class DatabaseStorage implements IStorage {
       .where(eq(finopsReferrals.id, id))
       .returning();
     return updated || undefined;
+  }
+
+  // Disability Referral Tracking
+  async createDisabilityReferral(referral: InsertDisabilityReferral): Promise<DisabilityReferral> {
+    const [created] = await db.insert(disabilityReferrals).values(referral).returning();
+    return created;
+  }
+
+  async getDisabilityReferral(id: number): Promise<DisabilityReferral | undefined> {
+    const [referral] = await db.select().from(disabilityReferrals).where(eq(disabilityReferrals.id, id));
+    return referral || undefined;
+  }
+
+  async getAllDisabilityReferrals(): Promise<DisabilityReferral[]> {
+    return db.select().from(disabilityReferrals).orderBy(desc(disabilityReferrals.createdAt));
+  }
+
+  async getDisabilityReferralsByAffiliate(affiliateId: number): Promise<DisabilityReferral[]> {
+    return db.select().from(disabilityReferrals)
+      .where(eq(disabilityReferrals.affiliateId, affiliateId))
+      .orderBy(desc(disabilityReferrals.createdAt));
+  }
+
+  async updateDisabilityReferral(id: number, updates: Partial<DisabilityReferral>): Promise<DisabilityReferral | undefined> {
+    const [updated] = await db.update(disabilityReferrals)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(disabilityReferrals.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async getDisabilityReferralStats(): Promise<{ total: number; byType: Record<string, number>; byStatus: Record<string, number> }> {
+    const all = await db.select().from(disabilityReferrals);
+    const byType: Record<string, number> = {};
+    const byStatus: Record<string, number> = {};
+    
+    for (const ref of all) {
+      byType[ref.claimType] = (byType[ref.claimType] || 0) + 1;
+      byStatus[ref.status] = (byStatus[ref.status] || 0) + 1;
+    }
+    
+    return { total: all.length, byType, byStatus };
   }
 }
 

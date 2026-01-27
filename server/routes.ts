@@ -24,7 +24,8 @@ import {
   insertBusinessIntakeSchema,
   insertContractTemplateSchema,
   insertSignedAgreementSchema,
-  insertBusinessLeadSchema
+  insertBusinessLeadSchema,
+  insertDisabilityReferralSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -389,6 +390,114 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating finops referral:", error);
       res.status(500).json({ message: "Failed to update referral" });
+    }
+  });
+
+  // ============================================
+  // DISABILITY REFERRAL TRACKING ENDPOINTS
+  // ============================================
+
+  // Submit disability referral (public endpoint)
+  app.post("/api/disability-referrals", async (req, res) => {
+    try {
+      const data = insertDisabilityReferralSchema.parse(req.body);
+      
+      // Get client IP and user agent
+      const clientIp = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      
+      // Look up affiliate by referral code if provided
+      let affiliateId: number | undefined;
+      if (data.referralCode) {
+        const affiliate = await storage.getUserByReferralCode(data.referralCode);
+        if (affiliate) {
+          affiliateId = affiliate.id;
+        }
+      }
+      
+      const referral = await storage.createDisabilityReferral({
+        ...data,
+        affiliateId,
+        visitorIp: clientIp,
+        userAgent,
+      });
+      
+      console.log(`[disability] New ${data.claimType} referral - ref: ${data.referralCode || 'direct'}, email: ${data.email}`);
+      
+      res.status(201).json({ 
+        message: "Referral submitted successfully", 
+        id: referral.id 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid form data", errors: error.errors });
+      }
+      console.error("Error creating disability referral:", error);
+      res.status(500).json({ message: "Failed to submit referral" });
+    }
+  });
+
+  // Get all disability referrals (admin/master only)
+  app.get("/api/admin/disability-referrals", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const referrals = await storage.getAllDisabilityReferrals();
+      res.json(referrals);
+    } catch (error) {
+      console.error("Error fetching disability referrals:", error);
+      res.status(500).json({ message: "Failed to fetch referrals" });
+    }
+  });
+
+  // Get disability referrals for a specific affiliate
+  app.get("/api/affiliate/disability-referrals", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    try {
+      const referrals = await storage.getDisabilityReferralsByAffiliate(req.session.userId);
+      res.json(referrals);
+    } catch (error) {
+      console.error("Error fetching affiliate disability referrals:", error);
+      res.status(500).json({ message: "Failed to fetch referrals" });
+    }
+  });
+
+  // Update disability referral status (admin/master only)
+  app.patch("/api/admin/disability-referrals/:id", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateDisabilityReferral(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Referral not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating disability referral:", error);
+      res.status(500).json({ message: "Failed to update referral" });
+    }
+  });
+
+  // Get disability referral stats (admin/master only)
+  app.get("/api/admin/disability-referrals/stats", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const stats = await storage.getDisabilityReferralStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching disability referral stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
     }
   });
 
