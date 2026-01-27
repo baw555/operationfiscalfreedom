@@ -309,18 +309,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Footer - INTENSE */}
-      <footer className="bg-brand-navy text-white pt-10 sm:pt-16 pb-6 sm:pb-8 border-t-4 border-brand-red">
+      <footer className="bg-brand-navy text-white pt-10 sm:pt-16 pb-36 sm:pb-40 md:pb-44 border-t-4 border-brand-red relative">
         <div className="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-8 sm:mb-12">
           <div className="col-span-1 sm:col-span-2">
-            <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <img src={logoStacked} alt="NavigatorUSA" className="h-16 w-16 object-contain" />
-              <div>
-                <span className="font-display text-xl sm:text-3xl tracking-wide text-white block">NavigatorUSA</span>
-                <span className="text-brand-silver text-sm">Veterans' Family Resources</span>
-              </div>
-            </div>
+            <h3 className="font-display text-2xl sm:text-3xl text-white mb-4">Gear Up For Your Family</h3>
             <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
-              Gear up for your family to face 2026 and beyond. Financial. Spiritual. Medical. Holistic.
+              Face 2026 and beyond with confidence. Financial. Spiritual. Medical. Holistic.
             </p>
           </div>
 
@@ -361,9 +355,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
               Donations are tax-deductible to the fullest extent permitted by law. <Link href="/transparency" className="text-brand-red hover:text-white underline cursor-pointer">View our transparency page</Link>
             </p>
           </div>
-          <div className="text-center text-gray-400 text-sm">
-            © {new Date().getFullYear()} NavigatorUSA. All rights reserved. Veterans' Family Resources.
-          </div>
+        </div>
+        {/* Large Logo - Absolutely positioned bottom left */}
+        <img 
+          src={logoStacked} 
+          alt="NavigatorUSA" 
+          className="absolute bottom-4 left-4 h-28 sm:h-32 md:h-36 lg:h-40 w-auto object-contain" 
+        />
+        {/* Copyright - Absolutely positioned bottom right */}
+        <div className="absolute bottom-4 right-4 text-right text-gray-400 text-sm">
+          © {new Date().getFullYear()} NavigatorUSA. All rights reserved.<br />
+          <span className="text-xs">Veterans' Family Resources.</span>
         </div>
       </footer>
     </div>
