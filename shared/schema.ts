@@ -802,7 +802,7 @@ export const jobPlacementIntakes = pgTable("job_placement_intakes", {
   affiliateId: integer("affiliate_id").references(() => users.id),
   referralCode: text("referral_code"),
   // Intake type
-  intakeType: text("intake_type").notNull(), // job_seeker, business_referral
+  intakeType: text("intake_type").notNull(), // job_seeker, business_referral, business_services
   // Personal info
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
@@ -811,8 +811,8 @@ export const jobPlacementIntakes = pgTable("job_placement_intakes", {
   // Veteran status (for job seekers)
   isVeteran: text("is_veteran"), // yes, no
   branchOfService: text("branch_of_service"),
-  // Industries selected (stored as comma-separated or JSON)
-  industriesSelected: text("industries_selected").notNull(), // JSON array of selected industries
+  // Industries or services selected (stored as JSON)
+  industriesSelected: text("industries_selected").notNull(), // JSON array of selected industries (job_seeker/business_referral) or services (business_services)
   // Business info (for business referrals)
   businessName: text("business_name"),
   businessType: text("business_type"),

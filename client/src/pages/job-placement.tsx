@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Briefcase, Building2, CheckCircle, ArrowRight, Users, Star } from "lucide-react";
+import { Briefcase, Building2, CheckCircle, ArrowRight, Users, Star, Shield } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 const INDUSTRIES = [
@@ -32,10 +32,26 @@ const INDUSTRIES = [
   { id: "agriculture", label: "Agriculture & Farming" },
 ];
 
+const VETERAN_SERVICES = [
+  { id: "va_disability", label: "VA Disability Rating Assistance" },
+  { id: "ssdi", label: "SSDI Assistance" },
+  { id: "private_doctor", label: "Private Doctor Referrals" },
+  { id: "furniture", label: "Furniture Assistance ($3K-$10K)" },
+  { id: "website_grant", label: "Free Website Grants" },
+  { id: "startup_funding", label: "Startup Funding Grants (Up to $50K)" },
+  { id: "investor_connections", label: "Investor Connections" },
+  { id: "job_placement", label: "Job Placement Network" },
+  { id: "insurance_savings", label: "Save 20-40% on All Insurances*" },
+  { id: "merchant_services", label: "Merchant Services" },
+  { id: "tax_services", label: "Tax Services" },
+  { id: "payroll_services", label: "Payroll Services" },
+];
+
 export default function JobPlacement() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
-  const [intakeType, setIntakeType] = useState<"job_seeker" | "business_referral">("job_seeker");
+  const [intakeType, setIntakeType] = useState<"job_seeker" | "business_referral" | "business_services">("job_seeker");
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [referralCode, setReferralCode] = useState<string>("");
 
@@ -72,7 +88,16 @@ export default function JobPlacement() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    if (selectedIndustries.length === 0) {
+    if (intakeType === "business_services") {
+      if (selectedServices.length === 0) {
+        toast({
+          title: "Select Services",
+          description: "Please select at least one service you're interested in.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (selectedIndustries.length === 0) {
       toast({
         title: "Select Industries",
         description: "Please select at least one industry you're interested in.",
@@ -89,7 +114,7 @@ export default function JobPlacement() {
       phone: formData.get("phone") as string,
       isVeteran: formData.get("isVeteran") as string,
       branchOfService: formData.get("branchOfService") as string,
-      industriesSelected: JSON.stringify(selectedIndustries),
+      industriesSelected: intakeType === "business_services" ? JSON.stringify(selectedServices) : JSON.stringify(selectedIndustries),
       businessName: formData.get("businessName") as string,
       businessType: formData.get("businessType") as string,
       businessWebsite: formData.get("businessWebsite") as string,
@@ -111,6 +136,14 @@ export default function JobPlacement() {
     );
   };
 
+  const toggleService = (serviceId: string) => {
+    setSelectedServices((prev) =>
+      prev.includes(serviceId)
+        ? prev.filter((id) => id !== serviceId)
+        : [...prev, serviceId]
+    );
+  };
+
   if (submitted) {
     return (
       <Layout>
@@ -123,7 +156,9 @@ export default function JobPlacement() {
             <p data-testid="text-success-message" className="text-gray-300 mb-6">
               {intakeType === "job_seeker" 
                 ? "Thank you for your interest in job placement. We'll review your application and connect you with opportunities in your selected industries."
-                : "Thank you for referring your business! We'll be in touch to discuss how we can help with your hiring needs."
+                : intakeType === "business_referral"
+                ? "Thank you for referring your business! We'll be in touch to discuss how we can help with your hiring needs."
+                : "Thank you for your interest in our veteran services! We'll be in touch to discuss how we can help your business."
               }
             </p>
             <a href="/" className="inline-block">
@@ -159,9 +194,9 @@ export default function JobPlacement() {
 
         {/* Type Selection */}
         <div className="py-8 px-4 bg-black/20">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <h2 className="font-display text-2xl text-white text-center mb-8">HOW CAN WE HELP YOU?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <button
                 data-testid="button-job-seeker"
                 onClick={() => setIntakeType("job_seeker")}
@@ -191,6 +226,22 @@ export default function JobPlacement() {
                 <h3 className="font-display text-xl text-white mb-2">I WANT TO REFER MY BUSINESS</h3>
                 <p className="text-gray-400 text-sm">
                   Connect your business with our network to hire qualified veterans.
+                </p>
+              </button>
+
+              <button
+                data-testid="button-business-services"
+                onClick={() => setIntakeType("business_services")}
+                className={`p-6 rounded-xl border-2 transition-all text-left ${
+                  intakeType === "business_services"
+                    ? "border-green-500 bg-green-500/20"
+                    : "border-white/20 bg-white/5 hover:border-white/40"
+                }`}
+              >
+                <Shield className="w-10 h-10 text-green-400 mb-4" />
+                <h3 className="font-display text-xl text-white mb-2">I WANT TO UTILIZE VETERAN SERVICES</h3>
+                <p className="text-gray-400 text-sm">
+                  Access our full suite of veteran-focused services for your business.
                 </p>
               </button>
             </div>
@@ -285,7 +336,7 @@ export default function JobPlacement() {
               </div>
 
               {/* Business Info (for referrals) */}
-              {intakeType === "business_referral" && (
+              {(intakeType === "business_referral" || intakeType === "business_services") && (
                 <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-8">
                   <h3 className="font-display text-xl text-white mb-6">BUSINESS INFORMATION</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -295,7 +346,7 @@ export default function JobPlacement() {
                         data-testid="input-businessName"
                         id="businessName"
                         name="businessName"
-                        required={intakeType === "business_referral"}
+                        required={intakeType === "business_referral" || intakeType === "business_services"}
                         className="bg-white/10 border-white/20 text-white"
                         placeholder="ABC Company"
                       />
@@ -334,37 +385,73 @@ export default function JobPlacement() {
                 </div>
               )}
 
-              {/* Industry Selection */}
-              <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-8">
-                <h3 className="font-display text-xl text-white mb-2">
-                  {intakeType === "job_seeker" 
-                    ? "SELECT INDUSTRIES YOU WANT TO ENTER"
-                    : "SELECT YOUR BUSINESS INDUSTRIES"
-                  }
-                </h3>
-                <p className="text-gray-400 mb-6">Select all that apply *</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {INDUSTRIES.map((industry) => (
-                    <label
-                      key={industry.id}
-                      data-testid={`label-industry-${industry.id}`}
-                      className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all ${
-                        selectedIndustries.includes(industry.id)
-                          ? "bg-blue-500/30 border-2 border-blue-500"
-                          : "bg-white/5 border-2 border-transparent hover:border-white/20"
-                      }`}
-                    >
-                      <Checkbox
-                        data-testid={`checkbox-industry-${industry.id}`}
-                        checked={selectedIndustries.includes(industry.id)}
-                        onCheckedChange={() => toggleIndustry(industry.id)}
-                        className="border-white/40"
-                      />
-                      <span className="text-gray-200 text-sm">{industry.label}</span>
-                    </label>
-                  ))}
+              {/* Industry Selection (for job_seeker and business_referral) */}
+              {intakeType !== "business_services" && (
+                <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-8">
+                  <h3 className="font-display text-xl text-white mb-2">
+                    {intakeType === "job_seeker" 
+                      ? "SELECT INDUSTRIES YOU WANT TO ENTER"
+                      : "SELECT YOUR BUSINESS INDUSTRIES"
+                    }
+                  </h3>
+                  <p className="text-gray-400 mb-6">Select all that apply *</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {INDUSTRIES.map((industry) => (
+                      <label
+                        key={industry.id}
+                        data-testid={`label-industry-${industry.id}`}
+                        className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all ${
+                          selectedIndustries.includes(industry.id)
+                            ? "bg-blue-500/30 border-2 border-blue-500"
+                            : "bg-white/5 border-2 border-transparent hover:border-white/20"
+                        }`}
+                      >
+                        <Checkbox
+                          data-testid={`checkbox-industry-${industry.id}`}
+                          checked={selectedIndustries.includes(industry.id)}
+                          onCheckedChange={() => toggleIndustry(industry.id)}
+                          className="border-white/40"
+                        />
+                        <span className="text-gray-200 text-sm">{industry.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Services Selection (for business_services) */}
+              {intakeType === "business_services" && (
+                <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-8">
+                  <h3 className="font-display text-xl text-white mb-2">
+                    SELECT SERVICES YOU'RE INTERESTED IN
+                  </h3>
+                  <p className="text-gray-400 mb-6">Select all that apply *</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {VETERAN_SERVICES.map((service) => (
+                      <label
+                        key={service.id}
+                        data-testid={`label-service-${service.id}`}
+                        className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all ${
+                          selectedServices.includes(service.id)
+                            ? "bg-green-500/30 border-2 border-green-500"
+                            : "bg-white/5 border-2 border-transparent hover:border-white/20"
+                        } ${service.id === "insurance_savings" ? "border-brand-gold/50 bg-brand-gold/10" : ""}`}
+                      >
+                        <Checkbox
+                          data-testid={`checkbox-service-${service.id}`}
+                          checked={selectedServices.includes(service.id)}
+                          onCheckedChange={() => toggleService(service.id)}
+                          className="border-white/40"
+                        />
+                        <span className={`text-sm ${service.id === "insurance_savings" ? "text-brand-gold font-bold" : "text-gray-200"}`}>
+                          {service.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-gray-500 text-xs mt-4">* Insurance savings vary by provider and coverage type</p>
+                </div>
+              )}
 
               {/* Additional Info */}
               <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-8">
@@ -396,7 +483,12 @@ export default function JobPlacement() {
                   )}
                   <div>
                     <Label htmlFor="additionalNotes" className="text-white">
-                      {intakeType === "job_seeker" ? "Anything Else We Should Know?" : "Tell Us About Your Hiring Needs"}
+                      {intakeType === "job_seeker" 
+                        ? "Anything Else We Should Know?" 
+                        : intakeType === "business_referral"
+                        ? "Tell Us About Your Hiring Needs"
+                        : "Tell Us About Your Business Needs"
+                      }
                     </Label>
                     <Textarea
                       data-testid="input-additionalNotes"
@@ -406,7 +498,9 @@ export default function JobPlacement() {
                       placeholder={
                         intakeType === "job_seeker"
                           ? "Any additional information..."
-                          : "Describe the types of positions you're looking to fill..."
+                          : intakeType === "business_referral"
+                          ? "Describe the types of positions you're looking to fill..."
+                          : "Tell us about your business and how we can help..."
                       }
                     />
                   </div>
