@@ -3,10 +3,44 @@ import { XCircle, Shield, FileText, Scale, Clock, ArrowRight, DollarSign, AlertT
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
+const animatedBannerStyles = `
+  @keyframes slideInFromLeft {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  .animate-slide-left {
+    animation: slideInFromLeft 1.2s ease-out forwards;
+  }
+  .animate-slide-left-delayed {
+    animation: slideInFromLeft 1.2s ease-out forwards;
+    animation-delay: 0.6s;
+    opacity: 0;
+  }
+`;
+
 export default function DisabilityDenial() {
   return (
     <Layout>
+      <style>{animatedBannerStyles}</style>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800">
+        {/* Partners Banner - Animated */}
+        <div className="bg-brand-navy py-4 px-4 border-b-2 border-brand-gold overflow-hidden">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="font-display text-xl md:text-2xl text-brand-gold mb-2 animate-slide-left">
+              PARTNERS INCLUDE THE LARGEST LAW FIRMS IN THE USA
+            </h2>
+            <p className="font-display text-2xl md:text-3xl text-white animate-slide-left-delayed">
+              YOU FOUGHT FOR US. <span className="text-brand-red">THEY FIGHT FOR YOU!</span>
+            </p>
+          </div>
+        </div>
+
         {/* No Upfront Fee Banner - Top of Page */}
         <div className="bg-gradient-to-r from-green-600 to-green-700 py-6 px-4">
           <div className="max-w-4xl mx-auto text-center">
