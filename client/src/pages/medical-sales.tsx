@@ -85,9 +85,13 @@ export default function MedicalSales() {
 
   return (
     <Layout>
+      {/* Patriotic Banner */}
+      <div className="h-2 bg-gradient-to-r from-brand-red via-white to-brand-navy"></div>
+      
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-brand-red to-brand-red/90 text-white py-12 sm:py-16">
-        <div className="container mx-auto px-4 text-center">
+      <section className="bg-gradient-to-br from-brand-navy via-brand-red to-brand-navy text-white py-12 sm:py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.03\"%3E%3Cpath d=\"M30 30l15-15v30l-15-15zm-15 0l15 15H0l15-15z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
+        <div className="container mx-auto px-4 text-center relative z-10">
           <div className="flex items-center justify-center gap-3 mb-4">
             <HeartPulse className="w-12 h-12" />
           </div>
@@ -99,24 +103,24 @@ export default function MedicalSales() {
         </div>
       </section>
 
-      {/* Role Options */}
-      <section className="py-8 bg-gray-50">
+      {/* Role Options - Red White Blue cards */}
+      <section className="py-8 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="bg-white p-6 rounded-xl shadow-sm border text-center">
-              <ShoppingCart className="w-10 h-10 text-brand-red mx-auto mb-3" />
-              <h3 className="font-bold text-lg text-brand-navy mb-2">Buyers</h3>
-              <p className="text-gray-600 text-sm">Looking for medical equipment, devices, or supplies at competitive prices</p>
+          <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <div className="bg-brand-red p-6 rounded-xl shadow-lg text-center">
+              <ShoppingCart className="w-10 h-10 text-white mx-auto mb-3" />
+              <h3 className="font-bold text-lg text-white mb-2">Buyers</h3>
+              <p className="text-white/80 text-sm">Looking for medical equipment, devices, or supplies at competitive prices</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border text-center">
+            <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-gray-200 text-center">
               <Package className="w-10 h-10 text-brand-navy mx-auto mb-3" />
               <h3 className="font-bold text-lg text-brand-navy mb-2">Sellers</h3>
               <p className="text-gray-600 text-sm">Have medical products to sell and need qualified buyer connections</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border text-center">
-              <Users className="w-10 h-10 text-brand-blue mx-auto mb-3" />
-              <h3 className="font-bold text-lg text-brand-navy mb-2">Referrers</h3>
-              <p className="text-gray-600 text-sm">Know someone in the medical industry who could benefit from our network</p>
+            <div className="bg-brand-navy p-6 rounded-xl shadow-lg text-center">
+              <Users className="w-10 h-10 text-white mx-auto mb-3" />
+              <h3 className="font-bold text-lg text-white mb-2">Referrers</h3>
+              <p className="text-white/80 text-sm">Know someone in the medical industry who could benefit from our network</p>
             </div>
           </div>
         </div>

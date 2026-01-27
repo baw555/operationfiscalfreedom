@@ -134,10 +134,14 @@ export default function GetHelp() {
 
   return (
     <Layout>
-      <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
-        <div className="container mx-auto px-4">
+      {/* Patriotic Banner */}
+      <div className="h-2 bg-gradient-to-r from-brand-red via-white to-brand-navy"></div>
+      
+      <section className="bg-gradient-to-br from-brand-red via-brand-navy to-brand-navy text-white py-12 sm:py-20 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.03\"%3E%3Cpath d=\"M30 30l15-15v30l-15-15zm-15 0l15 15H0l15-15z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
+        <div className="container mx-auto px-4 relative z-10">
           <h1 className="text-2xl sm:text-5xl font-display mb-4 sm:mb-6">Free VA Rating Assistance</h1>
-          <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-2">
+          <p className="text-base sm:text-xl text-white/90 max-w-2xl mx-auto px-2">
             Struggling with your disability rating or VA claim? Our veteran advocates are here to help you 
             navigate the system and get the benefits you deserve - at no cost to you.
           </p>
@@ -147,20 +151,20 @@ export default function GetHelp() {
       <section className="py-10 sm:py-16 bg-gray-100">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto mb-8 sm:mb-12">
-            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
-              <Shield className="h-8 w-8 sm:h-12 sm:w-12 text-brand-navy mx-auto mb-3 sm:mb-4" />
-              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Expert Guidance</h3>
-              <p className="text-gray-600 text-xs sm:text-sm">Veterans helping veterans navigate the VA system</p>
+            <div className="bg-brand-red p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <Shield className="h-8 w-8 sm:h-12 sm:w-12 text-white mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-white mb-1 sm:mb-2">Expert Guidance</h3>
+              <p className="text-white/80 text-xs sm:text-sm">Veterans helping veterans navigate the VA system</p>
             </div>
-            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
-              <Clock className="h-8 w-8 sm:h-12 sm:w-12 text-brand-red mx-auto mb-3 sm:mb-4" />
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center border-2 border-brand-navy/20">
+              <Clock className="h-8 w-8 sm:h-12 sm:w-12 text-brand-navy mx-auto mb-3 sm:mb-4" />
               <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Fast Response</h3>
-              <p className="text-gray-600 text-xs sm:text-sm">Get a response within 24-48 hours</p>
+              <p className="text-brand-navy/70 text-xs sm:text-sm">Get a response within 24-48 hours</p>
             </div>
-            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
-              <HeartHandshake className="h-8 w-8 sm:h-12 sm:w-12 text-brand-gold mx-auto mb-3 sm:mb-4" />
-              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">100% Free</h3>
-              <p className="text-gray-600 text-xs sm:text-sm">No cost for assistance - ever</p>
+            <div className="bg-brand-navy p-4 sm:p-6 rounded-xl shadow-md text-center">
+              <HeartHandshake className="h-8 w-8 sm:h-12 sm:w-12 text-white mx-auto mb-3 sm:mb-4" />
+              <h3 className="font-display text-lg sm:text-xl text-white mb-1 sm:mb-2">100% Free</h3>
+              <p className="text-white/80 text-xs sm:text-sm">No cost for assistance - ever</p>
             </div>
           </div>
         </div>

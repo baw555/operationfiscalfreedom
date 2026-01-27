@@ -112,11 +112,15 @@ export default function Insurance() {
 
   return (
     <Layout>
+      {/* Patriotic Banner */}
+      <div className="h-2 bg-gradient-to-r from-brand-red via-white to-brand-navy"></div>
+      
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-brand-navy to-brand-navy/90 text-white py-12 sm:py-16">
-        <div className="container mx-auto px-4 text-center">
+      <section className="bg-gradient-to-br from-brand-red via-brand-navy to-brand-navy text-white py-12 sm:py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.03\"%3E%3Cpath d=\"M30 30l15-15v30l-15-15zm-15 0l15 15H0l15-15z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
+        <div className="container mx-auto px-4 text-center relative z-10">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Shield className="w-12 h-12 text-green-400" />
+            <Shield className="w-12 h-12 text-white" />
           </div>
           <h1 className="text-3xl sm:text-5xl font-display mb-4">Save 20-40% on All Insurance</h1>
           <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6">

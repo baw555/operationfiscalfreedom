@@ -174,18 +174,22 @@ export default function JobPlacement() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800">
+      {/* Patriotic Banner */}
+      <div className="h-2 bg-gradient-to-r from-brand-red via-white to-brand-navy"></div>
+      
+      <div className="min-h-screen bg-gradient-to-br from-brand-navy via-brand-red to-brand-navy">
         {/* Hero Section */}
-        <div className="py-16 px-4">
-          <div className="max-w-6xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-blue-500/20 px-4 py-2 rounded-full mb-6">
-              <Briefcase className="w-5 h-5 text-blue-400" />
-              <span className="text-blue-400 font-bold uppercase tracking-wider text-sm">Career Opportunities</span>
+        <div className="py-16 px-4 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.03\"%3E%3Cpath d=\"M30 30l15-15v30l-15-15zm-15 0l15 15H0l15-15z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
+          <div className="max-w-6xl mx-auto text-center relative z-10">
+            <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-6">
+              <Briefcase className="w-5 h-5 text-white" />
+              <span className="text-white font-bold uppercase tracking-wider text-sm">Career Opportunities</span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl text-white mb-6">
               JOB PLACEMENT NETWORK
             </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+            <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8">
               Connect with veteran-friendly employers across multiple industries. 
               Whether you're looking for your next career move or want to refer your business to hire veterans.
             </p>
@@ -193,7 +197,7 @@ export default function JobPlacement() {
         </div>
 
         {/* Type Selection */}
-        <div className="py-8 px-4 bg-black/20">
+        <div className="py-8 px-4 bg-brand-navy">
           <div className="max-w-6xl mx-auto">
             <h2 className="font-display text-2xl text-white text-center mb-8">HOW CAN WE HELP YOU?</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -202,13 +206,13 @@ export default function JobPlacement() {
                 onClick={() => setIntakeType("job_seeker")}
                 className={`p-6 rounded-xl border-2 transition-all text-left ${
                   intakeType === "job_seeker"
-                    ? "border-blue-500 bg-blue-500/20"
-                    : "border-white/20 bg-white/5 hover:border-white/40"
+                    ? "border-white bg-brand-red"
+                    : "border-white/20 bg-brand-red/80 hover:border-white/40"
                 }`}
               >
-                <Users className="w-10 h-10 text-blue-400 mb-4" />
+                <Users className="w-10 h-10 text-white mb-4" />
                 <h3 className="font-display text-xl text-white mb-2">I'M LOOKING FOR A JOB</h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-white/80 text-sm">
                   Find opportunities in industries that match your skills and experience.
                 </p>
               </button>
@@ -218,13 +222,13 @@ export default function JobPlacement() {
                 onClick={() => setIntakeType("business_referral")}
                 className={`p-6 rounded-xl border-2 transition-all text-left ${
                   intakeType === "business_referral"
-                    ? "border-purple-500 bg-purple-500/20"
-                    : "border-white/20 bg-white/5 hover:border-white/40"
+                    ? "border-brand-navy bg-white"
+                    : "border-gray-200 bg-white/90 hover:border-brand-navy"
                 }`}
               >
-                <Building2 className="w-10 h-10 text-purple-400 mb-4" />
-                <h3 className="font-display text-xl text-white mb-2">I WANT TO REFER MY BUSINESS</h3>
-                <p className="text-gray-400 text-sm">
+                <Building2 className={`w-10 h-10 mb-4 ${intakeType === "business_referral" ? "text-brand-navy" : "text-brand-navy/70"}`} />
+                <h3 className="font-display text-xl text-brand-navy mb-2">I WANT TO REFER MY BUSINESS</h3>
+                <p className="text-brand-navy/70 text-sm">
                   Connect your business with our network to hire qualified veterans.
                 </p>
               </button>
@@ -234,13 +238,13 @@ export default function JobPlacement() {
                 onClick={() => setIntakeType("business_services")}
                 className={`p-6 rounded-xl border-2 transition-all text-left ${
                   intakeType === "business_services"
-                    ? "border-green-500 bg-green-500/20"
-                    : "border-white/20 bg-white/5 hover:border-white/40"
+                    ? "border-white bg-brand-navy"
+                    : "border-white/20 bg-brand-navy/80 hover:border-white/40"
                 }`}
               >
-                <Shield className="w-10 h-10 text-green-400 mb-4" />
+                <Shield className="w-10 h-10 text-white mb-4" />
                 <h3 className="font-display text-xl text-white mb-2">I WANT TO UTILIZE VETERAN SERVICES</h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-white/80 text-sm">
                   Access our full suite of veteran-focused services for your business.
                 </p>
               </button>

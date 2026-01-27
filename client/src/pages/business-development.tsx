@@ -86,9 +86,13 @@ export default function BusinessDevelopment() {
 
   return (
     <Layout>
+      {/* Patriotic Banner */}
+      <div className="h-2 bg-gradient-to-r from-brand-red via-white to-brand-navy"></div>
+      
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-brand-navy to-brand-navy/90 text-white py-12 sm:py-16">
-        <div className="container mx-auto px-4 text-center">
+      <section className="bg-gradient-to-br from-brand-red via-brand-navy to-brand-navy text-white py-12 sm:py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.03\"%3E%3Cpath d=\"M30 30l15-15v30l-15-15zm-15 0l15 15H0l15-15z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
+        <div className="container mx-auto px-4 text-center relative z-10">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Briefcase className="w-12 h-12" />
           </div>
@@ -100,22 +104,22 @@ export default function BusinessDevelopment() {
         </div>
       </section>
 
-      {/* Service Options */}
-      <section className="py-8 bg-gray-50">
+      {/* Service Options - Red White Blue cards */}
+      <section className="py-8 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="bg-white p-6 rounded-xl shadow-sm border text-center">
-              <Handshake className="w-10 h-10 text-brand-navy mx-auto mb-3" />
-              <h3 className="font-bold text-lg text-brand-navy mb-2">Partnerships</h3>
-              <p className="text-gray-600 text-sm">Strategic partnerships and joint ventures to expand market reach</p>
+          <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <div className="bg-brand-navy p-6 rounded-xl shadow-lg text-center">
+              <Handshake className="w-10 h-10 text-white mx-auto mb-3" />
+              <h3 className="font-bold text-lg text-white mb-2">Partnerships</h3>
+              <p className="text-white/80 text-sm">Strategic partnerships and joint ventures to expand market reach</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border text-center">
-              <Target className="w-10 h-10 text-brand-red mx-auto mb-3" />
-              <h3 className="font-bold text-lg text-brand-navy mb-2">Lead Generation</h3>
-              <p className="text-gray-600 text-sm">Qualified lead generation and sales pipeline development</p>
+            <div className="bg-brand-red p-6 rounded-xl shadow-lg text-center">
+              <Target className="w-10 h-10 text-white mx-auto mb-3" />
+              <h3 className="font-bold text-lg text-white mb-2">Lead Generation</h3>
+              <p className="text-white/80 text-sm">Qualified lead generation and sales pipeline development</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border text-center">
-              <Building2 className="w-10 h-10 text-brand-blue mx-auto mb-3" />
+            <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-gray-200 text-center">
+              <Building2 className="w-10 h-10 text-brand-navy mx-auto mb-3" />
               <h3 className="font-bold text-lg text-brand-navy mb-2">Consulting</h3>
               <p className="text-gray-600 text-sm">Expert business consulting and growth strategy development</p>
             </div>

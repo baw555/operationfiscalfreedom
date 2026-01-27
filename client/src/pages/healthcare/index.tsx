@@ -119,18 +119,22 @@ export default function HealthcarePage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800">
+      {/* Patriotic Banner */}
+      <div className="h-2 bg-gradient-to-r from-brand-red via-white to-brand-navy"></div>
+      
+      <div className="min-h-screen bg-gradient-to-br from-brand-red via-brand-navy to-brand-navy">
         {/* Hero Section */}
-        <div className="py-16 px-4">
-          <div className="max-w-6xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-green-500/20 px-4 py-2 rounded-full mb-6">
-              <Stethoscope className="w-5 h-5 text-green-400" />
-              <span className="text-green-400 font-bold uppercase tracking-wider text-sm">Veteran Healthcare</span>
+        <div className="py-16 px-4 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.03\"%3E%3Cpath d=\"M30 30l15-15v30l-15-15zm-15 0l15 15H0l15-15z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
+          <div className="max-w-6xl mx-auto text-center relative z-10">
+            <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-6">
+              <Stethoscope className="w-5 h-5 text-white" />
+              <span className="text-white font-bold uppercase tracking-wider text-sm">Veteran Healthcare</span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl text-white mb-6">
               HEALTHCARE NAVIGATION
             </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+            <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8">
               Connecting veterans with cutting-edge treatments and healthcare solutions. 
               From PTSD therapies to regenerative medicine, we help you find the right path to healing.
             </p>
@@ -334,7 +338,7 @@ export default function HealthcarePage() {
         </div>
 
         {/* Join Vet Professionals CTA */}
-        <div className="py-16 px-4 bg-black/20">
+        <div className="py-16 px-4 bg-brand-navy">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="font-display text-3xl text-white mb-6">MEDICAL PROFESSIONALS</h2>
             <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -342,7 +346,7 @@ export default function HealthcarePage() {
               to connect with veterans who need your expertise.
             </p>
             <Link href="/vet-professionals">
-              <Button data-testid="button-join-network" className="bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 h-auto">
+              <Button data-testid="button-join-network" className="bg-brand-red hover:bg-brand-red/90 text-white text-lg px-8 py-4 h-auto">
                 <Stethoscope className="w-5 h-5 mr-2" />
                 Join Vet Professionals Network
               </Button>

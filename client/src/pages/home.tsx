@@ -396,33 +396,45 @@ export default function Home() {
         </section>
       )}
 
-      {/* What We Do - INTENSE */}
+      {/* What We Do - PATRIOTIC */}
       <section className="py-12 sm:py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-4xl md:text-5xl text-brand-navy mb-3 sm:mb-4">Mission Objectives</h2>
-            <div className="w-16 sm:w-24 h-1 bg-brand-red mx-auto mb-4 sm:mb-6" />
+            <div className="w-16 sm:w-24 h-1 bg-gradient-to-r from-brand-red via-white to-brand-navy mx-auto mb-4 sm:mb-6" />
             <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
               We provide a comprehensive ecosystem designed to lift veteran families up.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
-            {[
-              { icon: Shield, title: "VA Claims Support", desc: "Understand the system, appeal denied claims, and get the rating you deserve with our free software.", color: "brand-red" },
-              { icon: Briefcase, title: "Fin-Ops Opportunities", desc: "Access flexible, remote or local Financial Operations opportunities tailored for veteran skillsets.", color: "brand-blue" },
-              { icon: DollarSign, title: "Income Streams", desc: "Build multiple revenue streams through referrals and veteran-owned business connections.", color: "brand-blue" },
-            ].map((item, i) => (
-              <Card key={i} className={`border-t-4 border-t-${item.color} hover:shadow-2xl transition-all shadow-lg`}>
-                <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-6 text-center">
-                  <div className={`w-14 h-14 sm:w-18 sm:h-18 bg-${item.color}/10 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-${item.color}`}>
-                    <item.icon size={28} className="sm:w-9 sm:h-9" />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-2 sm:mb-3">{item.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{item.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <Card className="bg-brand-red border-none hover:shadow-2xl transition-all shadow-lg">
+              <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-6 text-center">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <Shield size={28} className="sm:w-9 sm:h-9 text-white" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-display text-white mb-2 sm:mb-3">VA Claims Support</h3>
+                <p className="text-sm sm:text-base text-white/80 leading-relaxed">Understand the system, appeal denied claims, and get the rating you deserve with our free software.</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-white border-2 border-brand-navy/20 hover:shadow-2xl transition-all shadow-lg">
+              <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-6 text-center">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 bg-brand-navy/10 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <Briefcase size={28} className="sm:w-9 sm:h-9 text-brand-navy" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-2 sm:mb-3">Fin-Ops Opportunities</h3>
+                <p className="text-sm sm:text-base text-brand-navy/70 leading-relaxed">Access flexible, remote or local Financial Operations opportunities tailored for veteran skillsets.</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-brand-navy border-none hover:shadow-2xl transition-all shadow-lg">
+              <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-6 text-center">
+                <div className="w-14 h-14 sm:w-18 sm:h-18 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <DollarSign size={28} className="sm:w-9 sm:h-9 text-white" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-display text-white mb-2 sm:mb-3">Income Streams</h3>
+                <p className="text-sm sm:text-base text-white/80 leading-relaxed">Build multiple revenue streams through referrals and veteran-owned business connections.</p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
