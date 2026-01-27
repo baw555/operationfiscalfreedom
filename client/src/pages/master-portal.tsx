@@ -90,6 +90,17 @@ export default function MasterPortal() {
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
   });
 
+  // Fetch vet professional intakes
+  const { data: vetProfessionalIntakes = [], isLoading: vetProfessionalsLoading } = useQuery<any[]>({
+    queryKey: ["vet-professional-intakes"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/vet-professional-intakes", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
@@ -172,6 +183,10 @@ export default function MasterPortal() {
             <TabsTrigger value="disability-referrals" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
               <FileText className="w-4 h-4 mr-2" />
               Disability Referrals
+            </TabsTrigger>
+            <TabsTrigger value="vet-professionals" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+              <Users className="w-4 h-4 mr-2" />
+              Vet Professionals
             </TabsTrigger>
           </TabsList>
 
@@ -489,6 +504,118 @@ export default function MasterPortal() {
                               'bg-gray-500/20 text-gray-400'
                             }`}>
                               {referral.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Vet Professionals Tab */}
+          <TabsContent value="vet-professionals" className="mt-6">
+            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+              <div className="p-4 border-b border-white/10 bg-black/20">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Users className="w-5 h-5 text-brand-red" />
+                  Vet Professionals Network
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Professional network applications from attorneys, insurance agents, CPAs, and doctors
+                </p>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border-b border-white/10">
+                <div className="bg-blue-500/20 rounded-lg p-4 text-center" data-testid="stat-attorneys">
+                  <div className="text-2xl font-bold text-blue-400" data-testid="text-attorneys-count">
+                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'attorneys').length}
+                  </div>
+                  <div className="text-xs text-gray-400">Attorneys</div>
+                </div>
+                <div className="bg-green-500/20 rounded-lg p-4 text-center" data-testid="stat-insurance">
+                  <div className="text-2xl font-bold text-green-400" data-testid="text-insurance-count">
+                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'insurance').length}
+                  </div>
+                  <div className="text-xs text-gray-400">Insurance</div>
+                </div>
+                <div className="bg-yellow-500/20 rounded-lg p-4 text-center" data-testid="stat-cpa">
+                  <div className="text-2xl font-bold text-yellow-400" data-testid="text-cpa-count">
+                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'cpa').length}
+                  </div>
+                  <div className="text-xs text-gray-400">CPAs</div>
+                </div>
+                <div className="bg-purple-500/20 rounded-lg p-4 text-center" data-testid="stat-doctors">
+                  <div className="text-2xl font-bold text-purple-400" data-testid="text-doctors-count">
+                    {vetProfessionalIntakes.filter((p: any) => p.professionType === 'doctors').length}
+                  </div>
+                  <div className="text-xs text-gray-400">Doctors</div>
+                </div>
+              </div>
+
+              {vetProfessionalsLoading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-gray-400 mt-4">Loading professional intakes...</p>
+                </div>
+              ) : vetProfessionalIntakes.length === 0 ? (
+                <div className="p-8 text-center text-gray-400">
+                  No professional network applications yet.
+                </div>
+              ) : (
+                <div className="overflow-x-auto" data-testid="table-vet-professionals">
+                  <table className="w-full">
+                    <thead className="bg-black/30">
+                      <tr>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-name">Name</th>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-profession">Profession</th>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-business">Business</th>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-license">License</th>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-referral">Referral</th>
+                        <th className="text-left px-4 py-3 text-gray-400 font-medium text-sm" data-testid="header-status">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {vetProfessionalIntakes.map((professional: any) => (
+                        <tr key={professional.id} className="hover:bg-white/5" data-testid={`row-vet-professional-${professional.id}`}>
+                          <td className="px-4 py-3">
+                            <div className="text-white font-medium">{professional.firstName} {professional.lastName}</div>
+                            <div className="text-gray-400 text-xs">{professional.email}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${
+                              professional.professionType === 'attorneys' ? 'bg-blue-500/20 text-blue-400' :
+                              professional.professionType === 'insurance' ? 'bg-green-500/20 text-green-400' :
+                              professional.professionType === 'cpa' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-purple-500/20 text-purple-400'
+                            }`}>
+                              {professional.professionType}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-white text-sm">
+                            {professional.businessName || 'N/A'}
+                          </td>
+                          <td className="px-4 py-3 text-white text-sm">
+                            {professional.licenseNumber || 'N/A'}
+                          </td>
+                          <td className="px-4 py-3">
+                            {professional.referralCode ? (
+                              <span className="text-brand-red text-sm font-mono">{professional.referralCode}</span>
+                            ) : (
+                              <span className="text-gray-500 text-sm">Direct</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              professional.status === 'new' ? 'bg-blue-500/20 text-blue-400' :
+                              professional.status === 'contacted' ? 'bg-yellow-500/20 text-yellow-400' :
+                              professional.status === 'approved' ? 'bg-green-500/20 text-green-400' :
+                              'bg-gray-500/20 text-gray-400'
+                            }`}>
+                              {professional.status}
                             </span>
                           </td>
                         </tr>
