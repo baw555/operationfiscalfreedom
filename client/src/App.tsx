@@ -75,6 +75,7 @@ const DisabilityDenial = lazy(() => import("@/pages/disability-rating/denial"));
 const DisabilitySSDI = lazy(() => import("@/pages/disability-rating/ssdi"));
 const DisabilityWidow = lazy(() => import("@/pages/disability-rating/widow"));
 const DisabilityReferEarn = lazy(() => import("@/pages/disability-rating/refer-earn"));
+const DisabilityIntake = lazy(() => import("@/pages/disability-rating/intake"));
 
 // VLT pages - grouped lazy load
 const VLTHome = lazy(() => import("@/pages/vlt/home"));
@@ -185,6 +186,7 @@ function Router() {
         <Route path="/disability-rating/ssdi" component={DisabilitySSDI} />
         <Route path="/disability-rating/widow" component={DisabilityWidow} />
         <Route path="/disability-rating/refer-earn" component={DisabilityReferEarn} />
+        <Route path="/disability-rating/intake" component={DisabilityIntake} />
         
         <Route path="/shipping" component={Shipping} />
         <Route path="/logistics-overview" component={LogisticsOverview} />

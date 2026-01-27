@@ -29,7 +29,7 @@ export default function AffiliateDashboard() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [mainTab, setMainTab] = useState<MainTab>("overview");
-  const [leadSubTab, setLeadSubTab] = useState<"applications" | "requests" | "bizleads">("applications");
+  const [leadSubTab, setLeadSubTab] = useState<"applications" | "requests" | "bizleads" | "disability">("applications");
   const [selectedLead, setSelectedLead] = useState<any>(null);
 
   // Calculator state
@@ -130,6 +130,16 @@ export default function AffiliateDashboard() {
     queryKey: ["affiliate-business-leads"],
     queryFn: async () => {
       const res = await fetch("/api/affiliate/business-leads", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: authSuccess && !!authData?.user,
+  });
+
+  const { data: disabilityReferrals = [] } = useQuery({
+    queryKey: ["affiliate-disability-referrals"],
+    queryFn: async () => {
+      const res = await fetch("/api/affiliate/disability-referrals", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -945,6 +955,16 @@ export default function AffiliateDashboard() {
                   <Building2 className="h-4 w-4 inline mr-2" /> 
                   Biz Leads ({businessLeads.length})
                 </button>
+                <button
+                  onClick={() => setLeadSubTab("disability")}
+                  className={`flex-1 py-4 px-6 font-bold text-sm uppercase tracking-wide transition-colors ${
+                    leadSubTab === "disability" ? "bg-brand-navy text-white" : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                  data-testid="subtab-disability"
+                >
+                  <Shield className="h-4 w-4 inline mr-2" /> 
+                  Disability ({disabilityReferrals.length})
+                </button>
               </div>
 
               {/* Search and Filter Bar */}
@@ -1087,6 +1107,60 @@ export default function AffiliateDashboard() {
                               </span>
                               <p className="text-xs text-gray-400 mt-2">
                                 {format(new Date(lead.createdAt), "MMM d, yyyy")}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {leadSubTab === "disability" && (
+                  <div className="space-y-4">
+                    {disabilityReferrals.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">
+                        No disability claim referrals yet. Share your referral link with veterans who need help with their VA disability claims.
+                      </p>
+                    ) : (
+                      disabilityReferrals.map((referral: any) => (
+                        <div 
+                          key={referral.id} 
+                          className="bg-gray-50 rounded-lg p-4 border hover:border-brand-navy/50 transition-colors"
+                          data-testid={`lead-disability-${referral.id}`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-bold text-brand-navy">{referral.firstName} {referral.lastName}</h3>
+                              <p className="text-sm text-gray-600">{referral.email} | {referral.phone}</p>
+                              {referral.city && referral.state && (
+                                <p className="text-sm text-gray-500">{referral.city}, {referral.state}</p>
+                              )}
+                              <span className={`inline-block mt-2 px-2 py-1 rounded text-xs ${
+                                referral.claimType === "initial" ? "bg-green-100 text-green-700" :
+                                referral.claimType === "increase" ? "bg-blue-100 text-blue-700" :
+                                referral.claimType === "denial" ? "bg-yellow-100 text-yellow-700" :
+                                referral.claimType === "ssdi" ? "bg-purple-100 text-purple-700" :
+                                "bg-pink-100 text-pink-700"
+                              }`}>
+                                {referral.claimType === "initial" ? "Initial Claim" :
+                                 referral.claimType === "increase" ? "Rating Increase" :
+                                 referral.claimType === "denial" ? "Denial Appeal" :
+                                 referral.claimType === "ssdi" ? "SSDI" :
+                                 "Widow/Widower"}
+                              </span>
+                              {referral.currentRating && (
+                                <span className="inline-block ml-2 mt-2 px-2 py-1 rounded text-xs bg-gray-100 text-gray-700">
+                                  Current: {referral.currentRating}%
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${statusColors[referral.status as LeadStatus] || "bg-blue-100 text-blue-800"}`}>
+                                {referral.status}
+                              </span>
+                              <p className="text-xs text-gray-400 mt-2">
+                                {format(new Date(referral.createdAt), "MMM d, yyyy")}
                               </p>
                             </div>
                           </div>
