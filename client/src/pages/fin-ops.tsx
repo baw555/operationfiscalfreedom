@@ -51,6 +51,19 @@ export default function FinOps() {
         </div>
       </div>
 
+      {/* Join the Ranks Banner */}
+      <div className="bg-brand-red text-white py-3 px-4">
+        <div className="container mx-auto text-center">
+          <p className="text-lg sm:text-xl font-bold">
+            <span className="font-display tracking-wide">JOIN THE RANKS</span>
+            <span className="mx-2 sm:mx-4">-</span>
+            <span className="font-normal">Over 100,000 veterans a week are introduced to our ranks</span>
+            <span className="mx-2 sm:mx-4">-</span>
+            <Link href="/affiliate" className="underline hover:text-white/80 font-bold">JOIN NOW</Link>
+          </p>
+        </div>
+      </div>
+
       {/* Refer & Earn Section */}
       <section className="bg-gradient-to-r from-brand-navy to-brand-navy/90 py-12 sm:py-16 text-center text-white">
         <div className="container mx-auto px-4">
