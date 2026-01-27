@@ -373,86 +373,126 @@ export default function Insurance() {
         </div>
       </section>
 
-      {/* KeyArx Direct Carriers Section */}
+      {/* Navigator Insurance Direct Carriers Section */}
       <section className="py-12 bg-brand-navy text-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-display mb-3">Direct Provider Partnerships</h2>
+            <h2 className="text-2xl sm:text-3xl font-display mb-3">Navigator Insurance Partner Network</h2>
             <p className="text-gray-300 max-w-2xl mx-auto">
-              Through our KeyArx partnership, we work directly with 6 top-rated insurance carriers - eliminating middleman costs and passing savings to you.
+              We work directly with 6 of America's highest-rated insurance carriers - eliminating middleman costs and passing the savings directly to you.
             </p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
-            {/* UNUM */}
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-              <h3 className="font-bold text-lg text-brand-gold mb-2">UNUM</h3>
-              <div className="text-sm space-y-1">
-                <p><span className="text-gray-400">AM Best:</span> A (Excellent)</p>
-                <p><span className="text-gray-400">Fitch:</span> A (Stable)</p>
-                <p><span className="text-gray-400">Est:</span> 1848</p>
-                <p className="text-xs text-gray-400 mt-2">First U.S. disability insurer (1939). 175+ years in business.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
+            {/* Sun Life - #1 by AUM */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border-2 border-brand-gold">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-xl text-brand-gold">Sun Life Financial</h3>
+                <span className="bg-brand-gold text-brand-navy text-xs font-bold px-2 py-1 rounded">#1 AUM</span>
+              </div>
+              <div className="text-sm space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
+                  <p><span className="text-gray-400">Est:</span> 1865</p>
+                </div>
+                <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$1.54 Trillion</span></p>
+                <p><span className="text-gray-400">Global Reach:</span> 15+ countries</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">159+ years of financial strength. Leading dental, vision & life coverage. One of the world's largest financial services companies.</p>
               </div>
             </div>
             
-            {/* Principal */}
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-brand-gold">
-              <h3 className="font-bold text-lg text-brand-gold mb-2">Principal Financial</h3>
-              <div className="text-sm space-y-1">
-                <p><span className="text-gray-400">AM Best:</span> A+ (Superior)</p>
-                <p><span className="text-gray-400">S&P:</span> A+</p>
-                <p><span className="text-gray-400">Est:</span> 1879</p>
-                <p className="text-xs text-gray-400 mt-2">Fortune 500. #11 JUST 100 list. 68M+ customers globally.</p>
+            {/* Principal Financial - #2 by AUM */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-xl text-brand-gold">Principal Financial</h3>
+                <span className="bg-white/20 text-white text-xs font-bold px-2 py-1 rounded">#2 AUM</span>
+              </div>
+              <div className="text-sm space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
+                  <p><span className="text-gray-400">S&P:</span> A+</p>
+                </div>
+                <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$781 Billion</span></p>
+                <p><span className="text-gray-400">Fortune 500:</span> Yes | <span className="text-gray-400">Est:</span> 1879</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Fortune 500 company. #11 on JUST 100 list. Serves 68M+ customers globally. 146 years of trusted service.</p>
               </div>
             </div>
             
             {/* Symetra */}
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-              <h3 className="font-bold text-lg text-brand-gold mb-2">Symetra</h3>
-              <div className="text-sm space-y-1">
-                <p><span className="text-gray-400">AM Best:</span> A (Excellent)</p>
-                <p><span className="text-gray-400">NAIC Index:</span> 0.18</p>
-                <p><span className="text-gray-400">Est:</span> 1957</p>
-                <p className="text-xs text-gray-400 mt-2">Below-average complaint ratio. Quick 18-min approvals.</p>
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-xl text-brand-gold">Symetra Financial</h3>
+                <span className="bg-blue-500/30 text-blue-200 text-xs font-bold px-2 py-1 rounded">Low Complaints</span>
               </div>
-            </div>
-            
-            {/* The Standard */}
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-              <h3 className="font-bold text-lg text-brand-gold mb-2">The Standard</h3>
-              <div className="text-sm space-y-1">
-                <p><span className="text-gray-400">AM Best:</span> A (Excellent)</p>
-                <p><span className="text-gray-400">Est:</span> 1906</p>
-                <p className="text-xs text-gray-400 mt-2">Group disability & life specialist. 118+ years in business.</p>
-              </div>
-            </div>
-            
-            {/* Sun Life */}
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-              <h3 className="font-bold text-lg text-brand-gold mb-2">Sun Life</h3>
-              <div className="text-sm space-y-1">
-                <p><span className="text-gray-400">AM Best:</span> A+ (Superior)</p>
-                <p><span className="text-gray-400">Est:</span> 1865</p>
-                <p className="text-xs text-gray-400 mt-2">Global leader. 159+ years. Strong dental & vision coverage.</p>
+              <div className="text-sm space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A Excellent</span></p>
+                  <p><span className="text-gray-400">Est:</span> 1957</p>
+                </div>
+                <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$68.4 Billion</span></p>
+                <p><span className="text-gray-400">Customers:</span> 2.1M+ | <span className="text-gray-400">Staff:</span> 2,600+</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Backed by Sumitomo Life (Japan) with combined $318B assets. Below-average complaint ratio. Fast 18-min approvals.</p>
               </div>
             </div>
             
             {/* The Hartford */}
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-              <h3 className="font-bold text-lg text-brand-gold mb-2">The Hartford</h3>
-              <div className="text-sm space-y-1">
-                <p><span className="text-gray-400">AM Best:</span> A+ (Superior)</p>
-                <p><span className="text-gray-400">S&P:</span> AA-</p>
-                <p><span className="text-gray-400">Est:</span> 1810</p>
-                <p className="text-xs text-gray-400 mt-2">Oldest U.S. insurer. 215+ years. Fortune 500.</p>
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-xl text-brand-gold">The Hartford</h3>
+                <span className="bg-red-500/30 text-red-200 text-xs font-bold px-2 py-1 rounded">Oldest US Insurer</span>
+              </div>
+              <div className="text-sm space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
+                  <p><span className="text-gray-400">S&P:</span> A+ | Moody's: A1</p>
+                </div>
+                <p><span className="text-gray-400">Revenue:</span> <span className="text-white font-bold">$26.5 Billion</span></p>
+                <p><span className="text-gray-400">Fortune 500:</span> #166 | <span className="text-gray-400">Est:</span> 1810</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">America's oldest insurer - 215+ years. #1 combined disability provider. AARP exclusive partner for 25+ years. ROE: 16.7%.</p>
+              </div>
+            </div>
+            
+            {/* UNUM */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-xl text-brand-gold">UNUM Group</h3>
+                <span className="bg-purple-500/30 text-purple-200 text-xs font-bold px-2 py-1 rounded">Disability Leader</span>
+              </div>
+              <div className="text-sm space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A Excellent</span></p>
+                  <p><span className="text-gray-400">Fitch:</span> A Stable</p>
+                </div>
+                <p><span className="text-gray-400">Revenue:</span> <span className="text-white font-bold">$12.9 Billion</span></p>
+                <p><span className="text-gray-400">Fortune 500:</span> Yes | <span className="text-gray-400">Est:</span> 1848</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">3rd largest US disability insurer. 38M+ beneficiaries. First US disability insurer (1939). World's Most Ethical Company.</p>
+              </div>
+            </div>
+            
+            {/* The Standard */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-xl text-brand-gold">The Standard</h3>
+                <span className="bg-green-500/30 text-green-200 text-xs font-bold px-2 py-1 rounded">95+ Yr A Rating</span>
+              </div>
+              <div className="text-sm space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A Excellent</span></p>
+                  <p><span className="text-gray-400">Est:</span> 1906</p>
+                </div>
+                <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$25+ Billion</span></p>
+                <p><span className="text-gray-400">Revenue:</span> $2.2B | <span className="text-gray-400">States:</span> 49 + DC</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Only 8 insurers have held A rating for 95+ consecutive years. Backed by Meiji Yasuda ($312B assets). Group disability specialist.</p>
               </div>
             </div>
           </div>
           
-          <div className="text-center mt-8">
-            <p className="text-sm text-gray-400">
-              Partnership powered by <a href="https://keyarx.com" target="_blank" rel="noopener noreferrer" className="text-brand-gold hover:underline">KeyArx Group</a> - 34+ years of provider-direct insurance expertise
-            </p>
+          <div className="text-center mt-10">
+            <div className="inline-flex items-center gap-3 bg-white/5 rounded-full px-6 py-3">
+              <span className="text-brand-gold font-bold">Navigator Insurance</span>
+              <span className="text-gray-400">|</span>
+              <span className="text-gray-300 text-sm">Provider-Direct Model = 20-40% Savings</span>
+            </div>
           </div>
         </div>
       </section>
