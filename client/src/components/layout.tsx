@@ -58,6 +58,15 @@ const aboutSubItems = [
   { name: "Refer & Earn", href: "/fin-ops" },
 ];
 
+const disabilityRatingSubItems = [
+  { name: "Initial", href: "/disability-rating/initial" },
+  { name: "Increase", href: "/disability-rating/increase" },
+  { name: "Denial", href: "/disability-rating/denial" },
+  { name: "SSDI", href: "/disability-rating/ssdi" },
+  { name: "Widow(er)", href: "/disability-rating/widow" },
+  { name: "Refer & Earn", href: "/disability-rating/refer-earn" },
+];
+
 const finOpsSubItems = [
   { name: "Fin-Ops Overview", href: "/fin-ops" },
   { name: "Merchant Services", href: "/merchant-services" },
@@ -71,8 +80,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [disabilityOpen, setDisabilityOpen] = useState(false);
   const [finOpsOpen, setFinOpsOpen] = useState(false);
   const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
+  const [mobileDisabilityOpen, setMobileDisabilityOpen] = useState(false);
   const [mobileFinOpsOpen, setMobileFinOpsOpen] = useState(false);
 
   return (
@@ -122,6 +133,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
               {aboutOpen && (
                 <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
                   {aboutSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className={cn(
+                        "block px-4 py-2 text-sm font-bold hover:bg-brand-red hover:text-white transition-colors cursor-pointer",
+                        location === item.href ? "text-brand-red bg-brand-red/10" : "text-brand-navy"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Nav Disability Rating Dropdown */}
+            <div className="relative" onMouseEnter={() => setDisabilityOpen(true)} onMouseLeave={() => setDisabilityOpen(false)}>
+              <button className={cn(
+                  "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location.startsWith("/disability-rating") ? "text-brand-red border-brand-red" : "text-brand-navy"
+                )}>
+                  Nav Disability Rating <ChevronDown className={cn("w-4 h-4 transition-transform", disabilityOpen && "rotate-180")} />
+              </button>
+              {disabilityOpen && (
+                <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                  {disabilityRatingSubItems.map((item) => (
                     <Link 
                       key={item.href} 
                       href={item.href} 
@@ -225,6 +262,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
               {mobileAboutOpen && (
                 <div className="pl-4 pb-2 bg-gray-50 rounded">
                   {aboutSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className="text-brand-navy font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-brand-red active:bg-brand-red/10 border-b border-gray-200 last:border-0" 
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Nav Disability Rating Dropdown */}
+            <div className={cn("border-l-4", mobileDisabilityOpen ? "border-brand-red" : "border-transparent")}>
+              <button 
+                className={cn(
+                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]",
+                  mobileDisabilityOpen ? "text-brand-red" : "text-brand-navy"
+                )}
+                onClick={() => setMobileDisabilityOpen(!mobileDisabilityOpen)}
+              >
+                Nav Disability Rating <ChevronDown className={cn("w-4 h-4 transition-transform", mobileDisabilityOpen && "rotate-180")} />
+              </button>
+              {mobileDisabilityOpen && (
+                <div className="pl-4 pb-2 bg-gray-50 rounded">
+                  {disabilityRatingSubItems.map((item) => (
                     <Link 
                       key={item.href} 
                       href={item.href} 

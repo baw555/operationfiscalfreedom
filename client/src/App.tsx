@@ -68,6 +68,14 @@ const DownloadUPSRates = lazy(() => import("@/pages/download-ups-rates"));
 const FinOp = lazy(() => import("@/pages/fin-op"));
 const StressTest = lazy(() => import("@/pages/stress-test"));
 
+// Disability Rating pages
+const DisabilityInitial = lazy(() => import("@/pages/disability-rating/initial"));
+const DisabilityIncrease = lazy(() => import("@/pages/disability-rating/increase"));
+const DisabilityDenial = lazy(() => import("@/pages/disability-rating/denial"));
+const DisabilitySSDI = lazy(() => import("@/pages/disability-rating/ssdi"));
+const DisabilityWidow = lazy(() => import("@/pages/disability-rating/widow"));
+const DisabilityReferEarn = lazy(() => import("@/pages/disability-rating/refer-earn"));
+
 // VLT pages - grouped lazy load
 const VLTHome = lazy(() => import("@/pages/vlt/home"));
 const VLTTaxPreparation = lazy(() => import("@/pages/vlt/tax-preparation"));
@@ -169,6 +177,15 @@ function Router() {
         <Route path="/merchant-services" component={MerchantServices} />
         <Route path="/my-locker" component={MyLocker} />
         <Route path="/vgift-cards" component={VGiftCards} />
+        
+        {/* Disability Rating Routes */}
+        <Route path="/disability-rating/initial" component={DisabilityInitial} />
+        <Route path="/disability-rating/increase" component={DisabilityIncrease} />
+        <Route path="/disability-rating/denial" component={DisabilityDenial} />
+        <Route path="/disability-rating/ssdi" component={DisabilitySSDI} />
+        <Route path="/disability-rating/widow" component={DisabilityWidow} />
+        <Route path="/disability-rating/refer-earn" component={DisabilityReferEarn} />
+        
         <Route path="/shipping" component={Shipping} />
         <Route path="/logistics-overview" component={LogisticsOverview} />
         <Route path="/best-practices" component={BestPractices} />
