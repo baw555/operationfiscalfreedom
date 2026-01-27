@@ -145,7 +145,7 @@ export default function VLTIntakeRefer() {
 
           <div>
             <label className="block text-sm font-medium mb-1">What service does your client need? *</label>
-            <select name="issue" required className="border p-3 w-full rounded">
+            <select name="issue" required className="border border-gray-300 bg-white text-brand-navy p-3 w-full rounded focus:outline-none focus:ring-2 focus:ring-brand-red">
               <option value="">Select a service...</option>
               <option value="credits">Tax Credits (R&D, WOTC, FICA, etc.)</option>
               <option value="resolution">Tax Resolution (IRS Problems)</option>
@@ -161,7 +161,7 @@ export default function VLTIntakeRefer() {
 
           <div>
             <label className="block text-sm font-medium mb-1">Client's Business Type</label>
-            <select name="businessType" className="border p-3 w-full rounded">
+            <select name="businessType" className="border border-gray-300 bg-white text-brand-navy p-3 w-full rounded focus:outline-none focus:ring-2 focus:ring-brand-red">
               <option value="">Select business type...</option>
               <option value="individual">Individual / Personal</option>
               <option value="sole_prop">Sole Proprietorship</option>

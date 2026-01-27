@@ -133,7 +133,7 @@ export default function JoinMission() {
             <div className="space-y-2">
               <Label htmlFor="branch" className="text-sm">Branch of Service</Label>
               <select 
-                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="w-full h-10 rounded-md border border-gray-300 bg-white text-brand-navy px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red"
                 value={branchOfService}
                 onChange={(e) => setBranchOfService(e.target.value)}
                 data-testid="select-branch"

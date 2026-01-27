@@ -504,7 +504,7 @@ export default function AdminDashboard() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[150px]"
+                className="h-10 rounded-md border border-gray-300 bg-white text-brand-navy px-3 py-2 text-sm min-w-[150px] focus:outline-none focus:ring-2 focus:ring-brand-red"
                 data-testid="select-status-filter"
               >
                 <option value="all">All Status</option>
@@ -796,7 +796,7 @@ export default function AdminDashboard() {
                     id="status"
                     value={selectedLead.status}
                     onChange={(e) => setSelectedLead({ ...selectedLead, status: e.target.value })}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
+                    className="w-full h-10 rounded-md border border-gray-300 bg-white text-brand-navy px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-brand-red"
                     data-testid="select-lead-status"
                   >
                     <option value="new">New</option>
@@ -812,7 +812,7 @@ export default function AdminDashboard() {
                       id="assignedTo"
                       value={selectedLead.assignedTo || ""}
                       onChange={(e) => setSelectedLead({ ...selectedLead, assignedTo: e.target.value ? parseInt(e.target.value) : null })}
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
+                      className="w-full h-10 rounded-md border border-gray-300 bg-white text-brand-navy px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-brand-red"
                       data-testid="select-assign-to"
                     >
                       <option value="">Unassigned</option>

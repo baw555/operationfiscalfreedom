@@ -268,7 +268,7 @@ export default function PrivateDoctor() {
                   <Label htmlFor="branch" className="text-brand-navy text-sm">Branch of Service *</Label>
                   <select 
                     id="branch" 
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                    className="w-full h-10 rounded-md border border-gray-300 bg-white text-brand-navy px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red" 
                     required 
                     data-testid="select-branch"
                     value={formData.branch}
@@ -287,7 +287,7 @@ export default function PrivateDoctor() {
                   <Label htmlFor="careType" className="text-brand-navy text-sm">Type of Care Needed *</Label>
                   <select 
                     id="careType" 
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                    className="w-full h-10 rounded-md border border-gray-300 bg-white text-brand-navy px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red" 
                     required 
                     data-testid="select-care-type"
                     value={formData.careType}

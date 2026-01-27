@@ -216,7 +216,7 @@ export default function GetHelp() {
                 <Label htmlFor="helpType">Type of Help Needed *</Label>
                 <select 
                   id="helpType"
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="w-full h-10 rounded-md border border-gray-300 bg-white text-brand-navy px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red"
                   value={formData.helpType}
                   onChange={(e) => setFormData({ ...formData, helpType: e.target.value })}
                   data-testid="select-help-type"

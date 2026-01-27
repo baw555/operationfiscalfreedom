@@ -129,7 +129,7 @@ export default function VLTAdmin() {
                       <select
                         value={lead.status}
                         onChange={(e) => updateLead(lead.id, { status: e.target.value })}
-                        className="border p-1 rounded text-xs"
+                        className="border border-gray-300 bg-white text-brand-navy p-1 rounded text-xs focus:outline-none focus:ring-1 focus:ring-brand-red"
                       >
                         <option value="new">New</option>
                         <option value="contacted">Contacted</option>

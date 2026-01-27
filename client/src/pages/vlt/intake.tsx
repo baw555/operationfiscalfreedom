@@ -118,7 +118,7 @@ export default function VLTIntake() {
             <select 
               name="issue" 
               required 
-              className="border p-3 w-full rounded"
+              className="border border-gray-300 bg-white text-brand-navy p-3 w-full rounded focus:outline-none focus:ring-2 focus:ring-brand-red"
               data-testid="select-issue"
             >
               <option value="">Select an issue...</option>
@@ -135,7 +135,7 @@ export default function VLTIntake() {
             <label className="block text-sm font-medium mb-1">Business Type</label>
             <select 
               name="businessType" 
-              className="border p-3 w-full rounded"
+              className="border border-gray-300 bg-white text-brand-navy p-3 w-full rounded focus:outline-none focus:ring-2 focus:ring-brand-red"
               data-testid="select-business-type"
             >
               <option value="">Select business type...</option>

@@ -131,7 +131,7 @@ export default function VLTIntakeClient() {
             <select 
               name="issue" 
               required 
-              className="border p-3 w-full rounded"
+              className="border border-gray-300 bg-white text-brand-navy p-3 w-full rounded focus:outline-none focus:ring-2 focus:ring-brand-red"
               data-testid="select-issue"
             >
               <option value="">Select a service...</option>
@@ -151,7 +151,7 @@ export default function VLTIntakeClient() {
             <label className="block text-sm font-medium mb-1">Business Type</label>
             <select 
               name="businessType" 
-              className="border p-3 w-full rounded"
+              className="border border-gray-300 bg-white text-brand-navy p-3 w-full rounded focus:outline-none focus:ring-2 focus:ring-brand-red"
               data-testid="select-business-type"
             >
               <option value="">Select business type...</option>
@@ -166,7 +166,7 @@ export default function VLTIntakeClient() {
 
           <div>
             <label className="block text-sm font-medium mb-1">Estimated Annual Revenue</label>
-            <select name="annualRevenue" className="border p-3 w-full rounded">
+            <select name="annualRevenue" className="border border-gray-300 bg-white text-brand-navy p-3 w-full rounded focus:outline-none focus:ring-2 focus:ring-brand-red">
               <option value="">Select range...</option>
               <option value="under_100k">Under $100,000</option>
               <option value="100k_500k">$100,000 - $500,000</option>
