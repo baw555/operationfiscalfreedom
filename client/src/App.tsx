@@ -56,6 +56,7 @@ const Transparency = lazy(() => import("@/pages/transparency"));
 const MissionActHealth = lazy(() => import("@/pages/mission-act-health"));
 const MerchantServices = lazy(() => import("@/pages/merchant-services"));
 const MyLocker = lazy(() => import("@/pages/my-locker"));
+const VGiftCards = lazy(() => import("@/pages/vgift-cards"));
 const Shipping = lazy(() => import("@/pages/shipping"));
 const LogisticsOverview = lazy(() => import("@/pages/logistics-overview"));
 const BestPractices = lazy(() => import("@/pages/best-practices"));
@@ -167,6 +168,7 @@ function Router() {
         <Route path="/mission-act-health" component={MissionActHealth} />
         <Route path="/merchant-services" component={MerchantServices} />
         <Route path="/my-locker" component={MyLocker} />
+        <Route path="/vgift-cards" component={VGiftCards} />
         <Route path="/shipping" component={Shipping} />
         <Route path="/logistics-overview" component={LogisticsOverview} />
         <Route path="/best-practices" component={BestPractices} />

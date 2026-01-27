@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Shield, Users, FileText, FolderOpen, Eye, Download, ChevronRight, Camera, IdCard, FileSignature, ClipboardCheck, Receipt } from "lucide-react";
+import { Shield, Users, FileText, FolderOpen, Eye, Download, ChevronRight, Camera, IdCard, FileSignature, ClipboardCheck, Receipt, Link2, Store, CreditCard, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -65,7 +65,18 @@ export default function MasterPortal() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: authData?.user?.role === "admin",
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
+  // Fetch finops referrals
+  const { data: finopsReferrals = [], isLoading: referralsLoading } = useQuery<any[]>({
+    queryKey: ["finops-referrals"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/finops-referrals", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
   });
 
   if (authLoading) {
@@ -76,8 +87,9 @@ export default function MasterPortal() {
     );
   }
 
-  // Access denied for non-admin users
-  if (!authData || authData.user?.role !== "admin") {
+  // Access denied for non-admin/master users
+  const isAuthorized = authData?.user?.role === "admin" || authData?.user?.role === "master";
+  if (!authData || !isAuthorized) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-center max-w-md">
@@ -141,6 +153,10 @@ export default function MasterPortal() {
             <TabsTrigger value="affiliates" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
               <Users className="w-4 h-4 mr-2" />
               All Affiliates
+            </TabsTrigger>
+            <TabsTrigger value="partner-referrals" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+              <Link2 className="w-4 h-4 mr-2" />
+              Partner Referrals
             </TabsTrigger>
           </TabsList>
 
@@ -235,6 +251,118 @@ export default function MasterPortal() {
             <div className="bg-black/20 rounded-lg border border-white/10 p-6">
               <h2 className="text-lg font-bold text-white mb-4">All Registered Affiliates</h2>
               <p className="text-gray-400">Coming soon - full affiliate management</p>
+            </div>
+          </TabsContent>
+
+          {/* Partner Referrals Tab */}
+          <TabsContent value="partner-referrals" className="mt-6">
+            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+              <div className="p-4 border-b border-white/10 bg-black/20">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Link2 className="w-5 h-5 text-brand-red" />
+                  Partner Referral Tracking
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Track all clicks and signups from affiliate referral links to partner services
+                </p>
+              </div>
+
+              {/* Stats Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border-b border-white/10">
+                <div className="bg-brand-gold/20 rounded-lg p-4 text-center">
+                  <Store className="w-8 h-8 text-brand-gold mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-white">
+                    {finopsReferrals.filter(r => r.partnerType === 'my_locker').length}
+                  </div>
+                  <div className="text-xs text-gray-400">MY LOCKER Clicks</div>
+                </div>
+                <div className="bg-brand-red/20 rounded-lg p-4 text-center">
+                  <CreditCard className="w-8 h-8 text-brand-red mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-white">
+                    {finopsReferrals.filter(r => r.partnerType === 'merchant_services').length}
+                  </div>
+                  <div className="text-xs text-gray-400">Merchant Clicks</div>
+                </div>
+                <div className="bg-brand-blue/20 rounded-lg p-4 text-center">
+                  <Gift className="w-8 h-8 text-brand-blue mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-white">
+                    {finopsReferrals.filter(r => r.partnerType === 'vgift_cards').length}
+                  </div>
+                  <div className="text-xs text-gray-400">vGift Card Clicks</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-4 text-center">
+                  <Link2 className="w-8 h-8 text-white mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-white">
+                    {finopsReferrals.length}
+                  </div>
+                  <div className="text-xs text-gray-400">Total Referrals</div>
+                </div>
+              </div>
+
+              {referralsLoading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-gray-400 mt-4">Loading referrals...</p>
+                </div>
+              ) : finopsReferrals.length === 0 ? (
+                <div className="p-8 text-center text-gray-400">
+                  No partner referrals tracked yet.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-black/30 text-left">
+                      <tr>
+                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Date</th>
+                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Partner</th>
+                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Affiliate</th>
+                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Referral Code</th>
+                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">Status</th>
+                        <th className="px-4 py-3 text-gray-400 font-medium text-sm">IP</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10">
+                      {finopsReferrals.map((referral: any) => (
+                        <tr key={referral.id} className="hover:bg-white/5">
+                          <td className="px-4 py-3 text-white text-sm">
+                            {new Date(referral.createdAt).toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+                              referral.partnerType === 'my_locker' ? 'bg-brand-gold/20 text-brand-gold' :
+                              referral.partnerType === 'merchant_services' ? 'bg-brand-red/20 text-brand-red' :
+                              'bg-brand-blue/20 text-brand-blue'
+                            }`}>
+                              {referral.partnerType === 'my_locker' && <Store className="w-3 h-3" />}
+                              {referral.partnerType === 'merchant_services' && <CreditCard className="w-3 h-3" />}
+                              {referral.partnerType === 'vgift_cards' && <Gift className="w-3 h-3" />}
+                              {referral.partnerType.replace(/_/g, ' ').toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-white text-sm">
+                            {referral.affiliateName || <span className="text-gray-500">Direct</span>}
+                          </td>
+                          <td className="px-4 py-3 text-gray-400 text-sm font-mono">
+                            {referral.referralCode || '-'}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              referral.status === 'clicked' ? 'bg-yellow-500/20 text-yellow-400' :
+                              referral.status === 'registered' ? 'bg-blue-500/20 text-blue-400' :
+                              'bg-green-500/20 text-green-400'
+                            }`}>
+                              {referral.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-500 text-xs font-mono">
+                            {referral.visitorIp?.substring(0, 15)}...
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>

@@ -722,3 +722,26 @@ export const insertAffiliateW9Schema = createInsertSchema(affiliateW9).omit({
 
 export type InsertAffiliateW9 = z.infer<typeof insertAffiliateW9Schema>;
 export type AffiliateW9 = typeof affiliateW9.$inferSelect;
+
+// Fin-Ops Partner Referral Tracking
+export const finopsReferrals = pgTable("finops_referrals", {
+  id: serial("id").primaryKey(),
+  affiliateId: integer("affiliate_id").references(() => users.id),
+  referralCode: text("referral_code"),
+  partnerType: text("partner_type").notNull(), // my_locker, merchant_services, vgift_cards
+  externalUrl: text("external_url").notNull(),
+  visitorIp: text("visitor_ip"),
+  userAgent: text("user_agent"),
+  status: text("status").notNull().default("clicked"), // clicked, registered, converted
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertFinopsReferralSchema = createInsertSchema(finopsReferrals).omit({
+  id: true,
+  status: true,
+  createdAt: true,
+});
+
+export type InsertFinopsReferral = z.infer<typeof insertFinopsReferralSchema>;
+export type FinopsReferral = typeof finopsReferrals.$inferSelect;

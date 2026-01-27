@@ -21,7 +21,8 @@ import {
   affiliateNda, type AffiliateNda, type InsertAffiliateNda,
   businessLeads, type BusinessLead, type InsertBusinessLead,
   ipReferralTracking, type IpReferralTracking, type InsertIpReferralTracking,
-  affiliateW9, type AffiliateW9, type InsertAffiliateW9
+  affiliateW9, type AffiliateW9, type InsertAffiliateW9,
+  finopsReferrals, type FinopsReferral, type InsertFinopsReferral
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -191,6 +192,14 @@ export interface IStorage {
   createAffiliateW9(w9: InsertAffiliateW9): Promise<AffiliateW9>;
   getAffiliateW9ByUserId(userId: number): Promise<AffiliateW9 | undefined>;
   hasAffiliateSubmittedW9(userId: number): Promise<boolean>;
+
+  // Fin-Ops Referral Tracking
+  createFinopsReferral(referral: InsertFinopsReferral): Promise<FinopsReferral>;
+  getFinopsReferral(id: number): Promise<FinopsReferral | undefined>;
+  getAllFinopsReferrals(): Promise<FinopsReferral[]>;
+  getFinopsReferralsByAffiliate(affiliateId: number): Promise<FinopsReferral[]>;
+  getFinopsReferralsByPartnerType(partnerType: string): Promise<FinopsReferral[]>;
+  updateFinopsReferral(id: number, updates: Partial<FinopsReferral>): Promise<FinopsReferral | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -867,6 +876,41 @@ export class DatabaseStorage implements IStorage {
   async hasAffiliateSubmittedW9(userId: number): Promise<boolean> {
     const w9 = await this.getAffiliateW9ByUserId(userId);
     return !!w9;
+  }
+
+  // Fin-Ops Referral Tracking
+  async createFinopsReferral(referral: InsertFinopsReferral): Promise<FinopsReferral> {
+    const [created] = await db.insert(finopsReferrals).values(referral).returning();
+    return created;
+  }
+
+  async getFinopsReferral(id: number): Promise<FinopsReferral | undefined> {
+    const [referral] = await db.select().from(finopsReferrals).where(eq(finopsReferrals.id, id));
+    return referral || undefined;
+  }
+
+  async getAllFinopsReferrals(): Promise<FinopsReferral[]> {
+    return db.select().from(finopsReferrals).orderBy(desc(finopsReferrals.createdAt));
+  }
+
+  async getFinopsReferralsByAffiliate(affiliateId: number): Promise<FinopsReferral[]> {
+    return db.select().from(finopsReferrals)
+      .where(eq(finopsReferrals.affiliateId, affiliateId))
+      .orderBy(desc(finopsReferrals.createdAt));
+  }
+
+  async getFinopsReferralsByPartnerType(partnerType: string): Promise<FinopsReferral[]> {
+    return db.select().from(finopsReferrals)
+      .where(eq(finopsReferrals.partnerType, partnerType))
+      .orderBy(desc(finopsReferrals.createdAt));
+  }
+
+  async updateFinopsReferral(id: number, updates: Partial<FinopsReferral>): Promise<FinopsReferral | undefined> {
+    const [updated] = await db.update(finopsReferrals)
+      .set(updates)
+      .where(eq(finopsReferrals.id, id))
+      .returning();
+    return updated || undefined;
   }
 }
 

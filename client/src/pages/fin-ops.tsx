@@ -1,9 +1,28 @@
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Code, Wrench, Phone, PenTool, CreditCard, Palette, Truck, DollarSign, Users, TrendingUp } from "lucide-react";
+import { Briefcase, Code, Wrench, Phone, PenTool, CreditCard, Palette, Truck, DollarSign, Users, TrendingUp, Gift, Store, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
+import { useState, useEffect } from "react";
 
 export default function FinOps() {
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      setReferralCode(ref);
+      localStorage.setItem('finops_referral', ref);
+    } else {
+      const storedRef = localStorage.getItem('finops_referral');
+      if (storedRef) setReferralCode(storedRef);
+    }
+  }, []);
+
+  const buildLink = (path: string) => {
+    return referralCode ? `${path}?ref=${referralCode}` : path;
+  };
+
   return (
     <Layout>
       {/* Refer & Earn Section */}
@@ -11,8 +30,8 @@ export default function FinOps() {
         <div className="container mx-auto px-4">
           <h1 className="text-3xl sm:text-5xl font-display mb-4">Refer & Earn</h1>
           <p className="text-lg sm:text-xl text-gray-200 max-w-2xl mx-auto mb-8">
-            Earn commissions by referring clients to Veteran Led Tax Solutions. 
-            Whether you're an affiliate partner or have clients who need tax services, we pay you for every referral.
+            Earn commissions by referring clients to NavigatorUSA partner services. 
+            Every referral is tracked and supports veteran programs.
           </p>
           
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
@@ -54,20 +73,68 @@ export default function FinOps() {
         </div>
       </section>
 
-      <section className="bg-brand-silver/20 py-12 sm:py-20 text-center border-b border-brand-silver/30">
+      {/* NavigatorUSA Partner Services */}
+      <section className="py-12 sm:py-20 bg-white">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-display text-brand-navy mb-4 sm:mb-6">Financial Operations</h1>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl sm:text-4xl font-display text-brand-navy mb-4">NavigatorUSA Partner Services</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Exclusive partner opportunities where every signup supports veteran programs. All referrals are tracked for commission payments.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
+            <Link href={buildLink("/my-locker")}>
+              <div className="p-6 sm:p-8 border-2 border-brand-gold rounded-xl hover:bg-brand-gold/5 cursor-pointer group transition-all hover:shadow-lg">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-brand-gold rounded-lg flex items-center justify-center text-brand-navy mb-4 mx-auto group-hover:scale-110 transition-transform">
+                  <Store size={28} />
+                </div>
+                <h3 className="font-display text-xl text-brand-navy mb-2 text-center">MY LOCKER</h3>
+                <p className="text-sm text-gray-600 text-center mb-3">FREE branded merchandise stores for businesses, teams, and organizations</p>
+                <div className="flex items-center justify-center text-brand-gold font-bold text-sm">
+                  <span>Get Started FREE</span>
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </div>
+              </div>
+            </Link>
+
+            <Link href={buildLink("/merchant-services")}>
+              <div className="p-6 sm:p-8 border-2 border-brand-red rounded-xl hover:bg-brand-red/5 cursor-pointer group transition-all hover:shadow-lg">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-brand-red rounded-lg flex items-center justify-center text-white mb-4 mx-auto group-hover:scale-110 transition-transform">
+                  <CreditCard size={28} />
+                </div>
+                <h3 className="font-display text-xl text-brand-navy mb-2 text-center">Merchant Processing</h3>
+                <p className="text-sm text-gray-600 text-center mb-3">100% of commissions support veterans. EO 14117 compliant payment processing</p>
+                <div className="flex items-center justify-center text-brand-red font-bold text-sm">
+                  <span>Register Business</span>
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </div>
+              </div>
+            </Link>
+
+            <Link href={buildLink("/vgift-cards")}>
+              <div className="p-6 sm:p-8 border-2 border-brand-blue rounded-xl hover:bg-brand-blue/5 cursor-pointer group transition-all hover:shadow-lg">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-brand-blue rounded-lg flex items-center justify-center text-white mb-4 mx-auto group-hover:scale-110 transition-transform">
+                  <Gift size={28} />
+                </div>
+                <h3 className="font-display text-xl text-brand-navy mb-2 text-center">vGift Cards</h3>
+                <p className="text-sm text-gray-600 text-center mb-3">Virtual gift cards redeemable at 100+ brands. Every purchase supports veterans</p>
+                <div className="flex items-center justify-center text-brand-blue font-bold text-sm">
+                  <span>Shop vGift Cards</span>
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-brand-silver/20 py-12 sm:py-20 text-center border-y border-brand-silver/30">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl sm:text-5xl font-display text-brand-navy mb-4 sm:mb-6">More Financial Operations</h2>
           <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-10 px-2">
             Access a marketplace of Fin-Ops opportunities built specifically for the discipline and reliability of veterans.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
-            <Button size="lg" className="bg-brand-navy hover:bg-brand-navy/90 text-white h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base w-full sm:w-auto">
-              Explore Fin-Ops
-            </Button>
-            <Button size="lg" variant="outline" className="border-2 border-brand-navy text-brand-navy h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base w-full sm:w-auto">
-              Post A Fin-Op
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -76,35 +143,13 @@ export default function FinOps() {
           <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-8 sm:mb-12 text-center">Available Opportunities</h2>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
-            <Link href="/merchant-services">
-              <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border-2 border-brand-red rounded-lg hover:bg-brand-red/5 cursor-pointer group transition-colors">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-red rounded flex items-center justify-center text-white shrink-0">
-                  <CreditCard size={20} className="sm:w-6 sm:h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-brand-red text-sm sm:text-lg">Merchant Services</h3>
-                  <p className="text-xs sm:text-sm text-gray-500">Recurring Income</p>
-                </div>
-              </div>
-            </Link>
-            <Link href="/my-locker">
-              <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border-2 border-brand-gold rounded-lg hover:bg-brand-gold/5 cursor-pointer group transition-colors">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-gold rounded flex items-center justify-center text-brand-navy shrink-0">
-                  <Palette size={20} className="sm:w-6 sm:h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-brand-gold text-sm sm:text-lg">Design - MY LOCKER</h3>
-                  <p className="text-xs sm:text-sm text-gray-500">Print-On-Demand Shops</p>
-                </div>
-              </div>
-            </Link>
             <Link href="/shipping">
               <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border-2 border-brand-blue rounded-lg hover:bg-brand-blue/5 cursor-pointer group transition-colors">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-blue rounded flex items-center justify-center text-white shrink-0">
                   <Truck size={20} className="sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-brand-blue text-sm sm:text-lg">Shipping</h3>
+                  <h3 className="font-bold text-brand-blue text-sm sm:text-lg">Veteran Logistics</h3>
                   <p className="text-xs sm:text-sm text-gray-500">24% Monthly Commissions</p>
                 </div>
               </div>

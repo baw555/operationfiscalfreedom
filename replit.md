@@ -11,6 +11,12 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - **Four Pillars**: Financial, Spiritual, Medical, Holistic
 
 ## Recent Changes
+- **January 2026**: Fin-Ops Partner Tracking System
+  - Created `finops_referrals` table for tracking affiliate clicks to partner services
+  - Added tracking endpoints: POST /api/finops/track-click, GET/PATCH /api/admin/finops-referrals
+  - Partner service pages with affiliate tracking: My Locker, Merchant Services, vGift Cards
+  - Master Portal: Added "Partner Referrals" tab with stats dashboard and referral table
+  - Referral flow: ?ref=CODE → localStorage → CTA click → track API → redirect to partner
 - **January 2026**: Complete rebrand from Operation Fiscal Freedom to NavigatorUSA
   - New INTENSE patriotic red/white/blue color scheme
   - Updated all logos to NavigatorUSA star logo

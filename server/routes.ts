@@ -272,6 +272,115 @@ export async function registerRoutes(
     }
   });
 
+  // ===== FIN-OPS PARTNER TRACKING =====
+  
+  // Partner service URLs mapping
+  const FINOPS_PARTNER_URLS: Record<string, string> = {
+    my_locker: "https://www.moq1.com/imaginate-pod/navigatorusa",
+    merchant_services: "https://staging.fluidfintec.com/merchant-signup",
+    vgift_cards: "https://ptogiftcardprogram.com/navigator-usa-virtual-gift-cards/?group="
+  };
+
+  // Track finops partner click and redirect
+  app.post("/api/finops/track-click", async (req, res) => {
+    try {
+      const { partnerType, referralCode } = req.body;
+      
+      if (!partnerType || !FINOPS_PARTNER_URLS[partnerType]) {
+        return res.status(400).json({ message: "Invalid partner type" });
+      }
+      
+      const clientIp = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      const externalUrl = FINOPS_PARTNER_URLS[partnerType];
+      
+      // Look up affiliate by referral code if provided
+      let affiliateId: number | undefined;
+      if (referralCode) {
+        const affiliate = await storage.getUserByReferralCode(referralCode);
+        if (affiliate) {
+          affiliateId = affiliate.id;
+        }
+      }
+      
+      // Create tracking record
+      const referral = await storage.createFinopsReferral({
+        affiliateId: affiliateId || null,
+        referralCode: referralCode || null,
+        partnerType,
+        externalUrl,
+        visitorIp: clientIp,
+        userAgent
+      });
+      
+      console.log(`[finops] Tracked ${partnerType} click - ref: ${referralCode || 'direct'}, ip: ${clientIp}`);
+      
+      res.json({ 
+        success: true, 
+        trackingId: referral.id,
+        redirectUrl: externalUrl
+      });
+    } catch (error) {
+      console.error("Error tracking finops click:", error);
+      res.status(500).json({ message: "Failed to track click" });
+    }
+  });
+
+  // Get all finops referrals (admin only)
+  app.get("/api/admin/finops-referrals", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const referrals = await storage.getAllFinopsReferrals();
+      
+      // Enrich with affiliate names
+      const enrichedReferrals = await Promise.all(referrals.map(async (r) => {
+        let affiliateName = null;
+        if (r.affiliateId) {
+          const affiliate = await storage.getUser(r.affiliateId);
+          affiliateName = affiliate?.name || null;
+        }
+        return { ...r, affiliateName };
+      }));
+      
+      res.json(enrichedReferrals);
+    } catch (error) {
+      console.error("Error fetching finops referrals:", error);
+      res.status(500).json({ message: "Failed to fetch referrals" });
+    }
+  });
+
+  // Update finops referral status (admin only)
+  app.patch("/api/admin/finops-referrals/:id", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateFinopsReferral(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Referral not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating finops referral:", error);
+      res.status(500).json({ message: "Failed to update referral" });
+    }
+  });
+
   // Submit help request
   app.post("/api/help-requests", async (req, res) => {
     try {

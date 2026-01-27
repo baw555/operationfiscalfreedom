@@ -1,22 +1,64 @@
 import { Layout } from "@/components/layout";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { Shield, Scale, DollarSign, Flag, CheckCircle, ArrowRight } from "lucide-react";
+import { Shield, Scale, DollarSign, Flag, CheckCircle, ArrowRight, CreditCard, ExternalLink, Play } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function MerchantServices() {
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      setReferralCode(ref);
+      localStorage.setItem('finops_referral', ref);
+    } else {
+      const storedRef = localStorage.getItem('finops_referral');
+      if (storedRef) setReferralCode(storedRef);
+    }
+  }, []);
+
+  const handlePartnerClick = async () => {
+    setIsRedirecting(true);
+    try {
+      const response = await fetch('/api/finops/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          partnerType: 'merchant_services',
+          referralCode: referralCode
+        })
+      });
+      
+      const data = await response.json();
+      if (data.redirectUrl) {
+        window.open(data.redirectUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Error tracking click:', error);
+      window.open('https://staging.fluidfintec.com/merchant-signup', '_blank');
+    } finally {
+      setIsRedirecting(false);
+    }
+  };
+
   return (
     <Layout>
       <section className="bg-brand-navy text-white py-12 sm:py-20">
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-brand-red/20 border border-brand-red/40 text-brand-red mb-4 sm:mb-6">
-            <Flag className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="font-bold text-xs sm:text-sm uppercase tracking-wider">Income Opportunity</span>
+            <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="font-bold text-xs sm:text-sm uppercase tracking-wider">NavigatorUSA Partner</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-display mb-4 sm:mb-6" data-testid="text-page-title">Merchant Services</h1>
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-display mb-4 sm:mb-6" data-testid="text-page-title">Merchant Processing</h1>
+          <p className="text-xl sm:text-2xl text-brand-gold font-bold mb-2">100% of Commissions Support Veterans</p>
           <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto px-2" data-testid="text-page-description">
-            Help American businesses comply with Executive Order 14117 while earning recurring monthly commissions.
+            Help American businesses comply with Executive Order 14117 while supporting NavigatorUSA's veteran programs. Every merchant you sign up contributes to veteran causes.
           </p>
         </div>
       </section>
@@ -29,12 +71,9 @@ export default function MerchantServices() {
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-brand-red/10 rounded-full flex items-center justify-center mb-4 sm:mb-6 mx-auto">
                   <Flag className="w-7 h-7 sm:w-8 sm:h-8 text-brand-red" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4 text-center">Patriotism</h3>
+                <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4 text-center">Patriotic Mission</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Executive Order 14117, supported by President Trump, affects all 36 million U.S. businesses that process credit and debit cards. As a result, every American business now serves as a data sentry, responsible for protecting customer financial and personal information.
-                </p>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed mt-4">
-                  Our service ensures that if customer data is ever shared—even indirectly—it is rendered fully anonymous, preventing access by foreign adversaries such as China or Iran.
+                  Executive Order 14117 affects all 36 million U.S. businesses. Our service ensures customer data is protected from foreign adversaries like China and Iran. Every American business becomes a data sentry.
                 </p>
               </CardContent>
             </Card>
@@ -44,12 +83,9 @@ export default function MerchantServices() {
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-brand-blue/10 rounded-full flex items-center justify-center mb-4 sm:mb-6 mx-auto">
                   <Scale className="w-7 h-7 sm:w-8 sm:h-8 text-brand-blue" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4 text-center">Compliance</h3>
+                <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4 text-center">Compliance Solution</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Our platform helps merchants avoid criminal liability, civil fines, and lawsuit exposure by switching to the only credit card processing system that removes all personal customer data from receipts.
-                </p>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed mt-4">
-                  And we do it while matching or beating their current processing rates.
+                  Help merchants avoid criminal liability and civil fines. Our platform removes all personal customer data from receipts while matching or beating their current processing rates.
                 </p>
               </CardContent>
             </Card>
@@ -59,12 +95,9 @@ export default function MerchantServices() {
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-brand-gold/10 rounded-full flex items-center justify-center mb-4 sm:mb-6 mx-auto">
                   <DollarSign className="w-7 h-7 sm:w-8 sm:h-8 text-brand-gold" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4 text-center">Monthly Earnings</h3>
+                <h3 className="text-xl sm:text-2xl font-display text-brand-navy mb-3 sm:mb-4 text-center">Support Veterans</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  When a business switches to our service, you earn monthly commissions tied to total transaction volume.
-                </p>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed mt-4">
-                  Build recurring, residual income by offering a critical compliance solution to businesses of every size.
+                  <strong className="text-brand-red">100% of commissions</strong> from merchant signups go directly to NavigatorUSA veteran programs. Build recurring impact while helping businesses stay compliant.
                 </p>
               </CardContent>
             </Card>
@@ -74,24 +107,53 @@ export default function MerchantServices() {
 
       <section className="py-12 sm:py-16 bg-gray-100">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-xl sm:rounded-2xl shadow-lg border-l-4 border-brand-red">
-            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-6">Why This Matters</h2>
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-brand-red shrink-0 mt-0.5" />
-                <p className="text-sm sm:text-base text-gray-700">36 million U.S. businesses are affected by Executive Order 14117</p>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-6 sm:mb-8 text-center">Learn More About This Opportunity</h2>
+            
+            <div className="bg-white p-6 sm:p-10 rounded-xl shadow-lg mb-8">
+              <div className="aspect-video bg-brand-navy/10 rounded-lg flex items-center justify-center mb-6 relative overflow-hidden">
+                {showVideo ? (
+                  <iframe 
+                    src="https://limewire.com/d/LBcw8#sbH4nbVvQd" 
+                    className="w-full h-full"
+                    allow="autoplay; fullscreen"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="text-center p-8">
+                    <Play className="w-16 h-16 text-brand-navy mx-auto mb-4" />
+                    <h3 className="text-xl font-display text-brand-navy mb-2">9-Minute Overview Video</h3>
+                    <p className="text-gray-600 mb-4">Learn how this compliance solution helps businesses and veterans</p>
+                    <Button 
+                      onClick={() => window.open('https://limewire.com/d/LBcw8#sbH4nbVvQd', '_blank')}
+                      className="bg-brand-navy hover:bg-brand-navy/90"
+                    >
+                      Watch Video <ExternalLink className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
-              <div className="flex gap-3">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-brand-red shrink-0 mt-0.5" />
-                <p className="text-sm sm:text-base text-gray-700">Businesses face criminal liability and civil fines for non-compliance</p>
-              </div>
-              <div className="flex gap-3">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-brand-red shrink-0 mt-0.5" />
-                <p className="text-sm sm:text-base text-gray-700">Our solution matches or beats current processing rates</p>
-              </div>
-              <div className="flex gap-3">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-brand-red shrink-0 mt-0.5" />
-                <p className="text-sm sm:text-base text-gray-700">You earn recurring monthly income from every merchant you sign up</p>
+            </div>
+
+            <div className="bg-white p-6 sm:p-10 rounded-xl shadow-lg border-l-4 border-brand-red">
+              <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-6">Why Businesses Need This</h2>
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-brand-red shrink-0 mt-0.5" />
+                  <p className="text-sm sm:text-base text-gray-700">36 million U.S. businesses affected by Executive Order 14117</p>
+                </div>
+                <div className="flex gap-3">
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-brand-red shrink-0 mt-0.5" />
+                  <p className="text-sm sm:text-base text-gray-700">Businesses face criminal liability and civil fines for non-compliance</p>
+                </div>
+                <div className="flex gap-3">
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-brand-red shrink-0 mt-0.5" />
+                  <p className="text-sm sm:text-base text-gray-700">Our solution matches or beats current processing rates</p>
+                </div>
+                <div className="flex gap-3">
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-brand-red shrink-0 mt-0.5" />
+                  <p className="text-sm sm:text-base text-gray-700">Every signup supports veteran programs through NavigatorUSA</p>
+                </div>
               </div>
             </div>
           </div>
@@ -100,17 +162,19 @@ export default function MerchantServices() {
 
       <section className="py-12 sm:py-20 bg-brand-navy text-white text-center">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-4xl font-display mb-4 sm:mb-6">Ready to Start Earning?</h2>
+          <h2 className="text-2xl sm:text-4xl font-display mb-4 sm:mb-6">Register a Business Today</h2>
           <p className="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8">
-            Join the mission to protect American businesses and build your recurring income stream.
+            Help American businesses stay compliant while supporting NavigatorUSA's veteran programs.
           </p>
-          <Link 
-            href="/contact" 
-            className={cn(buttonVariants({ size: "lg" }), "bg-brand-red hover:bg-brand-red/90 text-white font-bold px-6 sm:px-10 h-12 sm:h-14 cursor-pointer")}
-            data-testid="link-learn-more"
+          <Button 
+            onClick={handlePartnerClick}
+            disabled={isRedirecting}
+            size="lg"
+            className="bg-brand-red hover:bg-brand-red/90 text-white font-bold px-6 sm:px-10 h-12 sm:h-14"
+            data-testid="link-register-business"
           >
-            Click Here to Learn More <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
+            {isRedirecting ? 'Opening...' : 'Register Your Business'} <ExternalLink className="ml-2 h-5 w-5" />
+          </Button>
         </div>
       </section>
     </Layout>
