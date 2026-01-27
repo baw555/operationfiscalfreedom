@@ -1658,14 +1658,47 @@ export async function registerRoutes(
   // Get all affiliate files/documents for master portal
   app.get("/api/master/affiliate-files", requireAdmin, async (req, res) => {
     try {
-      // Get all affiliates
+      // Get ALL signed NDAs directly from the affiliate_nda table
+      const allNdas = await storage.getAllAffiliateNdas();
+      console.log("[DEBUG] affiliate-files: Found", allNdas.length, "signed NDAs");
+      
+      // Get all affiliates for contracts and W9
       const affiliates = await storage.getAllAffiliates();
       console.log("[DEBUG] affiliate-files: Found", affiliates.length, "affiliates");
       
-      // Build file packages for each affiliate
-      const affiliateFiles = await Promise.all(
+      // Create a combined result map keyed by user ID
+      const resultMap = new Map<number, {
+        id: number;
+        name: string;
+        email: string;
+        nda?: any;
+        contracts?: any[];
+        w9?: any;
+      }>();
+      
+      // First, add all NDAs (this ensures ALL signed NDAs appear regardless of user role)
+      for (const nda of allNdas) {
+        // Try to get user info, fall back to NDA data if user doesn't exist
+        const user = await storage.getUser(nda.userId);
+        resultMap.set(nda.userId, {
+          id: nda.userId,
+          name: user?.name || nda.fullName,
+          email: user?.email || 'Unknown',
+          nda: {
+            id: nda.id,
+            fullName: nda.fullName,
+            address: nda.address,
+            facePhoto: nda.facePhoto,
+            idPhoto: nda.idPhoto,
+            signatureData: nda.signatureData,
+            signedAt: nda.signedAt,
+          },
+        });
+      }
+      
+      // Then, add/merge affiliate data (contracts, W9)
+      await Promise.all(
         affiliates.map(async (affiliate) => {
-          const nda = await storage.getAffiliateNdaByUserId(affiliate.id);
           const signedContracts = await storage.getSignedAgreementsByAffiliate(affiliate.id);
           const w9 = await storage.getAffiliateW9ByUserId(affiliate.id);
           
@@ -1682,21 +1715,12 @@ export async function registerRoutes(
             })
           );
           
-          return {
-            id: affiliate.id,
-            name: affiliate.name,
-            email: affiliate.email,
-            nda: nda ? {
-              id: nda.id,
-              fullName: nda.fullName,
-              address: nda.address,
-              facePhoto: nda.facePhoto,
-              idPhoto: nda.idPhoto,
-              signatureData: nda.signatureData,
-              signedAt: nda.signedAt,
-            } : undefined,
-            contracts: contractsWithNames.length > 0 ? contractsWithNames : undefined,
-            w9: w9 ? {
+          // Check if this affiliate already exists in result (from NDA)
+          const existing = resultMap.get(affiliate.id);
+          if (existing) {
+            // Merge contracts and W9
+            existing.contracts = contractsWithNames.length > 0 ? contractsWithNames : undefined;
+            existing.w9 = w9 ? {
               name: w9.name,
               address: w9.address,
               city: w9.city,
@@ -1704,19 +1728,36 @@ export async function registerRoutes(
               zip: w9.zip,
               taxClassification: w9.taxClassification,
               certificationDate: w9.certificationDate,
-            } : undefined,
-          };
+            } : undefined;
+          } else if (contractsWithNames.length > 0 || w9) {
+            // Add new entry for affiliates with contracts/W9 but no NDA
+            resultMap.set(affiliate.id, {
+              id: affiliate.id,
+              name: affiliate.name,
+              email: affiliate.email,
+              contracts: contractsWithNames.length > 0 ? contractsWithNames : undefined,
+              w9: w9 ? {
+                name: w9.name,
+                address: w9.address,
+                city: w9.city,
+                state: w9.state,
+                zip: w9.zip,
+                taxClassification: w9.taxClassification,
+                certificationDate: w9.certificationDate,
+              } : undefined,
+            });
+          }
         })
       );
       
-      // Filter to only affiliates with at least one document
-      const filesWithDocs = affiliateFiles.filter(
+      // Convert map to array and filter to only entries with at least one document
+      const filesWithDocs = Array.from(resultMap.values()).filter(
         (a) => a.nda || (a.contracts && a.contracts.length > 0) || a.w9
       );
       
-      console.log("[DEBUG] affiliate-files: Returning", filesWithDocs.length, "affiliates with documents");
+      console.log("[DEBUG] affiliate-files: Returning", filesWithDocs.length, "entries with documents");
       if (filesWithDocs.length > 0) {
-        console.log("[DEBUG] First affiliate with docs:", JSON.stringify({ id: filesWithDocs[0].id, name: filesWithDocs[0].name, hasNda: !!filesWithDocs[0].nda, hasContracts: !!filesWithDocs[0].contracts }));
+        console.log("[DEBUG] First entry with docs:", JSON.stringify({ id: filesWithDocs[0].id, name: filesWithDocs[0].name, hasNda: !!filesWithDocs[0].nda, hasContracts: !!filesWithDocs[0].contracts }));
       }
       
       res.json(filesWithDocs);
