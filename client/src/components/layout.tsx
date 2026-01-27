@@ -53,7 +53,7 @@ const navItems = [
 
 const businessSubItems = [
   { name: "Business Overview", href: "/businesses" },
-  { name: "Budget Reduction", href: "/job-placement" },
+  { name: "Cost Savings / Services", href: "/job-placement" },
 ];
 
 const aboutSubItems = [
