@@ -253,7 +253,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/login" className={cn(buttonVariants({ variant: "outline" }), "border-brand-navy text-brand-navy hover:bg-brand-navy hover:text-white font-bold border-2 bg-white cursor-pointer")}>
                 <LogIn className="mr-2 h-4 w-4" /> Deploy
             </Link>
-            <Link href="/master-portal" className={cn(buttonVariants(), "bg-blue-600 hover:bg-blue-700 text-white font-bold border-2 border-blue-600 cursor-pointer shadow-lg")}>
+            <Link href="/admin/login" className={cn(buttonVariants(), "bg-blue-600 hover:bg-blue-700 text-white font-bold border-2 border-blue-600 cursor-pointer shadow-lg")}>
                 Admin
             </Link>
           </div>
@@ -401,7 +401,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               Deploy
             </Link>
             <Link 
-              href="/master-portal" 
+              href="/admin/login" 
               className="flex items-center justify-center w-full py-4 bg-blue-600 text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-blue-700 shadow-lg" 
               onClick={() => setMobileMenuOpen(false)}
             >

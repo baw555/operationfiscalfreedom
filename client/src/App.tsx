@@ -34,6 +34,7 @@ const ApplyWebsite = lazy(() => import("@/pages/apply-website"));
 const AffiliateApply = lazy(() => import("@/pages/affiliate-apply"));
 const GetHelp = lazy(() => import("@/pages/get-help"));
 const AdminLogin = lazy(() => import("@/pages/admin-login"));
+const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AffiliateLogin = lazy(() => import("@/pages/affiliate-login"));
 const AffiliateDashboard = lazy(() => import("@/pages/affiliate-dashboard"));
 const AffiliateNda = lazy(() => import("@/pages/affiliate-nda"));
@@ -275,6 +276,7 @@ function Router() {
         <Route path="/get-help" component={GetHelp} />
         <Route path="/admin/setup" component={AdminSetup} />
         <Route path="/admin/login" component={AdminLogin} />
+        <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/master-portal" component={MasterPortal} />
         <Route path="/submaster-portal" component={SubMasterPortal} />
         <Route path="/veteran-intake" component={VeteranIntake} />
