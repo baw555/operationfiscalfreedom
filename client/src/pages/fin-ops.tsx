@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Code, Wrench, Phone, PenTool, CreditCard, Palette, Truck, DollarSign, Users, TrendingUp, Gift, Store, ExternalLink } from "lucide-react";
+import { Briefcase, Code, Wrench, Phone, PenTool, CreditCard, Palette, Truck, DollarSign, Users, TrendingUp, Gift, Store, ExternalLink, Shield } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useEffect } from "react";
 
@@ -161,6 +161,25 @@ export default function FinOps() {
                 <div className="flex items-center justify-center text-brand-blue font-bold text-sm">
                   <span>Shop vGift Cards</span>
                   <ExternalLink className="ml-2 h-4 w-4" />
+                </div>
+              </div>
+            </Link>
+
+            <Link href={buildLink("/insurance")}>
+              <div className="p-6 sm:p-8 border-2 border-green-600 rounded-xl hover:bg-green-50 cursor-pointer group transition-all hover:shadow-lg md:col-span-3">
+                <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-600 rounded-lg flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Shield size={28} />
+                  </div>
+                  <div className="text-center md:text-left flex-1">
+                    <h3 className="font-display text-xl sm:text-2xl text-brand-navy mb-2">Save 20-40% on All Insurance</h3>
+                    <p className="text-sm text-gray-600 mb-2">Provider-direct insurance model eliminates middleman costs. Life, disability, health, business, and more.</p>
+                    <p className="text-xs text-green-700 font-semibold">No commissions to agents = More savings for you</p>
+                  </div>
+                  <div className="flex items-center justify-center text-green-600 font-bold text-sm whitespace-nowrap">
+                    <span>Get Your Quote</span>
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </div>
                 </div>
               </div>
             </Link>

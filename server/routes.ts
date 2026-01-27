@@ -27,7 +27,8 @@ import {
   insertBusinessLeadSchema,
   insertDisabilityReferralSchema,
   insertJobPlacementIntakeSchema,
-  insertScheduleASignatureSchema
+  insertScheduleASignatureSchema,
+  insertInsuranceIntakeSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -3368,6 +3369,44 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching Schedule A signatures:", error);
       res.status(500).json({ message: "Failed to fetch signatures" });
+    }
+  });
+
+  // Insurance Intake Routes
+  
+  // Public: Submit insurance intake
+  app.post("/api/insurance-intakes", async (req, res) => {
+    try {
+      const validatedData = insertInsuranceIntakeSchema.parse(req.body);
+      const intake = await storage.createInsuranceIntake(validatedData);
+      res.json({ success: true, intake });
+    } catch (error) {
+      console.error("Error creating insurance intake:", error);
+      res.status(500).json({ message: "Failed to submit insurance request" });
+    }
+  });
+
+  // Admin: Get all insurance intakes
+  app.get("/api/admin/insurance-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllInsuranceIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching insurance intakes:", error);
+      res.status(500).json({ message: "Failed to fetch insurance intakes" });
+    }
+  });
+
+  // Admin: Update insurance intake
+  app.patch("/api/admin/insurance-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const intake = await storage.updateInsuranceIntake(id, updates);
+      res.json(intake);
+    } catch (error) {
+      console.error("Error updating insurance intake:", error);
+      res.status(500).json({ message: "Failed to update insurance intake" });
     }
   });
 

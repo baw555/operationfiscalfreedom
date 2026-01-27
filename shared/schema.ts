@@ -952,3 +952,36 @@ export const insertScheduleASignatureSchema = createInsertSchema(scheduleASignat
 
 export type InsertScheduleASignature = z.infer<typeof insertScheduleASignatureSchema>;
 export type ScheduleASignature = typeof scheduleASignatures.$inferSelect;
+
+// Insurance Intakes - Track insurance inquiries
+export const insuranceIntakes = pgTable("insurance_intakes", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  userType: text("user_type").notNull(), // consumer, business, insurance_agent
+  intentType: text("intent_type").notNull(), // buy, sell, refer
+  insuranceTypes: text("insurance_types").notNull(), // comma-separated: life, disability, health, business, auto, home
+  businessName: text("business_name"),
+  employeeCount: text("employee_count"),
+  currentProvider: text("current_provider"),
+  additionalInfo: text("additional_info"),
+  referralCode: text("referral_code"),
+  referredBy: integer("referred_by").references(() => users.id),
+  status: text("status").notNull().default("new"), // new, contacted, quoted, closed_won, closed_lost
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertInsuranceIntakeSchema = createInsertSchema(insuranceIntakes).omit({
+  id: true,
+  status: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertInsuranceIntake = z.infer<typeof insertInsuranceIntakeSchema>;
+export type InsuranceIntake = typeof insuranceIntakes.$inferSelect;

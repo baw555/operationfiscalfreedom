@@ -27,7 +27,8 @@ import {
   jobPlacementIntakes, type JobPlacementIntake, type InsertJobPlacementIntake,
   vetProfessionalIntakes, type VetProfessionalIntake, type InsertVetProfessionalIntake,
   healthcareIntakes, type HealthcareIntake, type InsertHealthcareIntake,
-  scheduleASignatures, type ScheduleASignature, type InsertScheduleASignature
+  scheduleASignatures, type ScheduleASignature, type InsertScheduleASignature,
+  insuranceIntakes, type InsuranceIntake, type InsertInsuranceIntake
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -218,6 +219,11 @@ export interface IStorage {
   createScheduleASignature(signature: InsertScheduleASignature): Promise<ScheduleASignature>;
   getScheduleASignatureByUserId(userId: number): Promise<ScheduleASignature | undefined>;
   getAllScheduleASignatures(): Promise<ScheduleASignature[]>;
+
+  // Insurance Intakes
+  createInsuranceIntake(intake: InsertInsuranceIntake): Promise<InsuranceIntake>;
+  getAllInsuranceIntakes(): Promise<InsuranceIntake[]>;
+  updateInsuranceIntake(id: number, updates: Partial<InsuranceIntake>): Promise<InsuranceIntake | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1063,6 +1069,24 @@ export class DatabaseStorage implements IStorage {
 
   async getAllScheduleASignatures(): Promise<ScheduleASignature[]> {
     return db.select().from(scheduleASignatures).orderBy(desc(scheduleASignatures.signedAt));
+  }
+
+  // Insurance Intakes
+  async createInsuranceIntake(intake: InsertInsuranceIntake): Promise<InsuranceIntake> {
+    const [created] = await db.insert(insuranceIntakes).values(intake).returning();
+    return created;
+  }
+
+  async getAllInsuranceIntakes(): Promise<InsuranceIntake[]> {
+    return db.select().from(insuranceIntakes).orderBy(desc(insuranceIntakes.createdAt));
+  }
+
+  async updateInsuranceIntake(id: number, updates: Partial<InsuranceIntake>): Promise<InsuranceIntake | undefined> {
+    const [updated] = await db.update(insuranceIntakes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(insuranceIntakes.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async getUserById(id: number): Promise<User | undefined> {
