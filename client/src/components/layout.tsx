@@ -153,13 +153,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Nav Disability Rating Dropdown */}
+            {/* VA Rating / Health Dropdown */}
             <div className="relative" onMouseEnter={() => setDisabilityOpen(true)} onMouseLeave={() => setDisabilityOpen(false)}>
               <button className={cn(
                   "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
                   location.startsWith("/disability-rating") ? "text-brand-red border-brand-red" : "text-brand-navy"
                 )}>
-                  Nav Disability Rating <ChevronDown className={cn("w-4 h-4 transition-transform", disabilityOpen && "rotate-180")} />
+                  VA Rating / Health <ChevronDown className={cn("w-4 h-4 transition-transform", disabilityOpen && "rotate-180")} />
               </button>
               {disabilityOpen && (
                 <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -289,7 +289,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Mobile Nav Disability Rating Dropdown */}
+            {/* Mobile VA Rating / Health Dropdown */}
             <div className={cn("border-l-4", mobileDisabilityOpen ? "border-brand-red" : "border-transparent")}>
               <button 
                 className={cn(
@@ -298,7 +298,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 )}
                 onClick={() => setMobileDisabilityOpen(!mobileDisabilityOpen)}
               >
-                Nav Disability Rating <ChevronDown className={cn("w-4 h-4 transition-transform", mobileDisabilityOpen && "rotate-180")} />
+                VA Rating / Health <ChevronDown className={cn("w-4 h-4 transition-transform", mobileDisabilityOpen && "rotate-180")} />
               </button>
               {mobileDisabilityOpen && (
                 <div className="pl-4 pb-2 bg-gray-50 rounded">
