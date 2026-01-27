@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Shield, Users, FileText, FolderOpen, Eye, Download, ChevronRight, Camera, IdCard, FileSignature, ClipboardCheck, Receipt, Link2, Store, CreditCard, Gift } from "lucide-react";
+import { Shield, Users, FileText, FolderOpen, Eye, Download, ChevronRight, Camera, IdCard, FileSignature, ClipboardCheck, Receipt, Link2, Store, CreditCard, Gift, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -44,6 +46,11 @@ export default function MasterPortal() {
   const [, setLocation] = useLocation();
   const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateFile | null>(null);
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const queryClient = useQueryClient();
 
   // Check if user is master admin - with retry logic for session timing
   const { data: authData, isLoading: authLoading } = useQuery({
@@ -131,25 +138,110 @@ export default function MasterPortal() {
     );
   }
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+    setIsLoggingIn(true);
+    
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setLoginError(data.message || "Login failed");
+        setIsLoggingIn(false);
+        return;
+      }
+      
+      if (data.user.role !== "admin" && data.user.role !== "master") {
+        setLoginError("Access denied. Admin credentials required.");
+        await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+        setIsLoggingIn(false);
+        return;
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    } catch {
+      setLoginError("Connection error. Please try again.");
+      setIsLoggingIn(false);
+    }
+  };
+
   // Access denied for non-admin/master users
   const isAuthorized = authData?.user?.role === "admin" || authData?.user?.role === "master";
   if (!authData || !isAuthorized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-center max-w-md">
-          <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center">
-            <Shield className="w-10 h-10 text-white" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="flex flex-col items-center gap-4 text-center mb-8">
+            <div className="w-20 h-20 bg-brand-red rounded-full flex items-center justify-center">
+              <Shield className="w-10 h-10 text-white" />
+            </div>
+            <div className="text-2xl text-white font-bold">MASTER PORTAL</div>
+            <div className="text-gray-300">
+              Enter your credentials to access the administration panel.
+            </div>
           </div>
-          <div className="text-2xl text-white font-bold">MASTER PORTAL - ACCESS DENIED</div>
-          <div className="text-gray-300">
-            This portal is restricted to authorized administrators only.
-          </div>
-          <Button 
-            onClick={() => setLocation("/admin/login")} 
-            className="mt-4 bg-brand-red hover:bg-brand-red/90"
-          >
-            Admin Login
-          </Button>
+          
+          <form onSubmit={handleLogin} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-white">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@navigatorusa.org"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="bg-white/20 border-white/30 text-white placeholder:text-gray-400"
+                required
+                data-testid="input-login-email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-white">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                className="bg-white/20 border-white/30 text-white placeholder:text-gray-400"
+                required
+                data-testid="input-login-password"
+              />
+            </div>
+            
+            {loginError && (
+              <div className="text-red-400 text-sm text-center bg-red-500/20 p-2 rounded">
+                {loginError}
+              </div>
+            )}
+            
+            <Button 
+              type="submit"
+              className="w-full bg-brand-red hover:bg-brand-red/90"
+              disabled={isLoggingIn}
+              data-testid="button-login-submit"
+            >
+              {isLoggingIn ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Logging in...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <LogIn className="w-4 h-4" />
+                  Login to Master Portal
+                </span>
+              )}
+            </Button>
+          </form>
         </div>
       </div>
     );
