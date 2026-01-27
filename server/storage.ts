@@ -179,6 +179,7 @@ export interface IStorage {
   // Affiliate NDA
   createAffiliateNda(nda: InsertAffiliateNda): Promise<AffiliateNda>;
   getAffiliateNdaByUserId(userId: number): Promise<AffiliateNda | undefined>;
+  getAffiliateNdaById(id: number): Promise<AffiliateNda | undefined>;
   hasAffiliateSignedNda(userId: number): Promise<boolean>;
   getAllAffiliateNdas(): Promise<AffiliateNda[]>;
 
@@ -831,6 +832,11 @@ export class DatabaseStorage implements IStorage {
 
   async getAffiliateNdaByUserId(userId: number): Promise<AffiliateNda | undefined> {
     const [nda] = await db.select().from(affiliateNda).where(eq(affiliateNda.userId, userId));
+    return nda || undefined;
+  }
+
+  async getAffiliateNdaById(id: number): Promise<AffiliateNda | undefined> {
+    const [nda] = await db.select().from(affiliateNda).where(eq(affiliateNda.id, id));
     return nda || undefined;
   }
 

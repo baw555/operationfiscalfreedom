@@ -1686,12 +1686,13 @@ export async function registerRoutes(
             name: affiliate.name,
             email: affiliate.email,
             nda: nda ? {
+              id: nda.id,
               fullName: nda.fullName,
               address: nda.address,
               facePhoto: nda.facePhoto,
               idPhoto: nda.idPhoto,
               signatureData: nda.signatureData,
-              signedAt: nda.createdAt,
+              signedAt: nda.signedAt,
             } : undefined,
             contracts: contractsWithNames.length > 0 ? contractsWithNames : undefined,
             w9: w9 ? {
@@ -1876,6 +1877,47 @@ export async function registerRoutes(
       res.json(enrichedNdas);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch NDAs" });
+    }
+  });
+
+  // Generate NDA PDF for download
+  app.post("/api/master/affiliate-nda-pdf/:ndaId", requireAdmin, async (req, res) => {
+    try {
+      const ndaId = parseInt(req.params.ndaId);
+      const { securityKey } = req.body;
+      
+      // Validate security key
+      const expectedKey = process.env.ADMIN_SETUP_KEY;
+      if (!expectedKey || securityKey !== expectedKey) {
+        return res.status(403).json({ message: "Invalid security key" });
+      }
+      
+      // Get NDA data
+      const nda = await storage.getAffiliateNdaById(ndaId);
+      if (!nda) {
+        return res.status(404).json({ message: "NDA not found" });
+      }
+      
+      // Import PDF generator dynamically
+      const { generateNdaPdf } = await import('./pdfGenerator');
+      
+      const pdfBuffer = await generateNdaPdf({
+        fullName: nda.fullName,
+        veteranNumber: nda.veteranNumber || undefined,
+        address: nda.address || undefined,
+        signedAt: nda.signedAt?.toISOString() || new Date().toISOString(),
+        signedIpAddress: nda.signedIpAddress || undefined,
+        signatureData: nda.signatureData || undefined,
+        facePhoto: nda.facePhoto || undefined,
+        idPhoto: nda.idPhoto || undefined
+      });
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="NDA-${nda.fullName.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
     }
   });
 

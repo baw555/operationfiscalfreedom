@@ -85,6 +85,7 @@ interface AffiliateFile {
   name: string;
   email: string;
   nda?: {
+    id: number;
     fullName: string;
     address: string;
     facePhoto?: string;
@@ -117,7 +118,49 @@ export default function MasterPortal() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [pdfSecurityKey, setPdfSecurityKey] = useState("");
+  const [pdfDownloadError, setPdfDownloadError] = useState("");
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const queryClient = useQueryClient();
+
+  const downloadNdaPdf = async (ndaId: number, affiliateName: string) => {
+    if (!pdfSecurityKey) {
+      setPdfDownloadError("Please enter the security key");
+      return;
+    }
+    
+    setIsDownloadingPdf(true);
+    setPdfDownloadError("");
+    
+    try {
+      const res = await fetch(`/api/master/affiliate-nda-pdf/${ndaId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ securityKey: pdfSecurityKey })
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        setPdfDownloadError(data.message || "Failed to download PDF");
+        return;
+      }
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `NDA-${affiliateName.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setPdfDownloadError("Network error - please try again");
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   // Check if user is master admin - with retry logic for session timing
   const { data: authData, isLoading: authLoading } = useQuery({
@@ -1058,6 +1101,32 @@ export default function MasterPortal() {
                       />
                     </div>
                   )}
+                  
+                  {/* PDF Download Section */}
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="password"
+                        placeholder="Enter security key"
+                        value={pdfSecurityKey}
+                        onChange={(e) => setPdfSecurityKey(e.target.value)}
+                        className="flex-1 max-w-xs bg-black/30 border-white/20 text-white"
+                        data-testid="input-pdf-security-key"
+                      />
+                      <Button
+                        onClick={() => downloadNdaPdf(selectedAffiliate.nda!.id, selectedAffiliate.nda!.fullName)}
+                        disabled={isDownloadingPdf || !pdfSecurityKey}
+                        className="bg-brand-gold hover:bg-brand-gold/90 text-black"
+                        data-testid="button-download-nda-pdf"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        {isDownloadingPdf ? "Generating..." : "Download PDF"}
+                      </Button>
+                    </div>
+                    {pdfDownloadError && (
+                      <p className="text-red-400 text-sm mt-2" data-testid="text-pdf-error">{pdfDownloadError}</p>
+                    )}
+                  </div>
                 </div>
               )}
 
