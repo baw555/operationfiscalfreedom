@@ -201,6 +201,7 @@ export interface IStorage {
   createAffiliateW9(w9: InsertAffiliateW9): Promise<AffiliateW9>;
   getAffiliateW9ByUserId(userId: number): Promise<AffiliateW9 | undefined>;
   hasAffiliateSubmittedW9(userId: number): Promise<boolean>;
+  getAllAffiliateW9s(): Promise<AffiliateW9[]>;
 
   // Fin-Ops Referral Tracking
   createFinopsReferral(referral: InsertFinopsReferral): Promise<FinopsReferral>;
@@ -920,6 +921,10 @@ export class DatabaseStorage implements IStorage {
   async hasAffiliateSubmittedW9(userId: number): Promise<boolean> {
     const w9 = await this.getAffiliateW9ByUserId(userId);
     return !!w9;
+  }
+
+  async getAllAffiliateW9s(): Promise<AffiliateW9[]> {
+    return await db.select().from(affiliateW9);
   }
 
   // Fin-Ops Referral Tracking

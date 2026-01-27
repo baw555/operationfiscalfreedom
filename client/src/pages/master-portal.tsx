@@ -186,6 +186,9 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Fetch finops referrals

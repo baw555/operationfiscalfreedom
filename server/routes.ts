@@ -1655,58 +1655,70 @@ export async function registerRoutes(
 
   // ===== MASTER PORTAL ROUTES (Admin Only) =====
 
-  // Get all affiliate files/documents for master portal
+  // Get all affiliate files/documents for master portal (optimized with batch queries)
   app.get("/api/master/affiliate-files", requireAdmin, async (req, res) => {
     try {
-      // Get all affiliates
-      const affiliates = await storage.getAllAffiliates();
+      // Batch fetch all data in parallel (much faster than N+1 queries)
+      const [affiliates, allNdas, allContracts, allW9s, allTemplates] = await Promise.all([
+        storage.getAllAffiliates(),
+        storage.getAllAffiliateNdas(),
+        storage.getAllSignedAgreements(),
+        storage.getAllAffiliateW9s(),
+        storage.getAllContractTemplates(),
+      ]);
       
-      // Build file packages for each affiliate
-      const affiliateFiles = await Promise.all(
-        affiliates.map(async (affiliate) => {
-          const nda = await storage.getAffiliateNdaByUserId(affiliate.id);
-          const signedContracts = await storage.getSignedAgreementsByAffiliate(affiliate.id);
-          const w9 = await storage.getAffiliateW9ByUserId(affiliate.id);
-          
-          // Get contract template names
-          const contractsWithNames = await Promise.all(
-            signedContracts.map(async (contract: { id: number; contractTemplateId: number; signatureData: string | null; createdAt: Date | null }) => {
-              const template = await storage.getContractTemplate(contract.contractTemplateId);
-              return {
-                id: contract.id,
-                contractName: template?.name || 'Unknown Contract',
-                signedAt: contract.createdAt,
-                signatureData: contract.signatureData,
-              };
-            })
-          );
-          
+      // Create lookup maps for O(1) access
+      const ndaByUserId = new Map(allNdas.map(nda => [nda.userId, nda]));
+      const contractsByAffiliateId = new Map<number, typeof allContracts>();
+      allContracts.forEach(contract => {
+        const existing = contractsByAffiliateId.get(contract.affiliateId) || [];
+        existing.push(contract);
+        contractsByAffiliateId.set(contract.affiliateId, existing);
+      });
+      const w9ByUserId = new Map(allW9s.map(w9 => [w9.userId, w9]));
+      const templateById = new Map(allTemplates.map(t => [t.id, t]));
+      
+      // Build file packages efficiently using lookup maps
+      const affiliateFiles = affiliates.map((affiliate) => {
+        const nda = ndaByUserId.get(affiliate.id);
+        const signedContracts = contractsByAffiliateId.get(affiliate.id) || [];
+        const w9 = w9ByUserId.get(affiliate.id);
+        
+        const contractsWithNames = signedContracts.map((contract) => {
+          const template = templateById.get(contract.contractTemplateId);
           return {
-            id: affiliate.id,
-            name: affiliate.name,
-            email: affiliate.email,
-            nda: nda ? {
-              id: nda.id,
-              fullName: nda.fullName,
-              address: nda.address,
-              facePhoto: nda.facePhoto,
-              idPhoto: nda.idPhoto,
-              signatureData: nda.signatureData,
-              signedAt: nda.signedAt,
-            } : undefined,
-            contracts: contractsWithNames.length > 0 ? contractsWithNames : undefined,
-            w9: w9 ? {
-              name: w9.name,
-              address: w9.address,
-              city: w9.city,
-              state: w9.state,
-              zip: w9.zip,
-              taxClassification: w9.taxClassification,
-              certificationDate: w9.certificationDate,
-            } : undefined,
+            id: contract.id,
+            contractName: template?.name || 'Unknown Contract',
+            signedAt: contract.createdAt,
+            signatureData: contract.signatureData,
           };
-        })
-      );
+        });
+        
+        return {
+          id: affiliate.id,
+          name: affiliate.name,
+          email: affiliate.email,
+          nda: nda ? {
+            id: nda.id,
+            fullName: nda.fullName,
+            address: nda.address,
+            facePhoto: nda.facePhoto,
+            idPhoto: nda.idPhoto,
+            signatureData: nda.signatureData,
+            signedAt: nda.signedAt,
+          } : undefined,
+          contracts: contractsWithNames.length > 0 ? contractsWithNames : undefined,
+          w9: w9 ? {
+            name: w9.name,
+            address: w9.address,
+            city: w9.city,
+            state: w9.state,
+            zip: w9.zip,
+            taxClassification: w9.taxClassification,
+            certificationDate: w9.certificationDate,
+          } : undefined,
+        };
+      });
       
       // Filter to only affiliates with at least one document
       const filesWithDocs = affiliateFiles.filter(
