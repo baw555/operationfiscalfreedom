@@ -22,8 +22,6 @@ const PageLoader = () => (
 // Lazy load all other pages
 const NotFound = lazy(() => import("@/pages/not-found"));
 const About = lazy(() => import("@/pages/about"));
-const VARatingSoftware = lazy(() => import("@/pages/va-software"));
-const ManualHelp = lazy(() => import("@/pages/manual-help"));
 const FinOps = lazy(() => import("@/pages/fin-ops"));
 const Businesses = lazy(() => import("@/pages/businesses"));
 const Income = lazy(() => import("@/pages/income"));
@@ -48,10 +46,8 @@ const SignContract = lazy(() => import("@/pages/sign-contract"));
 const CompPlan = lazy(() => import("@/pages/comp-plan"));
 const ScheduleA = lazy(() => import("@/pages/schedule-a"));
 const ApplyStartupGrant = lazy(() => import("@/pages/apply-startup-grant"));
-const Investors = lazy(() => import("@/pages/investors"));
 const NewHomeFurniture = lazy(() => import("@/pages/new-home-furniture"));
 const PrivateDoctor = lazy(() => import("@/pages/private-doctor"));
-const BecomeInvestor = lazy(() => import("@/pages/become-investor"));
 const Transparency = lazy(() => import("@/pages/transparency"));
 const MissionActHealth = lazy(() => import("@/pages/mission-act-health"));
 const MerchantServices = lazy(() => import("@/pages/merchant-services"));
@@ -163,8 +159,6 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/about" component={About} />
-        <Route path="/va-software" component={VARatingSoftware} />
-        <Route path="/manual-help" component={ManualHelp} />
         <Route path="/fin-ops" component={FinOps} />
         <Route path="/businesses" component={Businesses} />
         <Route path="/income" component={Income} />
@@ -175,10 +169,8 @@ function Router() {
         <Route path="/login" component={Login} />
         <Route path="/apply-website" component={ApplyWebsite} />
         <Route path="/apply-startup-grant" component={ApplyStartupGrant} />
-        <Route path="/investors" component={Investors} />
         <Route path="/new-home-furniture" component={NewHomeFurniture} />
         <Route path="/private-doctor" component={PrivateDoctor} />
-        <Route path="/become-investor" component={BecomeInvestor} />
         <Route path="/transparency" component={Transparency} />
         <Route path="/mission-act-health" component={MissionActHealth} />
         <Route path="/merchant-services" component={MerchantServices} />
