@@ -6,7 +6,7 @@ import {
   FileSignature, ClipboardCheck, Receipt, Link2, Store, CreditCard, Gift, LogIn,
   LayoutDashboard, ClipboardList, HelpCircle, DollarSign, Stethoscope, Globe, 
   Mail, Briefcase, TrendingUp, Building, Target, Heart, Truck, UserCheck, AlertCircle,
-  Clock, CheckCircle, XCircle, Sofa, RefreshCw
+  Clock, CheckCircle, XCircle, Sofa, RefreshCw, FileDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -716,7 +716,89 @@ export default function MasterPortal() {
                 <TabsTrigger value="website-apps" className="data-[state=active]:bg-brand-navy text-gray-400">Website Grants ({websiteApplications.length})</TabsTrigger>
               </TabsList>
               <TabsContent value="affiliate-apps">
-                <DataTable title="Affiliate Applications" icon={<ClipboardList className="w-5 h-5 text-brand-red" />} data={affiliateApplications} columns={["name", "email", "phone", "status", "createdAt"]} />
+                <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden" data-testid="datatable-affiliate-applications">
+                  <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <ClipboardList className="w-5 h-5 text-brand-red" />
+                      Affiliate Applications
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="password"
+                        placeholder="Security key for PDFs"
+                        value={pdfSecurityKey}
+                        onChange={(e) => setPdfSecurityKey(e.target.value)}
+                        className="w-48 bg-black/30 border-white/20 text-white text-sm"
+                        data-testid="input-apps-pdf-security-key"
+                      />
+                    </div>
+                  </div>
+                  {affiliateApplications.length === 0 ? (
+                    <div className="p-8 text-center text-gray-400">No affiliate applications found.</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-black/30">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Name</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Email</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Phone</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">NDA</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/10">
+                          {affiliateApplications.slice(0, 50).map((app: any) => {
+                            const matchingNda = affiliateFiles.find((af: AffiliateFile) => af.email?.toLowerCase() === app.email?.toLowerCase());
+                            return (
+                              <tr key={app.id} className="hover:bg-white/5">
+                                <td className="px-4 py-3 text-sm text-gray-300">{app.name}</td>
+                                <td className="px-4 py-3 text-sm text-gray-300">{app.email}</td>
+                                <td className="px-4 py-3 text-sm text-gray-300">{app.phone || '-'}</td>
+                                <td className="px-4 py-3 text-sm">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    app.status === 'pending' || app.status === 'new' ? 'bg-yellow-500/20 text-yellow-400' :
+                                    app.status === 'approved' || app.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                                    app.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                                    'bg-gray-500/20 text-gray-400'
+                                  }`}>
+                                    {app.status || 'new'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-300">{new Date(app.createdAt).toLocaleDateString()}</td>
+                                <td className="px-4 py-3 text-sm">
+                                  {matchingNda?.nda ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => downloadNdaPdf(matchingNda.nda!.id, matchingNda.nda!.fullName)}
+                                      disabled={isDownloadingPdf || !pdfSecurityKey}
+                                      className="bg-brand-red hover:bg-red-700 text-white text-xs px-2 py-1 h-7"
+                                      data-testid={`btn-download-nda-${app.id}`}
+                                    >
+                                      <FileDown className="w-3 h-3 mr-1" />
+                                      PDF
+                                    </Button>
+                                  ) : (
+                                    <span className="text-gray-500 text-xs">No NDA</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      {affiliateApplications.length > 50 && (
+                        <div className="p-3 text-center text-sm text-gray-400 border-t border-white/10">
+                          Showing 50 of {affiliateApplications.length} records
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {pdfDownloadError && (
+                    <div className="p-3 text-center text-red-400 text-sm border-t border-white/10">{pdfDownloadError}</div>
+                  )}
+                </div>
               </TabsContent>
               <TabsContent value="startup-grants">
                 <DataTable title="Startup Grant Applications" icon={<DollarSign className="w-5 h-5 text-green-400" />} data={startupGrants} columns={["businessName", "firstName", "lastName", "email", "status", "createdAt"]} />
