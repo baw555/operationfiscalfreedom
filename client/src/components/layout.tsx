@@ -204,12 +204,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}>
                 Vet-Biz-Owners
             </Link>
-            <Link href="/master-portal" className={cn(
-                "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
-                location.startsWith("/master-portal") ? "text-brand-red border-brand-red" : "text-brand-navy"
-              )}>
-                Admin
-            </Link>
             <Link href="/stress-test" className={cn(
                 "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
                 location.startsWith("/stress-test") ? "text-brand-red border-brand-red" : "text-brand-navy"
@@ -220,11 +214,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* CTA Buttons - INTENSE */}
           <div className="hidden md:flex items-center gap-3">
-             <Link href="/affiliate" className={cn(buttonVariants({ variant: "outline" }), "border-brand-navy text-brand-navy hover:bg-brand-navy hover:text-white font-bold border-2 cursor-pointer")}>
+             <Link href="/affiliate" className={cn(buttonVariants(), "bg-brand-red hover:bg-brand-red/90 text-white font-bold border-2 border-brand-red cursor-pointer shadow-lg")}>
                 Enlist
             </Link>
-            <Link href="/login" className={cn(buttonVariants(), "bg-brand-red hover:bg-brand-red/90 text-white font-bold border-2 border-brand-red cursor-pointer shadow-lg")}>
+            <Link href="/login" className={cn(buttonVariants({ variant: "outline" }), "border-brand-navy text-brand-navy hover:bg-brand-navy hover:text-white font-bold border-2 bg-white cursor-pointer")}>
                 <LogIn className="mr-2 h-4 w-4" /> Deploy
+            </Link>
+            <Link href="/master-portal" className={cn(buttonVariants(), "bg-blue-600 hover:bg-blue-700 text-white font-bold border-2 border-blue-600 cursor-pointer shadow-lg")}>
+                Admin
             </Link>
           </div>
 
@@ -335,13 +332,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
               Vet-Biz-Owners
             </Link>
             <Link 
-              href="/master-portal" 
-              className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Admin
-            </Link>
-            <Link 
               href="/stress-test" 
               className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
               onClick={() => setMobileMenuOpen(false)}
@@ -351,17 +341,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="h-px bg-brand-navy/20 my-2" />
             <Link 
               href="/affiliate" 
-              className="flex items-center justify-center w-full py-4 border-2 border-brand-navy text-brand-navy font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-navy/10" 
+              className="flex items-center justify-center w-full py-4 bg-brand-red text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-red/80 shadow-lg" 
               onClick={() => setMobileMenuOpen(false)}
             >
               Enlist
             </Link>
             <Link 
               href="/login" 
-              className="flex items-center justify-center w-full py-4 bg-brand-red text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-red/80 shadow-lg" 
+              className="flex items-center justify-center w-full py-4 border-2 border-brand-navy text-brand-navy bg-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-navy/10" 
               onClick={() => setMobileMenuOpen(false)}
             >
               Deploy
+            </Link>
+            <Link 
+              href="/master-portal" 
+              className="flex items-center justify-center w-full py-4 bg-blue-600 text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-blue-700 shadow-lg" 
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Admin
             </Link>
           </div>
         )}
