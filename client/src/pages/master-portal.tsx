@@ -175,11 +175,14 @@ export default function MasterPortal() {
   });
 
   // Fetch all affiliates with their files
-  const { data: affiliateFiles = [], isLoading: filesLoading } = useQuery<AffiliateFile[]>({
+  const { data: affiliateFiles = [], isLoading: filesLoading, error: filesError } = useQuery<AffiliateFile[]>({
     queryKey: ["master-affiliate-files"],
     queryFn: async () => {
       const res = await fetch("/api/master/affiliate-files", { credentials: "include" });
-      if (!res.ok) return [];
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: "Unknown error" }));
+        throw new Error(errorData.message || `HTTP ${res.status}`);
+      }
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
@@ -859,9 +862,14 @@ export default function MasterPortal() {
                   <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
                   <p className="text-gray-400 mt-4">Loading affiliate files...</p>
                 </div>
+              ) : filesError ? (
+                <div className="p-8 text-center text-red-400">
+                  <p className="font-bold">Error loading affiliate documents</p>
+                  <p className="text-sm mt-2">{(filesError as Error).message}</p>
+                </div>
               ) : affiliateFiles.length === 0 ? (
                 <div className="p-8 text-center text-gray-400">
-                  No affiliate documents found.
+                  No affiliate documents found. Affiliates must complete their NDA, contracts, or W9 forms to appear here.
                 </div>
               ) : (
                 <div className="divide-y divide-white/10">
