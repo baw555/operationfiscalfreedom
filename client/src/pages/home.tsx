@@ -361,7 +361,7 @@ export default function Home() {
                     <ChevronDown className="ml-2 h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-80 bg-white border-2 border-brand-navy/20 shadow-2xl" align="center">
+                <DropdownMenuContent className="w-[calc(100vw-2rem)] max-w-80 mx-2 bg-white border-2 border-brand-navy/20 shadow-2xl" align="center">
                   <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
                     <Link href="/apply-website">Get Free Business Website</Link>
                   </DropdownMenuItem>
