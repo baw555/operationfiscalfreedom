@@ -6,7 +6,7 @@ import {
   FileSignature, ClipboardCheck, Receipt, Link2, Store, CreditCard, Gift, LogIn,
   LayoutDashboard, ClipboardList, HelpCircle, DollarSign, Stethoscope, Globe, 
   Mail, Briefcase, TrendingUp, Building, Target, Heart, Truck, UserCheck, AlertCircle,
-  Clock, CheckCircle, XCircle, Sofa
+  Clock, CheckCircle, XCircle, Sofa, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -847,14 +847,26 @@ export default function MasterPortal() {
               </TabsList>
               <TabsContent value="folders">
                 <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
-                  <div className="p-4 border-b border-white/10 bg-black/20">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                      <FolderOpen className="w-5 h-5 text-brand-red" />
-                      Affiliate Document Folders
-                    </h2>
-                    <p className="text-sm text-gray-400 mt-1">
-                      View complete document packages for each affiliate
-                    </p>
+                  <div className="p-4 border-b border-white/10 bg-black/20 flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                        <FolderOpen className="w-5 h-5 text-brand-red" />
+                        Affiliate Document Folders
+                      </h2>
+                      <p className="text-sm text-gray-400 mt-1">
+                        View complete document packages for each affiliate
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => queryClient.invalidateQueries({ queryKey: ["master-affiliate-files"] })}
+                      variant="outline"
+                      size="sm"
+                      className="border-white/20 text-white hover:bg-white/10"
+                      data-testid="button-refresh-documents"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${filesLoading ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </Button>
                   </div>
 
                   {filesLoading ? (
