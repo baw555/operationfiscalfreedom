@@ -166,10 +166,13 @@ export default function MasterPortal() {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setLocation("/admin/dashboard")}
+              onClick={() => {
+                fetch("/api/auth/logout", { method: "POST", credentials: "include" })
+                  .then(() => setLocation("/login"));
+              }}
               className="border-white/20 text-white hover:bg-white/10"
             >
-              Admin Dashboard
+              Logout
             </Button>
           </div>
         </div>

@@ -29,7 +29,7 @@ export default function Login() {
       toast({ title: "Welcome back!" });
       // Redirect based on role
       if (data.user.role === "admin" || data.user.role === "master") {
-        window.location.href = "/admin/dashboard";
+        window.location.href = "/master-portal";
       } else if (data.user.role === "affiliate") {
         window.location.href = "/affiliate/dashboard";
       } else {
