@@ -768,19 +768,19 @@ export default function MasterPortal() {
                 <TabsTrigger value="business-leads-tab" className="data-[state=active]:bg-brand-navy text-gray-400">Business Leads ({businessLeads.length})</TabsTrigger>
               </TabsList>
               <TabsContent value="help-requests">
-                <DataTable title="VA Help Requests" icon={<HelpCircle className="w-5 h-5 text-blue-400" />} data={helpRequests} columns={["name", "email", "phone", "claimType", "status", "createdAt"]} />
+                <DataTable title="VA Help Requests" icon={<HelpCircle className="w-5 h-5 text-blue-400" />} data={helpRequests} columns={["name", "email", "phone", "helpType", "description", "referralCode", "status", "createdAt"]} />
               </TabsContent>
               <TabsContent value="private-doctor">
-                <DataTable title="Private Doctor Requests" icon={<Stethoscope className="w-5 h-5 text-red-400" />} data={privateDoctorRequests} columns={["firstName", "lastName", "email", "phone", "status", "createdAt"]} />
+                <DataTable title="Private Doctor Requests" icon={<Stethoscope className="w-5 h-5 text-red-400" />} data={privateDoctorRequests} columns={["firstName", "lastName", "email", "phone", "zip", "branch", "careType", "situation", "status", "createdAt"]} />
               </TabsContent>
               <TabsContent value="furniture">
-                <DataTable title="Furniture Assistance" icon={<Sofa className="w-5 h-5 text-yellow-400" />} data={furnitureAssistance} columns={["firstName", "lastName", "email", "phone", "status", "createdAt"]} />
+                <DataTable title="Furniture Assistance" icon={<Sofa className="w-5 h-5 text-yellow-400" />} data={furnitureAssistance} columns={["firstName", "lastName", "email", "phone", "branch", "serviceStatus", "homeStatus", "expectedCloseDate", "homeLocation", "additionalInfo", "status", "createdAt"]} />
               </TabsContent>
               <TabsContent value="contact">
-                <DataTable title="General Contact" icon={<Mail className="w-5 h-5 text-gray-400" />} data={generalContact} columns={["name", "email", "phone", "subject", "status", "createdAt"]} />
+                <DataTable title="General Contact" icon={<Mail className="w-5 h-5 text-gray-400" />} data={generalContact} columns={["name", "email", "phone", "subject", "message", "status", "createdAt"]} />
               </TabsContent>
               <TabsContent value="business-leads-tab">
-                <DataTable title="Business Leads" icon={<Building className="w-5 h-5 text-green-400" />} data={businessLeads} columns={["businessName", "contactName", "email", "phone", "leadType", "status", "createdAt"]} />
+                <DataTable title="Business Leads" icon={<Building className="w-5 h-5 text-green-400" />} data={businessLeads} columns={["businessName", "contactName", "email", "phone", "leadType", "industry", "notes", "status", "createdAt"]} />
               </TabsContent>
             </Tabs>
           </TabsContent>
