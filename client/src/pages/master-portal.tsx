@@ -400,6 +400,11 @@ export default function MasterPortal() {
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
   });
 
+  // Safety: normalize arrays to prevent "Cannot read properties of undefined" errors
+  const affiliateFilesSafe: AffiliateFile[] = Array.isArray(affiliateFiles) ? affiliateFiles : [];
+  const scheduleASignaturesSafe = Array.isArray(scheduleASignatures) ? scheduleASignatures : [];
+  const ndaFiles = affiliateFilesSafe.filter((af) => Boolean(af.nda));
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
@@ -927,8 +932,8 @@ export default function MasterPortal() {
           <TabsContent value="files" className="mt-6">
             <Tabs defaultValue="signed-ndas" className="w-full">
               <TabsList className="bg-black/20 border border-white/10 mb-4">
-                <TabsTrigger value="signed-ndas" className="data-[state=active]:bg-brand-navy text-gray-400">Signed NDAs ({affiliateFiles.filter((af: AffiliateFile) => af.nda).length})</TabsTrigger>
-                <TabsTrigger value="schedule-a-sub" className="data-[state=active]:bg-brand-navy text-gray-400">Schedule A ({scheduleASignatures.length})</TabsTrigger>
+                <TabsTrigger value="signed-ndas" className="data-[state=active]:bg-brand-navy text-gray-400">Signed NDAs ({ndaFiles.length})</TabsTrigger>
+                <TabsTrigger value="schedule-a-sub" className="data-[state=active]:bg-brand-navy text-gray-400">Schedule A ({scheduleASignaturesSafe.length})</TabsTrigger>
               </TabsList>
               <TabsContent value="signed-ndas">
                 <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
@@ -979,7 +984,7 @@ export default function MasterPortal() {
                       <p className="font-bold">Error loading signed NDAs</p>
                       <p className="text-sm mt-2">{(filesError as Error).message}</p>
                     </div>
-                  ) : affiliateFiles.filter((af: AffiliateFile) => af.nda).length === 0 ? (
+                  ) : ndaFiles.length === 0 ? (
                     <div className="p-8 text-center text-gray-400">
                       No signed NDAs found.
                     </div>
@@ -996,7 +1001,7 @@ export default function MasterPortal() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-white/10">
-                          {affiliateFiles.filter((af: AffiliateFile) => af.nda).map((affiliate: AffiliateFile) => (
+                          {ndaFiles.map((affiliate: AffiliateFile) => (
                             <tr key={affiliate.id} className="hover:bg-white/5">
                               <td className="px-4 py-3 text-sm text-white font-medium">{affiliate.nda?.fullName || affiliate.name}</td>
                               <td className="px-4 py-3 text-sm text-gray-300">{affiliate.email}</td>
@@ -1039,12 +1044,12 @@ export default function MasterPortal() {
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border-b border-white/10" data-testid="schedule-a-stats">
                 <div className="bg-black/30 rounded-lg p-4 text-center">
-                  <div className="text-3xl font-bold text-green-400" data-testid="stat-schedule-a-total">{scheduleASignatures.length}</div>
+                  <div className="text-3xl font-bold text-green-400" data-testid="stat-schedule-a-total">{scheduleASignaturesSafe.length}</div>
                   <div className="text-sm text-gray-400">Total Signatures</div>
                 </div>
                 <div className="bg-black/30 rounded-lg p-4 text-center">
                   <div className="text-3xl font-bold text-blue-400" data-testid="stat-schedule-a-30days">
-                    {scheduleASignatures.filter((s: any) => {
+                    {scheduleASignaturesSafe.filter((s: any) => {
                       const signedDate = new Date(s.signedAt);
                       const thirtyDaysAgo = new Date();
                       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -1055,7 +1060,7 @@ export default function MasterPortal() {
                 </div>
                 <div className="bg-black/30 rounded-lg p-4 text-center">
                   <div className="text-3xl font-bold text-purple-400" data-testid="stat-schedule-a-7days">
-                    {scheduleASignatures.filter((s: any) => {
+                    {scheduleASignaturesSafe.filter((s: any) => {
                       const signedDate = new Date(s.signedAt);
                       const sevenDaysAgo = new Date();
                       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -1075,7 +1080,7 @@ export default function MasterPortal() {
                   <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
                   <p className="text-gray-400 mt-4">Loading signatures...</p>
                 </div>
-              ) : scheduleASignatures.length === 0 ? (
+              ) : scheduleASignaturesSafe.length === 0 ? (
                 <div className="p-8 text-center text-gray-400">
                   No Schedule A signatures yet.
                 </div>
@@ -1092,7 +1097,7 @@ export default function MasterPortal() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/10" data-testid="schedule-a-table-body">
-                      {scheduleASignatures.map((sig: any) => (
+                      {scheduleASignaturesSafe.map((sig: any) => (
                         <tr key={sig.id} className="hover:bg-white/5" data-testid={`row-schedule-a-${sig.id}`}>
                           <td className="p-3 text-white font-medium" data-testid={`text-schedule-a-name-${sig.id}`}>{sig.affiliateName}</td>
                           <td className="p-3 text-gray-400" data-testid={`text-schedule-a-email-${sig.id}`}>{sig.affiliateEmail}</td>
