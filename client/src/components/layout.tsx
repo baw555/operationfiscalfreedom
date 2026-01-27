@@ -208,7 +208,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
                 location.startsWith("/master-portal") ? "text-brand-red border-brand-red" : "text-brand-navy"
               )}>
-                Portal
+                Admin
             </Link>
             <Link href="/stress-test" className={cn(
                 "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
@@ -339,7 +339,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
               onClick={() => setMobileMenuOpen(false)}
             >
-              Portal
+              Admin
             </Link>
             <Link 
               href="/stress-test" 
