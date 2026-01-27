@@ -281,12 +281,23 @@ export async function registerRoutes(
     vgift_cards: "https://ptogiftcardprogram.com/navigator-usa-virtual-gift-cards/?group="
   };
 
+  // Zod schema for finops track-click validation
+  const trackClickSchema = z.object({
+    partnerType: z.enum(["my_locker", "merchant_services", "vgift_cards"]),
+    referralCode: z.string().optional().nullable()
+  });
+
   // Track finops partner click and redirect
   app.post("/api/finops/track-click", async (req, res) => {
     try {
-      const { partnerType, referralCode } = req.body;
+      const validationResult = trackClickSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ message: "Invalid request body", errors: validationResult.error.errors });
+      }
       
-      if (!partnerType || !FINOPS_PARTNER_URLS[partnerType]) {
+      const { partnerType, referralCode } = validationResult.data;
+      
+      if (!FINOPS_PARTNER_URLS[partnerType]) {
         return res.status(400).json({ message: "Invalid partner type" });
       }
       
@@ -326,14 +337,14 @@ export async function registerRoutes(
     }
   });
 
-  // Get all finops referrals (admin only)
+  // Get all finops referrals (admin/master only)
   app.get("/api/admin/finops-referrals", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     
     const user = await storage.getUser(req.session.userId);
-    if (!user || user.role !== "admin") {
+    if (!user || (user.role !== "admin" && user.role !== "master")) {
       return res.status(403).json({ message: "Admin access required" });
     }
     
@@ -357,14 +368,14 @@ export async function registerRoutes(
     }
   });
 
-  // Update finops referral status (admin only)
+  // Update finops referral status (admin/master only)
   app.patch("/api/admin/finops-referrals/:id", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     
     const user = await storage.getUser(req.session.userId);
-    if (!user || user.role !== "admin") {
+    if (!user || (user.role !== "admin" && user.role !== "master")) {
       return res.status(403).json({ message: "Admin access required" });
     }
     

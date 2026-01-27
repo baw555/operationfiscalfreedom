@@ -45,9 +45,24 @@ export default function AdminDashboard() {
   const [showAffiliateModal, setShowAffiliateModal] = useState(false);
   const [newAffiliate, setNewAffiliate] = useState({ name: "", email: "", password: "" });
 
-  // Auth bypassed - direct access enabled
-  const authData = { user: { id: 1, name: "Admin", role: "admin" } };
-  const authLoading = false;
+  // Proper authentication check
+  const { data: authData, isLoading: authLoading } = useQuery({
+    queryKey: ["/api/auth/me"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    retry: 3,
+    retryDelay: 500,
+  });
+
+  // Redirect to login if not authenticated or not admin/master
+  useEffect(() => {
+    if (!authLoading && (!authData?.user || (authData.user.role !== "admin" && authData.user.role !== "master"))) {
+      setLocation("/admin/login");
+    }
+  }, [authData, authLoading, setLocation]);
 
   // Fetch data - existing
   const { data: applications = [] } = useQuery({
@@ -312,6 +327,15 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-xl text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render dashboard if not authorized (will redirect via useEffect)
+  if (!authData?.user || (authData.user.role !== "admin" && authData.user.role !== "master")) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-xl text-gray-600">Redirecting to login...</div>
       </div>
     );
   }
