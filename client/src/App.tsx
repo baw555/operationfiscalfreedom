@@ -67,6 +67,7 @@ const DownloadFedExRates = lazy(() => import("@/pages/download-fedex-rates"));
 const DownloadUPSRates = lazy(() => import("@/pages/download-ups-rates"));
 const FinOp = lazy(() => import("@/pages/fin-op"));
 const StressTest = lazy(() => import("@/pages/stress-test"));
+const JobPlacement = lazy(() => import("@/pages/job-placement"));
 
 // Disability Rating pages
 const DisabilityInitial = lazy(() => import("@/pages/disability-rating/initial"));
@@ -285,6 +286,7 @@ function Router() {
         <Route path="/affiliate/nda" component={AffiliateNda} />
         <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
         <Route path="/stress-test" component={StressTest} />
+        <Route path="/job-placement" component={JobPlacement} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

@@ -25,7 +25,8 @@ import {
   insertContractTemplateSchema,
   insertSignedAgreementSchema,
   insertBusinessLeadSchema,
-  insertDisabilityReferralSchema
+  insertDisabilityReferralSchema,
+  insertJobPlacementIntakeSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -434,6 +435,74 @@ export async function registerRoutes(
       }
       console.error("Error creating disability referral:", error);
       res.status(500).json({ message: "Failed to submit referral" });
+    }
+  });
+
+  // Submit job placement intake (public endpoint)
+  app.post("/api/job-placement-intakes", async (req, res) => {
+    try {
+      const data = insertJobPlacementIntakeSchema.parse(req.body);
+      
+      // Look up affiliate by referral code if provided
+      let affiliateId: number | undefined;
+      if (data.referralCode) {
+        const affiliate = await storage.getUserByReferralCode(data.referralCode);
+        if (affiliate) {
+          affiliateId = affiliate.id;
+        }
+      }
+      
+      const intake = await storage.createJobPlacementIntake({
+        ...data,
+        affiliateId,
+      });
+      
+      console.log(`[job-placement] New ${data.intakeType} intake - ref: ${data.referralCode || 'direct'}, email: ${data.email}`);
+      
+      res.status(201).json({ 
+        message: "Application submitted successfully", 
+        id: intake.id 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid form data", errors: error.errors });
+      }
+      console.error("Error creating job placement intake:", error);
+      res.status(500).json({ message: "Failed to submit application" });
+    }
+  });
+
+  // Get all job placement intakes (admin/master only)
+  app.get("/api/admin/job-placement-intakes", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const intakes = await storage.getAllJobPlacementIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching job placement intakes:", error);
+      res.status(500).json({ message: "Failed to fetch intakes" });
+    }
+  });
+
+  // Update job placement intake (admin/master only)
+  app.patch("/api/admin/job-placement-intakes/:id", async (req, res) => {
+    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateJobPlacementIntake(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Intake not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating job placement intake:", error);
+      res.status(500).json({ message: "Failed to update intake" });
     }
   });
 

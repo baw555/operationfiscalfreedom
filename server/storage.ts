@@ -23,7 +23,8 @@ import {
   ipReferralTracking, type IpReferralTracking, type InsertIpReferralTracking,
   affiliateW9, type AffiliateW9, type InsertAffiliateW9,
   finopsReferrals, type FinopsReferral, type InsertFinopsReferral,
-  disabilityReferrals, type DisabilityReferral, type InsertDisabilityReferral
+  disabilityReferrals, type DisabilityReferral, type InsertDisabilityReferral,
+  jobPlacementIntakes, type JobPlacementIntake, type InsertJobPlacementIntake
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -962,6 +963,35 @@ export class DatabaseStorage implements IStorage {
     }
     
     return { total: all.length, byType, byStatus };
+  }
+
+  // Job Placement Intakes
+  async createJobPlacementIntake(intake: InsertJobPlacementIntake): Promise<JobPlacementIntake> {
+    const [created] = await db.insert(jobPlacementIntakes).values(intake).returning();
+    return created;
+  }
+
+  async getJobPlacementIntake(id: number): Promise<JobPlacementIntake | undefined> {
+    const [intake] = await db.select().from(jobPlacementIntakes).where(eq(jobPlacementIntakes.id, id));
+    return intake || undefined;
+  }
+
+  async getAllJobPlacementIntakes(): Promise<JobPlacementIntake[]> {
+    return db.select().from(jobPlacementIntakes).orderBy(desc(jobPlacementIntakes.createdAt));
+  }
+
+  async getJobPlacementIntakesByAffiliate(affiliateId: number): Promise<JobPlacementIntake[]> {
+    return db.select().from(jobPlacementIntakes)
+      .where(eq(jobPlacementIntakes.affiliateId, affiliateId))
+      .orderBy(desc(jobPlacementIntakes.createdAt));
+  }
+
+  async updateJobPlacementIntake(id: number, updates: Partial<JobPlacementIntake>): Promise<JobPlacementIntake | undefined> {
+    const [updated] = await db.update(jobPlacementIntakes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(jobPlacementIntakes.id, id))
+      .returning();
+    return updated || undefined;
   }
 }
 

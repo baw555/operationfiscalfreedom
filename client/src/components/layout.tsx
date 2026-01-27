@@ -73,6 +73,7 @@ const finOpsSubItems = [
   { name: "vGift Cards", href: "/vgift-cards" },
   { name: "Veteran Logistics", href: "/shipping" },
   { name: "Veteran Led Tax Solutions", href: "/veteran-led-tax" },
+  { name: "Job Placement", href: "/job-placement" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {

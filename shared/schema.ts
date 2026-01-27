@@ -794,3 +794,51 @@ export const insertDisabilityReferralSchema = createInsertSchema(disabilityRefer
 
 export type InsertDisabilityReferral = z.infer<typeof insertDisabilityReferralSchema>;
 export type DisabilityReferral = typeof disabilityReferrals.$inferSelect;
+
+// Job Placement Intakes - for affiliates and veterans seeking job opportunities
+export const jobPlacementIntakes = pgTable("job_placement_intakes", {
+  id: serial("id").primaryKey(),
+  // Affiliate tracking
+  affiliateId: integer("affiliate_id").references(() => users.id),
+  referralCode: text("referral_code"),
+  // Intake type
+  intakeType: text("intake_type").notNull(), // job_seeker, business_referral
+  // Personal info
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  // Veteran status (for job seekers)
+  isVeteran: text("is_veteran"), // yes, no
+  branchOfService: text("branch_of_service"),
+  // Industries selected (stored as comma-separated or JSON)
+  industriesSelected: text("industries_selected").notNull(), // JSON array of selected industries
+  // Business info (for business referrals)
+  businessName: text("business_name"),
+  businessType: text("business_type"),
+  businessWebsite: text("business_website"),
+  hiringNeeds: text("hiring_needs"),
+  // Additional info
+  experience: text("experience"),
+  preferredLocation: text("preferred_location"),
+  additionalNotes: text("additional_notes"),
+  // Status tracking
+  status: text("status").notNull().default("new"), // new, contacted, in_progress, placed, closed
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("notes"),
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertJobPlacementIntakeSchema = createInsertSchema(jobPlacementIntakes).omit({
+  id: true,
+  status: true,
+  assignedTo: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertJobPlacementIntake = z.infer<typeof insertJobPlacementIntakeSchema>;
+export type JobPlacementIntake = typeof jobPlacementIntakes.$inferSelect;
