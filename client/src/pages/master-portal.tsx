@@ -925,111 +925,104 @@ export default function MasterPortal() {
 
           {/* Documents Tab */}
           <TabsContent value="files" className="mt-6">
-            <Tabs defaultValue="folders" className="w-full">
+            <Tabs defaultValue="signed-ndas" className="w-full">
               <TabsList className="bg-black/20 border border-white/10 mb-4">
-                <TabsTrigger value="folders" className="data-[state=active]:bg-brand-navy text-gray-400">Affiliate Folders ({affiliateFiles.length})</TabsTrigger>
+                <TabsTrigger value="signed-ndas" className="data-[state=active]:bg-brand-navy text-gray-400">Signed NDAs ({affiliateFiles.filter((af: AffiliateFile) => af.nda).length})</TabsTrigger>
                 <TabsTrigger value="schedule-a-sub" className="data-[state=active]:bg-brand-navy text-gray-400">Schedule A ({scheduleASignatures.length})</TabsTrigger>
               </TabsList>
-              <TabsContent value="folders">
+              <TabsContent value="signed-ndas">
                 <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
                   <div className="p-4 border-b border-white/10 bg-black/20 flex items-center justify-between">
                     <div>
                       <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                        <FolderOpen className="w-5 h-5 text-brand-red" />
-                        Affiliate Document Folders
+                        <FileSignature className="w-5 h-5 text-brand-red" />
+                        Signed NDAs
                       </h2>
                       <p className="text-sm text-gray-400 mt-1">
-                        View complete document packages for each affiliate
+                        All affiliate NDA agreements with PDF download
                       </p>
                     </div>
-                    <Button
-                      onClick={() => queryClient.invalidateQueries({ queryKey: ["master-affiliate-files"] })}
-                      variant="outline"
-                      size="sm"
-                      className="border-white/20 text-white hover:bg-white/10"
-                      data-testid="button-refresh-documents"
-                    >
-                      <RefreshCw className={`w-4 h-4 mr-2 ${filesLoading ? 'animate-spin' : ''}`} />
-                      Refresh
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="password"
+                        placeholder="Security key for PDFs"
+                        value={pdfSecurityKey}
+                        onChange={(e) => setPdfSecurityKey(e.target.value)}
+                        className="w-48 bg-black/30 border-white/20 text-white text-sm"
+                        data-testid="input-nda-security-key"
+                      />
+                      <Button
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ["master-affiliate-files"] })}
+                        variant="outline"
+                        size="sm"
+                        className="border-white/20 text-white hover:bg-white/10"
+                        data-testid="button-refresh-ndas"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${filesLoading ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </div>
                   </div>
 
-                  {filesLoading ? (
-                <div className="p-8 text-center">
-                  <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
-                  <p className="text-gray-400 mt-4">Loading affiliate files...</p>
-                </div>
-              ) : filesError ? (
-                <div className="p-8 text-center text-red-400">
-                  <p className="font-bold">Error loading affiliate documents</p>
-                  <p className="text-sm mt-2">{(filesError as Error).message}</p>
-                </div>
-              ) : affiliateFiles.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
-                  No affiliate documents found. Affiliates must complete their NDA, contracts, or W9 forms to appear here.
-                </div>
-              ) : (
-                <div className="divide-y divide-white/10">
-                  {affiliateFiles.map((affiliate) => (
-                    <div 
-                      key={affiliate.id}
-                      className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-brand-navy rounded-lg flex items-center justify-center">
-                          <FolderOpen className="w-6 h-6 text-brand-red" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-white">{affiliate.name}</h3>
-                          <p className="text-sm text-gray-400">{affiliate.email}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        {/* Document status indicators */}
-                        <div className="flex items-center gap-2 mr-4">
-                          {affiliate.nda?.facePhoto && (
-                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title="Face Photo">
-                              <Camera className="w-4 h-4 text-green-500" />
-                            </div>
-                          )}
-                          {affiliate.nda?.idPhoto && (
-                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title="ID Photo">
-                              <IdCard className="w-4 h-4 text-green-500" />
-                            </div>
-                          )}
-                          {affiliate.nda && (
-                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title="NDA Signed">
-                              <FileSignature className="w-4 h-4 text-green-500" />
-                            </div>
-                          )}
-                          {affiliate.contracts && affiliate.contracts.length > 0 && (
-                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title={`${affiliate.contracts.length} Contract(s)`}>
-                              <ClipboardCheck className="w-4 h-4 text-green-500" />
-                            </div>
-                          )}
-                          {affiliate.w9 && (
-                            <div className="w-8 h-8 bg-green-600/20 rounded flex items-center justify-center" title="W9 Submitted">
-                              <Receipt className="w-4 h-4 text-green-500" />
-                            </div>
-                          )}
-                        </div>
-
-                        <Button
-                          onClick={() => viewAffiliateFolder(affiliate)}
-                          className="bg-brand-red hover:bg-brand-red/90"
-                          data-testid={`button-view-folder-${affiliate.id}`}
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Folder
-                          <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
-                      </div>
+                  {pdfDownloadError && (
+                    <div className="p-3 bg-red-500/20 border-b border-red-500/30 text-red-400 text-sm text-center">
+                      {pdfDownloadError}
                     </div>
-                  ))}
+                  )}
+
+                  {filesLoading ? (
+                    <div className="p-8 text-center">
+                      <div className="animate-spin w-8 h-8 border-4 border-brand-red border-t-transparent rounded-full mx-auto"></div>
+                      <p className="text-gray-400 mt-4">Loading signed NDAs...</p>
+                    </div>
+                  ) : filesError ? (
+                    <div className="p-8 text-center text-red-400">
+                      <p className="font-bold">Error loading signed NDAs</p>
+                      <p className="text-sm mt-2">{(filesError as Error).message}</p>
+                    </div>
+                  ) : affiliateFiles.filter((af: AffiliateFile) => af.nda).length === 0 ? (
+                    <div className="p-8 text-center text-gray-400">
+                      No signed NDAs found.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-black/30">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Name</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Email</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Address</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Signed</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Download</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/10">
+                          {affiliateFiles.filter((af: AffiliateFile) => af.nda).map((affiliate: AffiliateFile) => (
+                            <tr key={affiliate.id} className="hover:bg-white/5">
+                              <td className="px-4 py-3 text-sm text-white font-medium">{affiliate.nda?.fullName || affiliate.name}</td>
+                              <td className="px-4 py-3 text-sm text-gray-300">{affiliate.email}</td>
+                              <td className="px-4 py-3 text-sm text-gray-400 max-w-xs truncate">{affiliate.nda?.address || '-'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-400">
+                                {affiliate.nda?.signedAt ? new Date(affiliate.nda.signedAt).toLocaleDateString() : '-'}
+                              </td>
+                              <td className="px-4 py-3">
+                                <Button
+                                  size="sm"
+                                  onClick={() => downloadNdaPdf(affiliate.nda!.id, affiliate.nda!.fullName)}
+                                  disabled={isDownloadingPdf || !pdfSecurityKey}
+                                  className="bg-brand-red hover:bg-red-700 text-white"
+                                  data-testid={`btn-download-nda-${affiliate.id}`}
+                                >
+                                  <FileDown className="w-4 h-4 mr-1" />
+                                  PDF
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
-              )}
-              </div>
               </TabsContent>
               <TabsContent value="schedule-a-sub">
                 <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
