@@ -64,7 +64,6 @@ const disabilityRatingSubItems = [
   { name: "Denial", href: "/disability-rating/denial" },
   { name: "SSDI", href: "/disability-rating/ssdi" },
   { name: "Widow(er)", href: "/disability-rating/widow" },
-  { name: "Refer & Earn", href: "/disability-rating/refer-earn" },
 ];
 
 const finOpsSubItems = [
