@@ -63,11 +63,11 @@ const aboutSubItems = [
 ];
 
 const disabilityRatingSubItems = [
-  { name: "Initial", href: "/disability-rating/initial" },
-  { name: "Increase", href: "/disability-rating/increase" },
-  { name: "Denial", href: "/disability-rating/denial" },
+  { name: "VA Rating: Initial", href: "/disability-rating/initial" },
+  { name: "VA Rating: Increase", href: "/disability-rating/increase" },
+  { name: "VA Rating: Denial", href: "/disability-rating/denial" },
   { name: "SSDI", href: "/disability-rating/ssdi" },
-  { name: "Widow(er)", href: "/disability-rating/widow" },
+  { name: "VA Rating: Widow(er)", href: "/disability-rating/widow" },
 ];
 
 const finOpsSubItems = [
