@@ -49,7 +49,11 @@ function AnimatedNavigatorUSA({ variant = "topbar" }: { variant?: "topbar" | "na
 
 const navItems = [
   { name: "Home", href: "/" },
-  { name: "Vet-Biz-Owners", href: "/businesses" },
+];
+
+const businessSubItems = [
+  { name: "Business Overview", href: "/businesses" },
+  { name: "Job Placement", href: "/job-placement" },
 ];
 
 const aboutSubItems = [
@@ -73,7 +77,6 @@ const finOpsSubItems = [
   { name: "vGift Cards", href: "/vgift-cards" },
   { name: "Veteran Logistics", href: "/shipping" },
   { name: "Veteran Led Tax Solutions", href: "/veteran-led-tax" },
-  { name: "Job Placement", href: "/job-placement" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -85,6 +88,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
   const [mobileDisabilityOpen, setMobileDisabilityOpen] = useState(false);
   const [mobileFinOpsOpen, setMobileFinOpsOpen] = useState(false);
+  const [businessOpen, setBusinessOpen] = useState(false);
+  const [mobileBusinessOpen, setMobileBusinessOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
@@ -199,18 +204,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            <Link href="/businesses" className={cn(
-                "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
-                location === "/businesses" ? "text-brand-red border-brand-red" : "text-brand-navy"
-              )}>
-                Vet-Biz-Owners
-            </Link>
-            <Link href="/stress-test" className={cn(
-                "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap",
-                location.startsWith("/stress-test") ? "text-brand-red border-brand-red" : "text-brand-navy"
-              )}>
-                Stress Test
-            </Link>
+            <div className="relative" onMouseEnter={() => setBusinessOpen(true)} onMouseLeave={() => setBusinessOpen(false)}>
+              <button className={cn(
+                  "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location === "/businesses" || location === "/job-placement" ? "text-brand-red border-brand-red" : "text-brand-navy"
+                )}>
+                  Business <ChevronDown className={cn("w-4 h-4 transition-transform", businessOpen && "rotate-180")} />
+              </button>
+              {businessOpen && (
+                <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                  {businessSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className={cn(
+                        "block px-4 py-2 text-sm font-bold hover:bg-brand-red hover:text-white transition-colors cursor-pointer",
+                        location === item.href ? "text-brand-red bg-brand-red/10" : "text-brand-navy"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* CTA Buttons - INTENSE */}
@@ -325,20 +342,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            <Link 
-              href="/businesses" 
-              className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Vet-Biz-Owners
-            </Link>
-            <Link 
-              href="/stress-test" 
-              className="text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 block cursor-pointer touch-manipulation min-h-[44px] flex items-center active:bg-brand-red/10 border-l-4 border-transparent hover:border-brand-red" 
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Stress Test
-            </Link>
+            <div className={cn("border-l-4", mobileBusinessOpen ? "border-brand-red" : "border-transparent")}>
+              <button 
+                className="w-full text-left text-brand-navy font-bold uppercase tracking-wider hover:text-brand-red py-3 px-2 cursor-pointer touch-manipulation min-h-[44px] flex items-center justify-between active:bg-brand-red/10" 
+                onClick={() => setMobileBusinessOpen(!mobileBusinessOpen)}
+              >
+                Business <ChevronDown className={cn("w-4 h-4 transition-transform", mobileBusinessOpen && "rotate-180")} />
+              </button>
+              {mobileBusinessOpen && (
+                <div className="pl-4 pb-2 bg-gray-50 rounded">
+                  {businessSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className="text-brand-navy font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-brand-red active:bg-brand-red/10 border-b border-gray-200 last:border-0" 
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="h-px bg-brand-navy/20 my-2" />
             <Link 
               href="/affiliate" 
