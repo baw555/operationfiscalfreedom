@@ -59,6 +59,8 @@ const MyLocker = lazy(() => import("@/pages/my-locker"));
 const VGiftCards = lazy(() => import("@/pages/vgift-cards"));
 const Shipping = lazy(() => import("@/pages/shipping"));
 const Insurance = lazy(() => import("@/pages/insurance"));
+const MedicalSales = lazy(() => import("@/pages/medical-sales"));
+const BusinessDevelopment = lazy(() => import("@/pages/business-development"));
 const LogisticsOverview = lazy(() => import("@/pages/logistics-overview"));
 const BestPractices = lazy(() => import("@/pages/best-practices"));
 const DownloadParcelChecklist = lazy(() => import("@/pages/download-parcel-checklist"));
@@ -194,6 +196,8 @@ function Router() {
         
         <Route path="/shipping" component={Shipping} />
         <Route path="/insurance" component={Insurance} />
+        <Route path="/medical-sales" component={MedicalSales} />
+        <Route path="/business-development" component={BusinessDevelopment} />
         <Route path="/logistics-overview" component={LogisticsOverview} />
         <Route path="/best-practices" component={BestPractices} />
         <Route path="/download/parcel-checklist" component={DownloadParcelChecklist} />

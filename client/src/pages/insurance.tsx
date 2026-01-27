@@ -373,17 +373,86 @@ export default function Insurance() {
         </div>
       </section>
 
-      {/* Partner Logos */}
-      <section className="py-8 bg-gray-100 border-t">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-gray-500 mb-4">Trusted by leading insurance providers</p>
-          <div className="flex flex-wrap justify-center gap-8 text-gray-400">
-            <span className="font-semibold">UNUM</span>
-            <span className="font-semibold">Principal</span>
-            <span className="font-semibold">Symetra</span>
-            <span className="font-semibold">The Standard</span>
-            <span className="font-semibold">Sun Life</span>
-            <span className="font-semibold">The Hartford</span>
+      {/* KeyArx Direct Carriers Section */}
+      <section className="py-12 bg-brand-navy text-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-display mb-3">Direct Provider Partnerships</h2>
+            <p className="text-gray-300 max-w-2xl mx-auto">
+              Through our KeyArx partnership, we work directly with 6 top-rated insurance carriers - eliminating middleman costs and passing savings to you.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            {/* UNUM */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
+              <h3 className="font-bold text-lg text-brand-gold mb-2">UNUM</h3>
+              <div className="text-sm space-y-1">
+                <p><span className="text-gray-400">AM Best:</span> A (Excellent)</p>
+                <p><span className="text-gray-400">Fitch:</span> A (Stable)</p>
+                <p><span className="text-gray-400">Est:</span> 1848</p>
+                <p className="text-xs text-gray-400 mt-2">First U.S. disability insurer (1939). 175+ years in business.</p>
+              </div>
+            </div>
+            
+            {/* Principal */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-brand-gold">
+              <h3 className="font-bold text-lg text-brand-gold mb-2">Principal Financial</h3>
+              <div className="text-sm space-y-1">
+                <p><span className="text-gray-400">AM Best:</span> A+ (Superior)</p>
+                <p><span className="text-gray-400">S&P:</span> A+</p>
+                <p><span className="text-gray-400">Est:</span> 1879</p>
+                <p className="text-xs text-gray-400 mt-2">Fortune 500. #11 JUST 100 list. 68M+ customers globally.</p>
+              </div>
+            </div>
+            
+            {/* Symetra */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
+              <h3 className="font-bold text-lg text-brand-gold mb-2">Symetra</h3>
+              <div className="text-sm space-y-1">
+                <p><span className="text-gray-400">AM Best:</span> A (Excellent)</p>
+                <p><span className="text-gray-400">NAIC Index:</span> 0.18</p>
+                <p><span className="text-gray-400">Est:</span> 1957</p>
+                <p className="text-xs text-gray-400 mt-2">Below-average complaint ratio. Quick 18-min approvals.</p>
+              </div>
+            </div>
+            
+            {/* The Standard */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
+              <h3 className="font-bold text-lg text-brand-gold mb-2">The Standard</h3>
+              <div className="text-sm space-y-1">
+                <p><span className="text-gray-400">AM Best:</span> A (Excellent)</p>
+                <p><span className="text-gray-400">Est:</span> 1906</p>
+                <p className="text-xs text-gray-400 mt-2">Group disability & life specialist. 118+ years in business.</p>
+              </div>
+            </div>
+            
+            {/* Sun Life */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
+              <h3 className="font-bold text-lg text-brand-gold mb-2">Sun Life</h3>
+              <div className="text-sm space-y-1">
+                <p><span className="text-gray-400">AM Best:</span> A+ (Superior)</p>
+                <p><span className="text-gray-400">Est:</span> 1865</p>
+                <p className="text-xs text-gray-400 mt-2">Global leader. 159+ years. Strong dental & vision coverage.</p>
+              </div>
+            </div>
+            
+            {/* The Hartford */}
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
+              <h3 className="font-bold text-lg text-brand-gold mb-2">The Hartford</h3>
+              <div className="text-sm space-y-1">
+                <p><span className="text-gray-400">AM Best:</span> A+ (Superior)</p>
+                <p><span className="text-gray-400">S&P:</span> AA-</p>
+                <p><span className="text-gray-400">Est:</span> 1810</p>
+                <p className="text-xs text-gray-400 mt-2">Oldest U.S. insurer. 215+ years. Fortune 500.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-8">
+            <p className="text-sm text-gray-400">
+              Partnership powered by <a href="https://keyarx.com" target="_blank" rel="noopener noreferrer" className="text-brand-gold hover:underline">KeyArx Group</a> - 34+ years of provider-direct insurance expertise
+            </p>
           </div>
         </div>
       </section>

@@ -28,7 +28,9 @@ import {
   insertDisabilityReferralSchema,
   insertJobPlacementIntakeSchema,
   insertScheduleASignatureSchema,
-  insertInsuranceIntakeSchema
+  insertInsuranceIntakeSchema,
+  insertMedicalSalesIntakeSchema,
+  insertBusinessDevIntakeSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -3407,6 +3409,94 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating insurance intake:", error);
       res.status(500).json({ message: "Failed to update insurance intake" });
+    }
+  });
+
+  // Medical Sales Intake Routes
+  app.post("/api/medical-sales-intakes", async (req, res) => {
+    try {
+      const validatedData = insertMedicalSalesIntakeSchema.parse(req.body);
+      const intake = await storage.createMedicalSalesIntake(validatedData);
+      res.json({ success: true, intake });
+    } catch (error) {
+      console.error("Error creating medical sales intake:", error);
+      res.status(500).json({ message: "Failed to submit medical sales inquiry" });
+    }
+  });
+
+  app.get("/api/admin/medical-sales-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllMedicalSalesIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching medical sales intakes:", error);
+      res.status(500).json({ message: "Failed to fetch medical sales intakes" });
+    }
+  });
+
+  app.patch("/api/admin/medical-sales-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const intake = await storage.updateMedicalSalesIntake(id, updates);
+      res.json(intake);
+    } catch (error) {
+      console.error("Error updating medical sales intake:", error);
+      res.status(500).json({ message: "Failed to update medical sales intake" });
+    }
+  });
+
+  app.get("/api/affiliate/medical-sales-intakes", requireAffiliate, async (req, res) => {
+    try {
+      const intakes = await storage.getMedicalSalesIntakesByAffiliate(req.session.userId!);
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching affiliate medical sales intakes:", error);
+      res.status(500).json({ message: "Failed to fetch medical sales intakes" });
+    }
+  });
+
+  // Business Development Intake Routes
+  app.post("/api/business-dev-intakes", async (req, res) => {
+    try {
+      const validatedData = insertBusinessDevIntakeSchema.parse(req.body);
+      const intake = await storage.createBusinessDevIntake(validatedData);
+      res.json({ success: true, intake });
+    } catch (error) {
+      console.error("Error creating business dev intake:", error);
+      res.status(500).json({ message: "Failed to submit business development inquiry" });
+    }
+  });
+
+  app.get("/api/admin/business-dev-intakes", requireAdmin, async (req, res) => {
+    try {
+      const intakes = await storage.getAllBusinessDevIntakes();
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching business dev intakes:", error);
+      res.status(500).json({ message: "Failed to fetch business development intakes" });
+    }
+  });
+
+  app.patch("/api/admin/business-dev-intakes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const intake = await storage.updateBusinessDevIntake(id, updates);
+      res.json(intake);
+    } catch (error) {
+      console.error("Error updating business dev intake:", error);
+      res.status(500).json({ message: "Failed to update business development intake" });
+    }
+  });
+
+  app.get("/api/affiliate/business-dev-intakes", requireAffiliate, async (req, res) => {
+    try {
+      const intakes = await storage.getBusinessDevIntakesByAffiliate(req.session.userId!);
+      res.json(intakes);
+    } catch (error) {
+      console.error("Error fetching affiliate business dev intakes:", error);
+      res.status(500).json({ message: "Failed to fetch business development intakes" });
     }
   });
 

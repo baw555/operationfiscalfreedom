@@ -28,7 +28,9 @@ import {
   vetProfessionalIntakes, type VetProfessionalIntake, type InsertVetProfessionalIntake,
   healthcareIntakes, type HealthcareIntake, type InsertHealthcareIntake,
   scheduleASignatures, type ScheduleASignature, type InsertScheduleASignature,
-  insuranceIntakes, type InsuranceIntake, type InsertInsuranceIntake
+  insuranceIntakes, type InsuranceIntake, type InsertInsuranceIntake,
+  medicalSalesIntakes, type MedicalSalesIntake, type InsertMedicalSalesIntake,
+  businessDevIntakes, type BusinessDevIntake, type InsertBusinessDevIntake
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -224,6 +226,18 @@ export interface IStorage {
   createInsuranceIntake(intake: InsertInsuranceIntake): Promise<InsuranceIntake>;
   getAllInsuranceIntakes(): Promise<InsuranceIntake[]>;
   updateInsuranceIntake(id: number, updates: Partial<InsuranceIntake>): Promise<InsuranceIntake | undefined>;
+
+  // Medical Sales Intakes
+  createMedicalSalesIntake(intake: InsertMedicalSalesIntake): Promise<MedicalSalesIntake>;
+  getAllMedicalSalesIntakes(): Promise<MedicalSalesIntake[]>;
+  getMedicalSalesIntakesByAffiliate(affiliateId: number): Promise<MedicalSalesIntake[]>;
+  updateMedicalSalesIntake(id: number, updates: Partial<MedicalSalesIntake>): Promise<MedicalSalesIntake | undefined>;
+
+  // Business Development Intakes
+  createBusinessDevIntake(intake: InsertBusinessDevIntake): Promise<BusinessDevIntake>;
+  getAllBusinessDevIntakes(): Promise<BusinessDevIntake[]>;
+  getBusinessDevIntakesByAffiliate(affiliateId: number): Promise<BusinessDevIntake[]>;
+  updateBusinessDevIntake(id: number, updates: Partial<BusinessDevIntake>): Promise<BusinessDevIntake | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1085,6 +1099,54 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db.update(insuranceIntakes)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(insuranceIntakes.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Medical Sales Intakes
+  async createMedicalSalesIntake(intake: InsertMedicalSalesIntake): Promise<MedicalSalesIntake> {
+    const [created] = await db.insert(medicalSalesIntakes).values(intake).returning();
+    return created;
+  }
+
+  async getAllMedicalSalesIntakes(): Promise<MedicalSalesIntake[]> {
+    return db.select().from(medicalSalesIntakes).orderBy(desc(medicalSalesIntakes.createdAt));
+  }
+
+  async getMedicalSalesIntakesByAffiliate(affiliateId: number): Promise<MedicalSalesIntake[]> {
+    return db.select().from(medicalSalesIntakes)
+      .where(eq(medicalSalesIntakes.assignedTo, affiliateId))
+      .orderBy(desc(medicalSalesIntakes.createdAt));
+  }
+
+  async updateMedicalSalesIntake(id: number, updates: Partial<MedicalSalesIntake>): Promise<MedicalSalesIntake | undefined> {
+    const [updated] = await db.update(medicalSalesIntakes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(medicalSalesIntakes.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Business Development Intakes
+  async createBusinessDevIntake(intake: InsertBusinessDevIntake): Promise<BusinessDevIntake> {
+    const [created] = await db.insert(businessDevIntakes).values(intake).returning();
+    return created;
+  }
+
+  async getAllBusinessDevIntakes(): Promise<BusinessDevIntake[]> {
+    return db.select().from(businessDevIntakes).orderBy(desc(businessDevIntakes.createdAt));
+  }
+
+  async getBusinessDevIntakesByAffiliate(affiliateId: number): Promise<BusinessDevIntake[]> {
+    return db.select().from(businessDevIntakes)
+      .where(eq(businessDevIntakes.assignedTo, affiliateId))
+      .orderBy(desc(businessDevIntakes.createdAt));
+  }
+
+  async updateBusinessDevIntake(id: number, updates: Partial<BusinessDevIntake>): Promise<BusinessDevIntake | undefined> {
+    const [updated] = await db.update(businessDevIntakes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(businessDevIntakes.id, id))
       .returning();
     return updated || undefined;
   }

@@ -985,3 +985,68 @@ export const insertInsuranceIntakeSchema = createInsertSchema(insuranceIntakes).
 
 export type InsertInsuranceIntake = z.infer<typeof insertInsuranceIntakeSchema>;
 export type InsuranceIntake = typeof insuranceIntakes.$inferSelect;
+
+// Medical Sales Intakes - Track medical equipment/device sales leads
+export const medicalSalesIntakes = pgTable("medical_sales_intakes", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  companyName: text("company_name"),
+  roleType: text("role_type").notNull(), // buyer, seller, referrer
+  productCategory: text("product_category").notNull(), // medical_devices, pharmaceuticals, equipment, supplies, other
+  description: text("description"),
+  referralCode: text("referral_code"),
+  referredBy: integer("referred_by").references(() => users.id),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  status: text("status").notNull().default("new"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertMedicalSalesIntakeSchema = createInsertSchema(medicalSalesIntakes).omit({
+  id: true,
+  assignedTo: true,
+  status: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertMedicalSalesIntake = z.infer<typeof insertMedicalSalesIntakeSchema>;
+export type MedicalSalesIntake = typeof medicalSalesIntakes.$inferSelect;
+
+// Business Development Intakes - Track business development leads
+export const businessDevIntakes = pgTable("business_dev_intakes", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  companyName: text("company_name"),
+  industry: text("industry").notNull(),
+  serviceInterest: text("service_interest").notNull(), // consulting, partnerships, vendor_relations, lead_gen, other
+  businessSize: text("business_size"), // small, medium, enterprise
+  description: text("description"),
+  referralCode: text("referral_code"),
+  referredBy: integer("referred_by").references(() => users.id),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  status: text("status").notNull().default("new"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBusinessDevIntakeSchema = createInsertSchema(businessDevIntakes).omit({
+  id: true,
+  assignedTo: true,
+  status: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertBusinessDevIntake = z.infer<typeof insertBusinessDevIntakeSchema>;
+export type BusinessDevIntake = typeof businessDevIntakes.$inferSelect;
