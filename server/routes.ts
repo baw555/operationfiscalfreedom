@@ -1660,6 +1660,7 @@ export async function registerRoutes(
     try {
       // Get all affiliates
       const affiliates = await storage.getAllAffiliates();
+      console.log("[DEBUG] affiliate-files: Found", affiliates.length, "affiliates");
       
       // Build file packages for each affiliate
       const affiliateFiles = await Promise.all(
@@ -1712,6 +1713,11 @@ export async function registerRoutes(
       const filesWithDocs = affiliateFiles.filter(
         (a) => a.nda || (a.contracts && a.contracts.length > 0) || a.w9
       );
+      
+      console.log("[DEBUG] affiliate-files: Returning", filesWithDocs.length, "affiliates with documents");
+      if (filesWithDocs.length > 0) {
+        console.log("[DEBUG] First affiliate with docs:", JSON.stringify({ id: filesWithDocs[0].id, name: filesWithDocs[0].name, hasNda: !!filesWithDocs[0].nda, hasContracts: !!filesWithDocs[0].contracts }));
+      }
       
       res.json(filesWithDocs);
     } catch (error) {
