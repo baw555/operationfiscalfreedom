@@ -156,6 +156,44 @@
     color: transparent;
     animation: shimmer 3s linear infinite;
   }
+
+  /* Card hover lift effect */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Button hover elevate effect */
+  .hover-elevate {
+    @apply transition-all duration-200 ease-out;
+  }
+  .hover-elevate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.2);
+  }
+  .hover-elevate:active, .active-elevate-2 {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Page fade-in animation */
+  .page-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes shimmer {

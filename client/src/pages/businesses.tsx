@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, TrendingUp, Users, ChevronDown, ChevronUp, Send, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 type LeadFormData = {
   businessName: string;
@@ -33,6 +34,7 @@ function LeadDropdownForm({
 }) {
   const [formData, setFormData] = useState<LeadFormData>(initialFormData);
   const [submitted, setSubmitted] = useState(false);
+  useScrollToTopOnChange(submitted);
 
   const submitMutation = useMutation({
     mutationFn: async (data: LeadFormData & { leadType: string }) => {

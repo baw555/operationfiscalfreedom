@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { HeartPulse, CheckCircle, ShoppingCart, Users, Package } from "lucide-react";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function MedicalSales() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  useScrollToTopOnChange(submitted);
   
   const [formData, setFormData] = useState({
     firstName: "",

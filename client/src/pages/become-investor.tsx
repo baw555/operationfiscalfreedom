@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, TrendingUp, Users, Shield, DollarSign } from "lucide-react";
 import { useLocation } from "wouter";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function BecomeInvestor() {
   const { toast } = useToast();
@@ -24,6 +25,7 @@ export default function BecomeInvestor() {
     investmentRange: "",
     message: "",
   });
+  useScrollToTopOnChange(submitted);
 
   const submitMutation = useMutation({
     mutationFn: async (data: typeof formData) => {

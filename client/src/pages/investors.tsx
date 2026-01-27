@@ -9,11 +9,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { TrendingUp, CheckCircle, Handshake, PiggyBank, Target } from "lucide-react";
 import { useLocation } from "wouter";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function Investors() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
+  useScrollToTopOnChange(submitted);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

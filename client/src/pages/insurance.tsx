@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, CheckCircle, Users, Building2, Briefcase, DollarSign, Heart, Car, Home, FileText } from "lucide-react";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function Insurance() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  useScrollToTopOnChange(submitted);
   
   const [formData, setFormData] = useState({
     firstName: "",

@@ -11,12 +11,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FileText, CheckCircle, DollarSign, Shield, ArrowRight, User, Phone, Mail, MapPin, FileCheck } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function DisabilityIntake() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  useScrollToTopOnChange(submitted);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

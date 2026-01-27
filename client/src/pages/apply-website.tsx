@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function ApplyWebsite() {
   const { toast } = useToast();
@@ -28,6 +29,7 @@ export default function ApplyWebsite() {
     description: "",
     websiteNeeds: "",
   });
+  useScrollToTopOnChange(submitted);
 
   const submitMutation = useMutation({
     mutationFn: async (data: typeof formData) => {

@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Briefcase, Building2, CheckCircle, ArrowRight, Users, Star, Shield } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 const INDUSTRIES = [
   { id: "healthcare", label: "Healthcare & Medical" },
@@ -54,6 +55,7 @@ export default function JobPlacement() {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [referralCode, setReferralCode] = useState<string>("");
+  useScrollToTopOnChange(submitted);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

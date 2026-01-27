@@ -7,6 +7,7 @@ import { Clock, Shield, CheckCircle, AlertTriangle, FileText, Stethoscope } from
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function PrivateDoctor() {
   const { toast } = useToast();
@@ -21,6 +22,7 @@ export default function PrivateDoctor() {
     careType: "",
     situation: "",
   });
+  useScrollToTopOnChange(submitted);
 
   const submitMutation = useMutation({
     mutationFn: async (data: typeof formData) => {

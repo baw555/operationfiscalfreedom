@@ -10,12 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { Home, CheckCircle, DollarSign, Sofa, Heart } from "lucide-react";
 import { useLocation } from "wouter";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function NewHomeFurniture() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  useScrollToTopOnChange(submitted);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

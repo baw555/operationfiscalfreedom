@@ -412,7 +412,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
+      <main className="flex-1 page-fade-in">
         {children}
       </main>
 

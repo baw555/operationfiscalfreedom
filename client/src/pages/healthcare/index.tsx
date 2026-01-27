@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Brain, Dna, Heart, Sparkles, Compass, CheckCircle, ArrowRight, Stethoscope, Users } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Link, useRoute } from "wouter";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 const CATEGORIES = [
   { id: "ptsd", label: "PTSD Treatments", icon: Brain, description: "Combat trauma, anxiety, depression therapies", color: "purple" },
@@ -25,6 +26,7 @@ export default function HealthcarePage() {
   const [category, setCategory] = useState<string>("");
   const [isOfferingServices, setIsOfferingServices] = useState(false);
   const [referralCode, setReferralCode] = useState<string>("");
+  useScrollToTopOnChange(submitted);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

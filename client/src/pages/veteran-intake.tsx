@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Shield, Heart, Activity, DollarSign, CheckCircle } from "lucide-react";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function VeteranIntake() {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ export default function VeteranIntake() {
     notes: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  useScrollToTopOnChange(submitted);
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {

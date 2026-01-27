@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Scale, Shield, Calculator, Stethoscope, CheckCircle, ArrowRight, Users } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 const PROFESSION_TYPES = [
   { id: "attorneys", label: "Attorneys", icon: Scale, description: "Legal professionals serving veterans" },
@@ -22,6 +23,7 @@ export default function VetProfessionals() {
   const [submitted, setSubmitted] = useState(false);
   const [professionType, setProfessionType] = useState<string>("");
   const [referralCode, setReferralCode] = useState<string>("");
+  useScrollToTopOnChange(submitted);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

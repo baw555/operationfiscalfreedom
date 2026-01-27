@@ -3,11 +3,13 @@ import Container from "@/components/Container";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link } from "wouter";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 export default function VLTIntake() {
   const [status, setStatus] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState("");
+  useScrollToTopOnChange(submitted);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

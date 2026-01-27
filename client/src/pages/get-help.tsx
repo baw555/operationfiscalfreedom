@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, Shield, Clock, HeartHandshake, Users } from "lucide-react";
 import { useLocation, Link } from "wouter";
+import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 const helpTypes = [
   { value: "disability_denial", label: "Disability Rating Denial" },
@@ -36,6 +37,7 @@ export default function GetHelp() {
   const [location, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  useScrollToTopOnChange(submitted);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
