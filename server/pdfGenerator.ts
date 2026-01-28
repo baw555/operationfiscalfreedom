@@ -9,6 +9,8 @@ interface CsuContractData {
   signerEmail: string;
   signerPhone?: string | null;
   address?: string | null;
+  initials?: string | null;
+  effectiveDate?: string | null;
   signedAt: string;
   signedIpAddress?: string | null;
   signatureData?: string | null;
@@ -70,9 +72,11 @@ export async function generateCsuContractPdf(data: CsuContractData): Promise<Buf
       // Signer Info
       const sigInfo = [
         ['Full Name:', data.signerName],
+        ['Initials:', data.initials || 'N/A'],
         ['Email:', data.signerEmail],
         ['Phone:', data.signerPhone || 'N/A'],
         ['Address:', data.address || 'N/A'],
+        ['Effective Date:', data.effectiveDate || 'N/A'],
         ['Date Signed:', new Date(data.signedAt).toLocaleString('en-US')],
         ['IP Address:', data.signedIpAddress || 'N/A'],
         ['Agreement ID:', `CSU-${data.agreementId}`]

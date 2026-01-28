@@ -3769,6 +3769,8 @@ export async function registerRoutes(
         signerEmail: z.string().email("Valid email is required"),
         signerPhone: z.string().optional().nullable(),
         address: z.string().optional().nullable(),
+        initials: z.string().min(1, "Initials are required"),
+        effectiveDate: z.string().min(1, "Effective date is required"),
         signatureData: z.string().min(1, "Signature is required"),
         agreedToTerms: z.union([z.boolean(), z.string()]).refine(val => val === true || val === "true", {
           message: "You must agree to the terms"
@@ -3782,7 +3784,7 @@ export async function registerRoutes(
         });
       }
 
-      const { signerName, signerEmail, signerPhone, address, signatureData, agreedToTerms } = validationResult.data;
+      const { signerName, signerEmail, signerPhone, address, initials, effectiveDate, signatureData, agreedToTerms } = validationResult.data;
 
       const contractSend = await storage.getCsuContractSendByToken(token);
       
@@ -3811,6 +3813,8 @@ export async function registerRoutes(
         signerEmail,
         signerPhone: signerPhone || null,
         address: address || null,
+        initials: initials || null,
+        effectiveDate: effectiveDate || null,
         signatureData,
         signedIpAddress,
         agreedToTerms: agreedToTerms === true || agreedToTerms === "true" ? "true" : "false",
@@ -3852,6 +3856,8 @@ export async function registerRoutes(
         signerEmail: agreement.signerEmail,
         signerPhone: agreement.signerPhone,
         address: agreement.address,
+        initials: agreement.initials,
+        effectiveDate: agreement.effectiveDate,
         signedAt: agreement.signedAt?.toISOString() || new Date().toISOString(),
         signedIpAddress: agreement.signedIpAddress,
         signatureData: agreement.signatureData,

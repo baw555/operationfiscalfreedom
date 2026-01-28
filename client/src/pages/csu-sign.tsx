@@ -37,6 +37,8 @@ export default function CsuSign() {
     signerEmail: "",
     signerPhone: "",
     address: "",
+    initials: "",
+    effectiveDate: new Date().toISOString().split("T")[0],
     agreedToTerms: false,
   });
 
@@ -146,7 +148,12 @@ export default function CsuSign() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
+          signerName: formData.signerName,
+          signerEmail: formData.signerEmail,
+          signerPhone: formData.signerPhone,
+          address: formData.address,
+          initials: formData.initials,
+          effectiveDate: formData.effectiveDate,
           signatureData,
           agreedToTerms: "true",
         }),
@@ -178,10 +185,10 @@ export default function CsuSign() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.signerName || !formData.signerEmail) {
+    if (!formData.signerName || !formData.signerEmail || !formData.initials || !formData.effectiveDate) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your name and email.",
+        description: "Please fill in your name, email, initials, and effective date.",
         variant: "destructive",
       });
       return;
@@ -353,6 +360,34 @@ export default function CsuSign() {
                       className="text-brand-navy"
                       data-testid="input-address"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="initials">Initials *</Label>
+                    <Input
+                      id="initials"
+                      value={formData.initials}
+                      onChange={(e) => setFormData({ ...formData, initials: e.target.value.toUpperCase() })}
+                      className="text-brand-navy font-bold text-center text-lg"
+                      placeholder="e.g. JD"
+                      maxLength={4}
+                      data-testid="input-initials"
+                    />
+                    <p className="text-xs text-gray-500">Enter your initials to acknowledge this agreement</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="effectiveDate">Effective Date *</Label>
+                    <Input
+                      id="effectiveDate"
+                      type="date"
+                      value={formData.effectiveDate}
+                      onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
+                      className="text-brand-navy"
+                      data-testid="input-effective-date"
+                    />
+                    <p className="text-xs text-gray-500">Date this agreement becomes effective</p>
                   </div>
                 </div>
 

@@ -1108,6 +1108,8 @@ export const csuSignedAgreements = pgTable("csu_signed_agreements", {
   signerEmail: text("signer_email").notNull(),
   signerPhone: text("signer_phone"),
   address: text("address"),
+  initials: text("initials"),
+  effectiveDate: text("effective_date"),
   signatureData: text("signature_data"),
   signedIpAddress: text("signed_ip_address"),
   agreedToTerms: text("agreed_to_terms").notNull().default("true"),
