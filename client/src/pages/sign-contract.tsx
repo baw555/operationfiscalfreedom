@@ -49,7 +49,6 @@ export default function SignContract() {
     state: "",
     zip: "",
     ssn: "",
-    ein: "",
     signatureDate: new Date().toLocaleDateString(),
   });
 
@@ -718,17 +717,6 @@ export default function SignContract() {
                     />
                     <p className="text-xs text-gray-500 mt-1">Only last 4 digits are stored</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Employer ID Number (EIN)</label>
-                    <input
-                      type="text"
-                      value={w9Data.ein}
-                      onChange={(e) => setW9Data({...w9Data, ein: e.target.value})}
-                      className="w-full border rounded-lg px-3 py-2"
-                      placeholder="XX-XXXXXXX"
-                      data-testid="input-w9-ein"
-                    />
-                  </div>
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-700">
@@ -743,7 +731,7 @@ export default function SignContract() {
 
                 <button
                   onClick={() => submitW9Mutation.mutate()}
-                  disabled={submitW9Mutation.isPending || !w9Data.name || !w9Data.address || !w9Data.city || !w9Data.state || !w9Data.zip || (!w9Data.ssn && !w9Data.ein)}
+                  disabled={submitW9Mutation.isPending || !w9Data.name || !w9Data.address || !w9Data.city || !w9Data.state || !w9Data.zip || !w9Data.ssn}
                   className="w-full bg-amber-600 text-white py-3 rounded-lg font-bold hover:bg-amber-700 disabled:bg-gray-400 flex items-center justify-center gap-2"
                   data-testid="button-submit-w9"
                 >
