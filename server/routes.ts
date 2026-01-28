@@ -1210,7 +1210,7 @@ export async function registerRoutes(
   // Login
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { email, password, portal } = req.body;
       
       if (!email || !password) {
         return res.status(400).json({ message: "Email and password are required" });
@@ -1219,6 +1219,24 @@ export async function registerRoutes(
       const user = await authenticateUser(email, password);
       if (!user) {
         return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Check portal restrictions
+      // If user has a portal restriction, they can only login via that portal's login
+      // If no portal param provided (general admin login), reject users with portal restrictions
+      if (user.portal && !portal) {
+        return res.status(403).json({ message: "This account is restricted to a specific portal" });
+      }
+      
+      // If portal param provided, user's portal must match
+      if (portal && user.portal && user.portal !== portal) {
+        return res.status(403).json({ message: "Invalid credentials for this portal" });
+      }
+      
+      // If portal param provided but user has no portal restriction, reject
+      // (general admins shouldn't login via portal-specific logins)
+      if (portal && !user.portal) {
+        return res.status(403).json({ message: "Invalid credentials for this portal" });
       }
 
       // Regenerate session to prevent session fixation attacks and ensure clean session
@@ -1240,7 +1258,7 @@ export async function registerRoutes(
           console.log(`[auth] Login successful for user ${user.id}, session saved`);
           res.json({ 
             success: true, 
-            user: { id: user.id, name: user.name, email: user.email, role: user.role }
+            user: { id: user.id, name: user.name, email: user.email, role: user.role, portal: user.portal }
           });
         });
       });

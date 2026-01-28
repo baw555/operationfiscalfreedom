@@ -63,6 +63,111 @@ interface User {
   lastName?: string;
 }
 
+// Payzium-specific login form component
+function PayziumLoginForm({ onSuccess }: { onSuccess: () => void }) {
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, portal: "payzium" }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        toast({
+          title: "Login Failed",
+          description: data.message || "Invalid credentials",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "Welcome!",
+        description: "Logged in successfully",
+      });
+      onSuccess();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Login failed. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Layout>
+      <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
+          <p className="text-lg text-purple-200">Contract Management Portal</p>
+        </div>
+      </section>
+      
+      <section className="py-16 bg-gray-100 min-h-screen">
+        <div className="container mx-auto px-4 max-w-md">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+                <LogIn className="w-6 h-6 text-purple-600" /> Payzium Login
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                    data-testid="input-payzium-email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    required
+                    data-testid="input-payzium-password"
+                  />
+                </div>
+                <Button 
+                  type="submit"
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  disabled={isLoading}
+                  data-testid="button-payzium-login"
+                >
+                  {isLoading ? "Logging in..." : "Log In"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
 export default function CsuPortal() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -575,40 +680,7 @@ export default function CsuPortal() {
   }
 
   if (!user || user.role !== "admin") {
-    return (
-      <Layout>
-        <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
-          <div className="container mx-auto px-4">
-            <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
-            <p className="text-lg text-purple-200">Contract Management Portal</p>
-          </div>
-        </section>
-        
-        <section className="py-16 bg-gray-100 min-h-screen">
-          <div className="container mx-auto px-4 max-w-md">
-            <Card>
-              <CardHeader className="text-center">
-                <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                  <LogIn className="w-6 h-6 text-purple-600" /> Admin Access Required
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <p className="text-gray-600 text-center">
-                  This portal requires admin credentials. Please log in to continue.
-                </p>
-                <Button 
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                  onClick={() => navigate("/admin/login")}
-                  data-testid="button-go-to-login"
-                >
-                  <LogIn className="w-4 h-4 mr-2" /> Go to Admin Login
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-      </Layout>
-    );
+    return <PayziumLoginForm onSuccess={() => queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] })} />;
   }
 
   return (

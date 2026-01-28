@@ -54,3 +54,52 @@ The database schema is designed to support the platform's various functionalitie
 - **pdfkit**: Utilized for real-time PDF generation with embedded signatures within the CSU platform.
 - **Tailwind CSS**: Utility-first CSS framework for styling.
 - **Shadcn UI**: Component library for UI development.
+
+## VSO (Veterans Service Officer) Portal Replication Pattern
+
+Use this pattern to create branded contract management portals for individual VSOs. Each VSO gets their own affiliate link and portal with their branding.
+
+### Current VSO Implementations
+- **Payzium (Maurice Verrelli)**: Route `/Payzium`, purple theme, contract signing portal
+
+### How to Replicate for a New VSO
+
+1. **Create Seed Data** (`server/seeds/{vsoName}Seed.ts`):
+   - Admin account with email, password, phone numbers
+   - Set `portal: "{vsoname}"` field to restrict login to that portal only
+   - Contract templates specific to the VSO
+   - Export a seed function that runs on server startup
+
+2. **Add Route** (`client/src/App.tsx`):
+   - Add route like `<Route path="/{VSOName}" component={VsoPortal} />`
+   - Route is the affiliate link (e.g., `www.operationfiscalfreedom.com/{VSOName}`)
+
+3. **Portal Page** (`client/src/pages/{vso}-portal.tsx`):
+   - Copy csu-portal.tsx as template
+   - Update branding: colors, company name, logo
+   - Update `VSO_INFO` constant with contact details
+   - Update login form to pass `portal: "{vsoname}"` parameter
+   - Keep self-signing flow intact
+
+4. **Import Seed in Server** (`server/index.ts`):
+   - Import: `import { seed{VSOName}Data } from "./seeds/{vsoName}Seed";`
+   - Call in startup: `await seed{VSOName}Data();`
+
+5. **Access Control**:
+   - Portal only accessible via direct affiliate link (not in global navigation)
+   - Each VSO has their own login form on their portal page
+   - Login uses `portal` parameter to restrict which accounts can log in
+   - VSO accounts cannot log in to general admin portal
+
+### Portal Login Isolation
+The `portal` field in the users table controls login access:
+- Users with `portal: "payzium"` can ONLY log in via the Payzium portal
+- Users with `portal: null` can ONLY log in via general admin login
+- This prevents cross-portal login attempts
+
+### VSO Portal Features
+- Send contracts via tokenized email links (7-day expiry)
+- "Sign It Myself" - self-signing flow for immediate signing
+- PDF generation with signature, initials, effective date
+- View pending and signed contracts
+- Account info panel with VSO contact details

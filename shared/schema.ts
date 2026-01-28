@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role").notNull(), // "admin" or "affiliate"
+  portal: text("portal"), // Restricts user to specific portal (e.g., "payzium"). Null = general admin access
   referralCode: text("referral_code").unique(), // Unique referral code for affiliates
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

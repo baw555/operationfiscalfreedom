@@ -184,11 +184,20 @@ export async function seedPayziumData() {
         email: "maurice@payzium.com",
         passwordHash,
         role: "admin",
+        portal: "payzium", // Restricts login to Payzium portal only
         referralCode: "PAYZIUM",
       });
       console.log("[seed] Created Maurice Verrelli admin account");
     } else {
-      console.log("[seed] Maurice Verrelli account already exists");
+      // Update existing user to have portal restriction if not set
+      if (!existingUser[0].portal) {
+        await db.update(users)
+          .set({ portal: "payzium" })
+          .where(eq(users.email, "maurice@payzium.com"));
+        console.log("[seed] Updated Maurice Verrelli with portal restriction");
+      } else {
+        console.log("[seed] Maurice Verrelli account already exists");
+      }
     }
 
     // Check and create New Client Agreement template
