@@ -154,6 +154,10 @@ const VLTBusinessOwner = lazy(() => import("@/pages/vlt/business-owner"));
 const VLTIntakeRefer = lazy(() => import("@/pages/vlt/intake-refer"));
 const VLTIntakeClient = lazy(() => import("@/pages/vlt/intake-client"));
 
+// CSU (Cost Savings University) pages
+const CsuPortal = lazy(() => import("@/pages/csu-portal"));
+const CsuSign = lazy(() => import("@/pages/csu-sign"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -296,6 +300,11 @@ function Router() {
         <Route path="/healthcare/less-invasive" component={HealthcarePage} />
         <Route path="/healthcare/new-treatments" component={HealthcarePage} />
         <Route path="/healthcare/guidance" component={HealthcarePage} />
+        
+        {/* Cost Savings University Routes */}
+        <Route path="/csu-portal" component={CsuPortal} />
+        <Route path="/csu-sign" component={CsuSign} />
+        
         <Route component={NotFound} />
       </Switch>
     </Suspense>

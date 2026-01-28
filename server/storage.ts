@@ -30,7 +30,10 @@ import {
   scheduleASignatures, type ScheduleASignature, type InsertScheduleASignature,
   insuranceIntakes, type InsuranceIntake, type InsertInsuranceIntake,
   medicalSalesIntakes, type MedicalSalesIntake, type InsertMedicalSalesIntake,
-  businessDevIntakes, type BusinessDevIntake, type InsertBusinessDevIntake
+  businessDevIntakes, type BusinessDevIntake, type InsertBusinessDevIntake,
+  csuContractTemplates, type CsuContractTemplate, type InsertCsuContractTemplate,
+  csuContractSends, type CsuContractSend, type InsertCsuContractSend,
+  csuSignedAgreements, type CsuSignedAgreement, type InsertCsuSignedAgreement
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -240,6 +243,25 @@ export interface IStorage {
   getAllBusinessDevIntakes(): Promise<BusinessDevIntake[]>;
   getBusinessDevIntakesByAffiliate(affiliateId: number): Promise<BusinessDevIntake[]>;
   updateBusinessDevIntake(id: number, updates: Partial<BusinessDevIntake>): Promise<BusinessDevIntake | undefined>;
+
+  // CSU Contract Templates
+  createCsuContractTemplate(template: InsertCsuContractTemplate): Promise<CsuContractTemplate>;
+  getCsuContractTemplate(id: number): Promise<CsuContractTemplate | undefined>;
+  getAllCsuContractTemplates(): Promise<CsuContractTemplate[]>;
+  getActiveCsuContractTemplates(): Promise<CsuContractTemplate[]>;
+  updateCsuContractTemplate(id: number, updates: Partial<CsuContractTemplate>): Promise<CsuContractTemplate | undefined>;
+
+  // CSU Contract Sends
+  createCsuContractSend(send: InsertCsuContractSend): Promise<CsuContractSend>;
+  getCsuContractSend(id: number): Promise<CsuContractSend | undefined>;
+  getCsuContractSendByToken(token: string): Promise<CsuContractSend | undefined>;
+  getAllCsuContractSends(): Promise<CsuContractSend[]>;
+  updateCsuContractSend(id: number, updates: Partial<CsuContractSend>): Promise<CsuContractSend | undefined>;
+
+  // CSU Signed Agreements
+  createCsuSignedAgreement(agreement: InsertCsuSignedAgreement): Promise<CsuSignedAgreement>;
+  getCsuSignedAgreement(id: number): Promise<CsuSignedAgreement | undefined>;
+  getAllCsuSignedAgreements(): Promise<CsuSignedAgreement[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1164,6 +1186,78 @@ export class DatabaseStorage implements IStorage {
 
   async getUserById(id: number): Promise<User | undefined> {
     return this.getUser(id);
+  }
+
+  // CSU Contract Templates
+  async createCsuContractTemplate(template: InsertCsuContractTemplate): Promise<CsuContractTemplate> {
+    const [created] = await db.insert(csuContractTemplates).values(template).returning();
+    return created;
+  }
+
+  async getCsuContractTemplate(id: number): Promise<CsuContractTemplate | undefined> {
+    const [template] = await db.select().from(csuContractTemplates).where(eq(csuContractTemplates.id, id));
+    return template || undefined;
+  }
+
+  async getAllCsuContractTemplates(): Promise<CsuContractTemplate[]> {
+    return db.select().from(csuContractTemplates).orderBy(desc(csuContractTemplates.createdAt));
+  }
+
+  async getActiveCsuContractTemplates(): Promise<CsuContractTemplate[]> {
+    return db.select().from(csuContractTemplates)
+      .where(eq(csuContractTemplates.isActive, true))
+      .orderBy(desc(csuContractTemplates.createdAt));
+  }
+
+  async updateCsuContractTemplate(id: number, updates: Partial<CsuContractTemplate>): Promise<CsuContractTemplate | undefined> {
+    const [updated] = await db.update(csuContractTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(csuContractTemplates.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // CSU Contract Sends
+  async createCsuContractSend(send: InsertCsuContractSend): Promise<CsuContractSend> {
+    const [created] = await db.insert(csuContractSends).values(send).returning();
+    return created;
+  }
+
+  async getCsuContractSend(id: number): Promise<CsuContractSend | undefined> {
+    const [send] = await db.select().from(csuContractSends).where(eq(csuContractSends.id, id));
+    return send || undefined;
+  }
+
+  async getCsuContractSendByToken(token: string): Promise<CsuContractSend | undefined> {
+    const [send] = await db.select().from(csuContractSends).where(eq(csuContractSends.signToken, token));
+    return send || undefined;
+  }
+
+  async getAllCsuContractSends(): Promise<CsuContractSend[]> {
+    return db.select().from(csuContractSends).orderBy(desc(csuContractSends.createdAt));
+  }
+
+  async updateCsuContractSend(id: number, updates: Partial<CsuContractSend>): Promise<CsuContractSend | undefined> {
+    const [updated] = await db.update(csuContractSends)
+      .set(updates)
+      .where(eq(csuContractSends.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // CSU Signed Agreements
+  async createCsuSignedAgreement(agreement: InsertCsuSignedAgreement): Promise<CsuSignedAgreement> {
+    const [created] = await db.insert(csuSignedAgreements).values(agreement).returning();
+    return created;
+  }
+
+  async getCsuSignedAgreement(id: number): Promise<CsuSignedAgreement | undefined> {
+    const [agreement] = await db.select().from(csuSignedAgreements).where(eq(csuSignedAgreements.id, id));
+    return agreement || undefined;
+  }
+
+  async getAllCsuSignedAgreements(): Promise<CsuSignedAgreement[]> {
+    return db.select().from(csuSignedAgreements).orderBy(desc(csuSignedAgreements.createdAt));
   }
 }
 

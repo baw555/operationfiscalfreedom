@@ -1,6 +1,139 @@
 import PDFDocument from 'pdfkit';
 import { NDA_TEMPLATE } from './templates/ndaTemplate';
 
+// CSU Contract PDF Generation
+interface CsuContractData {
+  templateName: string;
+  templateContent: string;
+  signerName: string;
+  signerEmail: string;
+  signerPhone?: string | null;
+  address?: string | null;
+  signedAt: string;
+  signedIpAddress?: string | null;
+  signatureData?: string | null;
+  agreementId: number;
+}
+
+export async function generateCsuContractPdf(data: CsuContractData): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({
+        size: 'LETTER',
+        margins: { top: 72, bottom: 72, left: 72, right: 72 },
+        bufferPages: true
+      });
+
+      const chunks: Buffer[] = [];
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const pageWidth = doc.page.width;
+      const BLUE_COLOR = '#1E40AF';
+      const GOLD_COLOR = '#C5A572';
+
+      // Header
+      doc.fontSize(24).font('Helvetica-Bold').fillColor(BLUE_COLOR)
+        .text('COST SAVINGS UNIVERSITY', { align: 'center' });
+      doc.moveDown(0.5);
+      
+      doc.fontSize(11).font('Helvetica').fillColor(GOLD_COLOR)
+        .text('Contract Agreement', { align: 'center' });
+      
+      doc.moveDown(0.3);
+      doc.moveTo(pageWidth / 2 - 100, doc.y)
+        .lineTo(pageWidth / 2 + 100, doc.y)
+        .lineWidth(2)
+        .stroke(GOLD_COLOR);
+      
+      doc.moveDown(1);
+
+      // Contract Title
+      doc.fontSize(16).font('Helvetica-Bold').fillColor(BLUE_COLOR)
+        .text(data.templateName, { align: 'center' });
+      doc.moveDown(1);
+
+      // Contract Content
+      doc.fontSize(10).font('Helvetica').fillColor('#333')
+        .text(data.templateContent, { align: 'left', lineGap: 4 });
+      
+      doc.moveDown(2);
+
+      // Signature Section
+      doc.addPage();
+      
+      doc.fontSize(16).font('Helvetica-Bold').fillColor(BLUE_COLOR)
+        .text('SIGNATURE & VERIFICATION', { align: 'center' });
+      doc.moveDown(1);
+
+      // Signer Info
+      const sigInfo = [
+        ['Full Name:', data.signerName],
+        ['Email:', data.signerEmail],
+        ['Phone:', data.signerPhone || 'N/A'],
+        ['Address:', data.address || 'N/A'],
+        ['Date Signed:', new Date(data.signedAt).toLocaleString('en-US')],
+        ['IP Address:', data.signedIpAddress || 'N/A'],
+        ['Agreement ID:', `CSU-${data.agreementId}`]
+      ];
+
+      for (const [label, value] of sigInfo) {
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#333')
+          .text(label, { continued: true })
+          .font('Helvetica').text(` ${value}`);
+        doc.moveDown(0.3);
+      }
+
+      doc.moveDown(1);
+
+      // Signature Box
+      doc.fontSize(11).font('Helvetica-Bold').fillColor(BLUE_COLOR)
+        .text('ELECTRONIC SIGNATURE');
+      doc.moveDown(0.5);
+
+      const sigBoxY = doc.y;
+      const sigBoxWidth = 300;
+      const sigBoxHeight = 100;
+
+      doc.rect(72, sigBoxY, sigBoxWidth, sigBoxHeight)
+        .lineWidth(1)
+        .stroke(GOLD_COLOR);
+
+      if (data.signatureData && data.signatureData.startsWith('data:image/')) {
+        try {
+          const sigBuffer = Buffer.from(data.signatureData.split(',')[1], 'base64');
+          doc.image(sigBuffer, 77, sigBoxY + 5, { 
+            width: sigBoxWidth - 10, 
+            height: sigBoxHeight - 10,
+            fit: [sigBoxWidth - 10, sigBoxHeight - 10]
+          });
+        } catch (e) {
+          doc.fontSize(12).font('Helvetica-Oblique').fillColor('#666')
+            .text(data.signerName, 77, sigBoxY + 40, { width: sigBoxWidth - 10, align: 'center' });
+        }
+      }
+
+      doc.fontSize(8).font('Helvetica').fillColor('#666')
+        .text('Authorized Signature', 72, sigBoxY + sigBoxHeight + 5, { width: sigBoxWidth, align: 'center' });
+
+      doc.moveDown(4);
+
+      // Legal Footer
+      doc.fontSize(8).font('Helvetica').fillColor('#666')
+        .text('This document was electronically signed and is legally binding pursuant to the Electronic Signatures in Global and National Commerce Act (ESIGN) and the Uniform Electronic Transactions Act (UETA).', { align: 'center' });
+
+      doc.moveDown(1);
+      doc.fontSize(9).font('Helvetica-Bold').fillColor(BLUE_COLOR)
+        .text('COST SAVINGS UNIVERSITY', { align: 'center' });
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 interface NdaData {
   fullName: string;
   veteranNumber?: string;

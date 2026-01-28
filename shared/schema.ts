@@ -1050,3 +1050,76 @@ export const insertBusinessDevIntakeSchema = createInsertSchema(businessDevIntak
 
 export type InsertBusinessDevIntake = z.infer<typeof insertBusinessDevIntakeSchema>;
 export type BusinessDevIntake = typeof businessDevIntakes.$inferSelect;
+
+// ============================================
+// COST SAVINGS UNIVERSITY (CSU) PLATFORM
+// ============================================
+
+// CSU Contract Templates - Available contract types for CSU
+export const csuContractTemplates = pgTable("csu_contract_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  content: text("content").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertCsuContractTemplateSchema = createInsertSchema(csuContractTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCsuContractTemplate = z.infer<typeof insertCsuContractTemplateSchema>;
+export type CsuContractTemplate = typeof csuContractTemplates.$inferSelect;
+
+// CSU Contract Sends - When admin sends a contract to someone
+export const csuContractSends = pgTable("csu_contract_sends", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").references(() => csuContractTemplates.id).notNull(),
+  recipientName: text("recipient_name").notNull(),
+  recipientEmail: text("recipient_email").notNull(),
+  recipientPhone: text("recipient_phone"),
+  signToken: text("sign_token").notNull().unique(),
+  tokenExpiresAt: timestamp("token_expires_at").notNull(),
+  status: text("status").notNull().default("pending"), // pending, signed, expired
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+  sentBy: integer("sent_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCsuContractSendSchema = createInsertSchema(csuContractSends).omit({
+  id: true,
+  sentAt: true,
+  createdAt: true,
+});
+
+export type InsertCsuContractSend = z.infer<typeof insertCsuContractSendSchema>;
+export type CsuContractSend = typeof csuContractSends.$inferSelect;
+
+// CSU Signed Agreements - Completed signed contracts
+export const csuSignedAgreements = pgTable("csu_signed_agreements", {
+  id: serial("id").primaryKey(),
+  contractSendId: integer("contract_send_id").references(() => csuContractSends.id).notNull(),
+  templateId: integer("template_id").references(() => csuContractTemplates.id).notNull(),
+  signerName: text("signer_name").notNull(),
+  signerEmail: text("signer_email").notNull(),
+  signerPhone: text("signer_phone"),
+  address: text("address"),
+  signatureData: text("signature_data"),
+  signedIpAddress: text("signed_ip_address"),
+  agreedToTerms: text("agreed_to_terms").notNull().default("true"),
+  signedAt: timestamp("signed_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCsuSignedAgreementSchema = createInsertSchema(csuSignedAgreements).omit({
+  id: true,
+  signedAt: true,
+  createdAt: true,
+});
+
+export type InsertCsuSignedAgreement = z.infer<typeof insertCsuSignedAgreementSchema>;
+export type CsuSignedAgreement = typeof csuSignedAgreements.$inferSelect;

@@ -30,7 +30,9 @@ import {
   insertScheduleASignatureSchema,
   insertInsuranceIntakeSchema,
   insertMedicalSalesIntakeSchema,
-  insertBusinessDevIntakeSchema
+  insertBusinessDevIntakeSchema,
+  insertCsuContractSendSchema,
+  insertCsuSignedAgreementSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -3586,6 +3588,282 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching affiliate business dev intakes:", error);
       res.status(500).json({ message: "Failed to fetch business development intakes" });
+    }
+  });
+
+  // ============================================
+  // COST SAVINGS UNIVERSITY (CSU) API ROUTES
+  // ============================================
+
+  // Get all CSU contract templates (admin)
+  app.get("/api/csu/templates", requireAdmin, async (req, res) => {
+    try {
+      const templates = await storage.getActiveCsuContractTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching CSU templates:", error);
+      res.status(500).json({ message: "Failed to fetch contract templates" });
+    }
+  });
+
+  // Send a contract to someone (admin)
+  app.post("/api/csu/send-contract", requireAdmin, async (req, res) => {
+    try {
+      // Validate request body with Zod
+      const csuSendSchema = z.object({
+        templateId: z.number().int().positive("Template is required"),
+        recipientName: z.string().min(1, "Recipient name is required"),
+        recipientEmail: z.string().email("Valid email is required"),
+        recipientPhone: z.string().optional().nullable(),
+      });
+
+      const validationResult = csuSendSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: validationResult.error.errors[0]?.message || "Invalid request data" 
+        });
+      }
+
+      const { templateId, recipientName, recipientEmail, recipientPhone } = validationResult.data;
+
+      // Verify template exists
+      const template = await storage.getCsuContractTemplate(templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Contract template not found" });
+      }
+
+      // Generate unique token
+      const crypto = await import("crypto");
+      const signToken = crypto.randomBytes(32).toString("hex");
+      
+      // Token expires in 7 days
+      const tokenExpiresAt = new Date();
+      tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7);
+
+      const contractSend = await storage.createCsuContractSend({
+        templateId,
+        recipientName,
+        recipientEmail,
+        recipientPhone: recipientPhone || null,
+        signToken,
+        tokenExpiresAt,
+        status: "pending",
+        sentBy: req.session.userId || null,
+      });
+
+      // Generate signing URL
+      const baseUrl = process.env.REPLIT_DOMAINS?.split(",")[0] 
+        ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}`
+        : "http://localhost:5000";
+      const signingUrl = `${baseUrl}/csu-sign?token=${signToken}`;
+
+      // Try to send email if Resend is configured
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          await resend.emails.send({
+            from: "Cost Savings University <noreply@resend.dev>",
+            to: recipientEmail,
+            subject: "Contract Ready for Signature - Cost Savings University",
+            html: `
+              <h1>Hello ${recipientName},</h1>
+              <p>You have a contract ready for your signature from Cost Savings University.</p>
+              <p><a href="${signingUrl}" style="background-color: #E21C3D; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Sign Contract</a></p>
+              <p>Or copy and paste this link: ${signingUrl}</p>
+              <p>This link will expire in 7 days.</p>
+              <p>Best regards,<br>Cost Savings University</p>
+            `,
+          });
+        } catch (emailError) {
+          console.error("Failed to send email:", emailError);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        contractSend,
+        signingUrl,
+        message: process.env.RESEND_API_KEY ? "Contract sent via email" : "Contract created (email not configured)"
+      });
+    } catch (error) {
+      console.error("Error sending CSU contract:", error);
+      res.status(500).json({ message: "Failed to send contract" });
+    }
+  });
+
+  // Get all contract sends (admin)
+  app.get("/api/csu/contract-sends", requireAdmin, async (req, res) => {
+    try {
+      const sends = await storage.getAllCsuContractSends();
+      res.json(sends);
+    } catch (error) {
+      console.error("Error fetching CSU contract sends:", error);
+      res.status(500).json({ message: "Failed to fetch contract sends" });
+    }
+  });
+
+  // Get all signed agreements (admin)
+  app.get("/api/csu/signed-agreements", requireAdmin, async (req, res) => {
+    try {
+      const agreements = await storage.getAllCsuSignedAgreements();
+      res.json(agreements);
+    } catch (error) {
+      console.error("Error fetching CSU signed agreements:", error);
+      res.status(500).json({ message: "Failed to fetch signed agreements" });
+    }
+  });
+
+  // Public: Get contract by token (for signing page)
+  app.get("/api/csu/contract/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const contractSend = await storage.getCsuContractSendByToken(token);
+      
+      if (!contractSend) {
+        return res.status(404).json({ message: "Contract not found" });
+      }
+
+      // Check if token is expired
+      if (new Date() > contractSend.tokenExpiresAt) {
+        return res.status(410).json({ message: "This signing link has expired" });
+      }
+
+      // Check if already signed
+      if (contractSend.status === "signed") {
+        return res.status(410).json({ message: "This contract has already been signed" });
+      }
+
+      // Get the template content
+      const template = await storage.getCsuContractTemplate(contractSend.templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Contract template not found" });
+      }
+
+      res.json({
+        contractSend: {
+          id: contractSend.id,
+          recipientName: contractSend.recipientName,
+          recipientEmail: contractSend.recipientEmail,
+          recipientPhone: contractSend.recipientPhone,
+        },
+        template: {
+          id: template.id,
+          name: template.name,
+          content: template.content,
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching CSU contract:", error);
+      res.status(500).json({ message: "Failed to fetch contract" });
+    }
+  });
+
+  // Public: Submit signed contract
+  app.post("/api/csu/sign/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      // Validate request body with Zod
+      const csuSignSchema = z.object({
+        signerName: z.string().min(1, "Name is required"),
+        signerEmail: z.string().email("Valid email is required"),
+        signerPhone: z.string().optional().nullable(),
+        address: z.string().optional().nullable(),
+        signatureData: z.string().min(1, "Signature is required"),
+        agreedToTerms: z.union([z.boolean(), z.string()]).refine(val => val === true || val === "true", {
+          message: "You must agree to the terms"
+        }),
+      });
+
+      const validationResult = csuSignSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: validationResult.error.errors[0]?.message || "Invalid request data" 
+        });
+      }
+
+      const { signerName, signerEmail, signerPhone, address, signatureData, agreedToTerms } = validationResult.data;
+
+      const contractSend = await storage.getCsuContractSendByToken(token);
+      
+      if (!contractSend) {
+        return res.status(404).json({ message: "Contract not found" });
+      }
+
+      if (new Date() > contractSend.tokenExpiresAt) {
+        return res.status(410).json({ message: "This signing link has expired" });
+      }
+
+      if (contractSend.status === "signed") {
+        return res.status(410).json({ message: "This contract has already been signed" });
+      }
+
+      // Get client IP
+      const signedIpAddress = req.headers["x-forwarded-for"]?.toString().split(",")[0] || 
+                              req.socket.remoteAddress || 
+                              "unknown";
+
+      // Create the signed agreement with validated agreedToTerms
+      const signedAgreement = await storage.createCsuSignedAgreement({
+        contractSendId: contractSend.id,
+        templateId: contractSend.templateId,
+        signerName,
+        signerEmail,
+        signerPhone: signerPhone || null,
+        address: address || null,
+        signatureData,
+        signedIpAddress,
+        agreedToTerms: agreedToTerms === true || agreedToTerms === "true" ? "true" : "false",
+      });
+
+      // Update the contract send status
+      await storage.updateCsuContractSend(contractSend.id, { status: "signed" });
+
+      res.json({ success: true, signedAgreement });
+    } catch (error) {
+      console.error("Error signing CSU contract:", error);
+      res.status(500).json({ message: "Failed to sign contract" });
+    }
+  });
+
+  // Admin: Download signed agreement PDF
+  app.get("/api/csu/signed-agreements/:id/pdf", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const agreement = await storage.getCsuSignedAgreement(id);
+      
+      if (!agreement) {
+        return res.status(404).json({ message: "Signed agreement not found" });
+      }
+
+      const template = await storage.getCsuContractTemplate(agreement.templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Import PDF generator
+      const { generateCsuContractPdf } = await import("./pdfGenerator");
+
+      // Generate PDF
+      const pdfBuffer = await generateCsuContractPdf({
+        templateName: template.name,
+        templateContent: template.content,
+        signerName: agreement.signerName,
+        signerEmail: agreement.signerEmail,
+        signerPhone: agreement.signerPhone,
+        address: agreement.address,
+        signedAt: agreement.signedAt?.toISOString() || new Date().toISOString(),
+        signedIpAddress: agreement.signedIpAddress,
+        signatureData: agreement.signatureData,
+        agreementId: agreement.id,
+      });
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="csu-agreement-${id}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating CSU PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
     }
   });
 

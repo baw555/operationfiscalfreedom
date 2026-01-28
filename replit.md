@@ -11,6 +11,15 @@ NavigatorUSA - Veterans' Family Resources. A comprehensive veteran family suppor
 - **Four Pillars**: Financial, Spiritual, Medical, Holistic
 
 ## Recent Changes
+- **January 2026**: Cost Savings University (CSU) Platform
+  - Separate document signature platform (independent from NavigatorUSA affiliate system)
+  - Database tables: csu_contract_templates, csu_contract_sends, csu_signed_agreements
+  - Admin portal at /csu-portal for managing templates and sending contracts
+  - Public signing page at /csu-sign/:token for recipients to sign contracts
+  - Tokenized signing links with 7-day expiration, single-use
+  - Real PDF generation using pdfkit with embedded signatures
+  - Zod validation on all CSU API endpoints
+  - Email integration using Resend API for sending signing links
 - **January 2026**: UI/UX Polish Improvements
   - Fixed form input text visibility (dark navy text on white backgrounds)
   - Fixed select dropdown contrast issues across all forms
