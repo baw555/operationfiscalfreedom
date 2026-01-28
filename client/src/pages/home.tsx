@@ -452,7 +452,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h4 className="text-base sm:text-xl font-bold mb-1 sm:mb-2 text-white">Financial Freedom</h4>
-                    <p className="text-sm sm:text-base text-gray-300">Every veteran family deserves financial stability. We build pathways to achieve it.</p>
+                    <p className="text-sm sm:text-base text-gray-300">We help you build pathways.</p>
                   </div>
                 </div>
                 <div className="flex gap-3 sm:gap-4">
