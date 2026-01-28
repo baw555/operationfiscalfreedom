@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -114,10 +115,11 @@ export default function MasterPortal() {
   const [, setLocation] = useLocation();
   const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateFile | null>(null);
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginEmail, setLoginEmail] = useState(() => localStorage.getItem("master_remembered_email") || "");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("master_remembered_email"));
   const [pdfSecurityKey, setPdfSecurityKey] = useState("");
   const [pdfDownloadError, setPdfDownloadError] = useState("");
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
@@ -441,7 +443,14 @@ export default function MasterPortal() {
         return;
       }
       
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Save or clear remembered email
+      if (rememberMe) {
+        localStorage.setItem("master_remembered_email", loginEmail);
+      } else {
+        localStorage.removeItem("master_remembered_email");
+      }
+      
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
     } catch {
       setLoginError("Connection error. Please try again.");
       setIsLoggingIn(false);
@@ -490,6 +499,19 @@ export default function MasterPortal() {
                 required
                 data-testid="input-login-password"
               />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="remember-me"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+                className="border-white/50 data-[state=checked]:bg-brand-red"
+                data-testid="checkbox-remember"
+              />
+              <Label htmlFor="remember-me" className="text-sm font-normal cursor-pointer text-white/80">
+                Remember my email
+              </Label>
             </div>
             
             {loginError && (

@@ -64,10 +64,11 @@ interface User {
 }
 
 // Payzium-specific login form component
-function PayziumLoginForm({ onSuccess }: { onSuccess: () => void }) {
+function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void }) {
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => localStorage.getItem("payzium_remembered_email") || "");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("payzium_remembered_email"));
   const [isLoading, setIsLoading] = useState(false);
 
   // Track page view for unauthenticated visitors
@@ -104,6 +105,7 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => void }) {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password, portal: "payzium" }),
       });
       
@@ -118,11 +120,20 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => void }) {
         return;
       }
       
+      // Save or clear remembered email
+      if (rememberMe) {
+        localStorage.setItem("payzium_remembered_email", email);
+      } else {
+        localStorage.removeItem("payzium_remembered_email");
+      }
+      
+      // Wait for auth state to update before showing success
+      await onSuccess();
+      
       toast({
         title: "Welcome!",
         description: "Logged in successfully",
       });
-      onSuccess();
     } catch (error) {
       toast({
         title: "Error",
@@ -176,6 +187,17 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => void }) {
                     required
                     data-testid="input-payzium-password"
                   />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="remember-me"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    data-testid="checkbox-payzium-remember"
+                  />
+                  <Label htmlFor="remember-me" className="text-sm font-normal cursor-pointer">
+                    Remember my email
+                  </Label>
                 </div>
                 <Button 
                   type="submit"
@@ -889,7 +911,7 @@ export default function CsuPortal() {
   }
 
   if (!user || user.role !== "admin") {
-    return <PayziumLoginForm onSuccess={() => queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] })} />;
+    return <PayziumLoginForm onSuccess={async () => { await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] }); }} />;
   }
 
   return (
