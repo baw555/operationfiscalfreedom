@@ -574,7 +574,7 @@ export default function CsuPortal() {
     );
   }
 
-  if (!user) {
+  if (!user || user.role !== "admin") {
     return (
       <Layout>
         <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
@@ -589,18 +589,13 @@ export default function CsuPortal() {
             <Card>
               <CardHeader className="text-center">
                 <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                  <LogIn className="w-6 h-6 text-purple-600" /> Admin Login Required
+                  <LogIn className="w-6 h-6 text-purple-600" /> Admin Access Required
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <p className="text-gray-600 text-center">
-                  Please log in with your admin account to access the Payzium portal.
+                  This portal requires admin credentials. Please log in to continue.
                 </p>
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <p className="text-sm text-purple-800 font-medium mb-2">Maurice Verrelli Account:</p>
-                  <p className="text-sm text-gray-600">Email: maurice@payzium.com</p>
-                  <p className="text-sm text-gray-600">Password: Payzium2024!</p>
-                </div>
                 <Button 
                   className="w-full bg-purple-600 hover:bg-purple-700"
                   onClick={() => navigate("/admin/login")}
