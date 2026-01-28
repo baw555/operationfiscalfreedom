@@ -402,7 +402,7 @@ export default function Home() {
                   <Shield size={28} className="sm:w-9 sm:h-9 text-white" />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-display text-white mb-2 sm:mb-3">VA Claims Support</h3>
-                <p className="text-sm sm:text-base text-white/80 leading-relaxed">Understand the system, appeal denied claims, and get the rating you deserve with our free software.</p>
+                <p className="text-sm sm:text-base text-white/80 leading-relaxed">Understand the system, appeal denied claims, and get the rating you deserve.</p>
               </CardContent>
             </Card>
             <Card className="bg-white border-2 border-brand-navy/20 hover:shadow-2xl transition-all shadow-lg">
@@ -527,14 +527,14 @@ export default function Home() {
         <div className="container mx-auto px-4 relative z-10">
           <h2 className="text-2xl sm:text-4xl md:text-6xl font-display mb-4 sm:mb-6 drop-shadow-lg">Ready To Take Command?</h2>
           <p className="text-base sm:text-xl mb-6 sm:mb-10 max-w-2xl mx-auto text-white/95 px-2">
-            Download the free software, find Fin-Ops, and start building your family's future today.
+            Find Fin-Ops opportunities and start building your family's future today.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
-            <Link href="/va-software" className={cn(buttonVariants({ size: "lg" }), "bg-white text-brand-red hover:bg-gray-100 font-bold px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-lg cursor-pointer w-full sm:w-auto shadow-lg")}>
-                Download Free Tool
-            </Link>
-            <Link href="/income" className={cn(buttonVariants({ size: "lg" }), "bg-brand-navy hover:bg-brand-navy/90 text-white font-bold px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-lg cursor-pointer w-full sm:w-auto shadow-lg border-2 border-white/20")}>
+            <Link href="/income" className={cn(buttonVariants({ size: "lg" }), "bg-white text-brand-red hover:bg-gray-100 font-bold px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-lg cursor-pointer w-full sm:w-auto shadow-lg")}>
                 Start Building Income
+            </Link>
+            <Link href="/get-help" className={cn(buttonVariants({ size: "lg" }), "bg-brand-navy hover:bg-brand-navy/90 text-white font-bold px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-lg cursor-pointer w-full sm:w-auto shadow-lg border-2 border-white/20")}>
+                Get VA Claims Help
             </Link>
           </div>
         </div>
