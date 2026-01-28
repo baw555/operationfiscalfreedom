@@ -457,9 +457,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <p className="text-gray-300 text-sm">
               Navigator USA Corp | Public Charity Status: 170(b)(1)(A)(vi)
             </p>
-            <p className="text-gray-400 text-xs mt-1">
-              Donations are tax-deductible to the fullest extent permitted by law. <Link href="/transparency" className="text-brand-red hover:text-white underline cursor-pointer">View our transparency page</Link>
-            </p>
           </div>
         </div>
         {/* Large Logo - Absolutely positioned bottom left */}
