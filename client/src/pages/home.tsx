@@ -469,9 +469,6 @@ export default function Home() {
             <div className="bg-white/10 p-6 sm:p-8 rounded-xl border-2 border-brand-red/30 backdrop-blur-sm shadow-2xl">
               <div className="text-center space-y-4 sm:space-y-6">
                 <h3 className="text-2xl sm:text-3xl font-display text-white">Join The Ranks</h3>
-                <p className="text-sm sm:text-base text-gray-200">
-                  Join over 150,000 veteran families who have taken control of their future.
-                </p>
                 <Link href="/join" className={cn(buttonVariants(), "w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold h-12 sm:h-14 text-lg cursor-pointer shadow-lg shadow-brand-red/30")}>
                     Get Started Today
                 </Link>
