@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -55,6 +55,14 @@ interface CsuSignedAgreement {
   signedAt: string;
 }
 
+interface User {
+  id: number;
+  email: string;
+  role: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 export default function CsuPortal() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -80,16 +88,25 @@ export default function CsuPortal() {
   const [signedSuccessfully, setSignedSuccessfully] = useState(false);
   const [lastSignedAgreementId, setLastSignedAgreementId] = useState<number | null>(null);
 
+  // Check if user is authenticated
+  const { data: user, isLoading: authLoading } = useQuery<User>({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+  });
+
   const { data: templates = [] } = useQuery<CsuContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
+    enabled: !!user,
   });
 
   const { data: contractSends = [] } = useQuery<CsuContractSend[]>({
     queryKey: ["/api/csu/contract-sends"],
+    enabled: !!user,
   });
 
   const { data: signedAgreements = [] } = useQuery<CsuSignedAgreement[]>({
     queryKey: ["/api/csu/signed-agreements"],
+    enabled: !!user,
   });
 
   // Initialize canvas for signature
@@ -537,6 +554,62 @@ export default function CsuPortal() {
                 </Card>
               </div>
             </div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  // Show login prompt if not authenticated
+  if (authLoading) {
+    return (
+      <Layout>
+        <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
+          <div className="container mx-auto px-4">
+            <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
+            <p className="text-lg text-purple-200">Loading...</p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Layout>
+        <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
+          <div className="container mx-auto px-4">
+            <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
+            <p className="text-lg text-purple-200">Contract Management Portal</p>
+          </div>
+        </section>
+        
+        <section className="py-16 bg-gray-100 min-h-screen">
+          <div className="container mx-auto px-4 max-w-md">
+            <Card>
+              <CardHeader className="text-center">
+                <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+                  <LogIn className="w-6 h-6 text-purple-600" /> Admin Login Required
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-gray-600 text-center">
+                  Please log in with your admin account to access the Payzium portal.
+                </p>
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <p className="text-sm text-purple-800 font-medium mb-2">Maurice Verrelli Account:</p>
+                  <p className="text-sm text-gray-600">Email: maurice@payzium.com</p>
+                  <p className="text-sm text-gray-600">Password: Payzium2024!</p>
+                </div>
+                <Button 
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  onClick={() => navigate("/admin/login")}
+                  data-testid="button-go-to-login"
+                >
+                  <LogIn className="w-4 h-4 mr-2" /> Go to Admin Login
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </section>
       </Layout>
