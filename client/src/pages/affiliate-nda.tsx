@@ -553,7 +553,7 @@ export default function AffiliateNda() {
               
               <p>
                 This Non-Circumvention, Non-Disclosure and Confidentiality Agreement ("Agreement") is entered into between 
-                <strong> Navigator USA Corp</strong>, a 501(c)(3) non-profit organization (EIN: 88-3349582), located at 
+                <strong> Navigator USA Corp</strong>, a 501(c)(3) non-profit organization, located at 
                 429 D Shoreline Village Dr, Long Beach, CA 90802 ("Organization"), and the undersigned party ("Signatory"), 
                 collectively referred to as the "Parties."
               </p>
@@ -1012,7 +1012,7 @@ export default function AffiliateNda() {
               <p>
                 Navigator USA Corp | 501(c)(3) Public Charity<br />
                 429 D Shoreline Village Dr, Long Beach, CA 90802<br />
-                EIN: 88-3349582 | Effective Date: July 15, 2022
+                Effective Date: July 15, 2022
               </p>
             </div>
           </div>

@@ -455,7 +455,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <span className="text-white font-medium">IRS Verified 501(c)(3) Non-Profit Organization</span>
             </div>
             <p className="text-gray-300 text-sm">
-              Navigator USA Corp | EIN: 88-3349582 | Public Charity Status: 170(b)(1)(A)(vi)
+              Navigator USA Corp | Public Charity Status: 170(b)(1)(A)(vi)
             </p>
             <p className="text-gray-400 text-xs mt-1">
               Donations are tax-deductible to the fullest extent permitted by law. <Link href="/transparency" className="text-brand-red hover:text-white underline cursor-pointer">View our transparency page</Link>

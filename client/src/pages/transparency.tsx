@@ -36,10 +36,6 @@ export default function Transparency() {
                     <span className="font-semibold">Navigator USA Corp</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                    <span className="text-gray-400">EIN (Tax ID)</span>
-                    <span className="font-mono font-semibold text-brand-red">88-3349582</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-white/10 pb-2">
                     <span className="text-gray-400">Determination Date</span>
                     <span className="font-semibold">July 26, 2023</span>
                   </div>
