@@ -430,11 +430,11 @@ export default function DisabilityBenefitsHub() {
                 <SelectTrigger className="bg-white/10 border-white/20 text-white" data-testid="select-disability-service">
                   <SelectValue placeholder="Select a service" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[100] bg-white border shadow-lg">
                   {SERVICES.map((service) => (
                     <SelectItem key={service.id} value={service.id} data-testid={`option-${service.id}`}>
                       <div className="flex flex-col">
-                        <span className="font-semibold">{service.label}</span>
+                        <span className="font-semibold text-gray-900">{service.label}</span>
                         <span className="text-xs text-gray-500">{service.description}</span>
                       </div>
                     </SelectItem>

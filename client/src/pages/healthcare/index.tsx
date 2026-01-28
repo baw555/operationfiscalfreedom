@@ -138,11 +138,11 @@ export default function HealthcarePage() {
                 <SelectTrigger className="bg-white/10 border-white/20 text-white" data-testid="select-healthcare-service">
                   <SelectValue placeholder="Select a treatment category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[100] bg-white border shadow-lg">
                   {CATEGORIES.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id} data-testid={`option-${cat.id}`}>
                       <div className="flex flex-col">
-                        <span className="font-semibold">{cat.label}</span>
+                        <span className="font-semibold text-gray-900">{cat.label}</span>
                         <span className="text-xs text-gray-500">{cat.description}</span>
                       </div>
                     </SelectItem>
