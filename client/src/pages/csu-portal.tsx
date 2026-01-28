@@ -70,6 +70,32 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Track page view for unauthenticated visitors
+  useEffect(() => {
+    const trackVisit = async () => {
+      let sessionId = sessionStorage.getItem("payzium_session_id");
+      if (!sessionId) {
+        sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        sessionStorage.setItem("payzium_session_id", sessionId);
+      }
+      try {
+        await fetch("/api/portal/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            portal: "payzium",
+            eventType: "page_view",
+            pagePath: window.location.pathname,
+            sessionId,
+          }),
+        });
+      } catch (error) {
+        console.error("Error tracking visit:", error);
+      }
+    };
+    trackVisit();
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -461,6 +487,9 @@ export default function CsuPortal() {
         throw new Error(error.message || "Failed to create contract");
       }
       const sendData = await sendRes.json();
+      
+      // Track contract sent event for self-sign flow
+      await trackActivity("contract_sent", { recipientEmail: MAURICE_INFO.email, selfSigned: true });
       
       // Extract token from signing URL
       const token = sendData.signingUrl.split("token=")[1];
