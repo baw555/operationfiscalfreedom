@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Brain, Dna, Heart, Sparkles, Compass, CheckCircle, ArrowRight, Stethoscope, Users } from "lucide-react";
+import { Brain, Dna, Heart, Sparkles, Compass, CheckCircle, ArrowRight, Stethoscope, Users, Activity } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
-import { Link, useRoute } from "wouter";
+import { Link, useRoute, useLocation } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 
 const CATEGORIES = [
@@ -125,6 +126,33 @@ export default function HealthcarePage() {
       <div className="h-2 bg-gradient-to-r from-brand-red via-white to-brand-navy"></div>
       
       <div className="min-h-screen bg-gradient-to-br from-brand-red via-brand-navy to-brand-navy">
+        {/* Sticky Service Selector */}
+        <div className="sticky top-0 z-50 bg-brand-navy/95 backdrop-blur border-b border-white/10 py-4 px-4">
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Activity className="w-8 h-8 text-green-400" />
+              <h2 className="font-display text-xl text-white">HEALTHCARE SERVICES</h2>
+            </div>
+            <div className="w-full sm:w-80">
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white" data-testid="select-healthcare-service">
+                  <SelectValue placeholder="Select a treatment category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id} data-testid={`option-${cat.id}`}>
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{cat.label}</span>
+                        <span className="text-xs text-gray-500">{cat.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
         {/* Hero Section */}
         <div className="py-16 px-4 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:20px_20px]"></div>

@@ -72,6 +72,7 @@ const VetProfessionals = lazy(() => import("@/pages/vet-professionals"));
 const HealthcarePage = lazy(() => import("@/pages/healthcare"));
 
 // Disability Rating pages
+const DisabilityBenefitsHub = lazy(() => import("@/pages/disability-rating/index"));
 const DisabilityInitial = lazy(() => import("@/pages/disability-rating/initial"));
 const DisabilityIncrease = lazy(() => import("@/pages/disability-rating/increase"));
 const DisabilityDenial = lazy(() => import("@/pages/disability-rating/denial"));
@@ -182,12 +183,13 @@ function Router() {
         <Route path="/my-locker" component={MyLocker} />
         <Route path="/vgift-cards" component={VGiftCards} />
         
-        {/* Disability Rating Routes */}
-        <Route path="/disability-rating/initial" component={DisabilityInitial} />
-        <Route path="/disability-rating/increase" component={DisabilityIncrease} />
-        <Route path="/disability-rating/denial" component={DisabilityDenial} />
-        <Route path="/disability-rating/ssdi" component={DisabilitySSDI} />
-        <Route path="/disability-rating/widow" component={DisabilityWidow} />
+        {/* Disability Rating Routes - Unified Hub with service selector */}
+        <Route path="/disability-rating" component={DisabilityBenefitsHub} />
+        <Route path="/disability-rating/initial" component={DisabilityBenefitsHub} />
+        <Route path="/disability-rating/increase" component={DisabilityBenefitsHub} />
+        <Route path="/disability-rating/denial" component={DisabilityBenefitsHub} />
+        <Route path="/disability-rating/ssdi" component={DisabilityBenefitsHub} />
+        <Route path="/disability-rating/widow" component={DisabilityBenefitsHub} />
         <Route path="/disability-rating/refer-earn" component={DisabilityReferEarn} />
         <Route path="/disability-rating/intake" component={DisabilityIntake} />
         
