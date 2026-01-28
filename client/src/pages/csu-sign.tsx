@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import DOMPurify from "dompurify";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -301,9 +302,10 @@ export default function CsuSign() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-gray-50 p-6 rounded-lg border max-h-96 overflow-y-auto whitespace-pre-wrap text-sm">
-                {contractData.template.content}
-              </div>
+              <div 
+                className="bg-gray-50 p-6 rounded-lg border max-h-96 overflow-y-auto text-sm prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contractData.template.content) }}
+              />
             </CardContent>
           </Card>
 
