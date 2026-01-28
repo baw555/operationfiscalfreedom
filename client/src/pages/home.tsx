@@ -379,14 +379,6 @@ export default function Home() {
               <p className="text-gray-300 text-xs sm:text-sm mt-4 text-center">
                 Click above to access all free member services
               </p>
-              
-              {/* Tri-Tech Portal Button */}
-              <Link href="/csu-portal">
-                <Button className="w-full h-12 sm:h-14 text-base sm:text-lg font-display bg-blue-700 hover:bg-blue-800 text-white shadow-lg shadow-blue-700/30 border-2 border-white/20 mt-4">
-                  <Star className="w-5 h-5 mr-2 fill-current" />
-                  Tri-Tech Portal
-                </Button>
-              </Link>
             </div>
           </div>
         </section>
