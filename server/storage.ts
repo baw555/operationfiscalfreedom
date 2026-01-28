@@ -33,7 +33,8 @@ import {
   businessDevIntakes, type BusinessDevIntake, type InsertBusinessDevIntake,
   csuContractTemplates, type CsuContractTemplate, type InsertCsuContractTemplate,
   csuContractSends, type CsuContractSend, type InsertCsuContractSend,
-  csuSignedAgreements, type CsuSignedAgreement, type InsertCsuSignedAgreement
+  csuSignedAgreements, type CsuSignedAgreement, type InsertCsuSignedAgreement,
+  portalActivity, type PortalActivity, type InsertPortalActivity
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -262,6 +263,11 @@ export interface IStorage {
   createCsuSignedAgreement(agreement: InsertCsuSignedAgreement): Promise<CsuSignedAgreement>;
   getCsuSignedAgreement(id: number): Promise<CsuSignedAgreement | undefined>;
   getAllCsuSignedAgreements(): Promise<CsuSignedAgreement[]>;
+
+  // Portal Activity Tracking
+  createPortalActivity(activity: InsertPortalActivity): Promise<PortalActivity>;
+  getPortalActivity(portal: string, limit: number): Promise<PortalActivity[]>;
+  getPortalStats(portal: string): Promise<{ totalVisits: number; uniqueIps: number; contractsSent: number; contractsSigned: number; todayVisits: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1258,6 +1264,43 @@ export class DatabaseStorage implements IStorage {
 
   async getAllCsuSignedAgreements(): Promise<CsuSignedAgreement[]> {
     return db.select().from(csuSignedAgreements).orderBy(desc(csuSignedAgreements.createdAt));
+  }
+
+  // Portal Activity Tracking
+  async createPortalActivity(activity: InsertPortalActivity): Promise<PortalActivity> {
+    const [created] = await db.insert(portalActivity).values(activity).returning();
+    return created;
+  }
+
+  async getPortalActivity(portal: string, limit: number): Promise<PortalActivity[]> {
+    return db.select()
+      .from(portalActivity)
+      .where(eq(portalActivity.portal, portal))
+      .orderBy(desc(portalActivity.createdAt))
+      .limit(limit);
+  }
+
+  async getPortalStats(portal: string): Promise<{ totalVisits: number; uniqueIps: number; contractsSent: number; contractsSigned: number; todayVisits: number }> {
+    const allActivity = await db.select()
+      .from(portalActivity)
+      .where(eq(portalActivity.portal, portal));
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayActivity = allActivity.filter(a => new Date(a.createdAt) >= today);
+    const pageViews = allActivity.filter(a => a.eventType === "page_view");
+    const uniqueIps = new Set(pageViews.map(a => a.ipAddress).filter(Boolean));
+    const contractsSent = allActivity.filter(a => a.eventType === "contract_sent").length;
+    const contractsSigned = allActivity.filter(a => a.eventType === "contract_signed").length;
+
+    return {
+      totalVisits: pageViews.length,
+      uniqueIps: uniqueIps.size,
+      contractsSent,
+      contractsSigned,
+      todayVisits: todayActivity.filter(a => a.eventType === "page_view").length,
+    };
   }
 }
 

@@ -32,7 +32,9 @@ import {
   insertMedicalSalesIntakeSchema,
   insertBusinessDevIntakeSchema,
   insertCsuContractSendSchema,
-  insertCsuSignedAgreementSchema
+  insertCsuSignedAgreementSchema,
+  insertPortalActivitySchema,
+  portalActivity
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -3888,6 +3890,81 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error generating CSU PDF:", error);
       res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
+  // ============================================
+  // PORTAL ACTIVITY TRACKING ROUTES
+  // ============================================
+
+  // Track portal activity (public - no auth required for page views)
+  app.post("/api/portal/track", async (req, res) => {
+    try {
+      const trackingSchema = z.object({
+        portal: z.string().min(1),
+        eventType: z.string().min(1),
+        pagePath: z.string().optional(),
+        metadata: z.string().optional(),
+        sessionId: z.string().optional(),
+      });
+
+      const validationResult = trackingSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ message: "Invalid tracking data" });
+      }
+
+      const { portal, eventType, pagePath, metadata, sessionId } = validationResult.data;
+
+      // Get IP address from request
+      const ipAddress = req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() 
+        || req.socket.remoteAddress 
+        || "unknown";
+      
+      const userAgent = req.headers["user-agent"] || "unknown";
+      const referrer = req.headers["referer"] || req.headers["referrer"] || null;
+
+      await storage.createPortalActivity({
+        portal,
+        eventType,
+        ipAddress,
+        userAgent,
+        referrer,
+        pagePath: pagePath || null,
+        sessionId: sessionId || null,
+        userId: req.session?.userId || null,
+        metadata: metadata || null,
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking portal activity:", error);
+      res.status(500).json({ message: "Failed to track activity" });
+    }
+  });
+
+  // Get portal activity for a specific portal (admin only)
+  app.get("/api/portal/activity/:portal", requireAdmin, async (req, res) => {
+    try {
+      const { portal } = req.params;
+      const limit = parseInt(req.query.limit as string) || 100;
+      
+      const activity = await storage.getPortalActivity(portal, limit);
+      res.json(activity);
+    } catch (error) {
+      console.error("Error fetching portal activity:", error);
+      res.status(500).json({ message: "Failed to fetch activity" });
+    }
+  });
+
+  // Get portal activity stats (admin only)
+  app.get("/api/portal/stats/:portal", requireAdmin, async (req, res) => {
+    try {
+      const { portal } = req.params;
+      const stats = await storage.getPortalStats(portal);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching portal stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
     }
   });
 

@@ -1126,3 +1126,30 @@ export const insertCsuSignedAgreementSchema = createInsertSchema(csuSignedAgreem
 
 export type InsertCsuSignedAgreement = z.infer<typeof insertCsuSignedAgreementSchema>;
 export type CsuSignedAgreement = typeof csuSignedAgreements.$inferSelect;
+
+// ============================================
+// PORTAL ACTIVITY TRACKING
+// ============================================
+
+// Portal Activity - Tracks page visits, form submissions, and events for each portal
+export const portalActivity = pgTable("portal_activity", {
+  id: serial("id").primaryKey(),
+  portal: text("portal").notNull(), // e.g., "payzium"
+  eventType: text("event_type").notNull(), // page_view, contract_sent, contract_signed, login, etc.
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  referrer: text("referrer"),
+  pagePath: text("page_path"),
+  sessionId: text("session_id"), // To correlate events from same visitor
+  userId: integer("user_id").references(() => users.id), // If logged in
+  metadata: text("metadata"), // JSON string for additional event data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPortalActivitySchema = createInsertSchema(portalActivity).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPortalActivity = z.infer<typeof insertPortalActivitySchema>;
+export type PortalActivity = typeof portalActivity.$inferSelect;
