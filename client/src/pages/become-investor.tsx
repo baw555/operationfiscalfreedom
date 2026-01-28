@@ -98,7 +98,7 @@ export default function BecomeInvestor() {
           <h1 className="text-2xl sm:text-5xl font-display mb-4 sm:mb-6">Become an Investor</h1>
           <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-2">
             Partner with a Navy SEAL-owned organization dedicated to veteran success. 
-            Invest in the future of 150,000+ veterans while earning returns.
+            Invest in the future of veteran families while earning returns.
           </p>
         </div>
       </section>
@@ -113,8 +113,8 @@ export default function BecomeInvestor() {
             </div>
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
               <Users className="h-8 w-8 sm:h-12 sm:w-12 text-brand-red mx-auto mb-3 sm:mb-4" />
-              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">150,000+ Veterans</h3>
-              <p className="text-gray-600 text-xs sm:text-sm">Established network of active veteran community</p>
+              <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Growing Network</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Established network of an active veteran community</p>
             </div>
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
               <TrendingUp className="h-8 w-8 sm:h-12 sm:w-12 text-brand-gold mx-auto mb-3 sm:mb-4" />

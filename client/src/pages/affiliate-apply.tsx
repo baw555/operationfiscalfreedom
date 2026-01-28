@@ -103,7 +103,7 @@ export default function AffiliateApply() {
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
               <Users className="h-8 w-8 sm:h-12 sm:w-12 text-brand-navy mx-auto mb-3 sm:mb-4" />
               <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Access Network</h3>
-              <p className="text-gray-600 text-xs sm:text-sm">Connect with 150,000+ veterans in our community</p>
+              <p className="text-gray-600 text-xs sm:text-sm">Connect with veterans in our growing community</p>
             </div>
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
               <DollarSign className="h-8 w-8 sm:h-12 sm:w-12 text-brand-red mx-auto mb-3 sm:mb-4" />
