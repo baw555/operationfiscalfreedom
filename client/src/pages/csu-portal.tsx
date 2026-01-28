@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import DOMPurify from "dompurify";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +9,20 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building } from "lucide-react";
+
+// Maurice's account info
+const MAURICE_INFO = {
+  name: "Maurice Verrelli",
+  title: "President & CEO",
+  email: "maurice@payzium.com",
+  phone1: "888-801-8872",
+  phone2: "514-967-6880",
+  website: "payzium.com",
+  portalLink: "www.operationfiscalfreedom.com/Payzium"
+};
 
 interface CsuContractTemplate {
   id: number;
@@ -44,6 +58,7 @@ interface CsuSignedAgreement {
 export default function CsuPortal() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("send");
   const [formData, setFormData] = useState({
     templateId: "",
@@ -52,6 +67,18 @@ export default function CsuPortal() {
     recipientPhone: "",
   });
   const [lastSigningUrl, setLastSigningUrl] = useState<string | null>(null);
+  const [showSelfSign, setShowSelfSign] = useState(false);
+  const [selfSignData, setSelfSignData] = useState({
+    initials: "",
+    effectiveDate: new Date().toISOString().split("T")[0],
+    agreedToTerms: false,
+  });
+  const [currentTemplate, setCurrentTemplate] = useState<CsuContractTemplate | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasSignature, setHasSignature] = useState(false);
+  const [signedSuccessfully, setSignedSuccessfully] = useState(false);
+  const [lastSignedAgreementId, setLastSignedAgreementId] = useState<number | null>(null);
 
   const { data: templates = [] } = useQuery<CsuContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
@@ -64,6 +91,22 @@ export default function CsuPortal() {
   const { data: signedAgreements = [] } = useQuery<CsuSignedAgreement[]>({
     queryKey: ["/api/csu/signed-agreements"],
   });
+
+  // Initialize canvas for signature
+  useEffect(() => {
+    if (showSelfSign && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "#6b21a8";
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+      }
+    }
+  }, [showSelfSign]);
 
   const sendContractMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -99,6 +142,70 @@ export default function CsuPortal() {
     },
   });
 
+  const selfSignMutation = useMutation({
+    mutationFn: async (signatureData: string) => {
+      // First create the contract send for Maurice
+      const sendRes = await fetch("/api/csu/send-contract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId: parseInt(formData.templateId),
+          recipientName: MAURICE_INFO.name,
+          recipientEmail: MAURICE_INFO.email,
+          recipientPhone: MAURICE_INFO.phone1,
+        }),
+      });
+      if (!sendRes.ok) {
+        const error = await sendRes.json();
+        throw new Error(error.message || "Failed to create contract");
+      }
+      const sendData = await sendRes.json();
+      
+      // Extract token from signing URL
+      const token = sendData.signingUrl.split("token=")[1];
+      
+      // Now sign it immediately
+      const signRes = await fetch(`/api/csu/sign/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          signerName: MAURICE_INFO.name,
+          signerEmail: MAURICE_INFO.email,
+          signerPhone: MAURICE_INFO.phone1,
+          address: MAURICE_INFO.website,
+          initials: selfSignData.initials,
+          effectiveDate: selfSignData.effectiveDate,
+          signatureData,
+          agreedToTerms: true,
+        }),
+      });
+      
+      if (!signRes.ok) {
+        const error = await signRes.json();
+        throw new Error(error.message || "Failed to sign contract");
+      }
+      
+      return signRes.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Contract Signed!",
+        description: "Your agreement has been signed successfully.",
+      });
+      setSignedSuccessfully(true);
+      setLastSignedAgreementId(data.agreementId);
+      queryClient.invalidateQueries({ queryKey: ["/api/csu/signed-agreements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/csu/contract-sends"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.templateId || !formData.recipientName || !formData.recipientEmail) {
@@ -112,6 +219,22 @@ export default function CsuPortal() {
     sendContractMutation.mutate(formData);
   };
 
+  const handleSignItMyself = () => {
+    if (!formData.templateId) {
+      toast({
+        title: "Select Template",
+        description: "Please select a contract template first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const template = templates.find(t => t.id === parseInt(formData.templateId));
+    setCurrentTemplate(template || null);
+    setShowSelfSign(true);
+    setSignedSuccessfully(false);
+    setLastSignedAgreementId(null);
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copied!", description: "Link copied to clipboard." });
@@ -122,231 +245,602 @@ export default function CsuPortal() {
     return `${baseUrl}/csu-sign?token=${token}`;
   };
 
+  // Signature drawing functions
+  const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ("touches" in e) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY,
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    setIsDrawing(true);
+    const { x, y } = getCoordinates(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    const { x, y } = getCoordinates(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setHasSignature(true);
+  };
+
+  const stopDrawing = () => setIsDrawing(false);
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!ctx || !canvas) return;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setHasSignature(false);
+  };
+
+  const handleSelfSignSubmit = () => {
+    if (!selfSignData.initials) {
+      toast({ title: "Initials Required", description: "Please enter your initials.", variant: "destructive" });
+      return;
+    }
+    if (!hasSignature) {
+      toast({ title: "Signature Required", description: "Please sign in the signature box.", variant: "destructive" });
+      return;
+    }
+    if (!selfSignData.agreedToTerms) {
+      toast({ title: "Agreement Required", description: "Please agree to the terms.", variant: "destructive" });
+      return;
+    }
+    const signatureData = canvasRef.current?.toDataURL("image/png") || "";
+    selfSignMutation.mutate(signatureData);
+  };
+
+  // Self-signing modal/view
+  if (showSelfSign && currentTemplate) {
+    if (signedSuccessfully) {
+      return (
+        <Layout>
+          <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
+            <div className="container mx-auto px-4 text-center">
+              <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
+              <p className="text-lg text-purple-200">Contract Signed Successfully!</p>
+            </div>
+          </section>
+          <section className="py-8 bg-gray-100 min-h-screen">
+            <div className="container mx-auto px-4 max-w-xl">
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold text-green-700 mb-4">Agreement Signed!</h2>
+                  <p className="text-gray-600 mb-6">Your {currentTemplate.name} has been signed and recorded.</p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    {lastSignedAgreementId && (
+                      <Button
+                        onClick={() => window.open(`/api/csu/signed-agreements/${lastSignedAgreementId}/pdf`, "_blank")}
+                        className="bg-purple-600 hover:bg-purple-700"
+                        data-testid="button-download-signed-pdf"
+                      >
+                        <Download className="w-4 h-4 mr-2" /> Download PDF
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowSelfSign(false);
+                        setCurrentTemplate(null);
+                        setHasSignature(false);
+                        setSelfSignData({ initials: "", effectiveDate: new Date().toISOString().split("T")[0], agreedToTerms: false });
+                      }}
+                      data-testid="button-back-to-portal"
+                    >
+                      Back to Portal
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        </Layout>
+      );
+    }
+
+    return (
+      <Layout>
+        <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-8">
+          <div className="container mx-auto px-4 text-center">
+            <h1 className="text-2xl sm:text-4xl font-display mb-2">Payzium</h1>
+            <p className="text-purple-200">{currentTemplate.name}</p>
+          </div>
+        </section>
+
+        <section className="py-8 bg-gray-100 min-h-screen">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Content - Contract & Signing */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="w-5 h-5" /> Contract Agreement
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div 
+                      className="bg-gray-50 p-6 rounded-lg border max-h-96 overflow-y-auto text-sm prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentTemplate.content) }}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Pen className="w-5 h-5" /> Sign as {MAURICE_INFO.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Full Name</Label>
+                          <Input value={MAURICE_INFO.name} readOnly className="bg-gray-100 text-brand-navy" data-testid="input-self-sign-name" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Email</Label>
+                          <Input value={MAURICE_INFO.email} readOnly className="bg-gray-100 text-brand-navy" data-testid="input-self-sign-email" />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="initials">Initials *</Label>
+                          <Input
+                            id="initials"
+                            value={selfSignData.initials}
+                            onChange={(e) => setSelfSignData({ ...selfSignData, initials: e.target.value.toUpperCase() })}
+                            placeholder="MV"
+                            maxLength={5}
+                            className="text-brand-navy uppercase"
+                            data-testid="input-self-sign-initials"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="effectiveDate">Effective Date *</Label>
+                          <Input
+                            id="effectiveDate"
+                            type="date"
+                            value={selfSignData.effectiveDate}
+                            onChange={(e) => setSelfSignData({ ...selfSignData, effectiveDate: e.target.value })}
+                            className="text-brand-navy"
+                            data-testid="input-self-sign-effective-date"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <Label>Signature *</Label>
+                          <Button variant="ghost" size="sm" onClick={clearSignature} data-testid="button-clear-signature">
+                            <RotateCcw className="w-4 h-4 mr-1" /> Clear
+                          </Button>
+                        </div>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg bg-white">
+                          <canvas
+                            ref={canvasRef}
+                            width={600}
+                            height={200}
+                            className="w-full cursor-crosshair touch-none"
+                            onMouseDown={startDrawing}
+                            onMouseMove={draw}
+                            onMouseUp={stopDrawing}
+                            onMouseLeave={stopDrawing}
+                            onTouchStart={startDrawing}
+                            onTouchMove={draw}
+                            onTouchEnd={stopDrawing}
+                          />
+                        </div>
+                        <p className="text-sm text-gray-500">Sign above using your mouse or finger</p>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="terms"
+                          checked={selfSignData.agreedToTerms}
+                          onCheckedChange={(checked) => setSelfSignData({ ...selfSignData, agreedToTerms: checked as boolean })}
+                          data-testid="checkbox-self-sign-terms"
+                        />
+                        <label htmlFor="terms" className="text-sm text-gray-700">
+                          I have read and agree to the terms and conditions of this agreement
+                        </label>
+                      </div>
+
+                      <div className="flex gap-4">
+                        <Button
+                          onClick={handleSelfSignSubmit}
+                          className="flex-1 bg-purple-600 hover:bg-purple-700"
+                          disabled={selfSignMutation.isPending}
+                          data-testid="button-self-sign-submit"
+                        >
+                          {selfSignMutation.isPending ? "Signing..." : "Sign & Complete"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowSelfSign(false);
+                            setCurrentTemplate(null);
+                          }}
+                          data-testid="button-self-sign-cancel"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Sidebar - Account Info */}
+              <div className="space-y-6" data-testid="account-info-panel">
+                <Card className="border-purple-200 bg-purple-50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-purple-800">
+                      <Building className="w-5 h-5" /> Account Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-purple-900" data-testid="text-account-name">{MAURICE_INFO.name}</p>
+                        <p className="text-sm text-purple-700" data-testid="text-account-title">{MAURICE_INFO.title}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <Mail className="w-4 h-4 text-purple-600" />
+                        <span data-testid="text-account-email">{MAURICE_INFO.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <Phone className="w-4 h-4 text-purple-600" />
+                        <span data-testid="text-account-phone1">{MAURICE_INFO.phone1}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <Phone className="w-4 h-4 text-purple-600" />
+                        <span data-testid="text-account-phone2">{MAURICE_INFO.phone2}</span>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t border-purple-200">
+                      <p className="text-xs text-purple-700 font-medium">Portal Link:</p>
+                      <p className="text-xs text-purple-600 break-all" data-testid="text-account-portal-link">{MAURICE_INFO.portalLink}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white py-12">
+      <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl sm:text-5xl font-display mb-4">Cost Savings University</h1>
-          <p className="text-lg text-blue-200">Contract Management Portal</p>
+          <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
+          <p className="text-lg text-purple-200">Contract Management Portal</p>
         </div>
       </section>
 
       <section className="py-8 bg-gray-100 min-h-screen">
         <div className="container mx-auto px-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="send" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-send">
-                <Send className="w-4 h-4 mr-2" /> Send Contract
-              </TabsTrigger>
-              <TabsTrigger value="pending" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-pending">
-                <Clock className="w-4 h-4 mr-2" /> Pending ({contractSends.filter(s => s.status === "pending").length})
-              </TabsTrigger>
-              <TabsTrigger value="signed" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-signed">
-                <CheckCircle className="w-4 h-4 mr-2" /> Signed ({signedAgreements.length})
-              </TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-8">
+                  <TabsTrigger value="send" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-send">
+                    <Send className="w-4 h-4 mr-2" /> Send Contract
+                  </TabsTrigger>
+                  <TabsTrigger value="pending" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-pending">
+                    <Clock className="w-4 h-4 mr-2" /> Pending ({contractSends.filter(s => s.status === "pending").length})
+                  </TabsTrigger>
+                  <TabsTrigger value="signed" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-signed">
+                    <CheckCircle className="w-4 h-4 mr-2" /> Signed ({signedAgreements.length})
+                  </TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="send">
-              <Card className="max-w-2xl mx-auto">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Send className="w-5 h-5" /> Send a New Contract
+                <TabsContent value="send">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Send className="w-5 h-5" /> Send a New Contract
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="template">Contract Template *</Label>
+                          <Select
+                            value={formData.templateId}
+                            onValueChange={(value) => setFormData({ ...formData, templateId: value })}
+                          >
+                            <SelectTrigger data-testid="select-template">
+                              <SelectValue placeholder="Select a contract template" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {templates.map((template) => (
+                                <SelectItem key={template.id} value={template.id.toString()}>
+                                  {template.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="recipientName">Recipient Name *</Label>
+                          <Input
+                            id="recipientName"
+                            value={formData.recipientName}
+                            onChange={(e) => setFormData({ ...formData, recipientName: e.target.value })}
+                            placeholder="John Doe"
+                            className="text-brand-navy"
+                            data-testid="input-recipient-name"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="recipientEmail">Recipient Email *</Label>
+                          <Input
+                            id="recipientEmail"
+                            type="email"
+                            value={formData.recipientEmail}
+                            onChange={(e) => setFormData({ ...formData, recipientEmail: e.target.value })}
+                            placeholder="john@example.com"
+                            className="text-brand-navy"
+                            data-testid="input-recipient-email"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="recipientPhone">Recipient Phone (Optional)</Label>
+                          <Input
+                            id="recipientPhone"
+                            type="tel"
+                            value={formData.recipientPhone}
+                            onChange={(e) => setFormData({ ...formData, recipientPhone: e.target.value })}
+                            placeholder="(555) 123-4567"
+                            className="text-brand-navy"
+                            data-testid="input-recipient-phone"
+                          />
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <Button
+                            type="submit"
+                            className="flex-1 bg-purple-600 hover:bg-purple-700"
+                            disabled={sendContractMutation.isPending}
+                            data-testid="button-send-contract"
+                          >
+                            {sendContractMutation.isPending ? "Sending..." : "Send Contract"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1 border-purple-600 text-purple-600 hover:bg-purple-50"
+                            onClick={handleSignItMyself}
+                            data-testid="button-sign-myself"
+                          >
+                            <Pen className="w-4 h-4 mr-2" /> Sign It Myself
+                          </Button>
+                        </div>
+                      </form>
+
+                      {lastSigningUrl && (
+                        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <p className="text-green-800 font-medium mb-2">Contract Sent! Signing Link:</p>
+                          <div className="flex items-center gap-2">
+                            <Input value={lastSigningUrl} readOnly className="text-sm text-brand-navy" />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => copyToClipboard(lastSigningUrl)}
+                              data-testid="button-copy-link"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => window.open(lastSigningUrl, "_blank")}
+                              data-testid="button-open-link"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="pending">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Clock className="w-5 h-5" /> Pending Contracts
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {contractSends.filter(s => s.status === "pending").length === 0 ? (
+                        <p className="text-gray-500 text-center py-8">No pending contracts</p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b">
+                                <th className="text-left py-3 px-4">Recipient</th>
+                                <th className="text-left py-3 px-4">Email</th>
+                                <th className="text-left py-3 px-4">Sent</th>
+                                <th className="text-left py-3 px-4">Expires</th>
+                                <th className="text-left py-3 px-4">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {contractSends.filter(s => s.status === "pending").map((send) => (
+                                <tr key={send.id} className="border-b hover:bg-gray-50" data-testid={`pending-row-${send.id}`}>
+                                  <td className="py-3 px-4">{send.recipientName}</td>
+                                  <td className="py-3 px-4">{send.recipientEmail}</td>
+                                  <td className="py-3 px-4">{new Date(send.sentAt).toLocaleDateString()}</td>
+                                  <td className="py-3 px-4">{new Date(send.tokenExpiresAt).toLocaleDateString()}</td>
+                                  <td className="py-3 px-4">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => copyToClipboard(getSigningUrl(send.signToken))}
+                                    >
+                                      <Copy className="w-4 h-4 mr-1" /> Copy Link
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="signed">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5" /> Signed Agreements
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {signedAgreements.length === 0 ? (
+                        <p className="text-gray-500 text-center py-8">No signed agreements yet</p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b">
+                                <th className="text-left py-3 px-4">Name</th>
+                                <th className="text-left py-3 px-4">Email</th>
+                                <th className="text-left py-3 px-4">Phone</th>
+                                <th className="text-left py-3 px-4">Signed</th>
+                                <th className="text-left py-3 px-4">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {signedAgreements.map((agreement) => (
+                                <tr key={agreement.id} className="border-b hover:bg-gray-50" data-testid={`signed-row-${agreement.id}`}>
+                                  <td className="py-3 px-4">{agreement.signerName}</td>
+                                  <td className="py-3 px-4">{agreement.signerEmail}</td>
+                                  <td className="py-3 px-4">{agreement.signerPhone || "-"}</td>
+                                  <td className="py-3 px-4">{new Date(agreement.signedAt).toLocaleDateString()}</td>
+                                  <td className="py-3 px-4">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => window.open(`/api/csu/signed-agreements/${agreement.id}/pdf`, "_blank")}
+                                      data-testid={`download-agreement-${agreement.id}`}
+                                    >
+                                      <Download className="w-4 h-4 mr-1" /> Download
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Right Sidebar - Account Info */}
+            <div className="space-y-6" data-testid="main-account-info-panel">
+              <Card className="border-purple-200 bg-purple-50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-purple-800">
+                    <Building className="w-5 h-5" /> Account Information
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="template">Contract Template *</Label>
-                      <Select
-                        value={formData.templateId}
-                        onValueChange={(value) => setFormData({ ...formData, templateId: value })}
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                      <User className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-purple-900" data-testid="text-main-account-name">{MAURICE_INFO.name}</p>
+                      <p className="text-sm text-purple-700" data-testid="text-main-account-title">{MAURICE_INFO.title}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <Mail className="w-4 h-4 text-purple-600" />
+                      <span data-testid="text-main-account-email">{MAURICE_INFO.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <Phone className="w-4 h-4 text-purple-600" />
+                      <span data-testid="text-main-account-phone1">{MAURICE_INFO.phone1}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <Phone className="w-4 h-4 text-purple-600" />
+                      <span data-testid="text-main-account-phone2">{MAURICE_INFO.phone2}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <ExternalLink className="w-4 h-4 text-purple-600" />
+                      <a href={`https://${MAURICE_INFO.website}`} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline" data-testid="link-main-account-website">
+                        {MAURICE_INFO.website}
+                      </a>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-purple-200">
+                    <p className="text-xs text-purple-700 font-medium mb-1">Your Portal Link:</p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-xs text-purple-600 break-all flex-1" data-testid="text-main-account-portal-link">{MAURICE_INFO.portalLink}</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => copyToClipboard(`https://${MAURICE_INFO.portalLink}`)}
+                        data-testid="button-copy-portal-link"
                       >
-                        <SelectTrigger data-testid="select-template">
-                          <SelectValue placeholder="Select a contract template" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {templates.map((template) => (
-                            <SelectItem key={template.id} value={template.id.toString()}>
-                              {template.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <Copy className="w-3 h-3" />
+                      </Button>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="recipientName">Recipient Name *</Label>
-                      <Input
-                        id="recipientName"
-                        value={formData.recipientName}
-                        onChange={(e) => setFormData({ ...formData, recipientName: e.target.value })}
-                        placeholder="John Doe"
-                        className="text-brand-navy"
-                        data-testid="input-recipient-name"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="recipientEmail">Recipient Email *</Label>
-                      <Input
-                        id="recipientEmail"
-                        type="email"
-                        value={formData.recipientEmail}
-                        onChange={(e) => setFormData({ ...formData, recipientEmail: e.target.value })}
-                        placeholder="john@example.com"
-                        className="text-brand-navy"
-                        data-testid="input-recipient-email"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="recipientPhone">Recipient Phone (Optional)</Label>
-                      <Input
-                        id="recipientPhone"
-                        type="tel"
-                        value={formData.recipientPhone}
-                        onChange={(e) => setFormData({ ...formData, recipientPhone: e.target.value })}
-                        placeholder="(555) 123-4567"
-                        className="text-brand-navy"
-                        data-testid="input-recipient-phone"
-                      />
-                    </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={sendContractMutation.isPending}
-                      data-testid="button-send-contract"
-                    >
-                      {sendContractMutation.isPending ? "Sending..." : "Send Contract"}
-                    </Button>
-                  </form>
-
-                  {lastSigningUrl && (
-                    <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-green-800 font-medium mb-2">Contract Sent! Signing Link:</p>
-                      <div className="flex items-center gap-2">
-                        <Input value={lastSigningUrl} readOnly className="text-sm text-brand-navy" />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => copyToClipboard(lastSigningUrl)}
-                          data-testid="button-copy-link"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => window.open(lastSigningUrl, "_blank")}
-                          data-testid="button-open-link"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            <TabsContent value="pending">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-5 h-5" /> Pending Contracts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {contractSends.filter(s => s.status === "pending").length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No pending contracts</p>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-3 px-4">Recipient</th>
-                            <th className="text-left py-3 px-4">Email</th>
-                            <th className="text-left py-3 px-4">Sent</th>
-                            <th className="text-left py-3 px-4">Expires</th>
-                            <th className="text-left py-3 px-4">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {contractSends.filter(s => s.status === "pending").map((send) => (
-                            <tr key={send.id} className="border-b hover:bg-gray-50" data-testid={`pending-row-${send.id}`}>
-                              <td className="py-3 px-4">{send.recipientName}</td>
-                              <td className="py-3 px-4">{send.recipientEmail}</td>
-                              <td className="py-3 px-4">{new Date(send.sentAt).toLocaleDateString()}</td>
-                              <td className="py-3 px-4">{new Date(send.tokenExpiresAt).toLocaleDateString()}</td>
-                              <td className="py-3 px-4">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => copyToClipboard(getSigningUrl(send.signToken))}
-                                >
-                                  <Copy className="w-4 h-4 mr-1" /> Copy Link
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="signed">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5" /> Signed Agreements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {signedAgreements.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No signed agreements yet</p>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-3 px-4">Name</th>
-                            <th className="text-left py-3 px-4">Email</th>
-                            <th className="text-left py-3 px-4">Phone</th>
-                            <th className="text-left py-3 px-4">Signed</th>
-                            <th className="text-left py-3 px-4">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {signedAgreements.map((agreement) => (
-                            <tr key={agreement.id} className="border-b hover:bg-gray-50" data-testid={`signed-row-${agreement.id}`}>
-                              <td className="py-3 px-4">{agreement.signerName}</td>
-                              <td className="py-3 px-4">{agreement.signerEmail}</td>
-                              <td className="py-3 px-4">{agreement.signerPhone || "-"}</td>
-                              <td className="py-3 px-4">{new Date(agreement.signedAt).toLocaleDateString()}</td>
-                              <td className="py-3 px-4">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(`/api/csu/signed-agreements/${agreement.id}/pdf`, "_blank")}
-                                  data-testid={`download-agreement-${agreement.id}`}
-                                >
-                                  <Download className="w-4 h-4 mr-1" /> Download
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </div>
       </section>
     </Layout>

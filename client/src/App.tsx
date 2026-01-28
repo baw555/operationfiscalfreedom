@@ -303,6 +303,7 @@ function Router() {
         
         {/* Cost Savings University Routes */}
         <Route path="/csu-portal" component={CsuPortal} />
+        <Route path="/Payzium" component={CsuPortal} />
         <Route path="/csu-sign" component={CsuSign} />
         
         <Route component={NotFound} />

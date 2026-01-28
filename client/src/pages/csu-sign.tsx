@@ -286,10 +286,10 @@ export default function CsuSign() {
 
   return (
     <Layout>
-      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white py-8">
+      <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-8">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-2xl sm:text-4xl font-display mb-2">Cost Savings University</h1>
-          <p className="text-blue-200">{contractData.template.name}</p>
+          <h1 className="text-2xl sm:text-4xl font-display mb-2">Payzium</h1>
+          <p className="text-purple-200">{contractData.template.name}</p>
         </div>
       </section>
 
