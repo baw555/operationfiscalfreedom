@@ -251,12 +251,12 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Skip Animation Button - Always visible during animation */}
-          <div className="absolute bottom-4 sm:bottom-8 left-0 right-0 flex justify-center z-50 px-4">
+          {/* Skip Animation Button - Fixed to viewport for mobile stability */}
+          <div className="fixed bottom-4 sm:bottom-8 left-0 right-0 flex justify-center z-[100] px-4 pointer-events-none">
             <Button 
               onClick={toggleAnimation}
               variant="outline"
-              className="border-2 border-white/60 text-white hover:bg-white/20 text-sm sm:text-base px-6 py-3 backdrop-blur-sm bg-black/40 shadow-lg"
+              className="border-2 border-white/60 text-white hover:bg-white/20 text-sm sm:text-base px-6 py-3 backdrop-blur-sm bg-black/40 shadow-lg pointer-events-auto"
             >
               <Pause className="w-4 h-4 mr-2" />
               Skip to Main
@@ -379,6 +379,14 @@ export default function Home() {
               <p className="text-gray-300 text-xs sm:text-sm mt-4 text-center">
                 Click above to access all free member services
               </p>
+              
+              {/* Tri-Tech Portal Button */}
+              <Link href="/csu-portal">
+                <Button className="w-full h-12 sm:h-14 text-base sm:text-lg font-display bg-blue-700 hover:bg-blue-800 text-white shadow-lg shadow-blue-700/30 border-2 border-white/20 mt-4">
+                  <Star className="w-5 h-5 mr-2 fill-current" />
+                  Tri-Tech Portal
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
