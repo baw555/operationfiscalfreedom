@@ -256,6 +256,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/admin/login" className={cn(buttonVariants(), "bg-blue-600 hover:bg-blue-700 text-white font-bold border-2 border-blue-600 cursor-pointer shadow-lg")}>
                 Admin
             </Link>
+            {location.toLowerCase().startsWith("/payzium") && (
+              <Link href="/Payzium" className={cn(buttonVariants(), "bg-purple-600 hover:bg-purple-700 text-white font-bold border-2 border-purple-600 cursor-pointer shadow-lg")}>
+                  Payzium
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -407,6 +412,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               Admin
             </Link>
+            {location.toLowerCase().startsWith("/payzium") && (
+              <Link 
+                href="/Payzium" 
+                className="flex items-center justify-center w-full py-4 bg-purple-600 text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-purple-700 shadow-lg" 
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Payzium
+              </Link>
+            )}
           </div>
         )}
       </header>
