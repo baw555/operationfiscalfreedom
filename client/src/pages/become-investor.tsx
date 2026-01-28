@@ -97,7 +97,7 @@ export default function BecomeInvestor() {
         <div className="container mx-auto px-4">
           <h1 className="text-2xl sm:text-5xl font-display mb-4 sm:mb-6">Become an Investor</h1>
           <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-2">
-            Partner with a Navy SEAL-owned organization dedicated to veteran success. 
+            Partner with a Navy SEAL-operated organization dedicated to veteran success. 
             Invest in the future of veteran families while earning returns.
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function BecomeInvestor() {
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
               <Shield className="h-8 w-8 sm:h-12 sm:w-12 text-brand-navy mx-auto mb-3 sm:mb-4" />
               <h3 className="font-display text-lg sm:text-xl text-brand-navy mb-1 sm:mb-2">Veteran-Led</h3>
-              <p className="text-gray-600 text-xs sm:text-sm">Navy SEAL-owned business with proven leadership</p>
+              <p className="text-gray-600 text-xs sm:text-sm">Navy SEAL-operated business with proven leadership</p>
             </div>
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md text-center">
               <Users className="h-8 w-8 sm:h-12 sm:w-12 text-brand-red mx-auto mb-3 sm:mb-4" />

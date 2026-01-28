@@ -301,7 +301,7 @@ export default function Home() {
                 <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-wider">NAVIGATOR USA ELITE</span>
                 <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
               </div>
-              <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase shimmer-text">Navy SEAL Owned and Operated</p>
+              <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase shimmer-text">Navy SEAL Operated</p>
             </div>
             
             {/* Four Pillars */}
