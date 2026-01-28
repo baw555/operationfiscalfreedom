@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, BarChart3, Eye, Users, Globe } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -168,6 +168,150 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
+interface PortalStats {
+  totalVisits: number;
+  uniqueIps: number;
+  contractsSent: number;
+  contractsSigned: number;
+  todayVisits: number;
+}
+
+interface PortalActivity {
+  id: number;
+  portal: string;
+  eventType: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  pagePath: string | null;
+  referrer: string | null;
+  sessionId: string | null;
+  metadata: string | null;
+  createdAt: string;
+}
+
+function AnalyticsPanel() {
+  const { data: stats } = useQuery<PortalStats>({
+    queryKey: ["/api/portal/stats/payzium"],
+    refetchInterval: 30000,
+  });
+
+  const { data: activity = [] } = useQuery<PortalActivity[]>({
+    queryKey: ["/api/portal/activity/payzium"],
+    refetchInterval: 30000,
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Eye className="w-5 h-5 text-purple-600" />
+              <span className="text-sm text-gray-600">Total Visits</span>
+            </div>
+            <p className="text-2xl font-bold text-purple-900" data-testid="stat-total-visits">
+              {stats?.totalVisits ?? 0}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-5 h-5 text-purple-600" />
+              <span className="text-sm text-gray-600">Unique Visitors</span>
+            </div>
+            <p className="text-2xl font-bold text-purple-900" data-testid="stat-unique-visitors">
+              {stats?.uniqueIps ?? 0}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Send className="w-5 h-5 text-purple-600" />
+              <span className="text-sm text-gray-600">Contracts Sent</span>
+            </div>
+            <p className="text-2xl font-bold text-purple-900" data-testid="stat-contracts-sent">
+              {stats?.contractsSent ?? 0}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="w-5 h-5 text-purple-600" />
+              <span className="text-sm text-gray-600">Contracts Signed</span>
+            </div>
+            <p className="text-2xl font-bold text-purple-900" data-testid="stat-contracts-signed">
+              {stats?.contractsSigned ?? 0}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="w-5 h-5" /> Today's Visits
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-bold text-purple-600" data-testid="stat-today-visits">
+            {stats?.todayVisits ?? 0}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5" /> Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {activity.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No activity recorded yet</p>
+          ) : (
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-white">
+                  <tr className="border-b">
+                    <th className="text-left py-2 px-3">Time</th>
+                    <th className="text-left py-2 px-3">Event</th>
+                    <th className="text-left py-2 px-3">IP Address</th>
+                    <th className="text-left py-2 px-3">Path</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activity.map((item) => (
+                    <tr key={item.id} className="border-b hover:bg-gray-50" data-testid={`activity-row-${item.id}`}>
+                      <td className="py-2 px-3 whitespace-nowrap">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </td>
+                      <td className="py-2 px-3">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          item.eventType === "page_view" ? "bg-blue-100 text-blue-700" :
+                          item.eventType === "contract_sent" ? "bg-yellow-100 text-yellow-700" :
+                          item.eventType === "contract_signed" ? "bg-green-100 text-green-700" :
+                          "bg-gray-100 text-gray-700"
+                        }`}>
+                          {item.eventType.replace("_", " ")}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 font-mono text-xs">{item.ipAddress || "-"}</td>
+                      <td className="py-2 px-3">{item.pagePath || "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function CsuPortal() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -192,6 +336,40 @@ export default function CsuPortal() {
   const [hasSignature, setHasSignature] = useState(false);
   const [signedSuccessfully, setSignedSuccessfully] = useState(false);
   const [lastSignedAgreementId, setLastSignedAgreementId] = useState<number | null>(null);
+
+  // Generate or retrieve session ID for tracking
+  const getSessionId = () => {
+    let sessionId = sessionStorage.getItem("payzium_session_id");
+    if (!sessionId) {
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      sessionStorage.setItem("payzium_session_id", sessionId);
+    }
+    return sessionId;
+  };
+
+  // Track portal activity
+  const trackActivity = async (eventType: string, metadata?: object) => {
+    try {
+      await fetch("/api/portal/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          portal: "payzium",
+          eventType,
+          pagePath: window.location.pathname,
+          sessionId: getSessionId(),
+          metadata: metadata ? JSON.stringify(metadata) : undefined,
+        }),
+      });
+    } catch (error) {
+      console.error("Error tracking activity:", error);
+    }
+  };
+
+  // Track page view on mount
+  useEffect(() => {
+    trackActivity("page_view");
+  }, []);
 
   // Check if user is authenticated
   const { data: user, isLoading: authLoading } = useQuery<User>({
@@ -252,6 +430,7 @@ export default function CsuPortal() {
         description: data.message || "Contract has been sent successfully.",
       });
       setLastSigningUrl(data.signingUrl);
+      trackActivity("contract_sent", { recipientEmail: formData.recipientEmail });
       setFormData({ templateId: "", recipientName: "", recipientEmail: "", recipientPhone: "" });
       queryClient.invalidateQueries({ queryKey: ["/api/csu/contract-sends"] });
     },
@@ -314,6 +493,7 @@ export default function CsuPortal() {
         title: "Contract Signed!",
         description: "Your agreement has been signed successfully.",
       });
+      trackActivity("contract_signed", { signerEmail: MAURICE_INFO.email, selfSigned: true });
       setSignedSuccessfully(true);
       setLastSignedAgreementId(data.agreementId);
       queryClient.invalidateQueries({ queryKey: ["/api/csu/signed-agreements"] });
@@ -698,7 +878,7 @@ export default function CsuPortal() {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-8">
+                <TabsList className="grid w-full grid-cols-4 mb-8">
                   <TabsTrigger value="send" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-send">
                     <Send className="w-4 h-4 mr-2" /> Send Contract
                   </TabsTrigger>
@@ -707,6 +887,9 @@ export default function CsuPortal() {
                   </TabsTrigger>
                   <TabsTrigger value="signed" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-signed">
                     <CheckCircle className="w-4 h-4 mr-2" /> Signed ({signedAgreements.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-analytics">
+                    <BarChart3 className="w-4 h-4 mr-2" /> Analytics
                   </TabsTrigger>
                 </TabsList>
 
@@ -920,6 +1103,10 @@ export default function CsuPortal() {
                       )}
                     </CardContent>
                   </Card>
+                </TabsContent>
+
+                <TabsContent value="analytics">
+                  <AnalyticsPanel />
                 </TabsContent>
               </Tabs>
             </div>
