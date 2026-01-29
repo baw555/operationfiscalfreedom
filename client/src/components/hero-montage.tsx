@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 const montageVideos = [
@@ -14,118 +14,72 @@ const montageVideos = [
   { src: "/videos/montage-clip.mp4", alt: "Military action clip" },
 ];
 
-const DISPLAY_MS = 3000; // 3 seconds visible display time
-const FADE_MS = 600; // 600ms crossfade transition
-const CYCLE_MS = DISPLAY_MS + FADE_MS; // Total cycle time
-
 export function HeroMontage() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [opacity, setOpacity] = useState(1);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const nextVideoRef = useRef<HTMLVideoElement>(null);
 
-  const getNextIndex = useCallback((index: number) => {
-    return (index + 1) % montageVideos.length;
-  }, []);
-
-  const playVideo = useCallback((index: number) => {
-    const video = videoRefs.current[index];
-    if (video) {
-      video.currentTime = 0;
-      video.play().catch(() => {});
-    }
-  }, []);
-
-  const pauseVideo = useCallback((index: number) => {
-    const video = videoRefs.current[index];
-    if (video) {
-      video.pause();
-    }
-  }, []);
-
-  const preloadVideo = useCallback((index: number) => {
-    const video = videoRefs.current[index];
-    if (video) {
-      video.load();
-    }
-  }, []);
-
-  // Start first video and begin cycle
+  // Play current video on mount and when index changes
   useEffect(() => {
-    playVideo(0);
-    // Preload next video
-    preloadVideo(1);
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [activeIndex]);
 
-    const runCycle = () => {
-      // Start transition (fade out current, fade in next)
-      setIsTransitioning(true);
+  // Timer for transitions - runs once on mount
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // Start fade out
+      setOpacity(0);
       
-      const nextIdx = getNextIndex(currentIndex);
-      playVideo(nextIdx);
-
-      // After fade completes, update state
+      // After fade, switch video
       setTimeout(() => {
-        pauseVideo(currentIndex);
-        setCurrentIndex(nextIdx);
-        setIsTransitioning(false);
-        
-        // Preload the video after next
-        preloadVideo(getNextIndex(nextIdx));
-      }, FADE_MS);
-    };
+        setActiveIndex(prev => (prev + 1) % montageVideos.length);
+        setOpacity(1);
+      }, 500);
+    }, 3500); // 3 seconds display + 500ms for transition
 
-    // Schedule next transition after display time
-    timeoutRef.current = setTimeout(runCycle, DISPLAY_MS);
+    return () => clearInterval(timer);
+  }, []);
 
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [currentIndex, getNextIndex, playVideo, pauseVideo, preloadVideo]);
+  const nextIndex = (activeIndex + 1) % montageVideos.length;
 
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden">
-      {montageVideos.map((video, index) => {
-        const isActive = index === currentIndex;
-        const isNext = index === getNextIndex(currentIndex);
-        
-        return (
-          <div
-            key={index}
-            className={cn(
-              "absolute inset-0 transition-opacity ease-in-out",
-              isActive && !isTransitioning ? "opacity-100" : "",
-              isActive && isTransitioning ? "opacity-0" : "",
-              !isActive && isNext && isTransitioning ? "opacity-100" : "",
-              !isActive && !isNext ? "opacity-0" : ""
-            )}
-            style={{
-              zIndex: isActive ? 2 : isNext ? 1 : 0,
-              transitionDuration: `${FADE_MS}ms`,
-            }}
-          >
-            <video
-              ref={(el) => { videoRefs.current[index] = el; }}
-              src={video.src}
-              muted
-              playsInline
-              preload="metadata"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        );
-      })}
+    <div className="absolute inset-0 z-0 overflow-hidden bg-brand-navy">
+      {/* Next video (underneath) */}
+      <video
+        ref={nextVideoRef}
+        src={montageVideos[nextIndex].src}
+        muted
+        playsInline
+        preload="auto"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
       
+      {/* Current video (on top with fade) */}
+      <video
+        ref={videoRef}
+        src={montageVideos[activeIndex].src}
+        muted
+        playsInline
+        preload="auto"
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+        style={{ opacity }}
+      />
+      
+      {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/50 to-brand-navy/30 z-10" />
       
+      {/* Progress dots */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
         {montageVideos.map((_, index) => (
           <div
             key={index}
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-500",
-              index === currentIndex 
+              index === activeIndex 
                 ? "bg-brand-gold w-6" 
                 : "bg-white/40 hover:bg-white/60"
             )}
