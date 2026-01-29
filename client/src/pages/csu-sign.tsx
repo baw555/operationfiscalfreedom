@@ -149,46 +149,17 @@ export default function CsuSign() {
     setHasSignature(false);
   };
 
+  // Process content ONCE when contract loads - don't depend on formData for inputs
   const processedContent = useMemo(() => {
     if (!contractData?.template?.content) return "";
     
     let content = contractData.template.content;
     
-    const formatDate = (dateStr: string) => {
-      if (!dateStr) return "[DATE]";
-      const date = new Date(dateStr);
-      return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-    };
-
-    const fieldReplacements: Record<string, string> = {
-      currentDate: formData.effectiveDate ? formatDate(formData.effectiveDate) : "[DATE]",
-      clientCompany: formData.clientCompany || "[COMPANY NAME]",
-      clientAddress: formData.clientAddress || "[COMPANY ADDRESS]",
-      primaryOwner: formData.primaryOwner || formData.signerName || "[PRIMARY OWNER]",
-      primaryTitle: formData.primaryTitle || "[TITLE]",
-      secondaryOwner: formData.secondaryOwner || "N/A",
-      clientEmail: formData.signerEmail || "[EMAIL]",
-      initials: formData.initials || "[INITIALS]",
-    };
-
-    // Raw values for input fields (ISO format for dates)
-    const inputValues: Record<string, string> = {
-      currentDate: formData.effectiveDate || "",
-      clientCompany: formData.clientCompany || "",
-      clientAddress: formData.clientAddress || "",
-      primaryOwner: formData.primaryOwner || formData.signerName || "",
-      primaryTitle: formData.primaryTitle || "",
-      secondaryOwner: formData.secondaryOwner || "",
-      clientEmail: formData.signerEmail || "",
-      initials: formData.initials || "",
-    };
-
-    Object.entries(fieldReplacements).forEach(([field, value]) => {
-      const regex = new RegExp(`<span class="auto-fill" data-field="${field}">[^<]*</span>`, "g");
-      content = content.replace(regex, `<span class="auto-fill filled" data-field="${field}" style="color: #6b21a8; font-weight: 600;">${value}</span>`);
-      
+    // Replace editable-field spans with input elements (empty - will be populated by useEffect)
+    const editableFields = ['currentDate', 'clientCompany', 'clientAddress', 'primaryOwner', 'primaryTitle', 'secondaryOwner', 'clientEmail'];
+    
+    editableFields.forEach(field => {
       const editableRegex = new RegExp(`<span class="editable-field" data-field="${field}"[^>]*>[^<]*</span>`, "g");
-      const inputValue = inputValues[field] || "";
       const placeholder = field === "currentDate" ? "Select date..." : 
                          field === "clientCompany" ? "Enter company name..." :
                          field === "clientAddress" ? "Enter address..." :
@@ -196,40 +167,36 @@ export default function CsuSign() {
                          field === "primaryTitle" ? "Enter title..." :
                          field === "secondaryOwner" ? "Enter name (optional)..." :
                          field === "clientEmail" ? "Enter email..." : "Enter value...";
-      content = content.replace(editableRegex, `<input type="${field === "currentDate" ? "date" : "text"}" class="embedded-input" data-field="${field}" value="${inputValue}" placeholder="${placeholder}" style="color: #6b21a8; font-weight: 600; background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 8px 12px; width: 100%; font-size: 14px; outline: none;" />`);
+      content = content.replace(editableRegex, `<input type="${field === "currentDate" ? "date" : "text"}" class="embedded-input" data-field="${field}" placeholder="${placeholder}" style="color: #6b21a8; font-weight: 600; background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 8px 12px; width: 100%; font-size: 14px; outline: none;" />`);
     });
 
-    if (formData.initials && initialsApplied) {
-      content = content.replace(
-        /<div class="initials-capture"[^>]*>[\s\S]*?<span[^>]*>\[INITIALS\]<\/span>[\s\S]*?<\/div>/g,
-        `<div class="initials-capture captured" style="width: 80px; height: 50px; border: 2px solid #22c55e; border-radius: 6px; background: #dcfce7; display: flex; align-items: center; justify-content: center;">
-          <span style="color: #166534; font-weight: bold; font-size: 18px; font-family: 'Brush Script MT', cursive;">${formData.initials}</span>
-        </div>`
-      );
-    }
-
-    if (hasSignature) {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const signatureData = canvas.toDataURL("image/png");
-        content = content.replace(
-          /<div class="signature-capture"[^>]*>[\s\S]*?<\/div>/,
-          `<div class="signature-capture captured" style="background: #fff; min-height: 100px; border-radius: 8px; border: 3px solid #22c55e; display: flex; align-items: center; justify-content: center; padding: 10px;">
-            <img src="${signatureData}" alt="Signature" style="max-height: 80px; max-width: 100%;" />
-          </div>`
-        );
-      }
-    }
-
     return content;
-  }, [contractData, formData, initialsApplied, hasSignature]);
+  }, [contractData]);
 
-  // Attach event listeners to embedded inputs for direct editing
+  // Set initial values in embedded inputs and attach event listeners
   useEffect(() => {
-    if (!contractRef.current) return;
+    if (!contractRef.current || !processedContent) return;
 
-    const inputs = contractRef.current.querySelectorAll('.embedded-input');
+    const inputs = contractRef.current.querySelectorAll('.embedded-input') as NodeListOf<HTMLInputElement>;
     
+    // Set initial values from formData
+    const initialValues: Record<string, string> = {
+      currentDate: formData.effectiveDate || "",
+      clientCompany: formData.clientCompany || "",
+      clientAddress: formData.clientAddress || "",
+      primaryOwner: formData.primaryOwner || formData.signerName || "",
+      primaryTitle: formData.primaryTitle || "",
+      secondaryOwner: formData.secondaryOwner || "",
+      clientEmail: formData.signerEmail || "",
+    };
+
+    inputs.forEach(input => {
+      const field = input.dataset.field;
+      if (field && initialValues[field] !== undefined && !input.value) {
+        input.value = initialValues[field];
+      }
+    });
+
     const handleInput = (e: Event) => {
       const target = e.target as HTMLInputElement;
       const field = target.dataset.field;
@@ -261,6 +228,39 @@ export default function CsuSign() {
       });
     };
   }, [processedContent]);
+
+  // Update auto-fill display spans in the DOM (without re-rendering inputs)
+  useEffect(() => {
+    if (!contractRef.current) return;
+
+    const formatDate = (dateStr: string) => {
+      if (!dateStr) return "[DATE]";
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    };
+
+    const autoFillValues: Record<string, string> = {
+      currentDate: formData.effectiveDate ? formatDate(formData.effectiveDate) : "[DATE]",
+      clientCompany: formData.clientCompany || "[COMPANY NAME]",
+      clientAddress: formData.clientAddress || "[COMPANY ADDRESS]",
+      primaryOwner: formData.primaryOwner || formData.signerName || "[PRIMARY OWNER]",
+      primaryTitle: formData.primaryTitle || "[TITLE]",
+      secondaryOwner: formData.secondaryOwner || "N/A",
+      clientEmail: formData.signerEmail || "[EMAIL]",
+      initials: formData.initials || "[INITIALS]",
+    };
+
+    // Update auto-fill spans in the DOM directly
+    const autoFillSpans = contractRef.current.querySelectorAll('.auto-fill');
+    autoFillSpans.forEach(span => {
+      const field = (span as HTMLElement).dataset.field;
+      if (field && autoFillValues[field]) {
+        span.textContent = autoFillValues[field];
+        (span as HTMLElement).style.color = '#6b21a8';
+        (span as HTMLElement).style.fontWeight = '600';
+      }
+    });
+  }, [formData]);
 
   const applyInitials = () => {
     if (formData.initials.length >= 2) {
