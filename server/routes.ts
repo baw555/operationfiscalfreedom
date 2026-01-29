@@ -5,7 +5,7 @@ import pgSession from "connect-pg-simple";
 import pg from "pg";
 import { storage } from "./storage";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
-import { Resend } from "resend";
+import { getResendClient } from "./resendClient";
 import twilio from "twilio";
 import Stripe from "stripe";
 import { 
@@ -897,15 +897,19 @@ export async function registerRoutes(
         }).catch(err => console.error("CRM webhook failed:", err));
       }
       
-      // Send notifications
-      if (process.env.RESEND_API_KEY && data.email) {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        resend.emails.send({
-          from: "Veteran Led Tax Solutions <no-reply@veteranledtax.com>",
-          to: data.email,
-          subject: "We received your intake",
-          html: `<p>Your intake was received. A specialist will review shortly.</p>`,
-        }).catch(err => console.error("Email failed:", err));
+      // Send notifications via Resend integration
+      if (data.email) {
+        try {
+          const { client: resend, fromEmail } = await getResendClient();
+          resend.emails.send({
+            from: `Veteran Led Tax Solutions <${fromEmail}>`,
+            to: data.email,
+            subject: "We received your intake",
+            html: `<p>Your intake was received. A specialist will review shortly.</p>`,
+          }).catch(err => console.error("Email failed:", err));
+        } catch (err) {
+          console.error("Resend not configured:", err);
+        }
       }
       
       if (process.env.TWILIO_ACCOUNT_SID && data.phone) {
@@ -959,15 +963,19 @@ export async function registerRoutes(
     try {
       const { email, phone, message } = req.body;
 
-      // Send email via Resend if configured
-      if (process.env.RESEND_API_KEY && email) {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-          from: "Veteran Led Tax Solutions <no-reply@veteranledtax.com>",
-          to: email,
-          subject: "We received your intake",
-          html: `<p>${message || "Your intake was received. A specialist will review shortly."}</p>`,
-        });
+      // Send email via Resend integration
+      if (email) {
+        try {
+          const { client: resend, fromEmail } = await getResendClient();
+          await resend.emails.send({
+            from: `Veteran Led Tax Solutions <${fromEmail}>`,
+            to: email,
+            subject: "We received your intake",
+            html: `<p>${message || "Your intake was received. A specialist will review shortly."}</p>`,
+          });
+        } catch (err) {
+          console.error("Resend not configured:", err);
+        }
       }
 
       // Send SMS via Twilio if configured
@@ -1437,11 +1445,14 @@ export async function registerRoutes(
 
       const resetLink = `${baseUrl}/reset-password?token=${rawToken}${portal ? `&portal=${portal}` : ""}`;
 
-      // Send email if Resend is configured
-      if (process.env.RESEND_API_KEY) {
-        const resend = new Resend(process.env.RESEND_API_KEY);
+      // Send email via Resend integration
+      try {
+        const { client: resend, fromEmail: configuredFromEmail } = await getResendClient();
+        const actualFromEmail = portal === "payzium" 
+          ? `Payzium <${configuredFromEmail}>` 
+          : `${portalName} <${configuredFromEmail}>`;
         await resend.emails.send({
-          from: fromEmail,
+          from: actualFromEmail,
           to: user.email,
           subject: `Reset Your ${portalName} Password`,
           html: `
@@ -1461,8 +1472,9 @@ export async function registerRoutes(
           `,
         });
         console.log(`Password reset email sent to ${user.email}`);
-      } else {
-        console.log(`Password reset link (no email configured): ${resetLink}`);
+      } catch (err) {
+        console.error("Failed to send password reset email:", err);
+        console.log(`Password reset link (email failed): ${resetLink}`);
       }
 
       res.json({ message: "If an account exists with this email, you will receive a password reset link." });
@@ -2041,10 +2053,10 @@ export async function registerRoutes(
       }
       
       // Send email notification to master/admin about the air support request
-      if (process.env.RESEND_API_KEY) {
-        const resend = new Resend(process.env.RESEND_API_KEY);
+      try {
+        const { client: resend, fromEmail } = await getResendClient();
         await resend.emails.send({
-          from: "NavigatorUSA <no-reply@navigatorusa.com>",
+          from: `NavigatorUSA <${fromEmail}>`,
           to: process.env.ADMIN_EMAIL || "admin@navigatorusa.com",
           subject: `VSO Air Support Request from ${user?.name}`,
           html: `
@@ -2058,6 +2070,8 @@ export async function registerRoutes(
             <p>If this VSO signs up, the requesting affiliate earns a 1% recruiter bonus on all VSO revenue.</p>
           `,
         });
+      } catch (err) {
+        console.error("Failed to send air support notification:", err);
       }
       
       res.json({ success: true, message: "Air support request submitted. Master will review and send projections." });
@@ -3928,33 +3942,61 @@ export async function registerRoutes(
         : "http://localhost:5000";
       const signingUrl = `${baseUrl}/csu-sign?token=${signToken}`;
 
-      // Try to send email if Resend is configured
-      if (process.env.RESEND_API_KEY) {
-        try {
-          const resend = new Resend(process.env.RESEND_API_KEY);
-          await resend.emails.send({
-            from: "Cost Savings University <noreply@resend.dev>",
-            to: recipientEmail,
-            subject: "Contract Ready for Signature - Cost Savings University",
-            html: `
-              <h1>Hello ${recipientName},</h1>
-              <p>You have a contract ready for your signature from Cost Savings University.</p>
-              <p><a href="${signingUrl}" style="background-color: #E21C3D; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Sign Contract</a></p>
-              <p>Or copy and paste this link: ${signingUrl}</p>
-              <p>This link will expire in 7 days.</p>
-              <p>Best regards,<br>Cost Savings University</p>
-            `,
-          });
-        } catch (emailError) {
-          console.error("Failed to send email:", emailError);
-        }
+      // Try to send email via Resend integration
+      let emailSent = false;
+      try {
+        const { client: resend, fromEmail } = await getResendClient();
+        await resend.emails.send({
+          from: `Payzium Contract Services <${fromEmail}>`,
+          to: recipientEmail,
+          subject: "Contract Ready for Signature - Payzium",
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Payzium</h1>
+                <p style="color: #e9d5ff; margin: 10px 0 0 0;">Contract Management</p>
+              </div>
+              
+              <div style="background: #f8f4ff; padding: 30px; border: 1px solid #e9d5ff;">
+                <h2 style="color: #6b21a8; margin-top: 0;">Hello ${recipientName},</h2>
+                <p>You have a contract ready for your signature from <strong>Maurice Verrelli</strong> at Payzium.</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${signingUrl}" style="background: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">Sign Contract Now</a>
+                </div>
+                
+                <p style="font-size: 14px; color: #666;">Or copy and paste this link into your browser:</p>
+                <p style="background: #fff; padding: 12px; border-radius: 6px; word-break: break-all; font-size: 12px; border: 1px solid #e9d5ff;">${signingUrl}</p>
+                
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0; border-radius: 4px;">
+                  <p style="margin: 0; color: #92400e; font-size: 14px;"><strong>Important:</strong> This link will expire in 7 days.</p>
+                </div>
+              </div>
+              
+              <div style="background: #1a1a2e; padding: 20px; border-radius: 0 0 12px 12px; text-align: center;">
+                <p style="color: #9ca3af; margin: 0; font-size: 12px;">This is an automated message from Payzium Contract Services.</p>
+                <p style="color: #6b7280; margin: 10px 0 0 0; font-size: 11px;">If you did not expect this email, please disregard it.</p>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+        emailSent = true;
+      } catch (emailError) {
+        console.error("Failed to send email:", emailError);
       }
 
       res.json({ 
         success: true, 
         contractSend,
         signingUrl,
-        message: process.env.RESEND_API_KEY ? "Contract sent via email" : "Contract created (email not configured)"
+        message: emailSent ? "Contract sent via email" : "Contract created (email not configured - share the link manually)"
       });
     } catch (error) {
       console.error("Error sending CSU contract:", error);
