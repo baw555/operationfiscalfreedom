@@ -255,7 +255,7 @@
 
 .ranger-shine-letter {
   display: inline-block;
-  animation: rangerShine 6s ease-in-out infinite;
+  animation: rangerShine 42s ease-in-out infinite;
   color: rgba(255, 255, 255, 0.4);
 }
 
