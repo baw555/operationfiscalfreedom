@@ -1620,6 +1620,7 @@ export default function CsuPortal() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
+  const [selfSignInitialsApplied, setSelfSignInitialsApplied] = useState(false);
   const [signedSuccessfully, setSignedSuccessfully] = useState(false);
   const [lastSignedAgreementId, setLastSignedAgreementId] = useState<number | null>(null);
   
@@ -2010,6 +2011,10 @@ export default function CsuPortal() {
       toast({ title: "Effective Date Required", description: "Please select an effective date.", variant: "destructive" });
       return;
     }
+    if (!selfSignInitialsApplied) {
+      toast({ title: "Apply Initials Required", description: "Please click 'Apply Initials' to apply your initials to all sections.", variant: "destructive" });
+      return;
+    }
     // Validate FICA-specific fields (template ID 7)
     const isFicaContract = currentTemplate?.id === 7;
     if (isFicaContract) {
@@ -2072,6 +2077,7 @@ export default function CsuPortal() {
                         setShowSelfSign(false);
                         setCurrentTemplate(null);
                         setHasSignature(false);
+                        setSelfSignInitialsApplied(false);
                         setSelfSignData({ initials: "", effectiveDate: new Date().toISOString().split("T")[0], agreedToTerms: false, clientCompany: "", clientAddress: "", primaryTitle: "", secondaryOwner: "" });
                       }}
                       data-testid="button-back-to-portal"
@@ -2140,7 +2146,10 @@ export default function CsuPortal() {
                           <Input
                             id="initials"
                             value={selfSignData.initials}
-                            onChange={(e) => setSelfSignData({ ...selfSignData, initials: e.target.value.toUpperCase() })}
+                            onChange={(e) => {
+                              setSelfSignData({ ...selfSignData, initials: e.target.value.toUpperCase() });
+                              setSelfSignInitialsApplied(false);
+                            }}
                             placeholder="MV"
                             maxLength={5}
                             className="text-brand-navy uppercase"
@@ -2158,6 +2167,27 @@ export default function CsuPortal() {
                             data-testid="input-self-sign-effective-date"
                           />
                         </div>
+                      </div>
+
+                      {/* Apply Initials Button */}
+                      <div className="flex items-center justify-between gap-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <div>
+                          <p className="font-semibold text-purple-800">Apply Initials to Contract</p>
+                          <p className="text-xs text-gray-500">
+                            {selfSignInitialsApplied 
+                              ? `Your initials "${selfSignData.initials}" have been applied to all sections.` 
+                              : "Click to apply your initials to all required sections."}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={() => setSelfSignInitialsApplied(true)}
+                          disabled={selfSignData.initials.length < 2}
+                          className={`h-10 px-4 ${selfSignInitialsApplied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700"}`}
+                          data-testid="button-self-sign-apply-initials"
+                        >
+                          {selfSignInitialsApplied ? "Initials Applied ✓" : "Apply Initials"}
+                        </Button>
                       </div>
 
                       {/* Additional fields for FICA Tips Tax Credit Agreement */}
@@ -2267,6 +2297,9 @@ export default function CsuPortal() {
                           onClick={() => {
                             setShowSelfSign(false);
                             setCurrentTemplate(null);
+                            setHasSignature(false);
+                            setSelfSignInitialsApplied(false);
+                            setSelfSignData({ initials: "", effectiveDate: new Date().toISOString().split("T")[0], agreedToTerms: false, clientCompany: "", clientAddress: "", primaryTitle: "", secondaryOwner: "" });
                           }}
                           data-testid="button-self-sign-cancel"
                         >
