@@ -126,7 +126,7 @@ export default function Home() {
                 "text-4xl sm:text-6xl md:text-8xl font-display text-white tracking-wider transition-all duration-1000",
                 animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
               )}>
-                We can feel it.
+                We can feel it
               </h1>
               <h2 className={cn(
                 "text-3xl sm:text-5xl md:text-7xl font-display text-brand-red tracking-wider mt-4 transition-all duration-1000 delay-[1500ms]",
