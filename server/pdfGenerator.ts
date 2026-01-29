@@ -1,5 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { NDA_TEMPLATE } from './templates/ndaTemplate';
+import * as htmlparser2 from 'htmlparser2';
+import { Element, Text, Node } from 'domhandler';
 
 import crypto from 'crypto';
 
@@ -26,7 +28,397 @@ interface CsuContractData {
   termsConsent?: boolean;
 }
 
-// Helper to strip HTML tags and decode entities
+// Helper to decode HTML entities
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&rsquo;/g, "'")
+    .replace(/&lsquo;/g, "'")
+    .replace(/&rdquo;/g, '"')
+    .replace(/&ldquo;/g, '"')
+    .replace(/&mdash;/g, '—')
+    .replace(/&ndash;/g, '–')
+    .replace(/&hellip;/g, '…');
+}
+
+// Extract plain text from HTML element
+function extractText(html: string): string {
+  return decodeHtmlEntities(
+    html
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
+}
+
+// Parse HTML content into structured elements for PDF rendering
+interface PdfElement {
+  type: 'h1' | 'h2' | 'h3' | 'paragraph' | 'list-item' | 'initials-box' | 'signature-section' | 'divider' | 'warning-box' | 'info-box';
+  content: string;
+}
+
+// Helper to get all text content from a DOM node recursively
+function getNodeText(node: Node): string {
+  if (node.type === 'text') {
+    return (node as Text).data;
+  }
+  if (node.type === 'tag') {
+    const el = node as Element;
+    return el.children.map(child => getNodeText(child)).join('');
+  }
+  return '';
+}
+
+// Helper to check if element has specific style attribute
+function hasStyle(el: Element, patterns: string[]): boolean {
+  const style = (el.attribs?.style || '').toLowerCase();
+  const className = (el.attribs?.class || '').toLowerCase();
+  return patterns.some(p => style.includes(p) || className.includes(p));
+}
+
+// Robust HTML parser using htmlparser2 for proper DOM traversal
+function parseHtmlForPdf(html: string): PdfElement[] {
+  const elements: PdfElement[] = [];
+  
+  // Clean the HTML
+  const cleanHtml = html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<!--[\s\S]*?-->/g, '');
+  
+  // Parse DOM
+  const dom = htmlparser2.parseDocument(cleanHtml);
+  
+  // Track last added element to avoid consecutive duplicates only
+  let lastKey = '';
+  
+  // Helper to add element only if not a consecutive duplicate
+  function addElement(type: PdfElement['type'], content: string): void {
+    const key = `${type}:${content.substring(0, 100)}`;
+    if (key !== lastKey || type === 'divider') {
+      elements.push({ type, content });
+      lastKey = key;
+    }
+  }
+  
+  // Walk DOM in document order
+  function walkNode(node: Node): void {
+    if (node.type === 'tag') {
+      const el = node as Element;
+      const tagName = el.name.toLowerCase();
+      
+      // Process leaf elements (ones that contain text directly)
+      if (tagName === 'h1') {
+        const text = getNodeText(el).trim();
+        if (text) {
+          addElement('h1', text);
+        }
+        return; // Don't recurse into h1 children
+      }
+      
+      if (tagName === 'h2') {
+        const text = getNodeText(el).trim();
+        if (text) {
+          addElement('h2', text);
+        }
+        return; // Don't recurse into h2 children
+      }
+      
+      if (tagName === 'h3') {
+        const text = getNodeText(el).trim();
+        if (text) {
+          addElement('h3', text);
+        }
+        return; // Don't recurse into h3 children
+      }
+      
+      if (tagName === 'li') {
+        const text = getNodeText(el).trim();
+        if (text) {
+          addElement('list-item', text);
+        }
+        return; // Don't recurse into li children
+      }
+      
+      if (tagName === 'p') {
+        const text = getNodeText(el).trim();
+        if (text) {
+          addElement('paragraph', text);
+        }
+        return; // Don't recurse into p children
+      }
+      
+      if (tagName === 'hr') {
+        addElement('divider', '');
+        return;
+      }
+      
+      // Handle special styled divs
+      if (tagName === 'div') {
+        // Check for initials box (yellow background)
+        if (hasStyle(el, ['#fff3cd', 'initials-block', '#fef9c3', '#ffc107'])) {
+          const text = getNodeText(el).trim();
+          if (text && text.toUpperCase().includes('INITIAL')) {
+            addElement('initials-box', text);
+            return; // Don't recurse
+          }
+        }
+        
+        // Check for warning box (red/error styling)
+        if (hasStyle(el, ['#fce8e8', '#fef2f2', '#dc2626', 'warning'])) {
+          const text = getNodeText(el).trim();
+          if (text && text.length > 0) {
+            addElement('warning-box', text);
+            return; // Don't recurse
+          }
+        }
+        
+        // Check for signature pad placeholder
+        if (hasStyle(el, ['signature-capture', 'signature-section'])) {
+          addElement('signature-section', 'Signature Required');
+          return;
+        }
+        
+        // Check for signature/acknowledgment section (light purple/lavender background)
+        if (hasStyle(el, ['#f3e8ff', '#f8f4ff', '#ede9fe'])) {
+          const text = getNodeText(el).trim();
+          if (text && text.length > 0) {
+            addElement('info-box', text);
+            return; // Don't recurse - content is complete
+          }
+        }
+        
+        // Check for footer section (grey background) - treat as info
+        if (hasStyle(el, ['#f0f0f0', '#e5e5e5'])) {
+          const text = getNodeText(el).trim();
+          if (text && text.length > 0) {
+            addElement('paragraph', text);
+            return;
+          }
+        }
+      }
+      
+      // For container elements (div, ul, ol, section, etc.), recurse into children
+      for (const child of el.children) {
+        walkNode(child);
+      }
+    }
+  }
+  
+  // Walk all top-level nodes
+  for (const node of dom.children) {
+    walkNode(node);
+  }
+  
+  return elements;
+}
+
+// Render parsed HTML elements to PDF with professional styling
+function renderHtmlToPdf(
+  doc: PDFKit.PDFDocument,
+  elements: PdfElement[],
+  data: {
+    initials?: string;
+    pageWidth: number;
+    contentWidth: number;
+    leftMargin: number;
+  }
+): void {
+  const PURPLE_COLOR = '#6b21a8';
+  const DARK_PURPLE = '#1a1a2e';
+  const WARNING_COLOR = '#dc2626';
+  const WARNING_BG = '#fef2f2';
+  const INITIALS_BG = '#fef9c3';
+  const INITIALS_BORDER = '#eab308';
+  const BOTTOM_MARGIN = 72;
+  
+  // Helper to calculate text height using PDFKit's heightOfString
+  const getTextHeight = (text: string, fontSize: number, width: number): number => {
+    doc.fontSize(fontSize);
+    return doc.heightOfString(text, { width }) + 10; // Add padding
+  };
+  
+  // Helper to check if we need a new page with room for element
+  const ensureSpace = (neededHeight: number) => {
+    if (doc.y + neededHeight > doc.page.height - BOTTOM_MARGIN) {
+      doc.addPage();
+      doc.y = 72;
+    }
+  };
+  
+  for (const element of elements) {
+    switch (element.type) {
+      case 'h1':
+        ensureSpace(40);
+        doc.moveDown(0.5);
+        doc.fontSize(16).font('Helvetica-Bold').fillColor(DARK_PURPLE)
+          .text(element.content, { align: 'center' });
+        doc.moveDown(0.3);
+        // Draw decorative line under H1
+        const h1LineY = doc.y;
+        doc.moveTo(data.leftMargin + 100, h1LineY)
+          .lineTo(data.leftMargin + data.contentWidth - 100, h1LineY)
+          .lineWidth(2)
+          .stroke(PURPLE_COLOR);
+        doc.moveDown(0.5);
+        break;
+        
+      case 'h2':
+        ensureSpace(35);
+        doc.moveDown(0.8);
+        // Draw purple underline for section headers
+        doc.fontSize(12).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
+          .text(element.content);
+        const lineY = doc.y + 2;
+        doc.moveTo(data.leftMargin, lineY)
+          .lineTo(data.leftMargin + data.contentWidth, lineY)
+          .lineWidth(1.5)
+          .stroke(PURPLE_COLOR);
+        doc.moveDown(0.5);
+        break;
+        
+      case 'h3':
+        ensureSpace(25);
+        doc.moveDown(0.5);
+        doc.fontSize(11).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
+          .text(element.content);
+        doc.moveDown(0.3);
+        break;
+        
+      case 'paragraph':
+        // Calculate actual text height for accurate page breaks
+        const pHeight = getTextHeight(element.content, 9, data.contentWidth);
+        ensureSpace(pHeight);
+        doc.fontSize(9).font('Helvetica').fillColor('#333')
+          .text(element.content, { align: 'justify', lineGap: 2 });
+        doc.moveDown(0.4);
+        break;
+        
+      case 'list-item':
+        // Calculate actual text height for list items
+        const liHeight = getTextHeight(`• ${element.content}`, 9, data.contentWidth - 15);
+        ensureSpace(liHeight);
+        doc.fontSize(9).font('Helvetica').fillColor('#333')
+          .text(`• ${element.content}`, { indent: 15, lineGap: 2 });
+        doc.moveDown(0.2);
+        break;
+        
+      case 'initials-box':
+        // Render yellow initials acknowledgment box with dynamic height
+        const cleanText = element.content
+          .replace(/\[INITIALS\]/gi, '')
+          .replace(/INITIAL HERE TO ACKNOWLEDGE/gi, 'Acknowledged:')
+          .trim();
+        
+        // Calculate dynamic height based on text content
+        doc.fontSize(9);
+        const initialsTextHeight = doc.heightOfString(cleanText, { width: data.contentWidth - 100 });
+        const boxHeight = Math.max(40, initialsTextHeight + 24);
+        
+        ensureSpace(boxHeight + 15);
+        const boxY = doc.y;
+        
+        // Yellow background with border
+        doc.rect(data.leftMargin, boxY, data.contentWidth, boxHeight)
+          .fillAndStroke(INITIALS_BG, INITIALS_BORDER);
+        
+        // Left border accent
+        doc.rect(data.leftMargin, boxY, 4, boxHeight).fill(INITIALS_BORDER);
+        
+        // Text content
+        doc.fontSize(9).font('Helvetica-Bold').fillColor('#92400e')
+          .text(cleanText, data.leftMargin + 12, boxY + 12, { width: data.contentWidth - 100 });
+        
+        // Initials box on the right
+        const initialsBoxX = data.leftMargin + data.contentWidth - 70;
+        doc.rect(initialsBoxX, boxY + 8, 60, 24)
+          .lineWidth(1.5)
+          .stroke(PURPLE_COLOR);
+        
+        // Display initials
+        const initialsText = data.initials || '___';
+        doc.fontSize(12).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
+          .text(initialsText, initialsBoxX + 5, boxY + 14, { width: 50, align: 'center' });
+        
+        doc.y = boxY + boxHeight + 10;
+        break;
+        
+      case 'warning-box':
+        // Red warning box with dynamic height
+        doc.fontSize(9);
+        const warnTextHeight = doc.heightOfString(element.content, { width: data.contentWidth - 24 });
+        const warnBoxHeight = Math.max(35, warnTextHeight + 24);
+        
+        ensureSpace(warnBoxHeight + 15);
+        const warnBoxY = doc.y;
+        
+        doc.rect(data.leftMargin, warnBoxY, data.contentWidth, warnBoxHeight)
+          .fillAndStroke(WARNING_BG, WARNING_COLOR);
+        
+        // Left border accent
+        doc.rect(data.leftMargin, warnBoxY, 4, warnBoxHeight).fill(WARNING_COLOR);
+        
+        doc.fontSize(9).font('Helvetica-Bold').fillColor(WARNING_COLOR)
+          .text(element.content, data.leftMargin + 12, warnBoxY + 12, { width: data.contentWidth - 24 });
+        
+        doc.y = warnBoxY + warnBoxHeight + 10;
+        break;
+        
+      case 'divider':
+        ensureSpace(20);
+        doc.moveDown(0.5);
+        doc.moveTo(data.leftMargin, doc.y)
+          .lineTo(data.leftMargin + data.contentWidth, doc.y)
+          .lineWidth(2)
+          .stroke(PURPLE_COLOR);
+        doc.moveDown(0.5);
+        break;
+        
+      case 'info-box':
+        // Render light purple info/acknowledgment box with dynamic height
+        doc.fontSize(9);
+        const infoTextHeight = doc.heightOfString(element.content, { width: data.contentWidth - 24 });
+        const infoBoxHeight = Math.max(50, infoTextHeight + 30);
+        
+        ensureSpace(infoBoxHeight + 15);
+        const infoBoxY = doc.y;
+        
+        doc.rect(data.leftMargin, infoBoxY, data.contentWidth, infoBoxHeight)
+          .fillAndStroke('#f8f4ff', PURPLE_COLOR);
+        
+        // Left border accent
+        doc.rect(data.leftMargin, infoBoxY, 4, infoBoxHeight).fill(PURPLE_COLOR);
+        
+        doc.fontSize(9).font('Helvetica').fillColor('#333')
+          .text(element.content, data.leftMargin + 12, infoBoxY + 15, { width: data.contentWidth - 24, lineGap: 2 });
+        
+        doc.y = infoBoxY + infoBoxHeight + 10;
+        break;
+        
+      case 'signature-section':
+        ensureSpace(60);
+        doc.moveDown(0.5);
+        doc.fontSize(10).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
+          .text('SIGNATURE REQUIRED - See Signature Page', { align: 'center' });
+        doc.moveDown(0.5);
+        break;
+        
+      default:
+        // Fallback for unknown types
+        ensureSpace(20);
+        doc.fontSize(9).font('Helvetica').fillColor('#333')
+          .text(element.content, { lineGap: 2 });
+        doc.moveDown(0.3);
+    }
+  }
+}
+
+// Legacy strip function for backward compatibility
 function stripHtml(html: string): string {
   return html
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -242,8 +634,9 @@ export async function generateCsuContractPdf(data: CsuContractData): Promise<Buf
         secondaryOwner: data.secondaryOwner || undefined,
       });
       
-      // Check if this is a plain text template (no HTML tags) - add agreement details header
+      // Check if this is a plain text template (no HTML tags)
       const isPlainText = !/<[a-zA-Z][^>]*>/.test(data.templateContent);
+      
       if (isPlainText) {
         // Add Agreement Details box for plain text templates
         const detailsBoxY = doc.y;
@@ -259,11 +652,21 @@ export async function generateCsuContractPdf(data: CsuContractData): Promise<Buf
         doc.text(`Effective Date: ${effectiveDateDisplay}`, 82, detailsBoxY + 43);
         doc.text(`Initials: ${data.initials || 'N/A'}`, 250, detailsBoxY + 43);
         doc.y = detailsBoxY + 75;
+        
+        // Plain text: use simple rendering
+        const cleanContent = stripHtml(contentWithReplacements);
+        doc.fontSize(9).font('Helvetica').fillColor('#333')
+          .text(cleanContent, { align: 'left', lineGap: 3, columns: 1 });
+      } else {
+        // HTML content: parse and render with proper formatting
+        const parsedElements = parseHtmlForPdf(contentWithReplacements);
+        renderHtmlToPdf(doc, parsedElements, {
+          initials: data.initials || undefined,
+          pageWidth,
+          contentWidth,
+          leftMargin: 72
+        });
       }
-      
-      const cleanContent = stripHtml(contentWithReplacements);
-      doc.fontSize(9).font('Helvetica').fillColor('#333')
-        .text(cleanContent, { align: 'left', lineGap: 3, columns: 1 });
       
       // ===== SIGNATURE PAGE =====
       doc.addPage();
