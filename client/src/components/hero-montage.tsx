@@ -39,7 +39,7 @@ export function HeroMontage() {
         setActiveIndex(prev => (prev + 1) % montageVideos.length);
         setOpacity(1);
       }, 500);
-    }, 3500); // 3 seconds display + 500ms for transition
+    }, 5500); // 5 seconds display + 500ms for transition
 
     return () => clearInterval(timer);
   }, []);
