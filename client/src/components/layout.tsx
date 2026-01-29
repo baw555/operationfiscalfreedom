@@ -103,14 +103,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-2 sm:px-4 h-16 sm:h-18 md:h-22 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity cursor-pointer">
-              <video 
-                src="/videos/logo-animation.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="h-10 sm:h-12 md:h-14 object-contain"
-              />
               <img 
                 src={logoImage} 
                 alt="NavigatorUSA Logo" 

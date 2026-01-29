@@ -272,11 +272,30 @@ export default function Home() {
           showContent ? "opacity-100" : "opacity-0"
         )}>
           <div className="absolute inset-0 z-0">
-            <div className="w-full h-full bg-gradient-to-br from-brand-navy via-brand-blue/30 to-brand-navy" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-brand-blue/20 via-transparent to-transparent" />
+            <video 
+              src="/videos/soldiers-marching.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover opacity-40"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/70 to-brand-navy/50" />
           </div>
 
           <div className="container relative z-10 px-3 sm:px-4 py-10 sm:py-20 text-center max-w-5xl mx-auto">
+            {/* Hero Video Loop */}
+            <div className="flex justify-center mb-6 sm:mb-8 animate-in fade-in zoom-in duration-1000">
+              <video 
+                src="/videos/hero-logo-video.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="h-32 sm:h-40 md:h-52 object-contain drop-shadow-2xl rounded-lg"
+              />
+            </div>
+
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-white mb-1 sm:mb-2 leading-none animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
               GEAR UP
               <br />
@@ -288,7 +307,7 @@ export default function Home() {
               <div className="relative bg-gradient-to-r from-brand-navy/80 via-brand-blue/60 to-brand-navy/80 backdrop-blur-sm border border-brand-gold/30 rounded-xl px-4 sm:px-8 py-4 sm:py-6 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-gold/10 to-transparent animate-pulse"></div>
                 <p className="ranger-banner-text text-center text-lg sm:text-2xl md:text-3xl relative z-10">
-                  {"Tired of document management fees? Get your Ranger Tab and you may never pay them again!".split("").map((char, index) => (
+                  {"Tired of document management fees? Get your Ranger Tab and never pay them again!".split("").map((char, index) => (
                     <span
                       key={index}
                       className="ranger-shine-letter"
