@@ -287,7 +287,7 @@ export default function Home() {
             {/* Hero Video Loop */}
             <div className="flex justify-center mb-6 sm:mb-8 animate-in fade-in zoom-in duration-1000">
               <video 
-                src="/videos/hero-logo-video.mp4"
+                src="/videos/logo-animation.mp4"
                 autoPlay
                 loop
                 muted
