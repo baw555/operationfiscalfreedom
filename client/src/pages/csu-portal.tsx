@@ -72,6 +72,10 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   const [isLoading, setIsLoading] = useState(false);
   const [lightningFlash, setLightningFlash] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  
+  // Track when user is actively engaged with form
+  const hasContent = email.length > 0 || password.length > 0;
   
   // Post-login cinematic sequence state
   const [cinematicPhase, setCinematicPhase] = useState<'idle' | 'black' | 'scanning' | 'scanningOut' | 'welcome' | 'welcomeOut' | 'done'>('idle');
@@ -580,7 +584,14 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
             {/* Card border glow */}
             <div className="absolute -inset-[2px] bg-gradient-to-b from-amber-400/60 via-orange-500/50 to-amber-600/60 rounded-2xl blur-sm animate-borderGoldGlow" />
             
-            <div className="relative bg-[#0d0905]/95 backdrop-blur-xl border border-amber-400/30 rounded-2xl p-8 shadow-2xl" style={{ boxShadow: '0 0 60px rgba(255,140,0,0.2), inset 0 1px 1px rgba(255,215,0,0.1)' }}>
+            <div 
+              className={`relative backdrop-blur-xl border border-amber-400/30 rounded-2xl p-8 shadow-2xl transition-all duration-500 ${
+                isTyping || hasContent 
+                  ? 'bg-[#0d0905]/90' 
+                  : 'bg-[#0d0905]/40'
+              }`} 
+              style={{ boxShadow: '0 0 60px rgba(255,140,0,0.2), inset 0 1px 1px rgba(255,215,0,0.1)' }}
+            >
               {/* Corner lightning indicators */}
               <div className="absolute top-2 left-2 w-3 h-3">
                 <div className="absolute inset-0 bg-amber-400 rounded-full animate-pulse" style={{ boxShadow: '0 0 12px #ffd700' }} />
@@ -611,6 +622,8 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      onFocus={() => setIsTyping(true)}
+                      onBlur={() => setIsTyping(false)}
                       placeholder="Enter your email"
                       required
                       data-testid="input-payzium-email"
@@ -631,6 +644,8 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      onFocus={() => setIsTyping(true)}
+                      onBlur={() => setIsTyping(false)}
                       placeholder="Enter your password"
                       required
                       data-testid="input-payzium-password"
