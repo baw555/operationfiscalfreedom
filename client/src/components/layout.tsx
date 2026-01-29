@@ -93,8 +93,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Top Bar - INTENSE */}
       <style>{animatedTextStyles}</style>
       <div className="bg-brand-navy text-[10px] sm:text-xs py-2 sm:py-3 px-2 sm:px-4 text-center text-white uppercase tracking-wide sm:tracking-widest flex flex-col md:flex-row justify-center items-center gap-1 md:gap-8 border-b-2 border-brand-red">
-        <span className="hidden sm:inline font-bold animate-veterans">YOU FOUGHT FOR US. WE FIGHT FOR YOU.</span>
-        <span className="sm:hidden font-bold animate-veterans">YOU FOUGHT FOR US. WE FIGHT FOR YOU.</span>
+        <div className="flex flex-col items-center font-bold animate-veterans">
+          <span>YOU FOUGHT FOR US.</span>
+          <span>WE FIGHT FOR YOU.</span>
+        </div>
         <span className="hidden md:inline text-brand-red text-lg">★</span>
         <div className="flex flex-col items-center">
           <AnimatedNavigatorUSA />
