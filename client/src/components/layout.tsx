@@ -240,8 +240,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/login" className={cn(buttonVariants(), "bg-black hover:bg-gray-900 text-white font-bold border-2 border-black cursor-pointer shadow-lg")}>
                 Deploy
             </Link>
-            <Link href="/ranger-tab-signup" className={cn(buttonVariants(), "bg-black hover:bg-gray-900 text-brand-gold font-bold border-2 border-brand-gold cursor-pointer shadow-lg")} data-testid="nav-ranger-tab">
-                Ranger Tab
+            <Link href="/ranger-tab-signup" className="ranger-tab-patch ranger-tab-patch-nav cursor-pointer" data-testid="nav-ranger-tab">
+                Ranger
             </Link>
             <Link href="/admin/login" className={cn(buttonVariants(), "bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold border-2 border-gray-400 cursor-pointer shadow-lg")}>
                 Admin
@@ -397,11 +397,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </Link>
             <Link 
               href="/ranger-tab-signup" 
-              className="flex items-center justify-center w-full py-4 bg-black text-brand-gold border-2 border-brand-gold font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-gray-900 shadow-lg" 
+              className="ranger-tab-patch w-full justify-center min-h-[48px]" 
               onClick={() => setMobileMenuOpen(false)}
               data-testid="nav-mobile-ranger-tab"
             >
-              Ranger Tab
+              Ranger
             </Link>
             <Link 
               href="/admin/login" 

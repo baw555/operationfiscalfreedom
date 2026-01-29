@@ -291,10 +291,10 @@ export default function Home() {
                 <div className="text-center mt-3">
                   <a
                     href="/ranger-tab-signup"
-                    className="inline-flex items-center gap-2 px-6 py-2 bg-brand-gold text-brand-navy font-display text-lg rounded-lg hover:bg-brand-gold/90 transition-all shadow-lg shadow-brand-gold/30"
+                    className="ranger-tab-patch ranger-tab-patch-lg"
                     data-testid="link-ranger-tab-signup"
                   >
-                    Get Your Ranger Tab
+                    Ranger
                   </a>
                 </div>
               </div>
