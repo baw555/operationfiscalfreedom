@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Menu, X, Star, LogIn, ChevronDown } from "lucide-react";
+import { Menu, X, Star, LogIn, ChevronDown, Flag, Skull, Shield, Stars } from "lucide-react";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import logoImage from "@assets/Navigaor_USA_Logo_396x86_1767699671480.png";
@@ -235,16 +235,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {/* CTA Buttons - INTENSE */}
           <div className="hidden md:flex items-center gap-3">
              <Link href="/affiliate" className={cn(buttonVariants(), "bg-brand-red hover:bg-brand-red/90 text-white font-bold border-2 border-brand-red cursor-pointer shadow-lg")}>
-                Enlist
+                <Flag className="mr-2 h-4 w-4" /> Enlist
             </Link>
             <Link href="/login" className={cn(buttonVariants({ variant: "outline" }), "border-brand-navy text-brand-navy hover:bg-brand-navy hover:text-white font-bold border-2 bg-white cursor-pointer")}>
-                <LogIn className="mr-2 h-4 w-4" /> Deploy
+                <Skull className="mr-2 h-4 w-4" /> Deploy
             </Link>
             <Link href="/ranger-tab-signup" className={cn(buttonVariants(), "bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold border-2 border-brand-gold cursor-pointer shadow-lg")} data-testid="nav-ranger-tab">
-                Ranger Tab
+                <Shield className="mr-2 h-4 w-4" /> Ranger Tab
             </Link>
             <Link href="/admin/login" className={cn(buttonVariants(), "bg-blue-600 hover:bg-blue-700 text-white font-bold border-2 border-blue-600 cursor-pointer shadow-lg")}>
-                Admin
+                <Stars className="mr-2 h-4 w-4" /> Admin
             </Link>
             {location.toLowerCase().startsWith("/payzium") && (
               <Link href="/Payzium" className={cn(buttonVariants(), "bg-purple-600 hover:bg-purple-700 text-white font-bold border-2 border-purple-600 cursor-pointer shadow-lg")}>
@@ -383,32 +383,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="h-px bg-brand-navy/20 my-2" />
             <Link 
               href="/affiliate" 
-              className="flex items-center justify-center w-full py-4 bg-brand-red text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-red/80 shadow-lg" 
+              className="flex items-center justify-center gap-2 w-full py-4 bg-brand-red text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-red/80 shadow-lg" 
               onClick={() => setMobileMenuOpen(false)}
             >
-              Enlist
+              <Flag className="h-5 w-5" /> Enlist
             </Link>
             <Link 
               href="/login" 
-              className="flex items-center justify-center w-full py-4 border-2 border-brand-navy text-brand-navy bg-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-navy/10" 
+              className="flex items-center justify-center gap-2 w-full py-4 border-2 border-brand-navy text-brand-navy bg-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-navy/10" 
               onClick={() => setMobileMenuOpen(false)}
             >
-              Deploy
+              <Skull className="h-5 w-5" /> Deploy
             </Link>
             <Link 
               href="/ranger-tab-signup" 
-              className="flex items-center justify-center w-full py-4 bg-brand-gold text-brand-navy font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-gold/90 shadow-lg" 
+              className="flex items-center justify-center gap-2 w-full py-4 bg-brand-gold text-brand-navy font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-gold/90 shadow-lg" 
               onClick={() => setMobileMenuOpen(false)}
               data-testid="nav-mobile-ranger-tab"
             >
-              Ranger Tab
+              <Shield className="h-5 w-5" /> Ranger Tab
             </Link>
             <Link 
               href="/admin/login" 
-              className="flex items-center justify-center w-full py-4 bg-blue-600 text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-blue-700 shadow-lg" 
+              className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-blue-700 shadow-lg" 
               onClick={() => setMobileMenuOpen(false)}
             >
-              Admin
+              <Stars className="h-5 w-5" /> Admin
             </Link>
             {location.toLowerCase().startsWith("/payzium") && (
               <Link 
