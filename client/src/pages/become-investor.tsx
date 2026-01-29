@@ -10,11 +10,13 @@ import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, TrendingUp, Users, Shield, DollarSign } from "lucide-react";
 import { useLocation } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 export default function BecomeInvestor() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -59,6 +61,14 @@ export default function BecomeInvestor() {
       toast({
         title: "Missing Fields",
         description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the terms before submitting.",
         variant: "destructive",
       });
       return;
@@ -246,10 +256,11 @@ export default function BecomeInvestor() {
                   data-testid="input-message"
                 />
               </div>
+              <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
               <Button 
                 type="submit"
                 className="w-full bg-brand-navy text-white font-bold h-12"
-                disabled={submitMutation.isPending}
+                disabled={submitMutation.isPending || !tcpaConsent}
                 data-testid="button-submit-investor"
               >
                 {submitMutation.isPending ? "Submitting..." : "Submit Investment Inquiry"}

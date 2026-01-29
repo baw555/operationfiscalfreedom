@@ -11,12 +11,14 @@ import { useMutation } from "@tanstack/react-query";
 import { Banknote, CheckCircle, DollarSign, Rocket, TrendingUp } from "lucide-react";
 import { useLocation } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 export default function ApplyStartupGrant() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -77,6 +79,15 @@ export default function ApplyStartupGrant() {
       toast({
         title: "Certification Required",
         description: "Please certify your veteran status.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the TCPA consent to continue.",
         variant: "destructive",
       });
       return;
@@ -333,10 +344,12 @@ export default function ApplyStartupGrant() {
                 </Label>
               </div>
 
+              <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
+
               <Button 
                 type="submit"
                 className="w-full bg-brand-red hover:bg-brand-red/90 text-brand-navy font-bold h-14 text-lg shadow-lg"
-                disabled={submitMutation.isPending}
+                disabled={submitMutation.isPending || !tcpaConsent}
                 data-testid="button-submit-application"
               >
                 {submitMutation.isPending ? "Submitting..." : "Submit Grant Application"}

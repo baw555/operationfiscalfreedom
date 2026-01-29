@@ -8,11 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, CheckCircle, Handshake, Target, Building2 } from "lucide-react";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 export default function BusinessDevelopment() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
   
   const [formData, setFormData] = useState({
@@ -65,6 +67,10 @@ export default function BusinessDevelopment() {
     e.preventDefault();
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.industry || !formData.serviceInterest) {
       toast({ title: "Missing Information", description: "Please fill in all required fields.", variant: "destructive" });
+      return;
+    }
+    if (!tcpaConsent) {
+      toast({ title: "Consent Required", description: "Please agree to the terms to continue.", variant: "destructive" });
       return;
     }
     submitMutation.mutate({ ...formData, referralCode });
@@ -296,18 +302,16 @@ export default function BusinessDevelopment() {
                 />
               </div>
 
+              <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
+
               <Button
                 type="submit"
-                disabled={submitMutation.isPending}
+                disabled={submitMutation.isPending || !tcpaConsent}
                 className="w-full bg-brand-navy hover:bg-brand-navy/90 text-white font-bold h-12 text-lg"
                 data-testid="button-submit-business-dev"
               >
                 {submitMutation.isPending ? "Submitting..." : "Submit Inquiry"}
               </Button>
-
-              <p className="text-center text-xs text-gray-500">
-                Your information is secure and will only be used to connect you with relevant business development opportunities.
-              </p>
             </form>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { TCPAConsent } from "@/components/tcpa-consent";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, CheckCircle, Users, Building2, Briefcase, DollarSign, Heart, Car, Home, FileText } from "lucide-react";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
@@ -13,6 +14,7 @@ export default function Insurance() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
   
   const [formData, setFormData] = useState({
@@ -70,6 +72,10 @@ export default function Insurance() {
     e.preventDefault();
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.userType || !formData.intentType || formData.insuranceTypes.length === 0) {
       toast({ title: "Missing Information", description: "Please fill in all required fields.", variant: "destructive" });
+      return;
+    }
+    if (!tcpaConsent) {
+      toast({ title: "Consent Required", description: "Please agree to the terms to continue.", variant: "destructive" });
       return;
     }
     submitMutation.mutate({ ...formData, referralCode });
@@ -362,9 +368,14 @@ export default function Insurance() {
                 />
               </div>
 
+              <TCPAConsent 
+                checked={tcpaConsent} 
+                onCheckedChange={setTcpaConsent} 
+              />
+
               <Button
                 type="submit"
-                disabled={submitMutation.isPending}
+                disabled={submitMutation.isPending || !tcpaConsent}
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-12 text-lg"
                 data-testid="button-submit-insurance"
               >

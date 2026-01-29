@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { TCPAConsent } from "@/components/tcpa-consent";
 import { CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ export default function Contact() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -55,6 +57,14 @@ export default function Contact() {
       toast({
         title: "Missing Fields",
         description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the terms before submitting.",
         variant: "destructive",
       });
       return;
@@ -162,11 +172,15 @@ export default function Contact() {
                   required
                 />
               </div>
+              <TCPAConsent 
+                checked={tcpaConsent} 
+                onCheckedChange={setTcpaConsent} 
+              />
               <Button 
                 type="submit"
                 className="w-full bg-brand-navy text-white font-bold h-11 sm:h-12"
                 data-testid="button-submit-contact"
-                disabled={submitMutation.isPending}
+                disabled={!tcpaConsent || submitMutation.isPending}
               >
                 {submitMutation.isPending ? "Sending..." : "Send Message"}
               </Button>

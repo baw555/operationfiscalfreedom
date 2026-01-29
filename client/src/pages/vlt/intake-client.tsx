@@ -4,11 +4,13 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 export default function VLTIntakeClient() {
   const [status, setStatus] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState("");
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
 
   useEffect(() => {
@@ -19,6 +21,9 @@ export default function VLTIntakeClient() {
 
   async function submit(e: any) {
     e.preventDefault();
+    if (!tcpaConsent) {
+      return;
+    }
     const form = new FormData(e.target);
     const data: any = Object.fromEntries(form);
     
@@ -198,17 +203,16 @@ export default function VLTIntakeClient() {
             </label>
           </div>
 
+          <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
+
           <button 
             type="submit" 
-            className="w-full py-3 bg-brand-red text-white font-semibold rounded hover:bg-brand-red/90"
+            disabled={!tcpaConsent}
+            className="w-full py-3 bg-brand-red text-white font-semibold rounded hover:bg-brand-red/90 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-submit"
           >
             Request Free Consultation
           </button>
-
-          <p className="text-xs text-gray-500 text-center">
-            Your information is secure and will only be shared with our tax specialists.
-          </p>
         </form>
       </Container>
       <Footer />

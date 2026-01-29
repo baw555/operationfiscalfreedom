@@ -12,12 +12,14 @@ import { FileText, CheckCircle, DollarSign, Shield, ArrowRight, User, Phone, Mai
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 export default function DisabilityIntake() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
 
   useEffect(() => {
@@ -74,6 +76,14 @@ export default function DisabilityIntake() {
       toast({
         title: "Required Field",
         description: "Please select a claim type.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the terms to continue.",
         variant: "destructive",
       });
       return;
@@ -371,11 +381,17 @@ export default function DisabilityIntake() {
                 </CardContent>
               </Card>
 
+              <Card className="bg-white/10 border-white/20 backdrop-blur">
+                <CardContent className="pt-6">
+                  <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
+                </CardContent>
+              </Card>
+
               <div className="text-center">
                 <Button
                   type="submit"
-                  disabled={submitMutation.isPending}
-                  className="bg-brand-red hover:bg-brand-red/90 text-white text-lg px-12 py-6 h-auto"
+                  disabled={submitMutation.isPending || !tcpaConsent}
+                  className="bg-brand-red hover:bg-brand-red/90 text-white text-lg px-12 py-6 h-auto disabled:opacity-50 disabled:cursor-not-allowed"
                   data-testid="button-submit-intake"
                 >
                   {submitMutation.isPending ? "Submitting..." : "Submit My Information"}

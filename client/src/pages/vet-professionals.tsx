@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Scale, Shield, Calculator, Stethoscope, CheckCircle, ArrowRight, Users } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 const PROFESSION_TYPES = [
   { id: "attorneys", label: "Attorneys", icon: Scale, description: "Legal professionals serving veterans" },
@@ -23,6 +24,7 @@ export default function VetProfessionals() {
   const [submitted, setSubmitted] = useState(false);
   const [professionType, setProfessionType] = useState<string>("");
   const [referralCode, setReferralCode] = useState<string>("");
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
 
   useEffect(() => {
@@ -62,6 +64,15 @@ export default function VetProfessionals() {
       toast({
         title: "Select Profession",
         description: "Please select your profession type.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the terms to continue.",
         variant: "destructive",
       });
       return;
@@ -332,12 +343,17 @@ export default function VetProfessionals() {
                 </div>
               </div>
 
+              {/* TCPA Consent */}
+              <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-8">
+                <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
+              </div>
+
               {/* Submit */}
               <div className="text-center">
                 <Button
                   data-testid="button-submit"
                   type="submit"
-                  disabled={submitMutation.isPending}
+                  disabled={submitMutation.isPending || !tcpaConsent}
                   className="bg-brand-red hover:bg-brand-red/90 text-white text-xl px-12 py-6 h-auto"
                 >
                   {submitMutation.isPending ? "Submitting..." : "Join Network"}

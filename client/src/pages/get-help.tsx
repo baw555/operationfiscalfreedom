@@ -9,6 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, Shield, Clock, HeartHandshake, Users } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 const helpTypes = [
   { value: "disability_denial", label: "Disability Rating Denial" },
@@ -37,6 +38,7 @@ export default function GetHelp() {
   const [location, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
   const [formData, setFormData] = useState({
     name: "",
@@ -103,6 +105,14 @@ export default function GetHelp() {
       toast({
         title: "Missing Fields",
         description: "Please specify what type of help you need.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the terms and consent to be contacted.",
         variant: "destructive",
       });
       return;
@@ -255,10 +265,14 @@ export default function GetHelp() {
                   required
                 />
               </div>
+              <TCPAConsent 
+                checked={tcpaConsent} 
+                onCheckedChange={setTcpaConsent} 
+              />
               <Button 
                 type="submit"
                 className="w-full bg-brand-navy text-white font-bold h-12"
-                disabled={submitMutation.isPending}
+                disabled={submitMutation.isPending || !tcpaConsent}
                 data-testid="button-submit-request"
               >
                 {submitMutation.isPending ? "Submitting..." : "Get Free Help Now"}

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { TCPAConsent } from "@/components/tcpa-consent";
 import { Briefcase, Building2, CheckCircle, ArrowRight, Users, Star, Shield } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
@@ -55,6 +56,7 @@ export default function JobPlacement() {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [referralCode, setReferralCode] = useState<string>("");
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
 
   useEffect(() => {
@@ -103,6 +105,15 @@ export default function JobPlacement() {
       toast({
         title: "Select Industries",
         description: "Please select at least one industry you're interested in.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the terms to continue.",
         variant: "destructive",
       });
       return;
@@ -513,12 +524,20 @@ export default function JobPlacement() {
                 </div>
               </div>
 
+              {/* TCPA Consent */}
+              <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-8">
+                <TCPAConsent 
+                  checked={tcpaConsent} 
+                  onCheckedChange={setTcpaConsent} 
+                />
+              </div>
+
               {/* Submit */}
               <div className="text-center">
                 <Button
                   data-testid="button-submit"
                   type="submit"
-                  disabled={submitMutation.isPending}
+                  disabled={submitMutation.isPending || !tcpaConsent}
                   className="bg-brand-red hover:bg-brand-red/90 text-white text-xl px-12 py-6 h-auto"
                 >
                   {submitMutation.isPending ? "Submitting..." : "Submit Application"}

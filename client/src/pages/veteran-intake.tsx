@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Shield, Heart, Activity, DollarSign, CheckCircle } from "lucide-react";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 export default function VeteranIntake() {
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ export default function VeteranIntake() {
     notes: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
 
   const mutation = useMutation({
@@ -40,6 +42,9 @@ export default function VeteranIntake() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!tcpaConsent) {
+      return;
+    }
     mutation.mutate(formData);
   };
 
@@ -233,9 +238,11 @@ export default function VeteranIntake() {
               />
             </div>
 
+            <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
+
             <button
               type="submit"
-              disabled={mutation.isPending || !formData.programType}
+              disabled={mutation.isPending || !formData.programType || !tcpaConsent}
               className="w-full bg-brand-red text-white py-3 rounded font-bold hover:bg-brand-red/90 disabled:bg-gray-400"
               data-testid="button-submit-veteran-intake"
             >

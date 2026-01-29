@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { TCPAConsent } from "@/components/tcpa-consent";
 import { Clock, Shield, CheckCircle, AlertTriangle, FileText, Stethoscope } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -12,6 +13,7 @@ import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 export default function PrivateDoctor() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -56,6 +58,14 @@ export default function PrivateDoctor() {
       toast({
         title: "Missing Fields",
         description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the terms to continue.",
         variant: "destructive",
       });
       return;
@@ -316,11 +326,15 @@ export default function PrivateDoctor() {
                     onChange={(e) => setFormData({ ...formData, situation: e.target.value })}
                   />
                 </div>
+                <TCPAConsent 
+                  checked={tcpaConsent} 
+                  onCheckedChange={setTcpaConsent} 
+                />
                 <Button 
                   type="submit" 
                   className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-11 sm:h-12"
                   data-testid="button-submit"
-                  disabled={submitMutation.isPending}
+                  disabled={submitMutation.isPending || !tcpaConsent}
                 >
                   {submitMutation.isPending ? "Submitting..." : "Get Private Doctor Information"}
                 </Button>

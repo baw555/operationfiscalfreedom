@@ -11,12 +11,14 @@ import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 export default function ApplyWebsite() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
   const [certified, setCertified] = useState(false);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -71,6 +73,14 @@ export default function ApplyWebsite() {
       toast({
         title: "Certification Required",
         description: "Please certify that you are a veteran or active service member.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the TCPA consent to continue.",
         variant: "destructive",
       });
       return;
@@ -306,11 +316,13 @@ export default function ApplyWebsite() {
                 </Label>
               </div>
 
+              <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
+
               <Button 
                 type="submit"
                 className="w-full bg-brand-gold hover:bg-brand-gold/90 text-brand-black font-bold h-12 sm:h-14 text-base sm:text-lg shadow-lg"
                 data-testid="button-submit-application"
-                disabled={submitMutation.isPending}
+                disabled={submitMutation.isPending || !tcpaConsent}
               >
                 {submitMutation.isPending ? "Submitting..." : "Submit Application"}
               </Button>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Building2, Shield, Calculator, CheckCircle, Briefcase, Users } from "lucide-react";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 export default function BusinessIntake() {
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ export default function BusinessIntake() {
     notes: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
 
   const mutation = useMutation({
@@ -40,6 +42,9 @@ export default function BusinessIntake() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!tcpaConsent) {
+      return;
+    }
     mutation.mutate(formData);
   };
 
@@ -240,9 +245,11 @@ export default function BusinessIntake() {
               />
             </div>
 
+            <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
+
             <button
               type="submit"
-              disabled={mutation.isPending || !formData.serviceType}
+              disabled={mutation.isPending || !formData.serviceType || !tcpaConsent}
               className="w-full bg-brand-navy text-white py-3 rounded font-bold hover:bg-brand-navy/90 disabled:bg-gray-400"
               data-testid="button-submit-business-intake"
             >

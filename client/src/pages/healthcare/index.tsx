@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest } from "@/lib/queryClient";
 import { Link, useRoute, useLocation } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 const CATEGORIES = [
   { id: "ptsd", label: "PTSD Treatments", icon: Brain, description: "Combat trauma, anxiety, depression therapies", color: "purple" },
@@ -27,6 +28,7 @@ export default function HealthcarePage() {
   const [category, setCategory] = useState<string>("ptsd");
   const [isOfferingServices, setIsOfferingServices] = useState(false);
   const [referralCode, setReferralCode] = useState<string>("");
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
 
   useEffect(() => {
@@ -72,6 +74,15 @@ export default function HealthcarePage() {
       toast({
         title: "Select Category",
         description: "Please select a treatment category.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the terms to continue.",
         variant: "destructive",
       });
       return;
@@ -384,12 +395,17 @@ export default function HealthcarePage() {
                 </div>
               </div>
 
+              {/* TCPA Consent */}
+              <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-8">
+                <TCPAConsent checked={tcpaConsent} onCheckedChange={setTcpaConsent} />
+              </div>
+
               {/* Submit */}
               <div className="text-center">
                 <Button
                   data-testid="button-submit"
                   type="submit"
-                  disabled={submitMutation.isPending}
+                  disabled={submitMutation.isPending || !tcpaConsent}
                   className={`text-xl px-12 py-6 h-auto ${isOfferingServices ? "bg-green-600 hover:bg-green-700" : "bg-brand-red hover:bg-brand-red/90"} text-white`}
                 >
                   {submitMutation.isPending ? "Submitting..." : isOfferingServices ? "Apply to Provide Services" : "Request Healthcare Guidance"}

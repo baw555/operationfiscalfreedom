@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, Users, DollarSign, Rocket } from "lucide-react";
+import { TCPAConsent } from "@/components/tcpa-consent";
 
 export default function AffiliateApply() {
   const { toast } = useToast();
@@ -20,6 +21,7 @@ export default function AffiliateApply() {
     confirmPassword: "",
     description: "",
   });
+  const [tcpaConsent, setTcpaConsent] = useState(false);
 
   const submitMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -79,6 +81,14 @@ export default function AffiliateApply() {
       toast({
         title: "Passwords Don't Match",
         description: "Please make sure your passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the TCPA consent to continue.",
         variant: "destructive",
       });
       return;
@@ -210,10 +220,14 @@ export default function AffiliateApply() {
                   required
                 />
               </div>
+              <TCPAConsent 
+                checked={tcpaConsent} 
+                onCheckedChange={setTcpaConsent} 
+              />
               <Button 
                 type="submit"
                 className="w-full bg-brand-navy text-white font-bold h-12"
-                disabled={submitMutation.isPending}
+                disabled={submitMutation.isPending || !tcpaConsent}
                 data-testid="button-submit-application"
               >
                 {submitMutation.isPending ? "Creating Account..." : "Create Account & Continue"}

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TCPAConsent } from "@/components/tcpa-consent";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { Home, CheckCircle, DollarSign, Sofa, Heart } from "lucide-react";
@@ -17,6 +18,7 @@ export default function NewHomeFurniture() {
   const [, setLocation] = useLocation();
   const [submitted, setSubmitted] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [tcpaConsent, setTcpaConsent] = useState(false);
   useScrollToTopOnChange(submitted);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -76,6 +78,15 @@ export default function NewHomeFurniture() {
       toast({
         title: "Certification Required",
         description: "Please certify your veteran status.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!tcpaConsent) {
+      toast({
+        title: "Consent Required",
+        description: "Please agree to the terms to continue.",
         variant: "destructive",
       });
       return;
@@ -334,10 +345,15 @@ export default function NewHomeFurniture() {
                 </Label>
               </div>
 
+              <TCPAConsent 
+                checked={tcpaConsent} 
+                onCheckedChange={setTcpaConsent} 
+              />
+
               <Button 
                 type="submit"
                 className="w-full bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold h-14 text-lg shadow-lg"
-                disabled={submitMutation.isPending}
+                disabled={submitMutation.isPending || !tcpaConsent}
                 data-testid="button-submit-request"
               >
                 {submitMutation.isPending ? "Submitting..." : "Request Information"}
