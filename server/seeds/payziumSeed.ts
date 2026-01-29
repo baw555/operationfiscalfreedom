@@ -8,63 +8,6 @@ const FICA_TIPS_AGREEMENT_CONTENT = `<div style="font-family: 'Times New Roman',
 
 <h1 style="text-align: center; color: #1a365d; border-bottom: 3px solid #6b21a8; padding-bottom: 15px; font-size: 26px; margin-bottom: 30px;">FICA Tips Tax Credit Services Agreement</h1>
 
-<!-- CLIENT INFORMATION HEADER -->
-<div style="background: linear-gradient(135deg, #f8f4ff 0%, #ede9fe 100%); padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 2px solid #9333ea;">
-  <h3 style="color: #6b21a8; margin: 0 0 20px 0; text-align: center; font-size: 18px;">CLIENT INFORMATION</h3>
-  
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-    <div>
-      <label style="font-weight: bold; color: #6b21a8; font-size: 12px; text-transform: uppercase;">Agreement Date</label>
-      <div style="background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 10px; margin-top: 4px;">
-        <span class="editable-field" data-field="currentDate" style="color: #6b21a8; font-weight: bold;">[EFFECTIVE DATE - Enter Above]</span>
-      </div>
-    </div>
-    <div>
-      <label style="font-weight: bold; color: #6b21a8; font-size: 12px; text-transform: uppercase;">Company Name</label>
-      <div style="background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 10px; margin-top: 4px;">
-        <span class="editable-field" data-field="clientCompany" style="color: #6b21a8; font-weight: bold;">[COMPANY NAME - Enter Above]</span>
-      </div>
-    </div>
-  </div>
-  
-  <div style="margin-bottom: 15px;">
-    <label style="font-weight: bold; color: #6b21a8; font-size: 12px; text-transform: uppercase;">Company Address</label>
-    <div style="background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 10px; margin-top: 4px;">
-      <span class="editable-field" data-field="clientAddress" style="color: #6b21a8; font-weight: bold;">[COMPANY ADDRESS - Enter Above]</span>
-    </div>
-  </div>
-  
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-    <div>
-      <label style="font-weight: bold; color: #6b21a8; font-size: 12px; text-transform: uppercase;">Primary Business Owner</label>
-      <div style="background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 10px; margin-top: 4px;">
-        <span class="editable-field" data-field="primaryOwner" style="color: #6b21a8; font-weight: bold;">[SIGNER NAME - Enter Above]</span>
-      </div>
-    </div>
-    <div>
-      <label style="font-weight: bold; color: #6b21a8; font-size: 12px; text-transform: uppercase;">Primary Owner Title</label>
-      <div style="background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 10px; margin-top: 4px;">
-        <span class="editable-field" data-field="primaryTitle" style="color: #6b21a8; font-weight: bold;">[TITLE - Enter Above]</span>
-      </div>
-    </div>
-  </div>
-
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-    <div>
-      <label style="font-weight: bold; color: #6b21a8; font-size: 12px; text-transform: uppercase;">Secondary Business Owner (if applicable)</label>
-      <div style="background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 10px; margin-top: 4px;">
-        <span class="editable-field" data-field="secondaryOwner" style="color: #6b21a8; font-weight: bold;">[OPTIONAL - Leave blank if N/A]</span>
-      </div>
-    </div>
-    <div>
-      <label style="font-weight: bold; color: #6b21a8; font-size: 12px; text-transform: uppercase;">Email Address</label>
-      <div style="background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 10px; margin-top: 4px;">
-        <span class="editable-field" data-field="clientEmail" style="color: #6b21a8; font-weight: bold;">[SIGNER EMAIL - Enter Above]</span>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- LETTER HEADER -->
 <p style="margin-bottom: 5px;"><span class="auto-fill" data-field="currentDate">[DATE]</span></p>
 <p style="margin-bottom: 5px;">SENT VIA EMAIL</p>
