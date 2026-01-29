@@ -582,7 +582,7 @@ export default function MasterPortal() {
               size="sm"
               onClick={() => {
                 fetch("/api/auth/logout", { method: "POST", credentials: "include" })
-                  .then(() => setLocation("/login"));
+                  .then(() => window.location.href = "/master-portal");
               }}
               className="border-white/20 text-white hover:bg-white/10"
             >

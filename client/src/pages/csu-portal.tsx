@@ -1694,7 +1694,8 @@ export default function CsuPortal() {
       await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     },
     onSuccess: () => {
-      navigate("/Payzium");
+      queryClient.clear();
+      window.location.href = "/Payzium";
     },
   });
 

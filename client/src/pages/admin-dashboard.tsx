@@ -286,7 +286,8 @@ export default function AdminDashboard() {
       await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     },
     onSuccess: () => {
-      setLocation("/admin/login");
+      queryClient.clear();
+      window.location.href = "/admin/login";
     },
   });
 
