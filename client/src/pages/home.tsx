@@ -272,15 +272,8 @@ export default function Home() {
           showContent ? "opacity-100" : "opacity-0"
         )}>
           <div className="absolute inset-0 z-0">
-            <video 
-              src="/videos/soldiers-marching.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover opacity-40"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/70 to-brand-navy/50" />
+            <div className="w-full h-full bg-gradient-to-br from-brand-navy via-brand-blue/30 to-brand-navy" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-brand-blue/20 via-transparent to-transparent" />
           </div>
 
           <div className="container relative z-10 px-3 sm:px-4 py-10 sm:py-20 text-center max-w-5xl mx-auto">
