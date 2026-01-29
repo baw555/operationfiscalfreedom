@@ -35,7 +35,10 @@ import {
   csuContractSends, type CsuContractSend, type InsertCsuContractSend,
   csuSignedAgreements, type CsuSignedAgreement, type InsertCsuSignedAgreement,
   portalActivity, type PortalActivity, type InsertPortalActivity,
-  passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken
+  passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken,
+  partnerSharingLog, type PartnerSharingLog, type InsertPartnerSharingLog,
+  consentRecords, type ConsentRecord, type InsertConsentRecord,
+  affiliatedPartners, type AffiliatedPartner, type InsertAffiliatedPartner
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -1345,6 +1348,88 @@ export class DatabaseStorage implements IStorage {
           isNull(passwordResetTokens.usedAt)
         )
       );
+  }
+
+  // Partner Sharing Log - TCPA/CCPA Compliance
+  async createPartnerSharingLog(log: InsertPartnerSharingLog): Promise<PartnerSharingLog> {
+    const [result] = await db.insert(partnerSharingLog).values(log).returning();
+    return result;
+  }
+
+  async getPartnerSharingLogsBySubmission(submissionType: string, submissionId: number): Promise<PartnerSharingLog[]> {
+    return await db.select()
+      .from(partnerSharingLog)
+      .where(
+        and(
+          eq(partnerSharingLog.submissionType, submissionType),
+          eq(partnerSharingLog.submissionId, submissionId)
+        )
+      )
+      .orderBy(desc(partnerSharingLog.sharedAt));
+  }
+
+  async getAllPartnerSharingLogs(): Promise<PartnerSharingLog[]> {
+    return await db.select()
+      .from(partnerSharingLog)
+      .orderBy(desc(partnerSharingLog.sharedAt));
+  }
+
+  // Consent Records - TCPA/CCPA Compliance (5-year retention)
+  async createConsentRecord(record: InsertConsentRecord): Promise<ConsentRecord> {
+    const [result] = await db.insert(consentRecords).values(record).returning();
+    return result;
+  }
+
+  async getConsentRecordsBySubmission(submissionType: string, submissionId: number): Promise<ConsentRecord[]> {
+    return await db.select()
+      .from(consentRecords)
+      .where(
+        and(
+          eq(consentRecords.submissionType, submissionType),
+          eq(consentRecords.submissionId, submissionId)
+        )
+      )
+      .orderBy(desc(consentRecords.submittedAt));
+  }
+
+  async getConsentRecordByEmail(email: string): Promise<ConsentRecord[]> {
+    return await db.select()
+      .from(consentRecords)
+      .where(eq(consentRecords.email, email))
+      .orderBy(desc(consentRecords.submittedAt));
+  }
+
+  async getAllConsentRecords(): Promise<ConsentRecord[]> {
+    return await db.select()
+      .from(consentRecords)
+      .orderBy(desc(consentRecords.submittedAt));
+  }
+
+  // Affiliated Partners
+  async createAffiliatedPartner(partner: InsertAffiliatedPartner): Promise<AffiliatedPartner> {
+    const [result] = await db.insert(affiliatedPartners).values(partner).returning();
+    return result;
+  }
+
+  async getActiveAffiliatedPartners(): Promise<AffiliatedPartner[]> {
+    return await db.select()
+      .from(affiliatedPartners)
+      .where(eq(affiliatedPartners.isActive, true))
+      .orderBy(affiliatedPartners.category, affiliatedPartners.displayName);
+  }
+
+  async getAllAffiliatedPartners(): Promise<AffiliatedPartner[]> {
+    return await db.select()
+      .from(affiliatedPartners)
+      .orderBy(affiliatedPartners.category, affiliatedPartners.displayName);
+  }
+
+  async updateAffiliatedPartner(id: number, updates: Partial<AffiliatedPartner>): Promise<AffiliatedPartner | undefined> {
+    const [result] = await db.update(affiliatedPartners)
+      .set(updates)
+      .where(eq(affiliatedPartners.id, id))
+      .returning();
+    return result || undefined;
   }
 }
 
