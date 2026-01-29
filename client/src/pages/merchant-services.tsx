@@ -114,7 +114,7 @@ export default function MerchantServices() {
               <div className="aspect-video bg-brand-navy/10 rounded-lg flex items-center justify-center mb-6 relative overflow-hidden">
                 {showVideo ? (
                   <iframe 
-                    src="https://limewire.com/d/LBcw8#sbH4nbVvQd" 
+                    src="https://player.vimeo.com/video/1159350744?autoplay=1" 
                     className="w-full h-full"
                     allow="autoplay; fullscreen"
                     allowFullScreen
@@ -125,10 +125,10 @@ export default function MerchantServices() {
                     <h3 className="text-xl font-display text-brand-navy mb-2">9-Minute Overview Video</h3>
                     <p className="text-gray-600 mb-4">Learn how this compliance solution helps businesses and veterans</p>
                     <Button 
-                      onClick={() => window.open('https://limewire.com/d/LBcw8#sbH4nbVvQd', '_blank')}
+                      onClick={() => setShowVideo(true)}
                       className="bg-brand-navy hover:bg-brand-navy/90"
                     >
-                      Watch Video <ExternalLink className="ml-2 h-4 w-4" />
+                      Watch Video <Play className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
                 )}
