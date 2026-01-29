@@ -4131,8 +4131,10 @@ export async function registerRoutes(
 
       const validationResult = csuSignSchema.safeParse(req.body);
       if (!validationResult.success) {
+        console.log("[CSU Sign] Validation failed:", JSON.stringify(validationResult.error.errors, null, 2));
         return res.status(400).json({ 
-          message: validationResult.error.errors[0]?.message || "Invalid request data" 
+          message: validationResult.error.errors[0]?.message || "Invalid request data",
+          errors: validationResult.error.errors 
         });
       }
 
