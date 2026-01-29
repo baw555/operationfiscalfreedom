@@ -78,15 +78,16 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   const hasContent = email.length > 0 || password.length > 0;
   
   // Post-login cinematic sequence state
-  const [cinematicPhase, setCinematicPhase] = useState<'idle' | 'black' | 'scanning' | 'scanningOut' | 'welcome' | 'welcomeOut' | 'done'>('idle');
-  const cinematicTimeouts = useRef<NodeJS.Timeout[]>([]);
+  const [cinematicPhase, setCinematicPhase] = useState<'idle' | 'black' | 'scanning' | 'scanningOut' | 'welcome' | 'welcomeOut' | 'videoTransition' | 'done'>('idle');
+  const cinematicTimeouts = useRef<NodeJS.Timeout[]>();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const isWorthy = email.trim().length > 0 && password.length > 0;
   
   // Cleanup cinematic timeouts
   useEffect(() => {
     return () => {
-      cinematicTimeouts.current.forEach(clearTimeout);
+      cinematicTimeouts.current?.forEach(clearTimeout);
     };
   }, []);
   
@@ -94,21 +95,35 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   const startCinematicSequence = () => {
     setCinematicPhase('black');
     
-    // Timing: black 2s -> scanning 2s -> fade 0.5s -> welcome 2s -> fade 0.5s -> done
+    // Timing: black 2s -> scanning 2s -> fade 0.5s -> welcome 2s -> fade 0.5s -> videoTransition -> done
     const t1 = setTimeout(() => setCinematicPhase('scanning'), 2000);      // Show "Scanning" at 2s
     const t2 = setTimeout(() => setCinematicPhase('scanningOut'), 4000);   // Fade out at 4s
     const t3 = setTimeout(() => setCinematicPhase('welcome'), 4500);       // Show "Welcome" at 4.5s
     const t4 = setTimeout(() => setCinematicPhase('welcomeOut'), 6500);    // Fade out at 6.5s
-    const t5 = setTimeout(() => {
-      setCinematicPhase('done');
-      onSuccess();
-    }, 7000);                                                               // Done at 7s
+    const t5 = setTimeout(() => setCinematicPhase('videoTransition'), 7000); // Start video at 7s
     
     cinematicTimeouts.current = [t1, t2, t3, t4, t5];
   };
   
+  // Handle video end - transition to done
+  const handleTransitionVideoEnd = () => {
+    setCinematicPhase('done');
+    onSuccess();
+  };
+  
+  // Fallback timeout for video transition (15 seconds max)
+  useEffect(() => {
+    if (cinematicPhase === 'videoTransition') {
+      const fallbackTimeout = setTimeout(() => {
+        setCinematicPhase('done');
+        onSuccess();
+      }, 15000);
+      return () => clearTimeout(fallbackTimeout);
+    }
+  }, [cinematicPhase, onSuccess]);
+  
   const skipCinematic = () => {
-    cinematicTimeouts.current.forEach(clearTimeout);
+    cinematicTimeouts.current?.forEach(clearTimeout);
     setCinematicPhase('done');
     onSuccess();
   };
@@ -307,6 +322,25 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
               ))}
             </h1>
           </div>
+          
+          {/* Video Transition Phase */}
+          {cinematicPhase === 'videoTransition' && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                onEnded={handleTransitionVideoEnd}
+                className="w-full h-full object-cover"
+                style={{ 
+                  filter: 'brightness(1.1) contrast(1.1)',
+                }}
+              >
+                <source src="/payzium-transition.mp4" type="video/mp4" />
+              </video>
+            </div>
+          )}
           
           {/* Cinematic animation keyframes */}
           <style>{`
