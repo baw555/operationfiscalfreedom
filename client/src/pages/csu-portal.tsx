@@ -2670,13 +2670,13 @@ export default function CsuPortal() {
           loop 
           muted 
           playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0 opacity-30"
+          className="absolute inset-0 w-full h-full object-cover z-0 opacity-70"
           style={{ minHeight: '100%' }}
         >
           <source src="/payzium-bg.mp4" type="video/mp4" />
         </video>
         {/* Overlay for better contrast */}
-        <div className="absolute inset-0 bg-stone-100/70 z-[1]"></div>
+        <div className="absolute inset-0 bg-stone-100/40 z-[1]"></div>
         
         <div className="container mx-auto px-4 relative z-[2]">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
