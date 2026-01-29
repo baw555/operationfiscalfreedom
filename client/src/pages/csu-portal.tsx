@@ -1921,14 +1921,10 @@ export default function CsuPortal() {
   });
   const user = authData?.user;
 
-  const { data: allTemplates = [] } = useQuery<CsuContractTemplate[]>({
+  const { data: templates = [] } = useQuery<CsuContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
     enabled: !!user,
   });
-  
-  // Filter to only show Payzium-specific templates
-  const PAYZIUM_TEMPLATE_NAMES = ["FICA Tips Tax Credit Agreement", "Sign Affiliate Agreement"];
-  const templates = allTemplates.filter(t => PAYZIUM_TEMPLATE_NAMES.includes(t.name));
 
   const { data: contractSends = [] } = useQuery<CsuContractSend[]>({
     queryKey: ["/api/csu/contract-sends"],
