@@ -199,6 +199,24 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
+      {/* Full-screen video background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        style={{ 
+          filter: 'brightness(0.6) contrast(1.1) saturate(1.2)',
+          objectPosition: 'center center'
+        }}
+      >
+        <source src="/payzium-bg.mp4" type="video/mp4" />
+      </video>
+      
+      {/* Dark overlay for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60 z-[1]" />
+      
       {/* POST-LOGIN CINEMATIC SEQUENCE */}
       {cinematicPhase !== 'idle' && cinematicPhase !== 'done' && (
         <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center" data-testid="cinematic-overlay">
@@ -332,21 +350,21 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         style={{ background: 'linear-gradient(180deg, rgba(255,215,0,0.3) 0%, rgba(255,255,255,0.6) 30%, rgba(255,200,50,0.2) 100%)' }}
       />
 
-      {/* Multi-layer storm background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#1a1005] to-[#0a0a0a]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[80vh] bg-gradient-to-b from-amber-950/30 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/70" />
+      {/* Multi-layer storm background overlay - semi-transparent to show video */}
+      <div className="absolute inset-0 z-[2]">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/60 via-[#1a1005]/40 to-[#0a0a0a]/60" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[80vh] bg-gradient-to-b from-amber-950/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
       </div>
 
       {/* Animated storm clouds at top */}
-      <div className="absolute top-0 left-0 right-0 h-64 overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-64 overflow-hidden z-[3]">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-950/40 via-orange-950/20 to-transparent animate-stormCloud1" />
         <div className="absolute inset-0 bg-gradient-to-b from-yellow-950/30 via-amber-950/15 to-transparent animate-stormCloud2" />
       </div>
 
       {/* Lightning bolts - multiple SVG paths */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[4]">
         {/* Main central lightning bolt */}
         <svg className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-[60vh] animate-lightningBolt1" viewBox="0 0 200 400" style={{ opacity: 0 }}>
           <path d="M100 0 L95 80 L120 85 L90 180 L115 185 L85 300 L110 305 L70 400" 
@@ -434,15 +452,15 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
       </div>
 
       {/* Central golden energy pillar behind logo */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[4px] h-[50%] bg-gradient-to-b from-amber-400/60 via-amber-500/30 to-transparent animate-pillarPulse" style={{ boxShadow: '0 0 40px #ffd700, 0 0 80px #ff8c00' }} />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[4px] h-[50%] bg-gradient-to-b from-amber-400/60 via-amber-500/30 to-transparent animate-pillarPulse z-[5]" style={{ boxShadow: '0 0 40px #ffd700, 0 0 80px #ff8c00' }} />
 
       {/* Ambient golden glow orbs */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-radial from-amber-900/40 via-orange-900/20 to-transparent blur-3xl animate-breatheGold" />
-      <div className="absolute bottom-40 left-1/4 w-[350px] h-[350px] bg-gradient-radial from-amber-900/25 via-transparent to-transparent blur-3xl animate-breatheGold2" />
-      <div className="absolute bottom-60 right-1/4 w-[300px] h-[300px] bg-gradient-radial from-orange-900/20 via-transparent to-transparent blur-3xl animate-breatheGold3" />
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-radial from-amber-900/40 via-orange-900/20 to-transparent blur-3xl animate-breatheGold z-[5]" />
+      <div className="absolute bottom-40 left-1/4 w-[350px] h-[350px] bg-gradient-radial from-amber-900/25 via-transparent to-transparent blur-3xl animate-breatheGold2 z-[5]" />
+      <div className="absolute bottom-60 right-1/4 w-[300px] h-[300px] bg-gradient-radial from-orange-900/20 via-transparent to-transparent blur-3xl animate-breatheGold3 z-[5]" />
 
       {/* Main content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12 overflow-visible">
+      <div className="relative z-[10] min-h-screen flex items-center justify-center px-4 py-12 overflow-visible">
         <div className="w-full max-w-lg overflow-visible">
           
           {/* Logo Stage - EPIC Thor presentation with Extended Lightning */}
