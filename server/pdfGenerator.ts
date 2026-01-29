@@ -256,8 +256,9 @@ function renderHtmlToPdf(
       case 'h1':
         ensureSpace(40);
         doc.moveDown(0.5);
+        doc.x = data.leftMargin;
         doc.fontSize(16).font('Helvetica-Bold').fillColor(DARK_PURPLE)
-          .text(element.content, { align: 'center' });
+          .text(element.content, { width: data.contentWidth, align: 'center' });
         doc.moveDown(0.3);
         // Draw decorative line under H1
         const h1LineY = doc.y;
@@ -272,8 +273,9 @@ function renderHtmlToPdf(
         ensureSpace(35);
         doc.moveDown(0.8);
         // Draw purple underline for section headers
+        doc.x = data.leftMargin;
         doc.fontSize(12).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
-          .text(element.content);
+          .text(element.content, { width: data.contentWidth });
         const lineY = doc.y + 2;
         doc.moveTo(data.leftMargin, lineY)
           .lineTo(data.leftMargin + data.contentWidth, lineY)
@@ -285,8 +287,9 @@ function renderHtmlToPdf(
       case 'h3':
         ensureSpace(25);
         doc.moveDown(0.5);
+        doc.x = data.leftMargin;
         doc.fontSize(11).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
-          .text(element.content);
+          .text(element.content, { width: data.contentWidth });
         doc.moveDown(0.3);
         break;
         
@@ -294,8 +297,10 @@ function renderHtmlToPdf(
         // Calculate actual text height for accurate page breaks
         const pHeight = getTextHeight(element.content, 9, data.contentWidth);
         ensureSpace(pHeight);
+        // Reset x position to ensure full-width paragraphs
+        doc.x = data.leftMargin;
         doc.fontSize(9).font('Helvetica').fillColor('#333')
-          .text(element.content, { align: 'justify', lineGap: 2 });
+          .text(element.content, { width: data.contentWidth, align: 'justify', lineGap: 2 });
         doc.moveDown(0.4);
         break;
         
@@ -303,8 +308,10 @@ function renderHtmlToPdf(
         // Calculate actual text height for list items
         const liHeight = getTextHeight(`• ${element.content}`, 9, data.contentWidth - 15);
         ensureSpace(liHeight);
+        // Reset x position for consistent list alignment
+        doc.x = data.leftMargin;
         doc.fontSize(9).font('Helvetica').fillColor('#333')
-          .text(`• ${element.content}`, { indent: 15, lineGap: 2 });
+          .text(`• ${element.content}`, { width: data.contentWidth, indent: 15, lineGap: 2 });
         doc.moveDown(0.2);
         break;
         
@@ -317,7 +324,7 @@ function renderHtmlToPdf(
         
         // Calculate dynamic height based on text content
         doc.fontSize(9);
-        const initialsTextHeight = doc.heightOfString(cleanText, { width: data.contentWidth - 100 });
+        const initialsTextHeight = doc.heightOfString(cleanText, { width: data.contentWidth - 80 });
         const boxHeight = Math.max(40, initialsTextHeight + 24);
         
         ensureSpace(boxHeight + 15);
@@ -332,7 +339,7 @@ function renderHtmlToPdf(
         
         // Text content
         doc.fontSize(9).font('Helvetica-Bold').fillColor('#92400e')
-          .text(cleanText, data.leftMargin + 12, boxY + 12, { width: data.contentWidth - 100 });
+          .text(cleanText, data.leftMargin + 12, boxY + 12, { width: data.contentWidth - 80 });
         
         // Initials box on the right
         const initialsBoxX = data.leftMargin + data.contentWidth - 70;
@@ -346,6 +353,7 @@ function renderHtmlToPdf(
           .text(initialsText, initialsBoxX + 5, boxY + 14, { width: 50, align: 'center' });
         
         doc.y = boxY + boxHeight + 10;
+        doc.x = data.leftMargin;  // Reset x position after initials box
         break;
         
       case 'warning-box':
@@ -367,6 +375,7 @@ function renderHtmlToPdf(
           .text(element.content, data.leftMargin + 12, warnBoxY + 12, { width: data.contentWidth - 24 });
         
         doc.y = warnBoxY + warnBoxHeight + 10;
+        doc.x = data.leftMargin;  // Reset x position after warning box
         break;
         
       case 'divider':
@@ -398,21 +407,24 @@ function renderHtmlToPdf(
           .text(element.content, data.leftMargin + 12, infoBoxY + 15, { width: data.contentWidth - 24, lineGap: 2 });
         
         doc.y = infoBoxY + infoBoxHeight + 10;
+        doc.x = data.leftMargin;  // Reset x position after info box
         break;
         
       case 'signature-section':
         ensureSpace(60);
         doc.moveDown(0.5);
+        doc.x = data.leftMargin;
         doc.fontSize(10).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
-          .text('SIGNATURE REQUIRED - See Signature Page', { align: 'center' });
+          .text('SIGNATURE REQUIRED - See Signature Page', { width: data.contentWidth, align: 'center' });
         doc.moveDown(0.5);
         break;
         
       default:
         // Fallback for unknown types
         ensureSpace(20);
+        doc.x = data.leftMargin;
         doc.fontSize(9).font('Helvetica').fillColor('#333')
-          .text(element.content, { lineGap: 2 });
+          .text(element.content, { width: data.contentWidth, lineGap: 2 });
         doc.moveDown(0.3);
     }
   }
@@ -652,11 +664,12 @@ export async function generateCsuContractPdf(data: CsuContractData): Promise<Buf
         doc.text(`Effective Date: ${effectiveDateDisplay}`, 82, detailsBoxY + 43);
         doc.text(`Initials: ${data.initials || 'N/A'}`, 250, detailsBoxY + 43);
         doc.y = detailsBoxY + 75;
+        doc.x = 72;  // Reset x position
         
         // Plain text: use simple rendering
         const cleanContent = stripHtml(contentWithReplacements);
         doc.fontSize(9).font('Helvetica').fillColor('#333')
-          .text(cleanContent, { align: 'left', lineGap: 3, columns: 1 });
+          .text(cleanContent, { width: contentWidth, align: 'left', lineGap: 3 });
       } else {
         // HTML content: parse and render with proper formatting
         const parsedElements = parseHtmlForPdf(contentWithReplacements);
