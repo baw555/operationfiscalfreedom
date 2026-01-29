@@ -167,6 +167,7 @@ export default function CsuSign() {
       primaryTitle: formData.primaryTitle || "[TITLE]",
       secondaryOwner: formData.secondaryOwner || "N/A",
       clientEmail: formData.signerEmail || "[EMAIL]",
+      initials: formData.initials || "[INITIALS]",
     };
 
     Object.entries(fieldReplacements).forEach(([field, value]) => {
