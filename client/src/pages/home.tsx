@@ -295,7 +295,7 @@ export default function Home() {
               <div className="relative bg-gradient-to-r from-brand-navy/80 via-brand-blue/60 to-brand-navy/80 backdrop-blur-sm border border-brand-gold/30 rounded-xl px-4 sm:px-8 py-4 sm:py-6 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-gold/10 to-transparent animate-pulse"></div>
                 <p className="ranger-banner-text text-center text-lg sm:text-2xl md:text-3xl relative z-10">
-                  {"Tired of document management fees? Get your Ranger Tab - your own free contract signing portal!".split("").map((char, index) => (
+                  {"Tired of document management fees? Get your Ranger Tab - your own contract signing portal at no cost!".split("").map((char, index) => (
                     <span
                       key={index}
                       className="ranger-shine-letter"

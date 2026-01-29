@@ -206,21 +206,48 @@
   }
 }
 
-/* Ranger Tab Shining Letter Animation */
+/* Ranger Tab Shining Letter Animation - Red/White/Blue patriotic cycle */
 @keyframes rangerShine {
-  0%, 5% {
+  0%, 3% {
     color: rgba(255, 255, 255, 0.4);
     text-shadow: none;
   }
-  10%, 15% {
+  /* Red shine */
+  6%, 12% {
     color: #fff;
     text-shadow: 
-      0 0 10px #ffd700,
-      0 0 20px #ffd700,
-      0 0 30px #ffd700,
-      0 0 40px #ffd700;
+      0 0 10px #E21C3D,
+      0 0 20px #E21C3D,
+      0 0 30px #E21C3D,
+      0 0 40px #E21C3D;
   }
-  20%, 100% {
+  15%, 18% {
+    color: rgba(255, 255, 255, 0.4);
+    text-shadow: none;
+  }
+  /* White shine */
+  21%, 27% {
+    color: #fff;
+    text-shadow: 
+      0 0 10px #ffffff,
+      0 0 20px #ffffff,
+      0 0 30px rgba(255, 255, 255, 0.8),
+      0 0 40px rgba(255, 255, 255, 0.6);
+  }
+  30%, 33% {
+    color: rgba(255, 255, 255, 0.4);
+    text-shadow: none;
+  }
+  /* Blue shine */
+  36%, 42% {
+    color: #fff;
+    text-shadow: 
+      0 0 10px #2563EB,
+      0 0 20px #2563EB,
+      0 0 30px #2563EB,
+      0 0 40px #2563EB;
+  }
+  45%, 100% {
     color: rgba(255, 255, 255, 0.4);
     text-shadow: none;
   }
@@ -228,7 +255,7 @@
 
 .ranger-shine-letter {
   display: inline-block;
-  animation: rangerShine 4s ease-in-out infinite;
+  animation: rangerShine 6s ease-in-out infinite;
   color: rgba(255, 255, 255, 0.4);
 }
 
