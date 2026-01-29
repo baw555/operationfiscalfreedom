@@ -2002,9 +2002,8 @@ export default function CsuPortal() {
       toast({ title: "Effective Date Required", description: "Please select an effective date.", variant: "destructive" });
       return;
     }
-    // Validate FICA-specific fields
-    // FICA Tips Tax Credit Agreement is template ID 3 ("New Rep Agreement")
-    const isFicaContract = currentTemplate?.id === 3;
+    // Validate FICA-specific fields (template ID 7)
+    const isFicaContract = currentTemplate?.id === 7;
     if (isFicaContract) {
       if (!selfSignData.clientCompany) {
         toast({ title: "Company Name Required", description: "Please enter your company name.", variant: "destructive" });
@@ -2154,8 +2153,8 @@ export default function CsuPortal() {
                       </div>
 
                       {/* Additional fields for FICA Tips Tax Credit Agreement */}
-                      {/* FICA Tips Tax Credit Agreement is template ID 3 ("New Rep Agreement") */}
-                      {currentTemplate?.id === 3 && (
+                      {/* FICA Tips Tax Credit Agreement is template ID 7 */}
+                      {currentTemplate?.id === 7 && (
                         <>
                           <div className="border-t pt-4 mt-2">
                             <p className="text-sm text-purple-700 font-medium mb-3">Business Information for FICA Tax Credit</p>
