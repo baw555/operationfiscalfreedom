@@ -269,26 +269,11 @@
 .ranger-tab-svg {
   display: inline-block;
   transition: all 0.3s ease;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
 }
 
 .ranger-tab-svg:hover {
-  transform: translateY(-2px);
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 15px rgba(234, 179, 8, 0.3));
-}
-
-.ranger-tab-svg-nav {
-  width: 90px;
-  height: 28px;
-}
-
-.ranger-tab-svg-lg {
-  width: 140px;
-  height: 42px;
-}
-
-.ranger-tab-svg-banner {
-  width: 120px;
-  height: 36px;
+  transform: translateY(-2px) scale(1.02);
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
 }
 
