@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 const montageVideos = [
@@ -14,61 +14,95 @@ const montageVideos = [
   { src: "/videos/montage-clip.mp4", alt: "Military action clip" },
 ];
 
-const SLIDE_DURATION = 3000; // 3 seconds display time
+const DISPLAY_MS = 3000; // 3 seconds visible display time
+const FADE_MS = 600; // 600ms crossfade transition
+const CYCLE_MS = DISPLAY_MS + FADE_MS; // Total cycle time
 
 export function HeroMontage() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    // Start first video
-    const firstVideo = videoRefs.current[0];
-    if (firstVideo) {
-      firstVideo.currentTime = 0;
-      firstVideo.play().catch(() => {});
+  const getNextIndex = useCallback((index: number) => {
+    return (index + 1) % montageVideos.length;
+  }, []);
+
+  const playVideo = useCallback((index: number) => {
+    const video = videoRefs.current[index];
+    if (video) {
+      video.currentTime = 0;
+      video.play().catch(() => {});
     }
   }, []);
 
+  const pauseVideo = useCallback((index: number) => {
+    const video = videoRefs.current[index];
+    if (video) {
+      video.pause();
+    }
+  }, []);
+
+  const preloadVideo = useCallback((index: number) => {
+    const video = videoRefs.current[index];
+    if (video) {
+      video.load();
+    }
+  }, []);
+
+  // Start first video and begin cycle
   useEffect(() => {
-    const interval = setInterval(() => {
+    playVideo(0);
+    // Preload next video
+    preloadVideo(1);
+
+    const runCycle = () => {
+      // Start transition (fade out current, fade in next)
       setIsTransitioning(true);
       
-      // Preload next video
-      const next = (currentIndex + 1) % montageVideos.length;
-      const nextVideo = videoRefs.current[next];
-      if (nextVideo) {
-        nextVideo.currentTime = 0;
-        nextVideo.play().catch(() => {});
-      }
-      
-      setTimeout(() => {
-        setCurrentIndex(next);
-        setNextIndex((next + 1) % montageVideos.length);
-        setIsTransitioning(false);
-      }, 600); // Crossfade duration
-    }, SLIDE_DURATION);
+      const nextIdx = getNextIndex(currentIndex);
+      playVideo(nextIdx);
 
-    return () => clearInterval(interval);
-  }, [currentIndex]);
+      // After fade completes, update state
+      setTimeout(() => {
+        pauseVideo(currentIndex);
+        setCurrentIndex(nextIdx);
+        setIsTransitioning(false);
+        
+        // Preload the video after next
+        preloadVideo(getNextIndex(nextIdx));
+      }, FADE_MS);
+    };
+
+    // Schedule next transition after display time
+    timeoutRef.current = setTimeout(runCycle, DISPLAY_MS);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [currentIndex, getNextIndex, playVideo, pauseVideo, preloadVideo]);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
       {montageVideos.map((video, index) => {
         const isActive = index === currentIndex;
-        const isNext = index === nextIndex;
+        const isNext = index === getNextIndex(currentIndex);
         
         return (
           <div
             key={index}
             className={cn(
-              "absolute inset-0 transition-opacity duration-600 ease-in-out",
-              isActive ? "opacity-100" : "opacity-0",
-              isTransitioning && isNext ? "opacity-100" : ""
+              "absolute inset-0 transition-opacity ease-in-out",
+              isActive && !isTransitioning ? "opacity-100" : "",
+              isActive && isTransitioning ? "opacity-0" : "",
+              !isActive && isNext && isTransitioning ? "opacity-100" : "",
+              !isActive && !isNext ? "opacity-0" : ""
             )}
             style={{
               zIndex: isActive ? 2 : isNext ? 1 : 0,
+              transitionDuration: `${FADE_MS}ms`,
             }}
           >
             <video
@@ -76,8 +110,7 @@ export function HeroMontage() {
               src={video.src}
               muted
               playsInline
-              loop
-              preload="auto"
+              preload="metadata"
               className="w-full h-full object-cover"
             />
           </div>
