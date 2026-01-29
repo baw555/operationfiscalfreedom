@@ -363,6 +363,18 @@ export default function CsuSign() {
       return;
     }
 
+    // Template-specific validation: FICA (ID 7) requires business fields
+    if (contractData?.template.id === 7) {
+      if (!formData.clientCompany || !formData.clientAddress || !formData.primaryTitle) {
+        toast({
+          title: "Missing Business Information",
+          description: "Please fill in your company name, address, and title.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     if (!initialsApplied) {
       toast({
         title: "Initials Required",
@@ -414,7 +426,8 @@ export default function CsuSign() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `FICA-Agreement-${formData.signerName.replace(/\s+/g, "-")}.pdf`;
+      const agreementType = contractData?.template.id === 5 ? "Affiliate-Agreement" : "FICA-Agreement";
+      a.download = `${agreementType}-${formData.signerName.replace(/\s+/g, "-")}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
