@@ -1172,3 +1172,70 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
 
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
+// Partner Sharing Log - Tracks all data shares with affiliated partners (COMPLIANCE REQUIRED)
+export const partnerSharingLog = pgTable("partner_sharing_log", {
+  id: serial("id").primaryKey(),
+  submissionType: text("submission_type").notNull(), // e.g., "veteran_intake", "help_request", "contact"
+  submissionId: integer("submission_id").notNull(),
+  partnerName: text("partner_name").notNull(),
+  partnerEndpoint: text("partner_endpoint"),
+  deliveryStatus: text("delivery_status").notNull(), // "success", "failed", "pending"
+  responseCode: integer("response_code"),
+  errorMessage: text("error_message"),
+  sharedAt: timestamp("shared_at").defaultNow().notNull(),
+});
+
+export const insertPartnerSharingLogSchema = createInsertSchema(partnerSharingLog).omit({
+  id: true,
+  sharedAt: true,
+});
+
+export type InsertPartnerSharingLog = z.infer<typeof insertPartnerSharingLogSchema>;
+export type PartnerSharingLog = typeof partnerSharingLog.$inferSelect;
+
+// Consent Records - Tracks TCPA consent for audit compliance (5-year retention required)
+export const consentRecords = pgTable("consent_records", {
+  id: serial("id").primaryKey(),
+  submissionType: text("submission_type").notNull(), // e.g., "veteran_intake", "help_request"
+  submissionId: integer("submission_id").notNull(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  ipAddress: text("ip_address").notNull(),
+  userAgent: text("user_agent"),
+  consentCheckbox: boolean("consent_checkbox").notNull(),
+  trustedFormCertUrl: text("trusted_form_cert_url"),
+  landingPageUrl: text("landing_page_url"),
+  consentLanguageVersion: text("consent_language_version").default("v1.0"),
+  partnersSharedWith: text("partners_shared_with"), // JSON array of partner names
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+});
+
+export const insertConsentRecordSchema = createInsertSchema(consentRecords).omit({
+  id: true,
+  submittedAt: true,
+});
+
+export type InsertConsentRecord = z.infer<typeof insertConsentRecordSchema>;
+export type ConsentRecord = typeof consentRecords.$inferSelect;
+
+// Affiliated Partners - List of mission-aligned partners for public disclosure
+export const affiliatedPartners = pgTable("affiliated_partners", {
+  id: serial("id").primaryKey(),
+  legalName: text("legal_name").notNull(),
+  displayName: text("display_name").notNull(),
+  category: text("category").notNull(), // "va_benefits", "financial", "healthcare", "legal"
+  description: text("description"),
+  website: text("website"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAffiliatedPartnerSchema = createInsertSchema(affiliatedPartners).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAffiliatedPartner = z.infer<typeof insertAffiliatedPartnerSchema>;
+export type AffiliatedPartner = typeof affiliatedPartners.$inferSelect;

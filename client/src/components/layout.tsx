@@ -419,7 +419,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Footer - INTENSE */}
       <footer className="bg-brand-navy text-white pt-10 sm:pt-16 pb-36 sm:pb-40 md:pb-44 border-t-4 border-brand-red relative">
-        <div className="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-8 sm:mb-12">
+        <div className="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 sm:gap-12 mb-8 sm:mb-12">
           <div className="col-span-1 sm:col-span-2">
             <h3 className="font-display text-2xl sm:text-3xl text-white mb-4">Gear Up For Your Family</h3>
             <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
@@ -445,6 +445,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <li><Link href="/login" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Deploy</Link></li>
             </ul>
           </div>
+
+          <div>
+            <h4 className="font-display text-lg sm:text-xl text-brand-red mb-4 sm:mb-6">Legal</h4>
+            <ul className="space-y-1 text-gray-300 text-sm sm:text-base">
+              <li><Link href="/privacy-policy" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Privacy Policy</Link></li>
+              <li><Link href="/terms-of-use" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Terms of Use</Link></li>
+              <li><Link href="/affiliated-partners" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Affiliated Partners</Link></li>
+              <li><Link href="/do-not-sell" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Do Not Sell My Info</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Operator Disclosure */}
+        <div className="container mx-auto px-4 py-4 border-t border-white/10 mb-4">
+          <p className="text-center text-gray-400 text-xs max-w-3xl mx-auto">
+            Operation Fiscal Freedom is an initiative operated by NavigatorUSA, a 501(c)(3) nonprofit organization. 
+            NavigatorUSA shares data with affiliated or mission-aligned partners to respond to your requests. 
+            NavigatorUSA does not sell your personal information. <Link href="/privacy-policy" className="text-brand-red hover:text-white underline">Learn more</Link>.
+          </p>
         </div>
         <div className="container mx-auto px-4 pt-8 border-t border-white/20">
           {/* 501(c)(3) Validation - Elaborate clickable section */}

@@ -154,6 +154,12 @@ const CsuSign = lazy(() => import("@/pages/csu-sign"));
 const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
 const ResetPassword = lazy(() => import("@/pages/reset-password"));
 
+// Legal Compliance pages
+const PrivacyPolicy = lazy(() => import("@/pages/privacy-policy"));
+const TermsOfUse = lazy(() => import("@/pages/terms-of-use"));
+const AffiliatedPartners = lazy(() => import("@/pages/affiliated-partners"));
+const DoNotSell = lazy(() => import("@/pages/do-not-sell"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -181,6 +187,10 @@ function Router() {
         <Route path="/private-doctor" component={PrivateDoctor} />
         <Route path="/transparency" component={Transparency} />
         <Route path="/mission-act-health" component={MissionActHealth} />
+        <Route path="/privacy-policy" component={PrivacyPolicy} />
+        <Route path="/terms-of-use" component={TermsOfUse} />
+        <Route path="/affiliated-partners" component={AffiliatedPartners} />
+        <Route path="/do-not-sell" component={DoNotSell} />
         {/* Legacy Fin-Ops routes - redirect to hub with query params preserved */}
         <Route path="/merchant-services">{() => <Redirect to={`/fin-ops/merchant-services${window.location.search}`} />}</Route>
         <Route path="/my-locker">{() => <Redirect to={`/fin-ops/my-locker${window.location.search}`} />}</Route>
