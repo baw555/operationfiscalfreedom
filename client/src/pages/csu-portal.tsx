@@ -67,8 +67,9 @@ interface User {
 function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void }) {
   const { toast } = useToast();
   const [email, setEmail] = useState(() => localStorage.getItem("payzium_remembered_email") || "");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("payzium_remembered_email"));
+  const [password, setPassword] = useState(() => localStorage.getItem("payzium_remembered_password") || "");
+  const [rememberClan, setRememberClan] = useState(() => !!localStorage.getItem("payzium_remembered_email"));
+  const [rememberHonor, setRememberHonor] = useState(() => !!localStorage.getItem("payzium_remembered_password"));
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -176,10 +177,18 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         return;
       }
       
-      if (rememberMe) {
+      // Handle Remember My Clan (email)
+      if (rememberClan) {
         localStorage.setItem("payzium_remembered_email", email);
       } else {
         localStorage.removeItem("payzium_remembered_email");
+      }
+      
+      // Handle Remember My Honor (password)
+      if (rememberHonor) {
+        localStorage.setItem("payzium_remembered_password", password);
+      } else {
+        localStorage.removeItem("payzium_remembered_password");
       }
       
       // Start cinematic sequence instead of immediate login
@@ -455,17 +464,31 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3">
-                  <Checkbox 
-                    id="remember-me"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    data-testid="checkbox-payzium-remember"
-                    className="border-amber-500/50 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-400"
-                  />
-                  <Label htmlFor="remember-me" className="text-sm text-amber-300/70 cursor-pointer">
-                    Remember My Honor
-                  </Label>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="remember-clan"
+                      checked={rememberClan}
+                      onCheckedChange={(checked) => setRememberClan(checked === true)}
+                      data-testid="checkbox-payzium-remember-clan"
+                      className="border-amber-500/50 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-400"
+                    />
+                    <Label htmlFor="remember-clan" className="text-sm text-amber-300/70 cursor-pointer">
+                      Remember My Clan
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="remember-honor"
+                      checked={rememberHonor}
+                      onCheckedChange={(checked) => setRememberHonor(checked === true)}
+                      data-testid="checkbox-payzium-remember-honor"
+                      className="border-amber-500/50 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-400"
+                    />
+                    <Label htmlFor="remember-honor" className="text-sm text-amber-300/70 cursor-pointer">
+                      Remember My Honor
+                    </Label>
+                  </div>
                 </div>
 
                 {/* MJÖLNIR POWER BUTTON with Electricity Animation */}
