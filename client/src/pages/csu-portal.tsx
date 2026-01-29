@@ -2002,19 +2002,13 @@ export default function CsuPortal() {
   };
 
   const handleSelfSignSubmit = () => {
-    // Check if this is an Affiliate Agreement (template ID 5 or name contains "affiliate")
-    const isAffiliateAgreement = currentTemplate?.id === 5 || currentTemplate?.name?.toLowerCase().includes('affiliate');
-    
-    // Only require initials and effective date for non-affiliate templates
-    if (!isAffiliateAgreement) {
-      if (!selfSignData.initials) {
-        toast({ title: "Initials Required", description: "Please enter your initials.", variant: "destructive" });
-        return;
-      }
-      if (!selfSignData.effectiveDate) {
-        toast({ title: "Effective Date Required", description: "Please select an effective date.", variant: "destructive" });
-        return;
-      }
+    if (!selfSignData.initials) {
+      toast({ title: "Initials Required", description: "Please enter your initials.", variant: "destructive" });
+      return;
+    }
+    if (!selfSignData.effectiveDate) {
+      toast({ title: "Effective Date Required", description: "Please select an effective date.", variant: "destructive" });
+      return;
     }
     // Validate FICA-specific fields (template ID 7)
     const isFicaContract = currentTemplate?.id === 7;
@@ -2140,34 +2134,31 @@ export default function CsuPortal() {
                         </div>
                       </div>
 
-                      {/* Initials and Effective Date - only for non-affiliate templates */}
-                      {!(currentTemplate?.id === 5 || currentTemplate?.name?.toLowerCase().includes('affiliate')) && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="initials">Initials *</Label>
-                            <Input
-                              id="initials"
-                              value={selfSignData.initials}
-                              onChange={(e) => setSelfSignData({ ...selfSignData, initials: e.target.value.toUpperCase() })}
-                              placeholder="MV"
-                              maxLength={5}
-                              className="text-brand-navy uppercase"
-                              data-testid="input-self-sign-initials"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="effectiveDate">Effective Date *</Label>
-                            <Input
-                              id="effectiveDate"
-                              type="date"
-                              value={selfSignData.effectiveDate}
-                              onChange={(e) => setSelfSignData({ ...selfSignData, effectiveDate: e.target.value })}
-                              className="text-brand-navy"
-                              data-testid="input-self-sign-effective-date"
-                            />
-                          </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="initials">Initials *</Label>
+                          <Input
+                            id="initials"
+                            value={selfSignData.initials}
+                            onChange={(e) => setSelfSignData({ ...selfSignData, initials: e.target.value.toUpperCase() })}
+                            placeholder="MV"
+                            maxLength={5}
+                            className="text-brand-navy uppercase"
+                            data-testid="input-self-sign-initials"
+                          />
                         </div>
-                      )}
+                        <div className="space-y-2">
+                          <Label htmlFor="effectiveDate">Effective Date *</Label>
+                          <Input
+                            id="effectiveDate"
+                            type="date"
+                            value={selfSignData.effectiveDate}
+                            onChange={(e) => setSelfSignData({ ...selfSignData, effectiveDate: e.target.value })}
+                            className="text-brand-navy"
+                            data-testid="input-self-sign-effective-date"
+                          />
+                        </div>
+                      </div>
 
                       {/* Additional fields for FICA Tips Tax Credit Agreement */}
                       {/* FICA Tips Tax Credit Agreement is template ID 7 */}

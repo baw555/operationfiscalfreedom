@@ -368,8 +368,8 @@ export default function CsuSign() {
       return;
     }
     
-    // Non-affiliate templates require initials and effective date
-    if (!isAffiliateAgreement && (!formData.initials || !formData.effectiveDate)) {
+    // All templates require initials and effective date
+    if (!formData.initials || !formData.effectiveDate) {
       toast({
         title: "Missing Information",
         description: "Please fill in your initials and effective date.",
@@ -378,8 +378,9 @@ export default function CsuSign() {
       return;
     }
 
-    // Template-specific validation: Non-affiliate templates require business fields
-    if (!isAffiliateAgreement) {
+    // FICA template (ID 7) requires business fields
+    const isFicaTemplate = contractData?.template.id === 7;
+    if (isFicaTemplate) {
       if (!formData.clientCompany || !formData.clientAddress || !formData.primaryTitle) {
         toast({
           title: "Missing Business Information",
@@ -390,8 +391,8 @@ export default function CsuSign() {
       }
     }
 
-    // Only require initials for non-affiliate templates
-    if (!isAffiliateAgreement && !initialsApplied) {
+    // All templates require initials to be applied
+    if (!initialsApplied) {
       toast({
         title: "Initials Required",
         description: "Please apply your initials to all sections by clicking 'Apply Initials to All Sections'.",
@@ -590,8 +591,8 @@ export default function CsuSign() {
               <p className="text-sm text-purple-600">Fill in your information below. It will automatically populate throughout the agreement.</p>
             </CardHeader>
             <CardContent className="pt-6">
-              {/* Business fields - Show for ALL templates EXCEPT Affiliate Agreement */}
-              {!isAffiliateAgreement && (
+              {/* Business fields - Show only for FICA template (ID 7) */}
+              {contractData?.template.id === 7 && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="space-y-2">
@@ -715,9 +716,9 @@ export default function CsuSign() {
                 </div>
               </div>
 
-              {/* Secondary Owner and Effective Date - Show for all templates EXCEPT Affiliate */}
-              {!isAffiliateAgreement && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Secondary Owner - Show only for FICA template (ID 7) */}
+              {contractData?.template.id === 7 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="space-y-2">
                     <Label htmlFor="secondaryOwner">Secondary Business Owner (Optional)</Label>
                     <Input
@@ -729,55 +730,57 @@ export default function CsuSign() {
                       data-testid="input-secondary-owner"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="effectiveDate" className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" /> Agreement Date *
-                    </Label>
-                    <Input
-                      id="effectiveDate"
-                      type="date"
-                      value={formData.effectiveDate}
-                      onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
-                      className="text-brand-navy border-purple-200 focus:border-purple-500"
-                      data-testid="input-effective-date"
-                    />
-                  </div>
                 </div>
               )}
+
+              {/* Effective Date - Show for ALL templates */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="effectiveDate" className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" /> Agreement Date *
+                  </Label>
+                  <Input
+                    id="effectiveDate"
+                    type="date"
+                    value={formData.effectiveDate}
+                    onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
+                    className="text-brand-navy border-purple-200 focus:border-purple-500"
+                    data-testid="input-effective-date"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Initials Input - Above Contract (only for non-affiliate templates) */}
-          {!isAffiliateAgreement && (
-            <Card className="mb-6 border-2 border-amber-200">
-              <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 py-4">
-                <CardTitle className="flex items-center gap-2 text-amber-800 text-lg">
-                  <Pen className="w-5 h-5" /> Enter Your Initials
-                </CardTitle>
-                <p className="text-sm text-amber-600">Enter your initials here, then review the contract below and apply them to all sections.</p>
-              </CardHeader>
-              <CardContent className="pt-4 pb-4">
-                <div className="flex items-center gap-4">
-                  <Label htmlFor="initials" className="font-semibold whitespace-nowrap">Your Initials *</Label>
-                  <Input
-                    id="initials"
-                    value={formData.initials}
-                    onChange={(e) => {
-                      setFormData({ ...formData, initials: e.target.value.toUpperCase() });
-                      setInitialsApplied(false);
-                    }}
-                    className="text-brand-navy font-bold text-center text-2xl h-14 w-24 border-2 border-purple-300"
-                    placeholder="JD"
-                    maxLength={4}
-                    data-testid="input-initials"
-                  />
-                  <p className="text-sm text-gray-500">
-                    {formData.initials.length >= 2 ? `Initials: ${formData.initials}` : "Enter 2-4 characters"}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Initials Input - Above Contract (for ALL templates) */}
+          <Card className="mb-6 border-2 border-amber-200">
+            <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 py-4">
+              <CardTitle className="flex items-center gap-2 text-amber-800 text-lg">
+                <Pen className="w-5 h-5" /> Enter Your Initials
+              </CardTitle>
+              <p className="text-sm text-amber-600">Enter your initials here, then review the contract below and apply them to all sections.</p>
+            </CardHeader>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-4">
+                <Label htmlFor="initials" className="font-semibold whitespace-nowrap">Your Initials *</Label>
+                <Input
+                  id="initials"
+                  value={formData.initials}
+                  onChange={(e) => {
+                    setFormData({ ...formData, initials: e.target.value.toUpperCase() });
+                    setInitialsApplied(false);
+                  }}
+                  className="text-brand-navy font-bold text-center text-2xl h-14 w-24 border-2 border-purple-300"
+                  placeholder="JD"
+                  maxLength={4}
+                  data-testid="input-initials"
+                />
+                <p className="text-sm text-gray-500">
+                  {formData.initials.length >= 2 ? `Initials: ${formData.initials}` : "Enter 2-4 characters"}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card className="mb-6">
             <CardHeader>
@@ -798,32 +801,30 @@ export default function CsuSign() {
             </CardContent>
           </Card>
 
-          {/* Apply Initials Button - Below Contract (only for non-affiliate templates) */}
-          {!isAffiliateAgreement && (
-            <Card className="mb-6 border-2 border-purple-200">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="font-semibold text-purple-800">Apply Initials to Contract</p>
-                    <p className="text-xs text-gray-500">
-                      {initialsApplied 
-                        ? `Your initials "${formData.initials}" have been applied to all sections.` 
-                        : "Click the button to apply your initials to all required sections above."}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={applyInitials}
-                    disabled={formData.initials.length < 2}
-                    className={`h-12 px-6 ${initialsApplied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700"}`}
-                    data-testid="button-apply-initials"
-                  >
-                    {initialsApplied ? "Initials Applied" : "Apply Initials to All Sections"}
-                  </Button>
+          {/* Apply Initials Button - Below Contract (for ALL templates) */}
+          <Card className="mb-6 border-2 border-purple-200">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-semibold text-purple-800">Apply Initials to Contract</p>
+                  <p className="text-xs text-gray-500">
+                    {initialsApplied 
+                      ? `Your initials "${formData.initials}" have been applied to all sections.` 
+                      : "Click the button to apply your initials to all required sections above."}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+                <Button
+                  type="button"
+                  onClick={applyInitials}
+                  disabled={formData.initials.length < 2}
+                  className={`h-12 px-6 ${initialsApplied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700"}`}
+                  data-testid="button-apply-initials"
+                >
+                  {initialsApplied ? "Initials Applied" : "Apply Initials to All Sections"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card className="mb-6 border-2 border-amber-200">
             <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50">
@@ -918,15 +919,15 @@ export default function CsuSign() {
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 h-14 text-lg font-bold"
-                  disabled={signMutation.isPending || (!isAffiliateAgreement && !initialsApplied) || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms}
+                  disabled={signMutation.isPending || !initialsApplied || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms}
                   data-testid="button-sign-contract"
                 >
                   {signMutation.isPending ? "Signing Contract..." : "Sign & Submit Contract"}
                 </Button>
 
-                {((!isAffiliateAgreement && !initialsApplied) || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms) && (
+                {(!initialsApplied || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms) && (
                   <div className="text-center text-sm text-amber-600 space-y-1">
-                    {!isAffiliateAgreement && !initialsApplied && <p>Please apply your initials to all sections.</p>}
+                    {!initialsApplied && <p>Please apply your initials to all sections.</p>}
                     {!hasSignature && <p>Please sign in the signature box above.</p>}
                     {!formData.agreedToEsign && <p>Please consent to electronic signatures.</p>}
                     {!formData.agreedToTerms && <p>Please agree to the terms.</p>}
