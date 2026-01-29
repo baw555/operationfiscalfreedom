@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -22,7 +22,7 @@ const PageLoader = () => (
 // Lazy load all other pages
 const NotFound = lazy(() => import("@/pages/not-found"));
 const About = lazy(() => import("@/pages/about"));
-const FinOps = lazy(() => import("@/pages/fin-ops"));
+const FinOpsHub = lazy(() => import("@/pages/fin-ops/index"));
 const Businesses = lazy(() => import("@/pages/businesses"));
 const Income = lazy(() => import("@/pages/income"));
 const Resources = lazy(() => import("@/pages/resources"));
@@ -51,9 +51,6 @@ const NewHomeFurniture = lazy(() => import("@/pages/new-home-furniture"));
 const PrivateDoctor = lazy(() => import("@/pages/private-doctor"));
 const Transparency = lazy(() => import("@/pages/transparency"));
 const MissionActHealth = lazy(() => import("@/pages/mission-act-health"));
-const MerchantServices = lazy(() => import("@/pages/merchant-services"));
-const MyLocker = lazy(() => import("@/pages/my-locker"));
-const VGiftCards = lazy(() => import("@/pages/vgift-cards"));
 const Shipping = lazy(() => import("@/pages/shipping"));
 const Insurance = lazy(() => import("@/pages/insurance"));
 const MedicalSales = lazy(() => import("@/pages/medical-sales"));
@@ -68,7 +65,6 @@ const DownloadUPSRates = lazy(() => import("@/pages/download-ups-rates"));
 const FinOp = lazy(() => import("@/pages/fin-op"));
 const StressTest = lazy(() => import("@/pages/stress-test"));
 const JobPlacement = lazy(() => import("@/pages/job-placement"));
-const VetProfessionals = lazy(() => import("@/pages/vet-professionals"));
 const HealthcarePage = lazy(() => import("@/pages/healthcare"));
 
 // Disability Rating pages - consolidated into hub
@@ -160,7 +156,12 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/about" component={About} />
-        <Route path="/fin-ops" component={FinOps} />
+        {/* Fin-Ops Routes - Unified Hub with section selector */}
+        <Route path="/fin-ops" component={FinOpsHub} />
+        <Route path="/fin-ops/vet-professionals" component={FinOpsHub} />
+        <Route path="/fin-ops/merchant-services" component={FinOpsHub} />
+        <Route path="/fin-ops/my-locker" component={FinOpsHub} />
+        <Route path="/fin-ops/vgift-cards" component={FinOpsHub} />
         <Route path="/businesses" component={Businesses} />
         <Route path="/income" component={Income} />
         <Route path="/resources" component={Resources} />
@@ -174,9 +175,11 @@ function Router() {
         <Route path="/private-doctor" component={PrivateDoctor} />
         <Route path="/transparency" component={Transparency} />
         <Route path="/mission-act-health" component={MissionActHealth} />
-        <Route path="/merchant-services" component={MerchantServices} />
-        <Route path="/my-locker" component={MyLocker} />
-        <Route path="/vgift-cards" component={VGiftCards} />
+        {/* Legacy Fin-Ops routes - redirect to hub with query params preserved */}
+        <Route path="/merchant-services">{() => <Redirect to={`/fin-ops/merchant-services${window.location.search}`} />}</Route>
+        <Route path="/my-locker">{() => <Redirect to={`/fin-ops/my-locker${window.location.search}`} />}</Route>
+        <Route path="/vgift-cards">{() => <Redirect to={`/fin-ops/vgift-cards${window.location.search}`} />}</Route>
+        <Route path="/vet-professionals">{() => <Redirect to={`/fin-ops/vet-professionals${window.location.search}`} />}</Route>
         
         {/* Disability Rating Routes - Unified Hub with service selector */}
         <Route path="/disability-rating" component={DisabilityBenefitsHub} />
@@ -290,7 +293,6 @@ function Router() {
         <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
         <Route path="/stress-test" component={StressTest} />
         <Route path="/job-placement" component={JobPlacement} />
-        <Route path="/vet-professionals" component={VetProfessionals} />
         <Route path="/healthcare" component={HealthcarePage} />
         <Route path="/healthcare/ptsd" component={HealthcarePage} />
         <Route path="/healthcare/exosomes" component={HealthcarePage} />
