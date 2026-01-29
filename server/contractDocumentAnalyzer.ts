@@ -81,7 +81,7 @@ Return a JSON object with:
 3. "summary": A brief 1-2 sentence summary of what this contract is about`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5.2",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: systemPrompt },
       { 
@@ -90,7 +90,6 @@ Return a JSON object with:
       }
     ],
     response_format: { type: "json_object" },
-    max_tokens: 8000,
   });
 
   const content = response.choices[0]?.message?.content || "{}";
