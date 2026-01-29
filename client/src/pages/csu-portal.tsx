@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import DOMPurify from "dompurify";
@@ -1621,6 +1621,64 @@ export default function CsuPortal() {
   // Local state to track verified admin login (bypasses 304 cache issue)
   const [verifiedAdmin, setVerifiedAdmin] = useState(false);
 
+  // Helper to replace placeholders in contract content for self-sign display
+  const processedSelfSignContent = useMemo(() => {
+    if (!currentTemplate?.content) return "";
+    
+    let content = currentTemplate.content;
+    
+    // Format date for display
+    const formatDate = (dateStr: string) => {
+      if (!dateStr) return "[DATE]";
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    };
+    
+    // Check if this is a plain text template (no meaningful HTML tags) - add header section
+    const isPlainText = !/<[a-zA-Z][^>]*>/.test(content);
+    if (isPlainText) {
+      const effectiveDateDisplay = selfSignData.effectiveDate ? formatDate(selfSignData.effectiveDate) : "[DATE]";
+      const initialsDisplay = selfSignData.initials || "[INITIALS]";
+      const headerHtml = `
+        <div style="background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #9333ea;">
+          <h3 style="color: #6b21a8; margin: 0 0 15px 0; font-weight: 700;">Agreement Details</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div><strong>Signer:</strong> ${MAURICE_INFO.name}</div>
+            <div><strong>Email:</strong> ${MAURICE_INFO.email}</div>
+            <div><strong>Effective Date:</strong> <span style="color: #166534; font-weight: 600;">${effectiveDateDisplay}</span></div>
+            <div><strong>Initials:</strong> <span style="color: ${selfSignData.initials ? '#166534' : '#6b21a8'}; font-weight: 600;">${initialsDisplay}</span></div>
+          </div>
+        </div>
+        <div style="white-space: pre-wrap; font-family: inherit;">`;
+      content = headerHtml + content + '</div>';
+    } else {
+      // Replace signer name placeholders with Maurice's name
+      content = content.replace(/\[SIGNER NAME[^\]]*\]/gi, MAURICE_INFO.name);
+      
+      // Replace effective date placeholders
+      const effectiveDateDisplay = selfSignData.effectiveDate ? formatDate(selfSignData.effectiveDate) : "[DATE]";
+      content = content.replace(/\[EFFECTIVE DATE[^\]]*\]/gi, 
+        `<span style="color: #166534; font-weight: 700; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 2px 8px; border-radius: 4px;">${effectiveDateDisplay}</span>`
+      );
+      
+      // Replace initials placeholders
+      const initialsDisplay = selfSignData.initials || "[INITIALS]";
+      const initialsStyle = selfSignData.initials 
+        ? "color: #166534; font-weight: 700; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 2px 8px; border-radius: 4px;"
+        : "color: #6b21a8; font-weight: 700; background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); padding: 2px 8px; border-radius: 4px; border: 1px dashed #9333ea;";
+      content = content.replace(/\[INITIALS[^\]]*\]/gi, 
+        `<span style="${initialsStyle}">${initialsDisplay}</span>`
+      );
+      
+      // Replace signature placeholders
+      content = content.replace(/\[SIGNATURE[^\]]*\]/gi, 
+        '<span style="color: #6b21a8; font-weight: 700; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 2px 8px; border-radius: 4px;">[Sign Below]</span>'
+      );
+    }
+    
+    return content;
+  }, [currentTemplate, selfSignData.initials, selfSignData.effectiveDate]);
+
   // Generate or retrieve session ID for tracking
   const getSessionId = () => {
     let sessionId = sessionStorage.getItem("payzium_session_id");
@@ -1910,6 +1968,10 @@ export default function CsuPortal() {
       toast({ title: "Initials Required", description: "Please enter your initials.", variant: "destructive" });
       return;
     }
+    if (!selfSignData.effectiveDate) {
+      toast({ title: "Effective Date Required", description: "Please select an effective date.", variant: "destructive" });
+      return;
+    }
     if (!hasSignature) {
       toast({ title: "Signature Required", description: "Please sign in the signature box.", variant: "destructive" });
       return;
@@ -1994,7 +2056,7 @@ export default function CsuPortal() {
                   <CardContent>
                     <div 
                       className="bg-gray-50 p-6 rounded-lg border max-h-96 overflow-y-auto text-sm prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentTemplate.content) }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(processedSelfSignContent) }}
                     />
                   </CardContent>
                 </Card>

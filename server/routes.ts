@@ -4010,6 +4010,17 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Contract template not found" });
       }
 
+      // Replace signer name placeholder in contract content for display
+      const { replaceContractPlaceholders, addPlainTextHeader } = await import("./pdfGenerator");
+      let processedContent = replaceContractPlaceholders(template.content, {
+        signerName: contractSend.recipientName,
+      });
+      // Add header for plain text templates
+      processedContent = addPlainTextHeader(processedContent, {
+        signerName: contractSend.recipientName,
+        signerEmail: contractSend.recipientEmail,
+      });
+
       res.json({
         contractSend: {
           id: contractSend.id,
@@ -4020,7 +4031,7 @@ export async function registerRoutes(
         template: {
           id: template.id,
           name: template.name,
-          content: template.content,
+          content: processedContent,
         }
       });
     } catch (error) {

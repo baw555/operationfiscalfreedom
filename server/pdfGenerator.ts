@@ -40,6 +40,93 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+// Replace placeholders in contract content with actual values
+export function replaceContractPlaceholders(
+  content: string,
+  data: {
+    signerName?: string;
+    effectiveDate?: string;
+    initials?: string;
+    signatureData?: string;
+  }
+): string {
+  let result = content;
+  
+  // Replace signer name placeholders
+  if (data.signerName) {
+    result = result.replace(/\[SIGNER NAME[^\]]*\]/gi, data.signerName);
+  }
+  
+  // Replace effective date placeholders
+  if (data.effectiveDate) {
+    result = result.replace(/\[EFFECTIVE DATE[^\]]*\]/gi, data.effectiveDate);
+  }
+  
+  // Replace initials placeholders
+  if (data.initials) {
+    result = result.replace(/\[INITIALS[^\]]*\]/gi, data.initials);
+  }
+  
+  // Replace signature placeholders (just mark as "See Signature Below" since actual signature is drawn)
+  if (data.signatureData) {
+    result = result.replace(/\[SIGNATURE[^\]]*\]/gi, '[Signature Captured - See Signature Page]');
+  }
+  
+  return result;
+}
+
+// HTML escape utility to prevent XSS
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Check if content is plain text (no HTML) and add header for display
+export function addPlainTextHeader(
+  content: string,
+  data: {
+    signerName: string;
+    signerEmail?: string;
+    effectiveDate?: string;
+    initials?: string;
+  }
+): string {
+  // Check if this is plain text (no meaningful HTML tags)
+  const hasHtmlTags = /<[a-zA-Z][^>]*>/.test(content);
+  
+  if (!hasHtmlTags) {
+    // Escape user-provided values to prevent HTML injection
+    const safeName = escapeHtml(data.signerName);
+    const safeEmail = escapeHtml(data.signerEmail || '');
+    const safeInitials = escapeHtml(data.initials || '[INITIALS]');
+    
+    // Format the date
+    const dateDisplay = data.effectiveDate 
+      ? new Date(data.effectiveDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '[DATE]';
+    
+    // Add styled header for plain text templates
+    const headerHtml = `
+      <div style="background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #9333ea;">
+        <h3 style="color: #6b21a8; margin: 0 0 15px 0; font-weight: 700;">Agreement Details</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div><strong>Signer:</strong> ${safeName}</div>
+          <div><strong>Email:</strong> ${safeEmail}</div>
+          <div><strong>Effective Date:</strong> <span style="color: #166534; font-weight: 600;">${dateDisplay}</span></div>
+          <div><strong>Initials:</strong> <span style="color: #166534; font-weight: 600;">${safeInitials}</span></div>
+        </div>
+      </div>
+      <div style="white-space: pre-wrap; font-family: inherit;">`;
+    return headerHtml + content + '</div>';
+  }
+  
+  return content;
+}
+
 // Generate document hash for audit trail
 function generateDocumentHash(data: CsuContractData): string {
   const content = `${data.templateName}|${data.signerName}|${data.signerEmail}|${data.signedAt}|${data.agreementId}`;
@@ -104,8 +191,34 @@ export async function generateCsuContractPdf(data: CsuContractData): Promise<Buf
       
       doc.y = boxY + 110;
 
-      // Contract Content (cleaned)
-      const cleanContent = stripHtml(data.templateContent);
+      // Contract Content (replace placeholders first, then clean)
+      const contentWithReplacements = replaceContractPlaceholders(data.templateContent, {
+        signerName: data.signerName,
+        effectiveDate: data.effectiveDate || undefined,
+        initials: data.initials || undefined,
+        signatureData: data.signatureData || undefined,
+      });
+      
+      // Check if this is a plain text template (no HTML tags) - add agreement details header
+      const isPlainText = !/<[a-zA-Z][^>]*>/.test(data.templateContent);
+      if (isPlainText) {
+        // Add Agreement Details box for plain text templates
+        const detailsBoxY = doc.y;
+        doc.rect(72, detailsBoxY, contentWidth, 60).lineWidth(1).stroke(PURPLE_COLOR);
+        doc.fontSize(11).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
+          .text('Agreement Details', 82, detailsBoxY + 10);
+        doc.fontSize(9).font('Helvetica').fillColor('#333');
+        doc.text(`Signer: ${data.signerName}`, 82, detailsBoxY + 28);
+        doc.text(`Email: ${data.signerEmail}`, 250, detailsBoxY + 28);
+        const effectiveDateDisplay = data.effectiveDate 
+          ? new Date(data.effectiveDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          : 'N/A';
+        doc.text(`Effective Date: ${effectiveDateDisplay}`, 82, detailsBoxY + 43);
+        doc.text(`Initials: ${data.initials || 'N/A'}`, 250, detailsBoxY + 43);
+        doc.y = detailsBoxY + 75;
+      }
+      
+      const cleanContent = stripHtml(contentWithReplacements);
       doc.fontSize(9).font('Helvetica').fillColor('#333')
         .text(cleanContent, { align: 'left', lineGap: 3, columns: 1 });
       

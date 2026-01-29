@@ -170,6 +170,16 @@ export default function CsuSign() {
       content = content.replace(editableRegex, `<input type="${field === "currentDate" ? "date" : "text"}" class="embedded-input" data-field="${field}" placeholder="${placeholder}" style="color: #6b21a8; font-weight: 600; background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 8px 12px; width: 100%; font-size: 14px; outline: none;" />`);
     });
 
+    // Replace raw placeholder text with auto-fill spans for dynamic updates
+    // Handle [INITIALS - Enter Above] and similar patterns
+    content = content.replace(/\[INITIALS[^\]]*\]/gi, '<span class="auto-fill initials-placeholder" data-field="initials" style="color: #6b21a8; font-weight: 700; background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); padding: 2px 8px; border-radius: 4px; border: 1px dashed #9333ea;">[INITIALS]</span>');
+    
+    // Handle [EFFECTIVE DATE - Enter Above] placeholders
+    content = content.replace(/\[EFFECTIVE DATE[^\]]*\]/gi, '<span class="auto-fill" data-field="effectiveDate" style="color: #6b21a8; font-weight: 700; background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); padding: 2px 8px; border-radius: 4px; border: 1px dashed #9333ea;">[DATE]</span>');
+    
+    // Handle [SIGNATURE - ...] placeholders
+    content = content.replace(/\[SIGNATURE[^\]]*\]/gi, '<span class="auto-fill" data-field="signature" style="color: #6b21a8; font-weight: 700; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 2px 8px; border-radius: 4px; border: 1px dashed #22c55e;">[Sign Below]</span>');
+
     return content;
   }, [contractData]);
 
@@ -241,6 +251,7 @@ export default function CsuSign() {
 
     const autoFillValues: Record<string, string> = {
       currentDate: formData.effectiveDate ? formatDate(formData.effectiveDate) : "[DATE]",
+      effectiveDate: formData.effectiveDate ? formatDate(formData.effectiveDate) : "[DATE]",
       clientCompany: formData.clientCompany || "[COMPANY NAME]",
       clientAddress: formData.clientAddress || "[COMPANY ADDRESS]",
       primaryOwner: formData.primaryOwner || formData.signerName || "[PRIMARY OWNER]",
@@ -248,6 +259,7 @@ export default function CsuSign() {
       secondaryOwner: formData.secondaryOwner || "N/A",
       clientEmail: formData.signerEmail || "[EMAIL]",
       initials: formData.initials || "[INITIALS]",
+      signature: "[Sign Below]",
     };
 
     // Update auto-fill spans in the DOM directly
@@ -256,8 +268,18 @@ export default function CsuSign() {
       const field = (span as HTMLElement).dataset.field;
       if (field && autoFillValues[field]) {
         span.textContent = autoFillValues[field];
-        (span as HTMLElement).style.color = '#6b21a8';
-        (span as HTMLElement).style.fontWeight = '600';
+        // Update styling based on whether value is filled or placeholder
+        const isFilled = !autoFillValues[field].startsWith('[');
+        if (isFilled) {
+          (span as HTMLElement).style.background = 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)';
+          (span as HTMLElement).style.borderColor = '#22c55e';
+          (span as HTMLElement).style.color = '#166534';
+        } else {
+          (span as HTMLElement).style.background = 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)';
+          (span as HTMLElement).style.borderColor = '#9333ea';
+          (span as HTMLElement).style.color = '#6b21a8';
+        }
+        (span as HTMLElement).style.fontWeight = '700';
       }
     });
   }, [formData]);
