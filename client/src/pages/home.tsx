@@ -16,11 +16,13 @@ import { HeroMontage } from "@/components/hero-montage";
 import { RangerTabSVG } from "@/components/ranger-tab-svg";
 
 export default function Home() {
+  const [introPlayed, setIntroPlayed] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
   const [showContent, setShowContent] = useState(false);
   const [animationPaused, setAnimationPaused] = useState(false);
   const loopIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  const introVideoRef = useRef<HTMLVideoElement | null>(null);
   const [animationImages, setAnimationImages] = useState<{
     heroBg?: string;
     somethingImg?: string;
@@ -94,10 +96,12 @@ export default function Home() {
   };
 
   useEffect(() => {
-    runAnimation();
-    loopIntervalRef.current = setInterval(() => {
+    if (introPlayed) {
       runAnimation();
-    }, 57000);
+      loopIntervalRef.current = setInterval(() => {
+        runAnimation();
+      }, 57000);
+    }
 
     return () => {
       clearAllTimeouts();
@@ -105,12 +109,43 @@ export default function Home() {
         clearInterval(loopIntervalRef.current);
       }
     };
-  }, []);
+  }, [introPlayed]);
+
+  const handleIntroEnded = () => {
+    setIntroPlayed(true);
+  };
+
+  const skipIntro = () => {
+    if (introVideoRef.current) {
+      introVideoRef.current.pause();
+    }
+    setIntroPlayed(true);
+  };
 
   return (
     <Layout>
+      {/* Intro Video with Audio */}
+      {!introPlayed && (
+        <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden bg-black">
+          <video
+            ref={introVideoRef}
+            src="/videos/intro-video.mp4"
+            autoPlay
+            playsInline
+            onEnded={handleIntroEnded}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <button
+            onClick={skipIntro}
+            className="absolute bottom-8 right-8 z-20 px-6 py-3 bg-black/60 hover:bg-black/80 text-white font-bold uppercase tracking-wider rounded-lg border border-white/30 transition-all"
+          >
+            Skip
+          </button>
+        </section>
+      )}
+
       {/* Animated Hero Intro */}
-      {animationPhase < 7 && (
+      {introPlayed && animationPhase < 7 && (
         <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden bg-black">
           {/* Phase 0: Initial black */}
           <div className={cn(
@@ -268,7 +303,7 @@ export default function Home() {
       )}
 
       {/* Main Hero Section - After Animation */}
-      {animationPhase >= 7 && (
+      {introPlayed && animationPhase >= 7 && (
         <section className={cn(
           "relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-navy transition-opacity duration-1000",
           showContent ? "opacity-100" : "opacity-0"
