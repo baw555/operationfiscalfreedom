@@ -2717,9 +2717,9 @@ export default function CsuPortal() {
                             <p className="text-sm text-green-600 font-medium">Signed</p>
                             <p className="text-2xl font-bold text-green-800">{signedAgreements.length}</p>
                           </div>
-                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200" data-testid="stat-templates">
-                            <p className="text-sm text-blue-600 font-medium">Templates</p>
-                            <p className="text-2xl font-bold text-blue-800">{templates.length}</p>
+                          <div className="bg-red-50 p-4 rounded-lg border border-red-200" data-testid="stat-voided">
+                            <p className="text-sm text-red-600 font-medium">Voided</p>
+                            <p className="text-2xl font-bold text-red-800">{contractSends.filter(s => s.status === "voided").length}</p>
                           </div>
                         </div>
 
@@ -2731,8 +2731,10 @@ export default function CsuPortal() {
                               const templateSends = contractSends.filter(s => s.templateId === template.id);
                               const pendingCount = templateSends.filter(s => s.status === "pending").length;
                               const signedCount = templateSends.filter(s => s.status === "signed").length;
+                              const voidedCount = templateSends.filter(s => s.status === "voided").length;
                               const totalCount = templateSends.length;
-                              const signedPercent = totalCount > 0 ? Math.round((signedCount / totalCount) * 100) : 0;
+                              const activeCount = totalCount - voidedCount;
+                              const signedPercent = activeCount > 0 ? Math.round((signedCount / activeCount) * 100) : 0;
 
                               return (
                                 <div key={template.id} className="bg-white border rounded-lg p-4" data-testid={`template-row-${template.id}`}>
@@ -2762,6 +2764,11 @@ export default function CsuPortal() {
                                     <span className="flex items-center gap-1 text-green-600">
                                       <CheckCircle className="w-4 h-4" /> {signedCount} signed
                                     </span>
+                                    {voidedCount > 0 && (
+                                      <span className="flex items-center gap-1 text-red-600">
+                                        <X className="w-4 h-4" /> {voidedCount} voided
+                                      </span>
+                                    )}
                                   </div>
 
                                   {/* Recipients list */}
@@ -2775,11 +2782,13 @@ export default function CsuPortal() {
                                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
                                               send.status === "signed" 
                                                 ? "bg-green-100 text-green-700" 
+                                                : send.status === "voided"
+                                                ? "bg-red-100 text-red-700 line-through"
                                                 : "bg-amber-100 text-amber-700"
                                             }`}
                                             data-testid={`recipient-badge-${send.id}`}
                                           >
-                                            {send.status === "signed" ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                            {send.status === "signed" ? <CheckCircle className="w-3 h-3" /> : send.status === "voided" ? <X className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                                             {send.recipientName}
                                           </span>
                                         ))}
@@ -3066,23 +3075,84 @@ export default function CsuPortal() {
                               </tr>
                             </thead>
                             <tbody>
-                              {contractSends.filter(s => s.status === "pending").map((send) => (
-                                <tr key={send.id} className="border-b hover:bg-gray-50" data-testid={`pending-row-${send.id}`}>
+                              {contractSends.filter(s => s.status === "pending").map((send) => {
+                                const isExpired = new Date(send.tokenExpiresAt) < new Date();
+                                return (
+                                <tr key={send.id} className={`border-b hover:bg-gray-50 ${isExpired ? 'bg-red-50' : ''}`} data-testid={`pending-row-${send.id}`}>
                                   <td className="py-3 px-4">{send.recipientName}</td>
                                   <td className="py-3 px-4">{send.recipientEmail}</td>
                                   <td className="py-3 px-4">{new Date(send.sentAt).toLocaleDateString()}</td>
-                                  <td className="py-3 px-4">{new Date(send.tokenExpiresAt).toLocaleDateString()}</td>
                                   <td className="py-3 px-4">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => copyToClipboard(getSigningUrl(send.signToken))}
-                                    >
-                                      <Copy className="w-4 h-4 mr-1" /> Copy Link
-                                    </Button>
+                                    <span className={isExpired ? 'text-red-600 font-medium' : ''}>
+                                      {new Date(send.tokenExpiresAt).toLocaleDateString()}
+                                      {isExpired && ' (Expired)'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => copyToClipboard(getSigningUrl(send.signToken))}
+                                        data-testid={`button-copy-link-${send.id}`}
+                                      >
+                                        <Copy className="w-4 h-4 mr-1" /> Copy
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                                        onClick={async () => {
+                                          try {
+                                            const res = await fetch(`/api/csu/contract-sends/${send.id}/resend`, {
+                                              method: 'POST',
+                                              credentials: 'include',
+                                            });
+                                            const data = await res.json();
+                                            if (res.ok) {
+                                              toast({ title: "Reminder Sent!", description: `New link sent to ${send.recipientEmail}` });
+                                              queryClient.invalidateQueries({ queryKey: ["/api/csu/contract-sends"] });
+                                            } else {
+                                              toast({ title: "Error", description: data.message, variant: "destructive" });
+                                            }
+                                          } catch (err) {
+                                            toast({ title: "Error", description: "Failed to resend", variant: "destructive" });
+                                          }
+                                        }}
+                                        data-testid={`button-resend-${send.id}`}
+                                      >
+                                        <RotateCcw className="w-4 h-4 mr-1" /> Resend
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                        onClick={async () => {
+                                          if (!confirm(`Void contract for ${send.recipientName}? This cannot be undone.`)) return;
+                                          try {
+                                            const res = await fetch(`/api/csu/contract-sends/${send.id}/void`, {
+                                              method: 'POST',
+                                              credentials: 'include',
+                                            });
+                                            const data = await res.json();
+                                            if (res.ok) {
+                                              toast({ title: "Contract Voided", description: `Contract for ${send.recipientName} has been cancelled` });
+                                              queryClient.invalidateQueries({ queryKey: ["/api/csu/contract-sends"] });
+                                            } else {
+                                              toast({ title: "Error", description: data.message, variant: "destructive" });
+                                            }
+                                          } catch (err) {
+                                            toast({ title: "Error", description: "Failed to void contract", variant: "destructive" });
+                                          }
+                                        }}
+                                        data-testid={`button-void-${send.id}`}
+                                      >
+                                        <X className="w-4 h-4 mr-1" /> Void
+                                      </Button>
+                                    </div>
                                   </td>
                                 </tr>
-                              ))}
+                              );})}
                             </tbody>
                           </table>
                         </div>

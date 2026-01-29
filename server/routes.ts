@@ -4262,6 +4262,140 @@ export async function registerRoutes(
     }
   });
 
+  // Resend contract with new token (admin)
+  app.post("/api/csu/contract-sends/:id/resend", requireAdmin, async (req, res) => {
+    try {
+      const sendId = parseInt(req.params.id);
+      if (isNaN(sendId)) {
+        return res.status(400).json({ message: "Invalid send ID" });
+      }
+
+      // Get the existing contract send
+      const sends = await storage.getAllCsuContractSends();
+      const existingSend = sends.find(s => s.id === sendId);
+      if (!existingSend) {
+        return res.status(404).json({ message: "Contract send not found" });
+      }
+
+      if (existingSend.status === "signed") {
+        return res.status(400).json({ message: "Cannot resend a signed contract" });
+      }
+
+      if (existingSend.status === "voided") {
+        return res.status(400).json({ message: "Cannot resend a voided contract" });
+      }
+
+      // Generate new token
+      const crypto = await import("crypto");
+      const newToken = crypto.randomBytes(32).toString("hex");
+      const newExpiry = new Date();
+      newExpiry.setDate(newExpiry.getDate() + 7);
+
+      // Update the contract send
+      const updated = await storage.updateCsuContractSend(sendId, {
+        signToken: newToken,
+        tokenExpiresAt: newExpiry,
+        sentAt: new Date(),
+      });
+
+      if (!updated) {
+        return res.status(500).json({ message: "Failed to update contract send" });
+      }
+
+      // Get template for email
+      const template = await storage.getCsuContractTemplate(existingSend.templateId);
+      
+      const baseUrl = process.env.CUSTOM_DOMAIN
+        ? `https://${process.env.CUSTOM_DOMAIN}`
+        : process.env.REPLIT_DOMAINS?.split(",")[0] 
+          ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}`
+          : "http://localhost:5000";
+
+      const signingUrl = `${baseUrl}/csu-sign?token=${newToken}`;
+
+      // Send email
+      const { client: resend, fromEmail } = await getResendClient();
+      await resend.emails.send({
+        from: fromEmail,
+        to: existingSend.recipientEmail,
+        subject: `[Reminder] Please Sign: ${template?.name || "Contract Agreement"}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f3f4f6; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 30px; border-radius: 12px 12px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">Contract Signing Reminder</h1>
+            </div>
+            
+            <div style="background: white; padding: 30px; border-radius: 0 0 12px 12px;">
+              <p style="font-size: 16px; color: #374151;">Hello ${existingSend.recipientName},</p>
+              <p style="font-size: 16px; color: #374151;">This is a reminder to sign your <strong>${template?.name || "Contract Agreement"}</strong>.</p>
+              <p style="font-size: 16px; color: #374151;">A new signing link has been generated for you:</p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${signingUrl}" style="background: #7c3aed; color: white; padding: 15px 40px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Sign Your Contract</a>
+              </div>
+              
+              <p style="font-size: 14px; color: #6b7280;">This link will expire in 7 days.</p>
+              <p style="font-size: 12px; color: #9ca3af;">If the button doesn't work, copy this link: ${signingUrl}</p>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Contract resent successfully",
+        signingUrl,
+        expiresAt: newExpiry,
+      });
+    } catch (error) {
+      console.error("Error resending contract:", error);
+      res.status(500).json({ message: "Failed to resend contract" });
+    }
+  });
+
+  // Void/cancel a contract (admin)
+  app.post("/api/csu/contract-sends/:id/void", requireAdmin, async (req, res) => {
+    try {
+      const sendId = parseInt(req.params.id);
+      if (isNaN(sendId)) {
+        return res.status(400).json({ message: "Invalid send ID" });
+      }
+
+      const sends = await storage.getAllCsuContractSends();
+      const existingSend = sends.find(s => s.id === sendId);
+      if (!existingSend) {
+        return res.status(404).json({ message: "Contract send not found" });
+      }
+
+      if (existingSend.status === "signed") {
+        return res.status(400).json({ message: "Cannot void a signed contract" });
+      }
+
+      if (existingSend.status === "voided") {
+        return res.status(400).json({ message: "Contract is already voided" });
+      }
+
+      const updated = await storage.updateCsuContractSend(sendId, {
+        status: "voided",
+      });
+
+      if (!updated) {
+        return res.status(500).json({ message: "Failed to void contract" });
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Contract voided successfully",
+      });
+    } catch (error) {
+      console.error("Error voiding contract:", error);
+      res.status(500).json({ message: "Failed to void contract" });
+    }
+  });
+
   // Get all signed agreements (admin)
   app.get("/api/csu/signed-agreements", requireAdmin, async (req, res) => {
     try {
