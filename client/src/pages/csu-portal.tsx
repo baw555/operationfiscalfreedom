@@ -78,7 +78,7 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   
   // Post-login cinematic sequence state
   const [cinematicPhase, setCinematicPhase] = useState<'idle' | 'black' | 'scanning' | 'scanningOut' | 'welcome' | 'welcomeOut' | 'videoTransition' | 'done'>('idle');
-  const cinematicTimeouts = useRef<NodeJS.Timeout[]>();
+  const cinematicTimeouts = useRef<NodeJS.Timeout[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const isWorthy = email.trim().length > 0 && password.length > 0;
@@ -197,7 +197,7 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
-      {/* Full-screen video background */}
+      {/* Full-screen video background - brighter to show Payzium branding */}
       <video
         autoPlay
         loop
@@ -205,15 +205,15 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         playsInline
         className="absolute inset-0 w-full h-full object-cover z-0"
         style={{ 
-          filter: 'brightness(0.6) contrast(1.1) saturate(1.2)',
+          filter: 'brightness(0.85) contrast(1.1) saturate(1.2)',
           objectPosition: 'center center'
         }}
       >
         <source src="/payzium-bg.mp4" type="video/mp4" />
       </video>
       
-      {/* Dark overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60 z-[1]" />
+      {/* Lighter overlay to keep video visible */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 z-[1]" />
       
       {/* POST-LOGIN CINEMATIC SEQUENCE */}
       {cinematicPhase !== 'idle' && cinematicPhase !== 'done' && (
@@ -367,30 +367,10 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
       </div>
 
-      {/* Main content */}
-      <div className="relative z-[10] min-h-screen flex items-center justify-center px-4 py-12 overflow-visible">
+      {/* Main content - positioned higher to show Payzium in background */}
+      <div className="relative z-[10] min-h-screen flex items-start justify-center px-4 pt-16 sm:pt-24 overflow-visible">
         <div className="w-full max-w-lg overflow-visible">
           
-          {/* Logo Stage - Clean presentation */}
-          <div className="text-center mb-8 animate-fadeInDown relative">
-            <div className="relative inline-block">
-              {/* Subtle glow behind logo */}
-              <div className="absolute -inset-10 bg-gradient-radial from-amber-500/15 via-transparent to-transparent rounded-full blur-2xl" />
-              
-              {/* Main logo */}
-              <div className="relative">
-                <img 
-                  src="/payzium-lightning-logo.png" 
-                  alt="Payzium" 
-                  className="w-[420px] h-auto relative z-10"
-                  style={{
-                    filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.4)) drop-shadow(0 0 40px rgba(255, 140, 0, 0.2))',
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Login Card */}
           <div className="relative animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
             {/* Subtle border glow */}
