@@ -10,8 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, BarChart3, Eye, EyeOff, Users, Globe } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, BarChart3, Eye, EyeOff, Users, Globe, MapPin } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -844,7 +845,26 @@ interface PortalActivity {
   createdAt: string;
 }
 
+interface IpGeoData {
+  ip: string;
+  country: string;
+  countryCode: string;
+  region: string;
+  regionCode: string;
+  city: string;
+  zip: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  isp: string;
+  organization: string;
+  asn: string;
+}
+
 function AnalyticsPanel() {
+  const [selectedIp, setSelectedIp] = useState<string | null>(null);
+  const [showIpModal, setShowIpModal] = useState(false);
+
   const { data: stats } = useQuery<PortalStats>({
     queryKey: ["/api/portal/stats/payzium"],
     refetchInterval: 30000,
@@ -854,6 +874,22 @@ function AnalyticsPanel() {
     queryKey: ["/api/portal/activity/payzium"],
     refetchInterval: 30000,
   });
+
+  const { data: ipGeoData, isLoading: ipLoading, error: ipError } = useQuery<IpGeoData>({
+    queryKey: ["/api/portal/ip-lookup", selectedIp],
+    queryFn: async () => {
+      if (!selectedIp) return null;
+      const res = await fetch(`/api/portal/ip-lookup/${selectedIp}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to lookup IP");
+      return res.json();
+    },
+    enabled: !!selectedIp && showIpModal,
+  });
+
+  const handleIpClick = (ip: string) => {
+    setSelectedIp(ip);
+    setShowIpModal(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -953,7 +989,17 @@ function AnalyticsPanel() {
                           {item.eventType.replace("_", " ")}
                         </span>
                       </td>
-                      <td className="py-2 px-3 font-mono text-xs">{item.ipAddress || "-"}</td>
+                      <td className="py-2 px-3 font-mono text-xs">
+                        {item.ipAddress ? (
+                          <button
+                            onClick={() => handleIpClick(item.ipAddress!)}
+                            className="text-purple-600 hover:text-purple-800 hover:underline cursor-pointer"
+                            data-testid={`ip-link-${item.id}`}
+                          >
+                            {item.ipAddress}
+                          </button>
+                        ) : "-"}
+                      </td>
                       <td className="py-2 px-3">{item.pagePath || "-"}</td>
                     </tr>
                   ))}
@@ -963,6 +1009,67 @@ function AnalyticsPanel() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={showIpModal} onOpenChange={setShowIpModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-purple-600" />
+              IP Address Details
+            </DialogTitle>
+          </DialogHeader>
+          {ipLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            </div>
+          ) : ipError ? (
+            <div className="text-center py-8 text-red-500">
+              Failed to load IP details. This IP may be private or invalid.
+            </div>
+          ) : ipGeoData ? (
+            <div className="space-y-4">
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">IP Address</p>
+                <p className="text-lg font-mono font-bold text-purple-900">{ipGeoData.ip}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Location</p>
+                  <p className="font-medium">{ipGeoData.city}, {ipGeoData.region}</p>
+                  <p className="text-sm text-gray-500">{ipGeoData.country} ({ipGeoData.countryCode})</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Postal Code</p>
+                  <p className="font-medium">{ipGeoData.zip || "N/A"}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Coordinates</p>
+                  <p className="font-medium text-sm">{ipGeoData.latitude}, {ipGeoData.longitude}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Timezone</p>
+                  <p className="font-medium">{ipGeoData.timezone}</p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <p className="text-sm text-gray-600">Internet Service Provider</p>
+                <p className="font-medium">{ipGeoData.isp}</p>
+                {ipGeoData.organization && ipGeoData.organization !== ipGeoData.isp && (
+                  <p className="text-sm text-gray-500">{ipGeoData.organization}</p>
+                )}
+                {ipGeoData.asn && (
+                  <p className="text-xs text-gray-400 mt-1">{ipGeoData.asn}</p>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -1041,10 +1148,14 @@ export default function CsuPortal() {
   });
   const user = authData?.user;
 
-  const { data: templates = [] } = useQuery<CsuContractTemplate[]>({
+  const { data: allTemplates = [] } = useQuery<CsuContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
     enabled: !!user,
   });
+  
+  // Filter to only show Payzium-specific templates
+  const PAYZIUM_TEMPLATE_NAMES = ["New Client Agreement", "Sign Affiliate Agreement"];
+  const templates = allTemplates.filter(t => PAYZIUM_TEMPLATE_NAMES.includes(t.name));
 
   const { data: contractSends = [] } = useQuery<CsuContractSend[]>({
     queryKey: ["/api/csu/contract-sends"],

@@ -4116,5 +4116,54 @@ export async function registerRoutes(
     }
   });
 
+  // IP Geolocation lookup (admin only)
+  app.get("/api/portal/ip-lookup/:ip", requireAdmin, async (req, res) => {
+    try {
+      const { ip } = req.params;
+      
+      // Use Node's net module for robust IP validation (handles IPv4, IPv6, compressed forms, etc.)
+      const net = await import("net");
+      
+      // Extract actual IP if it's IPv4-mapped IPv6 (::ffff:x.x.x.x)
+      let cleanIp = ip;
+      if (ip.startsWith("::ffff:")) {
+        cleanIp = ip.substring(7);
+      }
+      
+      // Validate using Node's net.isIP (returns 0 for invalid, 4 for IPv4, 6 for IPv6)
+      if (net.isIP(cleanIp) === 0) {
+        return res.status(400).json({ message: "Invalid IP address format" });
+      }
+      
+      // Use ip-api.com free geolocation service (no API key needed)
+      // Use cleanIp for API call (handles IPv4-mapped IPv6)
+      const response = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query`);
+      const data = await response.json();
+      
+      if (data.status === "fail") {
+        return res.status(400).json({ message: data.message || "Failed to lookup IP" });
+      }
+      
+      res.json({
+        ip: data.query,
+        country: data.country,
+        countryCode: data.countryCode,
+        region: data.regionName,
+        regionCode: data.region,
+        city: data.city,
+        zip: data.zip,
+        latitude: data.lat,
+        longitude: data.lon,
+        timezone: data.timezone,
+        isp: data.isp,
+        organization: data.org,
+        asn: data.as,
+      });
+    } catch (error) {
+      console.error("Error looking up IP:", error);
+      res.status(500).json({ message: "Failed to lookup IP address" });
+    }
+  });
+
   return httpServer;
 }
