@@ -3935,7 +3935,20 @@ export async function registerRoutes(
   });
 
   // Upload and analyze a contract document to extract form fields
-  app.post("/api/csu/analyze-document", requireAdmin, contractUpload.single('document'), async (req, res) => {
+  app.post("/api/csu/analyze-document", requireAdmin, (req, res, next) => {
+    contractUpload.single('document')(req, res, (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+        }
+        if (err.message?.includes('Only PDF and Word documents')) {
+          return res.status(400).json({ message: err.message });
+        }
+        return res.status(400).json({ message: "File upload failed. Please try again." });
+      }
+      next();
+    });
+  }, async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No document uploaded" });

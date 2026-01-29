@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoLogout } from "@/hooks/use-auto-logout";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin, Plus, Trash2, Edit, FileEdit, GripVertical, Save } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin, Plus, Trash2, Edit, FileEdit, GripVertical, Save, Upload, Loader2, Sparkles } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -1645,6 +1645,134 @@ export default function CsuPortal() {
     }>,
   });
 
+  // Document upload state for AI contract analysis
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadState, setUploadState] = useState<{
+    isUploading: boolean;
+    fileName: string | null;
+    analysis: null | {
+      summary: string;
+      extractedText: string;
+      detectedFields: Array<{
+        name: string;
+        placeholder: string;
+        type: string;
+        required: boolean;
+        description: string;
+      }>;
+      generatedTemplate: string;
+    };
+    error: string | null;
+  }>({
+    isUploading: false,
+    fileName: null,
+    analysis: null,
+    error: null,
+  });
+
+  // Handle document upload for AI analysis
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadState({ isUploading: true, fileName: file.name, analysis: null, error: null });
+
+    try {
+      const formData = new FormData();
+      formData.append("document", file);
+
+      const response = await fetch("/api/csu/analyze-document", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to analyze document");
+      }
+
+      const data = await response.json();
+      setUploadState({
+        isUploading: false,
+        fileName: file.name,
+        analysis: {
+          summary: data.summary,
+          extractedText: data.extractedText,
+          detectedFields: data.detectedFields,
+          generatedTemplate: data.generatedTemplate,
+        },
+        error: null,
+      });
+
+      toast({
+        title: "Document Analyzed",
+        description: `Found ${data.detectedFields?.length || 0} form fields`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Upload failed";
+      setUploadState({ isUploading: false, fileName: file.name, analysis: null, error: message });
+      toast({
+        title: "Analysis Failed",
+        description: message,
+        variant: "destructive",
+      });
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // Create template from analyzed document
+  const createTemplateFromAnalysis = async () => {
+    if (!uploadState.analysis) return;
+
+    const newTemplate = {
+      name: uploadState.fileName?.replace(/\.(pdf|doc|docx)$/i, "") || "New Template",
+      description: uploadState.analysis.summary,
+      content: uploadState.analysis.generatedTemplate,
+      isActive: true,
+      fields: uploadState.analysis.detectedFields.map((field, index) => ({
+        fieldKey: field.placeholder.replace(/[\[\]]/g, "").toLowerCase(),
+        label: field.name,
+        placeholder: field.placeholder,
+        fieldType: field.type,
+        required: field.required,
+        order: index,
+      })),
+    };
+
+    try {
+      const response = await fetch("/api/csu/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTemplate),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create template");
+      }
+
+      toast({
+        title: "Template Created",
+        description: "Your contract template has been saved",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["/api/csu/templates"] });
+      setUploadState({ isUploading: false, fileName: null, analysis: null, error: null });
+      setActiveTab("templates");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save template",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Helper function to create styled value display
   const styledValue = (value: string, placeholder: string, isFilled: boolean) => {
     const style = isFilled 
@@ -2443,7 +2571,7 @@ export default function CsuPortal() {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-5 mb-8">
+                <TabsList className="grid w-full grid-cols-6 mb-8">
                   <TabsTrigger value="send" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-send">
                     <Send className="w-4 h-4 mr-2" /> Send
                   </TabsTrigger>
@@ -2455,6 +2583,9 @@ export default function CsuPortal() {
                   </TabsTrigger>
                   <TabsTrigger value="templates" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-templates">
                     <FileEdit className="w-4 h-4 mr-2" /> Templates
+                  </TabsTrigger>
+                  <TabsTrigger value="upload" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-upload">
+                    <Sparkles className="w-4 h-4 mr-2" /> AI Upload
                   </TabsTrigger>
                   <TabsTrigger value="analytics" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-analytics">
                     <BarChart3 className="w-4 h-4 mr-2" /> Stats
@@ -2779,6 +2910,112 @@ export default function CsuPortal() {
                               </div>
                             </div>
                           ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="upload">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-amber-600" /> AI Contract Upload
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
+                        Upload a PDF or Word document and our AI will automatically detect form fields and create a fillable template.
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div 
+                        className="border-2 border-dashed border-amber-300 rounded-lg p-8 text-center hover:border-amber-500 transition-colors cursor-pointer bg-amber-50/50"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={handleDocumentUpload}
+                          className="hidden"
+                          data-testid="input-document-upload"
+                        />
+                        {uploadState.isUploading ? (
+                          <div className="space-y-3">
+                            <Loader2 className="w-12 h-12 mx-auto text-amber-600 animate-spin" />
+                            <p className="text-amber-700 font-medium">Analyzing {uploadState.fileName}...</p>
+                            <p className="text-sm text-gray-500">AI is scanning for form fields</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <Upload className="w-12 h-12 mx-auto text-amber-600" />
+                            <p className="text-amber-700 font-medium">Click to upload a contract document</p>
+                            <p className="text-sm text-gray-500">Supports PDF, DOC, and DOCX files (max 10MB)</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {uploadState.error && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+                          <p className="font-medium">Error</p>
+                          <p className="text-sm">{uploadState.error}</p>
+                        </div>
+                      )}
+
+                      {uploadState.analysis && (
+                        <div className="space-y-6">
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div className="flex items-center gap-2 text-green-700 font-medium mb-2">
+                              <CheckCircle className="w-5 h-5" />
+                              Analysis Complete
+                            </div>
+                            <p className="text-sm text-gray-700">{uploadState.analysis.summary}</p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <FileText className="w-5 h-5 text-amber-600" />
+                              Detected Fields ({uploadState.analysis.detectedFields.length})
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {uploadState.analysis.detectedFields.map((field, idx) => (
+                                <div key={idx} className="bg-white border rounded-lg p-3 shadow-sm">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="font-medium text-gray-900">{field.name}</span>
+                                    <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded">{field.type}</span>
+                                  </div>
+                                  <p className="text-xs text-gray-500">{field.description}</p>
+                                  <code className="text-xs text-purple-600 bg-purple-50 px-1 rounded mt-1 inline-block">{field.placeholder}</code>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold text-gray-900 mb-3">Template Preview</h3>
+                            <div className="bg-white border rounded-lg p-4 max-h-80 overflow-y-auto text-sm font-mono whitespace-pre-wrap">
+                              {uploadState.analysis.generatedTemplate.substring(0, 2000)}
+                              {uploadState.analysis.generatedTemplate.length > 2000 && "..."}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-3">
+                            <Button
+                              onClick={createTemplateFromAnalysis}
+                              className="bg-amber-600 hover:bg-amber-700 text-white"
+                              data-testid="button-create-template"
+                            >
+                              <Save className="w-4 h-4 mr-2" />
+                              Create Template
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => setUploadState({ isUploading: false, fileName: null, analysis: null, error: null })}
+                              data-testid="button-clear-analysis"
+                            >
+                              <RotateCcw className="w-4 h-4 mr-2" />
+                              Upload Another
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </CardContent>
