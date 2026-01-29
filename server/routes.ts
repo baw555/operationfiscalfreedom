@@ -3050,6 +3050,61 @@ export async function registerRoutes(
     }
   });
 
+  // Update commission configuration
+  app.patch("/api/admin/commission/config/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      // Validate update fields - only allow specific commission config fields
+      const allowedFields = ["name", "producerBasePct", "uplinePctEach", "maxUplineLevels", "housePct", "recruiterBountyPct", "isActive"];
+      const updates: Record<string, any> = {};
+      for (const key of allowedFields) {
+        if (req.body[key] !== undefined) {
+          if (key === "isActive" || key === "name") {
+            updates[key] = String(req.body[key]);
+          } else {
+            const numVal = parseInt(req.body[key]);
+            if (isNaN(numVal) || numVal < 0) {
+              return res.status(400).json({ message: `Invalid value for ${key}` });
+            }
+            updates[key] = numVal;
+          }
+        }
+      }
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+      const config = await storage.updateCommissionConfig(parseInt(id), updates);
+      if (!config) {
+        return res.status(404).json({ message: "Commission config not found" });
+      }
+      res.json({ success: true, config });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update commission config" });
+    }
+  });
+
+  // Get all commissions for admin dashboard
+  app.get("/api/admin/commissions", requireAdmin, async (req, res) => {
+    try {
+      const affiliates = await storage.getAllAffiliates();
+      const allCommissions = [];
+      for (const affiliate of affiliates) {
+        const comms = await storage.getCommissionsByAffiliate(affiliate.id);
+        for (const comm of comms) {
+          allCommissions.push({
+            ...comm,
+            affiliateName: `${affiliate.firstName} ${affiliate.lastName}`,
+            affiliateEmail: affiliate.email
+          });
+        }
+      }
+      allCommissions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      res.json(allCommissions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch commissions" });
+    }
+  });
+
   // === Business Leads API ===
   
   // Public: Submit a business lead
