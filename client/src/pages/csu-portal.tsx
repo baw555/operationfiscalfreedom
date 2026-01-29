@@ -1610,6 +1610,11 @@ export default function CsuPortal() {
     initials: "",
     effectiveDate: new Date().toISOString().split("T")[0],
     agreedToTerms: false,
+    // Additional fields for FICA contract
+    clientCompany: "",
+    clientAddress: "",
+    primaryTitle: "",
+    secondaryOwner: "",
   });
   const [currentTemplate, setCurrentTemplate] = useState<CsuContractTemplate | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1621,6 +1626,14 @@ export default function CsuPortal() {
   // Local state to track verified admin login (bypasses 304 cache issue)
   const [verifiedAdmin, setVerifiedAdmin] = useState(false);
 
+  // Helper function to create styled value display
+  const styledValue = (value: string, placeholder: string, isFilled: boolean) => {
+    const style = isFilled 
+      ? "color: #166534; font-weight: 700; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 2px 8px; border-radius: 4px;"
+      : "color: #6b21a8; font-weight: 700; background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); padding: 2px 8px; border-radius: 4px; border: 1px dashed #9333ea;";
+    return `<span style="${style}">${isFilled ? value : placeholder}</span>`;
+  };
+
   // Helper to replace placeholders in contract content for self-sign display
   const processedSelfSignContent = useMemo(() => {
     if (!currentTemplate?.content) return "";
@@ -1629,55 +1642,67 @@ export default function CsuPortal() {
     
     // Format date for display
     const formatDate = (dateStr: string) => {
-      if (!dateStr) return "[DATE]";
+      if (!dateStr) return "";
       const date = new Date(dateStr);
       return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
     };
     
-    // Check if this is a plain text template (no meaningful HTML tags) - add header section
-    const isPlainText = !/<[a-zA-Z][^>]*>/.test(content);
-    if (isPlainText) {
-      const effectiveDateDisplay = selfSignData.effectiveDate ? formatDate(selfSignData.effectiveDate) : "[DATE]";
-      const initialsDisplay = selfSignData.initials || "[INITIALS]";
-      const headerHtml = `
-        <div style="background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #9333ea;">
-          <h3 style="color: #6b21a8; margin: 0 0 15px 0; font-weight: 700;">Agreement Details</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div><strong>Signer:</strong> ${MAURICE_INFO.name}</div>
-            <div><strong>Email:</strong> ${MAURICE_INFO.email}</div>
-            <div><strong>Effective Date:</strong> <span style="color: #166534; font-weight: 600;">${effectiveDateDisplay}</span></div>
-            <div><strong>Initials:</strong> <span style="color: ${selfSignData.initials ? '#166534' : '#6b21a8'}; font-weight: 600;">${initialsDisplay}</span></div>
-          </div>
-        </div>
-        <div style="white-space: pre-wrap; font-family: inherit;">`;
-      content = headerHtml + content + '</div>';
-    } else {
-      // Replace signer name placeholders with Maurice's name
-      content = content.replace(/\[SIGNER NAME[^\]]*\]/gi, MAURICE_INFO.name);
-      
-      // Replace effective date placeholders
-      const effectiveDateDisplay = selfSignData.effectiveDate ? formatDate(selfSignData.effectiveDate) : "[DATE]";
-      content = content.replace(/\[EFFECTIVE DATE[^\]]*\]/gi, 
-        `<span style="color: #166534; font-weight: 700; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 2px 8px; border-radius: 4px;">${effectiveDateDisplay}</span>`
-      );
-      
-      // Replace initials placeholders
-      const initialsDisplay = selfSignData.initials || "[INITIALS]";
-      const initialsStyle = selfSignData.initials 
-        ? "color: #166534; font-weight: 700; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 2px 8px; border-radius: 4px;"
-        : "color: #6b21a8; font-weight: 700; background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); padding: 2px 8px; border-radius: 4px; border: 1px dashed #9333ea;";
-      content = content.replace(/\[INITIALS[^\]]*\]/gi, 
-        `<span style="${initialsStyle}">${initialsDisplay}</span>`
-      );
-      
-      // Replace signature placeholders
-      content = content.replace(/\[SIGNATURE[^\]]*\]/gi, 
-        '<span style="color: #6b21a8; font-weight: 700; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 2px 8px; border-radius: 4px;">[Sign Below]</span>'
-      );
-    }
+    // Build values map with Maurice's pre-filled info + form data
+    const values: Record<string, { value: string; placeholder: string }> = {
+      currentDate: { value: formatDate(selfSignData.effectiveDate), placeholder: "[DATE]" },
+      effectiveDate: { value: formatDate(selfSignData.effectiveDate), placeholder: "[DATE]" },
+      primaryOwner: { value: MAURICE_INFO.name, placeholder: "[NAME]" },
+      clientEmail: { value: MAURICE_INFO.email, placeholder: "[EMAIL]" },
+      initials: { value: selfSignData.initials, placeholder: "[INITIALS]" },
+      clientCompany: { value: selfSignData.clientCompany, placeholder: "[COMPANY]" },
+      clientAddress: { value: selfSignData.clientAddress, placeholder: "[ADDRESS]" },
+      primaryTitle: { value: selfSignData.primaryTitle, placeholder: "[TITLE]" },
+      secondaryOwner: { value: selfSignData.secondaryOwner || "N/A", placeholder: "N/A" },
+    };
+    
+    // Replace editable-field spans with styled read-only values
+    // These are the header input areas - replace them with display values
+    Object.entries(values).forEach(([field, { value, placeholder }]) => {
+      const editableRegex = new RegExp(`<span class="editable-field" data-field="${field}"[^>]*>[^<]*</span>`, "gi");
+      const isFilled = !!value && value !== "N/A" && !value.startsWith("[");
+      content = content.replace(editableRegex, styledValue(value || placeholder, placeholder, isFilled));
+    });
+    
+    // Replace auto-fill spans with styled values (these are in the contract body)
+    Object.entries(values).forEach(([field, { value, placeholder }]) => {
+      const autoFillRegex = new RegExp(`<span class="auto-fill"[^>]*data-field="${field}"[^>]*>[^<]*</span>`, "gi");
+      const isFilled = !!value && value !== "N/A" && !value.startsWith("[");
+      content = content.replace(autoFillRegex, styledValue(value || placeholder, placeholder, isFilled));
+    });
+    
+    // Replace any remaining bracket placeholders
+    content = content.replace(/\[SIGNER NAME[^\]]*\]/gi, styledValue(MAURICE_INFO.name, "[NAME]", true));
+    content = content.replace(/\[AFFILIATE NAME[^\]]*\]/gi, styledValue(MAURICE_INFO.name, "[NAME]", true));
+    content = content.replace(/\[AFFILIATE[^\]]*\]/gi, styledValue(MAURICE_INFO.name, "[NAME]", true));
+    content = content.replace(/\[SIGNER EMAIL[^\]]*\]/gi, styledValue(MAURICE_INFO.email, "[EMAIL]", true));
+    content = content.replace(/\[EMAIL[^\]]*\]/gi, styledValue(MAURICE_INFO.email, "[EMAIL]", true));
+    content = content.replace(/\[EFFECTIVE DATE[^\]]*\]/gi, styledValue(formatDate(selfSignData.effectiveDate), "[DATE]", !!selfSignData.effectiveDate));
+    content = content.replace(/\[DATE\]/gi, styledValue(formatDate(selfSignData.effectiveDate), "[DATE]", !!selfSignData.effectiveDate));
+    content = content.replace(/\[COMPANY NAME[^\]]*\]/gi, styledValue(selfSignData.clientCompany, "[COMPANY]", !!selfSignData.clientCompany));
+    content = content.replace(/\[COMPANY ADDRESS[^\]]*\]/gi, styledValue(selfSignData.clientAddress, "[ADDRESS]", !!selfSignData.clientAddress));
+    content = content.replace(/\[COMPANY\]/gi, styledValue(selfSignData.clientCompany, "[COMPANY]", !!selfSignData.clientCompany));
+    content = content.replace(/\[ADDRESS\]/gi, styledValue(selfSignData.clientAddress, "[ADDRESS]", !!selfSignData.clientAddress));
+    content = content.replace(/\[TITLE[^\]]*\]/gi, styledValue(selfSignData.primaryTitle, "[TITLE]", !!selfSignData.primaryTitle));
+    content = content.replace(/\[PRIMARY OWNER\]/gi, styledValue(MAURICE_INFO.name, "[NAME]", true));
+    content = content.replace(/\[SECONDARY OWNER\]/gi, styledValue(selfSignData.secondaryOwner || "N/A", "N/A", true));
+    content = content.replace(/\[OPTIONAL[^\]]*\]/gi, styledValue(selfSignData.secondaryOwner || "N/A", "N/A", true));
+    
+    const initialsVal = selfSignData.initials;
+    content = content.replace(/\[INITIALS[^\]]*\]/gi, styledValue(initialsVal, "[INITIALS]", !!initialsVal));
+    content = content.replace(/\[INITIALS\]/gi, styledValue(initialsVal, "[INITIALS]", !!initialsVal));
+    
+    // Replace signature placeholders
+    content = content.replace(/\[SIGNATURE[^\]]*\]/gi, 
+      '<span style="color: #22c55e; font-weight: 700; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 2px 8px; border-radius: 4px;">[Sign Below]</span>'
+    );
     
     return content;
-  }, [currentTemplate, selfSignData.initials, selfSignData.effectiveDate]);
+  }, [currentTemplate, selfSignData]);
 
   // Generate or retrieve session ID for tracking
   const getSessionId = () => {
@@ -1838,11 +1863,15 @@ export default function CsuPortal() {
           signerName: MAURICE_INFO.name,
           signerEmail: MAURICE_INFO.email,
           signerPhone: MAURICE_INFO.phone1,
-          address: MAURICE_INFO.website,
+          address: selfSignData.clientAddress || MAURICE_INFO.website,
           initials: selfSignData.initials,
           effectiveDate: selfSignData.effectiveDate,
           signatureData,
           agreedToTerms: true,
+          // Additional fields for FICA contract
+          clientCompany: selfSignData.clientCompany,
+          primaryTitle: selfSignData.primaryTitle,
+          secondaryOwner: selfSignData.secondaryOwner,
         }),
       });
       
@@ -1972,6 +2001,22 @@ export default function CsuPortal() {
       toast({ title: "Effective Date Required", description: "Please select an effective date.", variant: "destructive" });
       return;
     }
+    // Validate FICA-specific fields
+    const isFicaContract = currentTemplate?.name?.toLowerCase().includes('fica');
+    if (isFicaContract) {
+      if (!selfSignData.clientCompany) {
+        toast({ title: "Company Name Required", description: "Please enter your company name.", variant: "destructive" });
+        return;
+      }
+      if (!selfSignData.clientAddress) {
+        toast({ title: "Company Address Required", description: "Please enter your company address.", variant: "destructive" });
+        return;
+      }
+      if (!selfSignData.primaryTitle) {
+        toast({ title: "Title Required", description: "Please enter your title.", variant: "destructive" });
+        return;
+      }
+    }
     if (!hasSignature) {
       toast({ title: "Signature Required", description: "Please sign in the signature box.", variant: "destructive" });
       return;
@@ -2018,7 +2063,7 @@ export default function CsuPortal() {
                         setShowSelfSign(false);
                         setCurrentTemplate(null);
                         setHasSignature(false);
-                        setSelfSignData({ initials: "", effectiveDate: new Date().toISOString().split("T")[0], agreedToTerms: false });
+                        setSelfSignData({ initials: "", effectiveDate: new Date().toISOString().split("T")[0], agreedToTerms: false, clientCompany: "", clientAddress: "", primaryTitle: "", secondaryOwner: "" });
                       }}
                       data-testid="button-back-to-portal"
                     >
@@ -2105,6 +2150,61 @@ export default function CsuPortal() {
                           />
                         </div>
                       </div>
+
+                      {/* Additional fields for FICA Tips Tax Credit Agreement */}
+                      {currentTemplate?.name?.toLowerCase().includes('fica') && (
+                        <>
+                          <div className="border-t pt-4 mt-2">
+                            <p className="text-sm text-purple-700 font-medium mb-3">Business Information for FICA Tax Credit</p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="clientCompany">Company Name *</Label>
+                              <Input
+                                id="clientCompany"
+                                value={selfSignData.clientCompany}
+                                onChange={(e) => setSelfSignData({ ...selfSignData, clientCompany: e.target.value })}
+                                placeholder="Enter company name"
+                                className="text-brand-navy"
+                                data-testid="input-self-sign-company"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="primaryTitle">Your Title *</Label>
+                              <Input
+                                id="primaryTitle"
+                                value={selfSignData.primaryTitle}
+                                onChange={(e) => setSelfSignData({ ...selfSignData, primaryTitle: e.target.value })}
+                                placeholder="e.g., Owner, CEO, President"
+                                className="text-brand-navy"
+                                data-testid="input-self-sign-title"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="clientAddress">Company Address *</Label>
+                            <Input
+                              id="clientAddress"
+                              value={selfSignData.clientAddress}
+                              onChange={(e) => setSelfSignData({ ...selfSignData, clientAddress: e.target.value })}
+                              placeholder="Enter full company address"
+                              className="text-brand-navy"
+                              data-testid="input-self-sign-address"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="secondaryOwner">Secondary Owner (optional)</Label>
+                            <Input
+                              id="secondaryOwner"
+                              value={selfSignData.secondaryOwner}
+                              onChange={(e) => setSelfSignData({ ...selfSignData, secondaryOwner: e.target.value })}
+                              placeholder="Leave blank if N/A"
+                              className="text-brand-navy"
+                              data-testid="input-self-sign-secondary-owner"
+                            />
+                          </div>
+                        </>
+                      )}
 
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
