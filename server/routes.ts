@@ -3944,9 +3944,13 @@ export async function registerRoutes(
 
       // Try to send email via Resend integration
       let emailSent = false;
+      let emailError: string | null = null;
       try {
+        console.log(`[Email] Attempting to send contract email to ${recipientEmail}...`);
         const { client: resend, fromEmail } = await getResendClient();
-        await resend.emails.send({
+        console.log(`[Email] Using from_email: ${fromEmail}`);
+        
+        const emailResult = await resend.emails.send({
           from: `Payzium Contract Services <${fromEmail}>`,
           to: recipientEmail,
           subject: "Contract Ready for Signature - Payzium",
@@ -3987,16 +3991,29 @@ export async function registerRoutes(
             </html>
           `,
         });
-        emailSent = true;
-      } catch (emailError) {
-        console.error("Failed to send email:", emailError);
+        
+        // Check for Resend API errors in the response
+        if (emailResult.error) {
+          console.error(`[Email] Resend API error:`, emailResult.error);
+          emailError = emailResult.error.message || "Resend API returned an error";
+        } else {
+          console.log(`[Email] Successfully sent email to ${recipientEmail}, ID: ${emailResult.data?.id}`);
+          emailSent = true;
+        }
+      } catch (err: any) {
+        console.error("[Email] Failed to send email:", err);
+        emailError = err?.message || "Unknown email error";
       }
 
       res.json({ 
         success: true, 
         contractSend,
         signingUrl,
-        message: emailSent ? "Contract sent via email" : "Contract created (email not configured - share the link manually)"
+        emailSent,
+        emailError,
+        message: emailSent 
+          ? "Contract sent via email successfully" 
+          : `Contract created but email failed: ${emailError || 'Email not configured'}. Share the signing link manually.`
       });
     } catch (error) {
       console.error("Error sending CSU contract:", error);

@@ -1812,12 +1812,20 @@ export default function CsuPortal() {
       return res.json();
     },
     onSuccess: (data) => {
-      toast({
-        title: "Contract Sent",
-        description: data.message || "Contract has been sent successfully.",
-      });
+      if (data.emailSent) {
+        toast({
+          title: "Contract Sent Successfully",
+          description: `Email sent to ${formData.recipientEmail}. Contract is ready for signature.`,
+        });
+      } else {
+        toast({
+          title: "Contract Created - Email Failed",
+          description: data.emailError || "Could not send email. Please share the signing link manually.",
+          variant: "destructive",
+        });
+      }
       setLastSigningUrl(data.signingUrl);
-      trackActivity("contract_sent", { recipientEmail: formData.recipientEmail });
+      trackActivity("contract_sent", { recipientEmail: formData.recipientEmail, emailSent: data.emailSent });
       setFormData({ templateId: "", recipientName: "", recipientEmail: "", recipientPhone: "" });
       queryClient.invalidateQueries({ queryKey: ["/api/csu/contract-sends"] });
     },
