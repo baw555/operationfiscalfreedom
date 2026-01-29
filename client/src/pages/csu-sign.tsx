@@ -364,7 +364,7 @@ export default function CsuSign() {
     }
 
     // Template-specific validation: FICA (ID 7) requires business fields
-    if (contractData?.template.id === 7) {
+    if (contractData && Number(contractData.template.id) !== 5) {
       if (!formData.clientCompany || !formData.clientAddress || !formData.primaryTitle) {
         toast({
           title: "Missing Business Information",
@@ -426,7 +426,7 @@ export default function CsuSign() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const agreementType = contractData?.template.id === 5 ? "Affiliate-Agreement" : "FICA-Agreement";
+      const agreementType = contractData && Number(contractData.template.id) === 5 ? "Affiliate-Agreement" : "FICA-Agreement";
       a.download = `${agreementType}-${formData.signerName.replace(/\s+/g, "-")}.pdf`;
       document.body.appendChild(a);
       a.click();
@@ -569,13 +569,13 @@ export default function CsuSign() {
           <Card className="mb-6 border-2 border-purple-200">
             <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50">
               <CardTitle className="flex items-center gap-2 text-purple-800">
-                <User className="w-5 h-5" /> {contractData.template.id === 5 ? "Affiliate Information" : "Client Information"}
+                <User className="w-5 h-5" /> {Number(contractData.template.id) === 5 ? "Affiliate Information" : "Client Information"}
               </CardTitle>
               <p className="text-sm text-purple-600">Fill in your information below. It will automatically populate throughout the agreement.</p>
             </CardHeader>
             <CardContent className="pt-6">
-              {/* FICA Agreement (ID 7) - Show all business fields */}
-              {contractData.template.id === 7 && (
+              {/* Business fields - Show for ALL templates EXCEPT Affiliate Agreement (ID 5) */}
+              {Number(contractData.template.id) !== 5 && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="space-y-2">
@@ -635,8 +635,8 @@ export default function CsuSign() {
                 </>
               )}
 
-              {/* Affiliate Agreement (ID 5) - Only show name field */}
-              {contractData.template.id === 5 && (
+              {/* Affiliate Agreement (ID 5) - Only show name and date fields */}
+              {Number(contractData.template.id) === 5 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="space-y-2">
                     <Label htmlFor="primaryOwner" className="flex items-center gap-1">
@@ -699,8 +699,8 @@ export default function CsuSign() {
                 </div>
               </div>
 
-              {/* FICA-only fields: Secondary Owner and Effective Date */}
-              {contractData.template.id === 7 && (
+              {/* Secondary Owner and Effective Date - Show for all templates EXCEPT Affiliate (ID 5) */}
+              {Number(contractData.template.id) !== 5 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="secondaryOwner">Secondary Business Owner (Optional)</Label>
