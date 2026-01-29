@@ -447,14 +447,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <div className="container mx-auto px-4 pt-8 border-t border-white/20">
-          {/* 501(c)(3) Validation */}
+          {/* 501(c)(3) Validation - Clickable link to transparency page */}
           <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 bg-white/10 rounded-lg px-4 py-3 mb-3">
+            <Link href="/transparency" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg px-4 py-3 mb-3 cursor-pointer transition-colors">
               <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span className="text-white font-medium">IRS Verified 501(c)(3) Non-Profit Organization</span>
-            </div>
+            </Link>
             <p className="text-gray-300 text-sm">
               Navigator USA Corp | Public Charity Status: 170(b)(1)(A)(vi)
             </p>
