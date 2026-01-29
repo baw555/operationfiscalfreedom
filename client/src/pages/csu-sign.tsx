@@ -556,67 +556,105 @@ export default function CsuSign() {
           <Card className="mb-6 border-2 border-purple-200">
             <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50">
               <CardTitle className="flex items-center gap-2 text-purple-800">
-                <User className="w-5 h-5" /> Client Information
+                <User className="w-5 h-5" /> {contractData.template.id === 5 ? "Affiliate Information" : "Client Information"}
               </CardTitle>
               <p className="text-sm text-purple-600">Fill in your information below. It will automatically populate throughout the agreement.</p>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="space-y-2">
-                  <Label htmlFor="clientCompany" className="flex items-center gap-1">
-                    <Building2 className="w-4 h-4" /> Company Name *
-                  </Label>
-                  <Input
-                    id="clientCompany"
-                    value={formData.clientCompany}
-                    onChange={(e) => setFormData({ ...formData, clientCompany: e.target.value })}
-                    placeholder="ABC Restaurant LLC"
-                    className="text-brand-navy border-purple-200 focus:border-purple-500"
-                    data-testid="input-client-company"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="clientAddress" className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" /> Company Address *
-                  </Label>
-                  <Input
-                    id="clientAddress"
-                    value={formData.clientAddress}
-                    onChange={(e) => setFormData({ ...formData, clientAddress: e.target.value })}
-                    placeholder="123 Main St, Phoenix, AZ 85001"
-                    className="text-brand-navy border-purple-200 focus:border-purple-500"
-                    data-testid="input-client-address"
-                  />
-                </div>
-              </div>
+              {/* FICA Agreement (ID 7) - Show all business fields */}
+              {contractData.template.id === 7 && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="clientCompany" className="flex items-center gap-1">
+                        <Building2 className="w-4 h-4" /> Company Name *
+                      </Label>
+                      <Input
+                        id="clientCompany"
+                        value={formData.clientCompany}
+                        onChange={(e) => setFormData({ ...formData, clientCompany: e.target.value })}
+                        placeholder="ABC Restaurant LLC"
+                        className="text-brand-navy border-purple-200 focus:border-purple-500"
+                        data-testid="input-client-company"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="clientAddress" className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" /> Company Address *
+                      </Label>
+                      <Input
+                        id="clientAddress"
+                        value={formData.clientAddress}
+                        onChange={(e) => setFormData({ ...formData, clientAddress: e.target.value })}
+                        placeholder="123 Main St, Phoenix, AZ 85001"
+                        className="text-brand-navy border-purple-200 focus:border-purple-500"
+                        data-testid="input-client-address"
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="space-y-2">
-                  <Label htmlFor="primaryOwner" className="flex items-center gap-1">
-                    <User className="w-4 h-4" /> Primary Business Owner *
-                  </Label>
-                  <Input
-                    id="primaryOwner"
-                    value={formData.primaryOwner}
-                    onChange={(e) => setFormData({ ...formData, primaryOwner: e.target.value, signerName: e.target.value })}
-                    placeholder="John Smith"
-                    className="text-brand-navy border-purple-200 focus:border-purple-500"
-                    data-testid="input-primary-owner"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="primaryTitle">Title *</Label>
-                  <Input
-                    id="primaryTitle"
-                    value={formData.primaryTitle}
-                    onChange={(e) => setFormData({ ...formData, primaryTitle: e.target.value })}
-                    placeholder="Owner / CEO / President"
-                    className="text-brand-navy border-purple-200 focus:border-purple-500"
-                    data-testid="input-primary-title"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="primaryOwner" className="flex items-center gap-1">
+                        <User className="w-4 h-4" /> Primary Business Owner *
+                      </Label>
+                      <Input
+                        id="primaryOwner"
+                        value={formData.primaryOwner}
+                        onChange={(e) => setFormData({ ...formData, primaryOwner: e.target.value, signerName: e.target.value })}
+                        placeholder="John Smith"
+                        className="text-brand-navy border-purple-200 focus:border-purple-500"
+                        data-testid="input-primary-owner"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="primaryTitle">Title *</Label>
+                      <Input
+                        id="primaryTitle"
+                        value={formData.primaryTitle}
+                        onChange={(e) => setFormData({ ...formData, primaryTitle: e.target.value })}
+                        placeholder="Owner / CEO / President"
+                        className="text-brand-navy border-purple-200 focus:border-purple-500"
+                        data-testid="input-primary-title"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
+              {/* Affiliate Agreement (ID 5) - Only show name field */}
+              {contractData.template.id === 5 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="primaryOwner" className="flex items-center gap-1">
+                      <User className="w-4 h-4" /> Your Full Name *
+                    </Label>
+                    <Input
+                      id="primaryOwner"
+                      value={formData.primaryOwner}
+                      onChange={(e) => setFormData({ ...formData, primaryOwner: e.target.value, signerName: e.target.value })}
+                      placeholder="John Smith"
+                      className="text-brand-navy border-purple-200 focus:border-purple-500"
+                      data-testid="input-primary-owner"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="effectiveDate" className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" /> Agreement Date *
+                    </Label>
+                    <Input
+                      id="effectiveDate"
+                      type="date"
+                      value={formData.effectiveDate}
+                      onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
+                      className="text-brand-navy border-purple-200 focus:border-purple-500"
+                      data-testid="input-effective-date"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Common fields for both templates */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
                   <Label htmlFor="signerEmail" className="flex items-center gap-1">
@@ -648,32 +686,35 @@ export default function CsuSign() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="secondaryOwner">Secondary Business Owner (Optional)</Label>
-                  <Input
-                    id="secondaryOwner"
-                    value={formData.secondaryOwner}
-                    onChange={(e) => setFormData({ ...formData, secondaryOwner: e.target.value })}
-                    placeholder="Jane Smith (if applicable)"
-                    className="text-brand-navy border-purple-200 focus:border-purple-500"
-                    data-testid="input-secondary-owner"
-                  />
+              {/* FICA-only fields: Secondary Owner and Effective Date */}
+              {contractData.template.id === 7 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="secondaryOwner">Secondary Business Owner (Optional)</Label>
+                    <Input
+                      id="secondaryOwner"
+                      value={formData.secondaryOwner}
+                      onChange={(e) => setFormData({ ...formData, secondaryOwner: e.target.value })}
+                      placeholder="Jane Smith (if applicable)"
+                      className="text-brand-navy border-purple-200 focus:border-purple-500"
+                      data-testid="input-secondary-owner"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="effectiveDate" className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" /> Agreement Date *
+                    </Label>
+                    <Input
+                      id="effectiveDate"
+                      type="date"
+                      value={formData.effectiveDate}
+                      onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
+                      className="text-brand-navy border-purple-200 focus:border-purple-500"
+                      data-testid="input-effective-date"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="effectiveDate" className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" /> Agreement Date *
-                  </Label>
-                  <Input
-                    id="effectiveDate"
-                    type="date"
-                    value={formData.effectiveDate}
-                    onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
-                    className="text-brand-navy border-purple-200 focus:border-purple-500"
-                    data-testid="input-effective-date"
-                  />
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
