@@ -1734,14 +1734,32 @@ export default function CsuPortal() {
       description: uploadState.analysis.summary,
       content: uploadState.analysis.generatedTemplate,
       isActive: true,
-      fields: uploadState.analysis.detectedFields.map((field, index) => ({
-        fieldKey: field.placeholder.replace(/[\[\]]/g, "").toLowerCase(),
-        label: field.name,
-        placeholder: field.placeholder,
-        fieldType: field.type,
-        required: field.required,
-        order: index,
-      })),
+      fields: uploadState.analysis.detectedFields.map((field, index) => {
+        const typeMap: Record<string, string> = {
+          'name': 'text',
+          'signer name': 'text',
+          'email': 'email',
+          'phone': 'phone',
+          'date': 'date',
+          'effective date': 'date',
+          'signature': 'text',
+          'initials': 'text',
+          'company': 'text',
+          'company name': 'text',
+          'address': 'textarea',
+          'title': 'text',
+        };
+        const normalizedType = field.type.toLowerCase();
+        const mappedType = typeMap[normalizedType] || 'text';
+        return {
+          fieldKey: field.placeholder.replace(/[\[\]]/g, "").toLowerCase(),
+          label: field.name,
+          placeholder: field.placeholder,
+          fieldType: mappedType,
+          required: field.required,
+          order: index,
+        };
+      }),
     };
 
     try {
