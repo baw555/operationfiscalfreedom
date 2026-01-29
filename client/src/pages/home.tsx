@@ -251,12 +251,12 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Skip Animation Button - Fixed to viewport for mobile stability */}
-          <div className="fixed bottom-4 sm:bottom-8 left-0 right-0 flex justify-center z-[100] px-4 pointer-events-none">
+          {/* Skip Animation Button - Positioned at bottom of animation section */}
+          <div className="absolute bottom-4 sm:bottom-8 left-0 right-0 flex justify-center z-[100] px-4">
             <Button 
               onClick={toggleAnimation}
               variant="outline"
-              className="border-2 border-white/60 text-white hover:bg-white/20 text-sm sm:text-base px-6 py-3 backdrop-blur-sm bg-black/40 shadow-lg pointer-events-auto"
+              className="border-2 border-white/60 text-white hover:bg-white/20 text-sm sm:text-base px-6 py-3 backdrop-blur-sm bg-black/40 shadow-lg"
             >
               <Pause className="w-4 h-4 mr-2" />
               Skip to Main
