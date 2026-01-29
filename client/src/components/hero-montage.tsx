@@ -14,28 +14,11 @@ const montageVideos = [
   "/videos/montage-clip.mp4",
 ];
 
-// On mobile, only load 4 videos to reduce memory usage
-const mobileVideos = [
-  "/videos/montage-iwojima.mp4",
-  "/videos/montage-reunion.mp4",
-  "/videos/montage-embrace.mp4",
-  "/videos/montage-salute.mp4",
-];
-
 export function HeroMontage() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-  // Detect mobile on mount
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  const videos = isMobile ? mobileVideos : montageVideos;
+  const videos = montageVideos;
 
   // Play active video, pause others
   useEffect(() => {
@@ -69,7 +52,7 @@ export function HeroMontage() {
           src={src}
           muted
           playsInline
-          preload={isMobile ? "metadata" : "auto"}
+          preload="auto"
           className={cn(
             "absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out",
             index === activeIndex ? "opacity-100" : "opacity-0"
