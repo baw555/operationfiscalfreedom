@@ -3954,7 +3954,7 @@ export async function registerRoutes(
         
         const emailResult = await resend.emails.send({
           from: `Operation Fiscal Freedom <${fromEmail}>`,
-          reply_to: fromEmail,
+          replyTo: fromEmail,
           to: recipientEmail,
           subject: "Contract Ready for Signature - Operation Fiscal Freedom",
           html: `
