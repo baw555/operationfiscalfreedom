@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, serial, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, serial, boolean, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -1151,6 +1151,141 @@ export const insertCsuSignedAgreementSchema = createInsertSchema(csuSignedAgreem
 
 export type InsertCsuSignedAgreement = z.infer<typeof insertCsuSignedAgreementSchema>;
 export type CsuSignedAgreement = typeof csuSignedAgreements.$inferSelect;
+
+// ============================================
+// CSU ENVELOPES - DocuSign-like Multi-Recipient Signing
+// ============================================
+
+// Routing types for signing order
+export const routingTypeEnum = pgEnum("routing_type", ["sequential", "parallel", "mixed"]);
+
+// CSU Envelopes - Groups recipients for ordered signing workflows
+export const csuEnvelopes = pgTable("csu_envelopes", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").references(() => csuContractTemplates.id).notNull(),
+  name: text("name").notNull(), // Envelope name/description
+  routingType: routingTypeEnum("routing_type").notNull().default("sequential"),
+  status: text("status").notNull().default("draft"), // draft, sent, in_progress, completed, voided, expired
+  
+  // Reminder settings
+  reminderEnabled: boolean("reminder_enabled").default(false),
+  reminderDaysAfterSend: integer("reminder_days_after_send").default(3), // Days after sending to first reminder
+  reminderFrequencyDays: integer("reminder_frequency_days").default(3), // Reminder every X days
+  lastReminderSentAt: timestamp("last_reminder_sent_at"),
+  
+  // Expiration settings
+  expiresAt: timestamp("expires_at"), // Overall envelope expiration
+  
+  sentBy: integer("sent_by").references(() => users.id),
+  sentAt: timestamp("sent_at"),
+  completedAt: timestamp("completed_at"),
+  voidedAt: timestamp("voided_at"),
+  voidReason: text("void_reason"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertCsuEnvelopeSchema = createInsertSchema(csuEnvelopes);
+
+export type InsertCsuEnvelope = Omit<z.infer<typeof insertCsuEnvelopeSchema>, 'id' | 'createdAt' | 'updatedAt'>;
+export type CsuEnvelope = typeof csuEnvelopes.$inferSelect;
+
+// CSU Envelope Recipients - Individual recipients with signing order
+export const csuEnvelopeRecipients = pgTable("csu_envelope_recipients", {
+  id: serial("id").primaryKey(),
+  envelopeId: integer("envelope_id").references(() => csuEnvelopes.id).notNull(),
+  
+  // Recipient info
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  role: text("role").default("signer"), // signer, approver, viewer, etc.
+  
+  // Signing order (same number = parallel signing)
+  routingOrder: integer("routing_order").notNull().default(1),
+  
+  // Status tracking
+  status: text("status").notNull().default("pending"), // pending, sent, viewed, signed, declined, voided
+  signToken: text("sign_token").unique(),
+  tokenExpiresAt: timestamp("token_expires_at"),
+  
+  // Timestamps
+  sentAt: timestamp("sent_at"),
+  viewedAt: timestamp("viewed_at"),
+  signedAt: timestamp("signed_at"),
+  declinedAt: timestamp("declined_at"),
+  declineReason: text("decline_reason"),
+  
+  // Signed data
+  signatureData: text("signature_data"),
+  signedIpAddress: text("signed_ip_address"),
+  fieldValues: text("field_values"), // JSON string of submitted field values
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCsuEnvelopeRecipientSchema = createInsertSchema(csuEnvelopeRecipients);
+
+export type InsertCsuEnvelopeRecipient = Omit<z.infer<typeof insertCsuEnvelopeRecipientSchema>, 'id' | 'createdAt'>;
+export type CsuEnvelopeRecipient = typeof csuEnvelopeRecipients.$inferSelect;
+
+// ============================================
+// CSU AUDIT TRAIL - Track all contract events
+// ============================================
+
+// Audit event types
+export const auditEventTypeEnum = pgEnum("audit_event_type", [
+  "envelope_created",
+  "envelope_sent", 
+  "envelope_viewed",
+  "envelope_signed",
+  "envelope_declined",
+  "envelope_voided",
+  "envelope_completed",
+  "envelope_expired",
+  "recipient_sent",
+  "recipient_viewed",
+  "recipient_signed",
+  "recipient_declined",
+  "reminder_sent",
+  "link_resent",
+  "document_downloaded"
+]);
+
+// CSU Audit Trail - Immutable log of all contract events
+export const csuAuditTrail = pgTable("csu_audit_trail", {
+  id: serial("id").primaryKey(),
+  
+  // What was affected
+  envelopeId: integer("envelope_id").references(() => csuEnvelopes.id),
+  recipientId: integer("recipient_id").references(() => csuEnvelopeRecipients.id),
+  contractSendId: integer("contract_send_id").references(() => csuContractSends.id), // For legacy single sends
+  
+  // Event details
+  eventType: auditEventTypeEnum("event_type").notNull(),
+  eventDescription: text("event_description"), // Human-readable description
+  
+  // Actor info
+  actorType: text("actor_type").notNull(), // system, admin, recipient
+  actorEmail: text("actor_email"),
+  actorUserId: integer("actor_user_id").references(() => users.id),
+  
+  // Technical details
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  
+  // Additional metadata (JSON)
+  metadata: text("metadata"),
+  
+  // Immutable timestamp
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCsuAuditTrailSchema = createInsertSchema(csuAuditTrail);
+
+export type InsertCsuAuditTrail = Omit<z.infer<typeof insertCsuAuditTrailSchema>, 'id' | 'createdAt'>;
+export type CsuAuditTrail = typeof csuAuditTrail.$inferSelect;
 
 // ============================================
 // PORTAL ACTIVITY TRACKING

@@ -1077,6 +1077,554 @@ interface IpGeoData {
   asn: string;
 }
 
+// EnvelopesPanel - DocuSign-like multi-recipient signing with order
+function EnvelopesPanel({ templates }: { templates: CsuContractTemplate[] }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
+  const [envelopeName, setEnvelopeName] = useState("");
+  const [routingType, setRoutingType] = useState<"sequential" | "parallel" | "mixed">("sequential");
+  const [recipients, setRecipients] = useState<Array<{ name: string; email: string; phone: string; routingOrder: number; role: string }>>([
+    { name: "", email: "", phone: "", routingOrder: 1, role: "signer" }
+  ]);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderDaysAfterSend, setReminderDaysAfterSend] = useState(3);
+  const [reminderFrequencyDays, setReminderFrequencyDays] = useState(3);
+  const [expiresInDays, setExpiresInDays] = useState(30);
+  const [isCreating, setIsCreating] = useState(false);
+  const [selectedEnvelope, setSelectedEnvelope] = useState<any>(null);
+  const [showSigningOrderModal, setShowSigningOrderModal] = useState(false);
+  const [auditTrail, setAuditTrail] = useState<any[]>([]);
+  const [showAuditTrailModal, setShowAuditTrailModal] = useState(false);
+
+  // Fetch envelopes
+  const { data: envelopes = [], refetch: refetchEnvelopes } = useQuery({
+    queryKey: ["/api/csu/envelopes"],
+    queryFn: async () => {
+      const res = await fetch("/api/csu/envelopes", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const addRecipient = () => {
+    const maxOrder = Math.max(...recipients.map(r => r.routingOrder), 0);
+    setRecipients([...recipients, { 
+      name: "", 
+      email: "", 
+      phone: "", 
+      routingOrder: routingType === "parallel" ? 1 : maxOrder + 1, 
+      role: "signer" 
+    }]);
+  };
+
+  const removeRecipient = (index: number) => {
+    if (recipients.length > 1) {
+      setRecipients(recipients.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateRecipient = (index: number, field: string, value: any) => {
+    const updated = [...recipients];
+    updated[index] = { ...updated[index], [field]: value };
+    setRecipients(updated);
+  };
+
+  const createEnvelope = async () => {
+    if (!selectedTemplate || !envelopeName.trim() || recipients.some(r => !r.name.trim() || !r.email.trim())) {
+      toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const res = await fetch("/api/csu/envelopes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          templateId: selectedTemplate,
+          name: envelopeName,
+          routingType,
+          recipients,
+          reminderEnabled,
+          reminderDaysAfterSend,
+          reminderFrequencyDays,
+          expiresInDays,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast({ title: "Envelope Created!", description: `${recipients.length} recipient(s) added` });
+        setShowCreateModal(false);
+        resetForm();
+        refetchEnvelopes();
+      } else {
+        toast({ title: "Error", description: data.message, variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to create envelope", variant: "destructive" });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const sendEnvelope = async (envelopeId: number) => {
+    try {
+      const res = await fetch(`/api/csu/envelopes/${envelopeId}/send`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast({ title: "Envelope Sent!", description: data.message });
+        refetchEnvelopes();
+      } else {
+        toast({ title: "Error", description: data.message, variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to send envelope", variant: "destructive" });
+    }
+  };
+
+  const voidEnvelope = async (envelopeId: number) => {
+    if (!confirm("Are you sure you want to void this envelope? This cannot be undone.")) return;
+    try {
+      const res = await fetch(`/api/csu/envelopes/${envelopeId}/void`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ reason: "Voided by admin" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast({ title: "Envelope Voided" });
+        refetchEnvelopes();
+      } else {
+        toast({ title: "Error", description: data.message, variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to void envelope", variant: "destructive" });
+    }
+  };
+
+  const viewSigningOrder = async (envelopeId: number) => {
+    try {
+      const res = await fetch(`/api/csu/envelopes/${envelopeId}/signing-order`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedEnvelope(data);
+        setShowSigningOrderModal(true);
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to load signing order", variant: "destructive" });
+    }
+  };
+
+  const viewAuditTrail = async (envelopeId: number) => {
+    try {
+      const res = await fetch(`/api/csu/envelopes/${envelopeId}/audit-trail`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setAuditTrail(data);
+        setShowAuditTrailModal(true);
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to load audit trail", variant: "destructive" });
+    }
+  };
+
+  const resetForm = () => {
+    setSelectedTemplate(null);
+    setEnvelopeName("");
+    setRoutingType("sequential");
+    setRecipients([{ name: "", email: "", phone: "", routingOrder: 1, role: "signer" }]);
+    setReminderEnabled(false);
+    setReminderDaysAfterSend(3);
+    setReminderFrequencyDays(3);
+    setExpiresInDays(30);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      draft: "bg-gray-100 text-gray-700",
+      sent: "bg-blue-100 text-blue-700",
+      in_progress: "bg-amber-100 text-amber-700",
+      completed: "bg-green-100 text-green-700",
+      voided: "bg-red-100 text-red-700",
+      expired: "bg-red-100 text-red-700",
+    };
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status] || styles.draft}`}>{status}</span>;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Create Envelope Button */}
+      <div className="flex justify-between items-center">
+        <div>
+          <p className="text-sm text-gray-600">
+            Create multi-recipient envelopes with signing order control
+          </p>
+        </div>
+        <Button onClick={() => setShowCreateModal(true)} className="bg-amber-600 hover:bg-amber-700" data-testid="button-create-envelope">
+          <Plus className="w-4 h-4 mr-2" /> Create Envelope
+        </Button>
+      </div>
+
+      {/* Envelopes List */}
+      {envelopes.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-500">No envelopes yet. Create your first envelope to get started.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {envelopes.map((envelope: any) => (
+            <div key={envelope.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow" data-testid={`envelope-row-${envelope.id}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900">{envelope.name}</h3>
+                  <div className="flex items-center gap-3 mt-1">
+                    {getStatusBadge(envelope.status)}
+                    <span className="text-sm text-gray-500">
+                      {envelope.routingType === "sequential" ? "Sequential" : envelope.routingType === "parallel" ? "Parallel" : "Mixed"} signing
+                    </span>
+                    <span className="text-sm text-gray-400">
+                      Created {new Date(envelope.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => viewSigningOrder(envelope.id)} data-testid={`button-view-order-${envelope.id}`}>
+                    <Eye className="w-4 h-4 mr-1" /> View Order
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => viewAuditTrail(envelope.id)} data-testid={`button-audit-trail-${envelope.id}`}>
+                    <FileText className="w-4 h-4 mr-1" /> Audit Trail
+                  </Button>
+                  {envelope.status === "draft" && (
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => sendEnvelope(envelope.id)} data-testid={`button-send-envelope-${envelope.id}`}>
+                      <Send className="w-4 h-4 mr-1" /> Send
+                    </Button>
+                  )}
+                  {envelope.status !== "completed" && envelope.status !== "voided" && (
+                    <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => voidEnvelope(envelope.id)} data-testid={`button-void-envelope-${envelope.id}`}>
+                      <X className="w-4 h-4 mr-1" /> Void
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Create Envelope Modal */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Envelope</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            {/* Basic Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Envelope Name</Label>
+                <Input 
+                  value={envelopeName} 
+                  onChange={(e) => setEnvelopeName(e.target.value)}
+                  placeholder="e.g., Q1 Sales Agreement"
+                  data-testid="input-envelope-name"
+                />
+              </div>
+              <div>
+                <Label>Template</Label>
+                <Select value={selectedTemplate?.toString() || ""} onValueChange={(v) => setSelectedTemplate(parseInt(v))}>
+                  <SelectTrigger data-testid="select-envelope-template">
+                    <SelectValue placeholder="Select template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.filter(t => t.isActive).map((t) => (
+                      <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Routing Type */}
+            <div>
+              <Label>Signing Order Type</Label>
+              <div className="grid grid-cols-3 gap-3 mt-2">
+                <Button
+                  variant={routingType === "sequential" ? "default" : "outline"}
+                  onClick={() => setRoutingType("sequential")}
+                  className={routingType === "sequential" ? "bg-amber-600" : ""}
+                  data-testid="button-routing-sequential"
+                >
+                  Sequential
+                </Button>
+                <Button
+                  variant={routingType === "parallel" ? "default" : "outline"}
+                  onClick={() => setRoutingType("parallel")}
+                  className={routingType === "parallel" ? "bg-amber-600" : ""}
+                  data-testid="button-routing-parallel"
+                >
+                  Parallel
+                </Button>
+                <Button
+                  variant={routingType === "mixed" ? "default" : "outline"}
+                  onClick={() => setRoutingType("mixed")}
+                  className={routingType === "mixed" ? "bg-amber-600" : ""}
+                  data-testid="button-routing-mixed"
+                >
+                  Mixed
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {routingType === "sequential" && "Recipients sign one after another in order"}
+                {routingType === "parallel" && "All recipients sign at the same time"}
+                {routingType === "mixed" && "Mix of sequential and parallel (use same order number for parallel)"}
+              </p>
+            </div>
+
+            {/* Recipients */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Label>Recipients</Label>
+                <Button variant="outline" size="sm" onClick={addRecipient} data-testid="button-add-recipient">
+                  <Plus className="w-4 h-4 mr-1" /> Add Recipient
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {recipients.map((recipient, index) => (
+                  <div key={index} className="flex gap-2 items-start p-3 bg-gray-50 rounded-lg" data-testid={`recipient-row-${index}`}>
+                    {routingType !== "parallel" && (
+                      <div className="w-16">
+                        <Label className="text-xs">Order</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={recipient.routingOrder}
+                          onChange={(e) => updateRecipient(index, "routingOrder", parseInt(e.target.value) || 1)}
+                          className="text-center"
+                          data-testid={`input-recipient-order-${index}`}
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <Label className="text-xs">Name</Label>
+                      <Input
+                        value={recipient.name}
+                        onChange={(e) => updateRecipient(index, "name", e.target.value)}
+                        placeholder="Full name"
+                        data-testid={`input-recipient-name-${index}`}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-xs">Email</Label>
+                      <Input
+                        type="email"
+                        value={recipient.email}
+                        onChange={(e) => updateRecipient(index, "email", e.target.value)}
+                        placeholder="email@example.com"
+                        data-testid={`input-recipient-email-${index}`}
+                      />
+                    </div>
+                    <div className="w-32">
+                      <Label className="text-xs">Role</Label>
+                      <Select value={recipient.role} onValueChange={(v) => updateRecipient(index, "role", v)}>
+                        <SelectTrigger data-testid={`select-recipient-role-${index}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="signer">Signer</SelectItem>
+                          <SelectItem value="approver">Approver</SelectItem>
+                          <SelectItem value="viewer">Viewer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {recipients.length > 1 && (
+                      <Button variant="ghost" size="sm" className="mt-5 text-red-500 hover:text-red-700" onClick={() => removeRecipient(index)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Reminders & Expiration */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Checkbox 
+                    checked={reminderEnabled} 
+                    onCheckedChange={(checked) => setReminderEnabled(!!checked)}
+                    data-testid="checkbox-reminder-enabled"
+                  />
+                  <Label>Enable Automatic Reminders</Label>
+                </div>
+                {reminderEnabled && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">First reminder (days)</Label>
+                      <Input type="number" min="1" value={reminderDaysAfterSend} onChange={(e) => setReminderDaysAfterSend(parseInt(e.target.value) || 3)} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Repeat every (days)</Label>
+                      <Input type="number" min="1" value={reminderFrequencyDays} onChange={(e) => setReminderFrequencyDays(parseInt(e.target.value) || 3)} />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 bg-amber-50 rounded-lg">
+                <Label>Envelope Expires In (days)</Label>
+                <Input 
+                  type="number" 
+                  min="1" 
+                  value={expiresInDays} 
+                  onChange={(e) => setExpiresInDays(parseInt(e.target.value) || 30)}
+                  className="mt-2"
+                  data-testid="input-expires-in-days"
+                />
+                <p className="text-xs text-gray-500 mt-1">Recipients have {expiresInDays} days to sign</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => { setShowCreateModal(false); resetForm(); }}>
+                Cancel
+              </Button>
+              <Button onClick={createEnvelope} disabled={isCreating} className="bg-amber-600 hover:bg-amber-700" data-testid="button-submit-envelope">
+                {isCreating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                Create Envelope
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Signing Order Modal */}
+      <Dialog open={showSigningOrderModal} onOpenChange={setShowSigningOrderModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Signing Order Diagram</DialogTitle>
+          </DialogHeader>
+          {selectedEnvelope && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="font-medium">Routing Type:</span>
+                <span className="capitalize">{selectedEnvelope.routingType}</span>
+                <span className="text-gray-400">|</span>
+                <span>{selectedEnvelope.totalRecipients} recipients in {selectedEnvelope.totalSteps} step(s)</span>
+              </div>
+              <div className="space-y-3">
+                {selectedEnvelope.diagram.map((step: any, idx: number) => (
+                  <div key={step.order} className="relative">
+                    {idx > 0 && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <div className="w-0.5 h-3 bg-amber-400"></div>
+                        <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-amber-400"></div>
+                      </div>
+                    )}
+                    <div className={`p-3 rounded-lg border-2 ${step.parallel ? 'border-blue-300 bg-blue-50' : 'border-amber-300 bg-amber-50'}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-6 h-6 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center font-bold">
+                          {step.order}
+                        </span>
+                        <span className="text-sm font-medium">
+                          {step.parallel ? `Parallel Signing (${step.recipients.length})` : 'Sequential'}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        {step.recipients.map((r: any) => (
+                          <div key={r.id} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <span>{r.name}</span>
+                              <span className="text-gray-400 text-xs">({r.email})</span>
+                            </div>
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              r.status === 'signed' ? 'bg-green-100 text-green-700' :
+                              r.status === 'sent' ? 'bg-blue-100 text-blue-700' :
+                              r.status === 'viewed' ? 'bg-purple-100 text-purple-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {r.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Audit Trail Modal */}
+      <Dialog open={showAuditTrailModal} onOpenChange={setShowAuditTrailModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" /> Certificate of Completion - Audit Trail
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {auditTrail.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">No activity recorded yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {auditTrail.map((event: any) => (
+                  <div key={event.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border" data-testid={`audit-event-${event.id}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs ${
+                      event.eventType.includes('signed') ? 'bg-green-500' :
+                      event.eventType.includes('sent') ? 'bg-blue-500' :
+                      event.eventType.includes('viewed') ? 'bg-purple-500' :
+                      event.eventType.includes('voided') || event.eventType.includes('declined') ? 'bg-red-500' :
+                      'bg-gray-500'
+                    }`}>
+                      {event.eventType.includes('signed') ? <CheckCircle className="w-4 h-4" /> :
+                       event.eventType.includes('sent') ? <Send className="w-4 h-4" /> :
+                       event.eventType.includes('viewed') ? <Eye className="w-4 h-4" /> :
+                       <FileText className="w-4 h-4" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-gray-900">{event.eventDescription || event.eventType.replace(/_/g, ' ')}</span>
+                        <span className="text-xs text-gray-500">{new Date(event.createdAt).toLocaleString()}</span>
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        <span className="capitalize">{event.actorType}</span>
+                        {event.actorEmail && <span className="ml-1">({event.actorEmail})</span>}
+                      </div>
+                      {event.ipAddress && (
+                        <div className="text-xs text-gray-400 mt-1">
+                          IP: {event.ipAddress}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="border-t pt-4 mt-4">
+              <p className="text-xs text-gray-500 text-center">
+                This audit trail serves as a legal record of all actions taken on this envelope.
+                All timestamps are recorded in UTC.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 type AnalyticsView = "activity" | "unique_visitors" | "contracts_sent" | "contracts_signed" | "today_visits" | "page_views";
 
 function AnalyticsPanel() {
@@ -2702,6 +3250,9 @@ export default function CsuPortal() {
                   <TabsTrigger value="upload" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-upload">
                     <Sparkles className="w-4 h-4 mr-2" /> AI Upload
                   </TabsTrigger>
+                  <TabsTrigger value="envelopes" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-envelopes">
+                    <Users className="w-4 h-4 mr-2" /> Envelopes
+                  </TabsTrigger>
                   <TabsTrigger value="analytics" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-analytics">
                     <BarChart3 className="w-4 h-4 mr-2" /> Stats
                   </TabsTrigger>
@@ -3438,6 +3989,20 @@ export default function CsuPortal() {
                           </div>
                         </div>
                       )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="envelopes">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="w-5 h-5" /> Multi-Recipient Envelopes
+                      </CardTitle>
+                      <p className="text-sm text-gray-500">Create envelopes with signing order - sequential, parallel, or mixed routing</p>
+                    </CardHeader>
+                    <CardContent>
+                      <EnvelopesPanel templates={templates} />
                     </CardContent>
                   </Card>
                 </TabsContent>

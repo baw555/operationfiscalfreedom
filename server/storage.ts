@@ -35,6 +35,9 @@ import {
   csuContractSends, type CsuContractSend, type InsertCsuContractSend,
   csuSignedAgreements, type CsuSignedAgreement, type InsertCsuSignedAgreement,
   csuContractTemplateFields, type CsuContractTemplateField, type InsertCsuContractTemplateField,
+  csuEnvelopes, type CsuEnvelope, type InsertCsuEnvelope,
+  csuEnvelopeRecipients, type CsuEnvelopeRecipient, type InsertCsuEnvelopeRecipient,
+  csuAuditTrail, type CsuAuditTrail, type InsertCsuAuditTrail,
   portalActivity, type PortalActivity, type InsertPortalActivity,
   passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken,
   partnerSharingLog, type PartnerSharingLog, type InsertPartnerSharingLog,
@@ -294,6 +297,24 @@ export interface IStorage {
   createRangerTabApplication(application: InsertRangerTabApplication): Promise<RangerTabApplication>;
   getAllRangerTabApplications(): Promise<RangerTabApplication[]>;
   updateRangerTabApplication(id: number, updates: Partial<RangerTabApplication>): Promise<RangerTabApplication | undefined>;
+
+  // CSU Envelopes (DocuSign-like multi-recipient signing)
+  createCsuEnvelope(envelope: InsertCsuEnvelope): Promise<CsuEnvelope>;
+  getCsuEnvelope(id: number): Promise<CsuEnvelope | undefined>;
+  getAllCsuEnvelopes(): Promise<CsuEnvelope[]>;
+  updateCsuEnvelope(id: number, updates: Partial<CsuEnvelope>): Promise<CsuEnvelope | undefined>;
+
+  // CSU Envelope Recipients
+  createCsuEnvelopeRecipient(recipient: InsertCsuEnvelopeRecipient): Promise<CsuEnvelopeRecipient>;
+  getCsuEnvelopeRecipient(id: number): Promise<CsuEnvelopeRecipient | undefined>;
+  getCsuEnvelopeRecipientByToken(token: string): Promise<CsuEnvelopeRecipient | undefined>;
+  getEnvelopeRecipients(envelopeId: number): Promise<CsuEnvelopeRecipient[]>;
+  updateCsuEnvelopeRecipient(id: number, updates: Partial<CsuEnvelopeRecipient>): Promise<CsuEnvelopeRecipient | undefined>;
+
+  // CSU Audit Trail
+  createCsuAuditTrail(entry: InsertCsuAuditTrail): Promise<CsuAuditTrail>;
+  getAuditTrailForEnvelope(envelopeId: number): Promise<CsuAuditTrail[]>;
+  getAuditTrailForContractSend(contractSendId: number): Promise<CsuAuditTrail[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1508,6 +1529,77 @@ export class DatabaseStorage implements IStorage {
       .where(eq(rangerTabApplications.id, id))
       .returning();
     return result || undefined;
+  }
+
+  // CSU Envelopes (DocuSign-like multi-recipient signing)
+  async createCsuEnvelope(envelope: InsertCsuEnvelope): Promise<CsuEnvelope> {
+    const [created] = await db.insert(csuEnvelopes).values(envelope).returning();
+    return created;
+  }
+
+  async getCsuEnvelope(id: number): Promise<CsuEnvelope | undefined> {
+    const [envelope] = await db.select().from(csuEnvelopes).where(eq(csuEnvelopes.id, id));
+    return envelope || undefined;
+  }
+
+  async getAllCsuEnvelopes(): Promise<CsuEnvelope[]> {
+    return db.select().from(csuEnvelopes).orderBy(desc(csuEnvelopes.createdAt));
+  }
+
+  async updateCsuEnvelope(id: number, updates: Partial<CsuEnvelope>): Promise<CsuEnvelope | undefined> {
+    const [result] = await db.update(csuEnvelopes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(csuEnvelopes.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  // CSU Envelope Recipients
+  async createCsuEnvelopeRecipient(recipient: InsertCsuEnvelopeRecipient): Promise<CsuEnvelopeRecipient> {
+    const [created] = await db.insert(csuEnvelopeRecipients).values(recipient).returning();
+    return created;
+  }
+
+  async getCsuEnvelopeRecipient(id: number): Promise<CsuEnvelopeRecipient | undefined> {
+    const [recipient] = await db.select().from(csuEnvelopeRecipients).where(eq(csuEnvelopeRecipients.id, id));
+    return recipient || undefined;
+  }
+
+  async getCsuEnvelopeRecipientByToken(token: string): Promise<CsuEnvelopeRecipient | undefined> {
+    const [recipient] = await db.select().from(csuEnvelopeRecipients).where(eq(csuEnvelopeRecipients.signToken, token));
+    return recipient || undefined;
+  }
+
+  async getEnvelopeRecipients(envelopeId: number): Promise<CsuEnvelopeRecipient[]> {
+    return db.select().from(csuEnvelopeRecipients)
+      .where(eq(csuEnvelopeRecipients.envelopeId, envelopeId))
+      .orderBy(csuEnvelopeRecipients.routingOrder);
+  }
+
+  async updateCsuEnvelopeRecipient(id: number, updates: Partial<CsuEnvelopeRecipient>): Promise<CsuEnvelopeRecipient | undefined> {
+    const [result] = await db.update(csuEnvelopeRecipients)
+      .set(updates)
+      .where(eq(csuEnvelopeRecipients.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  // CSU Audit Trail
+  async createCsuAuditTrail(entry: InsertCsuAuditTrail): Promise<CsuAuditTrail> {
+    const [created] = await db.insert(csuAuditTrail).values(entry).returning();
+    return created;
+  }
+
+  async getAuditTrailForEnvelope(envelopeId: number): Promise<CsuAuditTrail[]> {
+    return db.select().from(csuAuditTrail)
+      .where(eq(csuAuditTrail.envelopeId, envelopeId))
+      .orderBy(desc(csuAuditTrail.createdAt));
+  }
+
+  async getAuditTrailForContractSend(contractSendId: number): Promise<CsuAuditTrail[]> {
+    return db.select().from(csuAuditTrail)
+      .where(eq(csuAuditTrail.contractSendId, contractSendId))
+      .orderBy(desc(csuAuditTrail.createdAt));
   }
 }
 

@@ -4262,6 +4262,393 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // CSU ENVELOPES - DocuSign-like multi-recipient signing
+  // ============================================
+
+  // Create envelope with ordered recipients
+  app.post("/api/csu/envelopes", requireAdmin, async (req, res) => {
+    try {
+      const { 
+        templateId, 
+        name, 
+        routingType, 
+        recipients, 
+        reminderEnabled,
+        reminderDaysAfterSend,
+        reminderFrequencyDays,
+        expiresInDays 
+      } = req.body;
+
+      if (!templateId || !name || !recipients || recipients.length === 0) {
+        return res.status(400).json({ message: "Template ID, name, and at least one recipient are required" });
+      }
+
+      // Calculate expiration date
+      const expiresAt = expiresInDays ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000) : null;
+
+      // Create the envelope
+      const envelope = await storage.createCsuEnvelope({
+        templateId,
+        name,
+        routingType: routingType || "sequential",
+        status: "draft",
+        reminderEnabled: reminderEnabled || false,
+        reminderDaysAfterSend: reminderDaysAfterSend || 3,
+        reminderFrequencyDays: reminderFrequencyDays || 3,
+        expiresAt,
+        sentBy: (req as any).user?.id,
+      });
+
+      // Create recipients with their routing order
+      const crypto = await import("crypto");
+      const createdRecipients = [];
+      
+      for (const recipient of recipients) {
+        const signToken = crypto.randomBytes(32).toString("hex");
+        const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+        const created = await storage.createCsuEnvelopeRecipient({
+          envelopeId: envelope.id,
+          name: recipient.name,
+          email: recipient.email,
+          phone: recipient.phone || null,
+          role: recipient.role || "signer",
+          routingOrder: recipient.routingOrder || 1,
+          status: "pending",
+          signToken,
+          tokenExpiresAt,
+        });
+        createdRecipients.push(created);
+      }
+
+      // Log audit event
+      await storage.createCsuAuditTrail({
+        envelopeId: envelope.id,
+        eventType: "envelope_created",
+        eventDescription: `Envelope "${name}" created with ${recipients.length} recipient(s)`,
+        actorType: "admin",
+        actorEmail: (req as any).user?.email,
+        actorUserId: (req as any).user?.id,
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
+      res.json({ 
+        envelope, 
+        recipients: createdRecipients,
+        message: "Envelope created successfully" 
+      });
+    } catch (error) {
+      console.error("Error creating envelope:", error);
+      res.status(500).json({ message: "Failed to create envelope" });
+    }
+  });
+
+  // Send envelope (trigger emails based on routing order)
+  app.post("/api/csu/envelopes/:id/send", requireAdmin, async (req, res) => {
+    try {
+      const envelopeId = parseInt(req.params.id);
+      const envelope = await storage.getCsuEnvelope(envelopeId);
+      
+      if (!envelope) {
+        return res.status(404).json({ message: "Envelope not found" });
+      }
+
+      if (envelope.status !== "draft") {
+        return res.status(400).json({ message: "Envelope has already been sent" });
+      }
+
+      const recipients = await storage.getEnvelopeRecipients(envelopeId);
+      const template = await storage.getCsuContractTemplate(envelope.templateId);
+
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Group recipients by routing order
+      const recipientsByOrder = recipients.reduce((acc, r) => {
+        const order = r.routingOrder;
+        if (!acc[order]) acc[order] = [];
+        acc[order].push(r);
+        return acc;
+      }, {} as Record<number, typeof recipients>);
+
+      const sortedOrders = Object.keys(recipientsByOrder).map(Number).sort((a, b) => a - b);
+      const firstOrder = sortedOrders[0];
+
+      // Send emails only to first routing order (sequential) or all (parallel)
+      const recipientsToSend = envelope.routingType === "parallel" 
+        ? recipients 
+        : recipientsByOrder[firstOrder] || [];
+
+      const baseUrl = process.env.CUSTOM_DOMAIN
+        ? `https://${process.env.CUSTOM_DOMAIN}`
+        : process.env.REPLIT_DOMAINS?.split(",")[0] 
+          ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}`
+          : "http://localhost:5000";
+
+      const { client: resend, fromEmail } = await getResendClient();
+
+      for (const recipient of recipientsToSend) {
+        const signingUrl = `${baseUrl}/csu-sign?token=${recipient.signToken}`;
+        
+        await resend.emails.send({
+          from: fromEmail,
+          to: recipient.email,
+          subject: `Please Sign: ${template.name}`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f3f4f6; padding: 20px;">
+              <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 30px; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Contract Signing Request</h1>
+              </div>
+              <div style="background: white; padding: 30px; border-radius: 0 0 12px 12px;">
+                <p style="font-size: 16px; color: #374151;">Hello ${recipient.name},</p>
+                <p style="font-size: 16px; color: #374151;">You have been requested to sign the following document:</p>
+                <p style="font-size: 18px; color: #7c3aed; font-weight: bold;">${template.name}</p>
+                ${envelope.routingType === "sequential" ? `<p style="font-size: 14px; color: #6b7280;">You are signer #${recipient.routingOrder} in the signing order.</p>` : ''}
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${signingUrl}" style="background: #7c3aed; color: white; padding: 15px 40px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Review & Sign</a>
+                </div>
+                <p style="font-size: 14px; color: #6b7280;">This link will expire in 7 days.</p>
+                <p style="font-size: 12px; color: #9ca3af;">If the button doesn't work, copy this link: ${signingUrl}</p>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+
+        // Update recipient status
+        await storage.updateCsuEnvelopeRecipient(recipient.id, {
+          status: "sent",
+          sentAt: new Date(),
+        });
+
+        // Log audit event
+        await storage.createCsuAuditTrail({
+          envelopeId,
+          recipientId: recipient.id,
+          eventType: "recipient_sent",
+          eventDescription: `Signing request sent to ${recipient.name} (${recipient.email})`,
+          actorType: "system",
+          ipAddress: req.ip,
+          userAgent: req.get("user-agent"),
+        });
+      }
+
+      // Update envelope status
+      await storage.updateCsuEnvelope(envelopeId, {
+        status: "sent",
+        sentAt: new Date(),
+      });
+
+      // Log envelope sent event
+      await storage.createCsuAuditTrail({
+        envelopeId,
+        eventType: "envelope_sent",
+        eventDescription: `Envelope sent to ${recipientsToSend.length} recipient(s)`,
+        actorType: "admin",
+        actorEmail: (req as any).user?.email,
+        actorUserId: (req as any).user?.id,
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
+      res.json({ 
+        success: true, 
+        message: `Envelope sent to ${recipientsToSend.length} recipient(s)`,
+        recipientsSent: recipientsToSend.length
+      });
+    } catch (error) {
+      console.error("Error sending envelope:", error);
+      res.status(500).json({ message: "Failed to send envelope" });
+    }
+  });
+
+  // Get all envelopes
+  app.get("/api/csu/envelopes", requireAdmin, async (req, res) => {
+    try {
+      const envelopes = await storage.getAllCsuEnvelopes();
+      res.json(envelopes);
+    } catch (error) {
+      console.error("Error fetching envelopes:", error);
+      res.status(500).json({ message: "Failed to fetch envelopes" });
+    }
+  });
+
+  // Get envelope with recipients
+  app.get("/api/csu/envelopes/:id", requireAdmin, async (req, res) => {
+    try {
+      const envelopeId = parseInt(req.params.id);
+      const envelope = await storage.getCsuEnvelope(envelopeId);
+      
+      if (!envelope) {
+        return res.status(404).json({ message: "Envelope not found" });
+      }
+
+      const recipients = await storage.getEnvelopeRecipients(envelopeId);
+      const template = await storage.getCsuContractTemplate(envelope.templateId);
+
+      res.json({ envelope, recipients, template });
+    } catch (error) {
+      console.error("Error fetching envelope:", error);
+      res.status(500).json({ message: "Failed to fetch envelope" });
+    }
+  });
+
+  // Update envelope signing order (before sending)
+  app.put("/api/csu/envelopes/:id/recipients", requireAdmin, async (req, res) => {
+    try {
+      const envelopeId = parseInt(req.params.id);
+      const { recipients } = req.body;
+
+      const envelope = await storage.getCsuEnvelope(envelopeId);
+      if (!envelope) {
+        return res.status(404).json({ message: "Envelope not found" });
+      }
+
+      // Only allow editing if envelope is in draft status
+      if (envelope.status !== "draft") {
+        return res.status(400).json({ message: "Cannot edit recipients after envelope is sent" });
+      }
+
+      // Update each recipient's routing order
+      for (const recipient of recipients) {
+        await storage.updateCsuEnvelopeRecipient(recipient.id, {
+          routingOrder: recipient.routingOrder,
+          role: recipient.role,
+        });
+      }
+
+      const updatedRecipients = await storage.getEnvelopeRecipients(envelopeId);
+      res.json({ recipients: updatedRecipients });
+    } catch (error) {
+      console.error("Error updating recipients:", error);
+      res.status(500).json({ message: "Failed to update recipients" });
+    }
+  });
+
+  // Get signing order diagram preview
+  app.get("/api/csu/envelopes/:id/signing-order", requireAdmin, async (req, res) => {
+    try {
+      const envelopeId = parseInt(req.params.id);
+      const envelope = await storage.getCsuEnvelope(envelopeId);
+      
+      if (!envelope) {
+        return res.status(404).json({ message: "Envelope not found" });
+      }
+
+      const recipients = await storage.getEnvelopeRecipients(envelopeId);
+      
+      // Group by routing order
+      const recipientsByOrder = recipients.reduce((acc, r) => {
+        const order = r.routingOrder;
+        if (!acc[order]) acc[order] = [];
+        acc[order].push({
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          role: r.role,
+          status: r.status,
+        });
+        return acc;
+      }, {} as Record<number, any[]>);
+
+      const sortedOrders = Object.keys(recipientsByOrder).map(Number).sort((a, b) => a - b);
+      
+      const diagram = sortedOrders.map(order => ({
+        order,
+        parallel: recipientsByOrder[order].length > 1,
+        recipients: recipientsByOrder[order],
+      }));
+
+      res.json({
+        envelopeId,
+        routingType: envelope.routingType,
+        diagram,
+        totalSteps: sortedOrders.length,
+        totalRecipients: recipients.length,
+      });
+    } catch (error) {
+      console.error("Error fetching signing order:", error);
+      res.status(500).json({ message: "Failed to fetch signing order" });
+    }
+  });
+
+  // Get audit trail for envelope
+  app.get("/api/csu/envelopes/:id/audit-trail", requireAdmin, async (req, res) => {
+    try {
+      const envelopeId = parseInt(req.params.id);
+      const envelope = await storage.getCsuEnvelope(envelopeId);
+      
+      if (!envelope) {
+        return res.status(404).json({ message: "Envelope not found" });
+      }
+
+      const auditTrail = await storage.getAuditTrailForEnvelope(envelopeId);
+      res.json(auditTrail);
+    } catch (error) {
+      console.error("Error fetching audit trail:", error);
+      res.status(500).json({ message: "Failed to fetch audit trail" });
+    }
+  });
+
+  // Void envelope
+  app.post("/api/csu/envelopes/:id/void", requireAdmin, async (req, res) => {
+    try {
+      const envelopeId = parseInt(req.params.id);
+      const { reason } = req.body;
+
+      const envelope = await storage.getCsuEnvelope(envelopeId);
+      if (!envelope) {
+        return res.status(404).json({ message: "Envelope not found" });
+      }
+
+      if (envelope.status === "completed") {
+        return res.status(400).json({ message: "Cannot void a completed envelope" });
+      }
+
+      if (envelope.status === "voided") {
+        return res.status(400).json({ message: "Envelope is already voided" });
+      }
+
+      await storage.updateCsuEnvelope(envelopeId, {
+        status: "voided",
+        voidedAt: new Date(),
+        voidReason: reason || "Voided by admin",
+      });
+
+      // Void all pending recipients
+      const recipients = await storage.getEnvelopeRecipients(envelopeId);
+      for (const recipient of recipients) {
+        if (recipient.status !== "signed") {
+          await storage.updateCsuEnvelopeRecipient(recipient.id, {
+            status: "voided",
+          });
+        }
+      }
+
+      // Log audit event
+      await storage.createCsuAuditTrail({
+        envelopeId,
+        eventType: "envelope_voided",
+        eventDescription: `Envelope voided: ${reason || "No reason provided"}`,
+        actorType: "admin",
+        actorEmail: (req as any).user?.email,
+        actorUserId: (req as any).user?.id,
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
+      res.json({ success: true, message: "Envelope voided successfully" });
+    } catch (error) {
+      console.error("Error voiding envelope:", error);
+      res.status(500).json({ message: "Failed to void envelope" });
+    }
+  });
+
   // Resend contract with new token (admin)
   app.post("/api/csu/contract-sends/:id/resend", requireAdmin, async (req, res) => {
     try {
