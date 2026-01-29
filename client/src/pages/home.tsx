@@ -281,20 +281,12 @@ export default function Home() {
               <span className="text-brand-red text-2xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight">in 2026 and Beyond</span>
             </h1>
 
-            {/* Ranger Tab Animated Banner */}
+            {/* Ranger Tab Banner */}
             <div className="w-full max-w-4xl mx-auto my-6 sm:my-8 px-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150">
               <div className="relative bg-gradient-to-r from-brand-navy/80 via-brand-blue/60 to-brand-navy/80 backdrop-blur-sm border border-brand-gold/30 rounded-xl px-4 sm:px-8 py-4 sm:py-6 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-gold/10 to-transparent animate-pulse"></div>
-                <p className="ranger-banner-text text-center text-lg sm:text-2xl md:text-3xl relative z-10">
-                  {"Tired of document management fees? Get your Ranger Tab - your own contract signing portal at no cost!".split("").map((char, index) => (
-                    <span
-                      key={index}
-                      className="ranger-shine-letter"
-                      style={{ animationDelay: `${index * 0.05}s` }}
-                    >
-                      {char === " " ? "\u00A0" : char}
-                    </span>
-                  ))}
+                <p className="text-center text-lg sm:text-2xl md:text-3xl relative z-10 text-white font-display">
+                  Get your Ranger Tab and ask how you can get no-cost contract mgmt & signature for your business
                 </p>
                 <div className="text-center mt-3">
                   <a
