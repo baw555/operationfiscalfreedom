@@ -2162,25 +2162,29 @@ export default function CsuPortal() {
   }
 
   if (!verifiedAdmin && (!user || user.role !== "admin")) {
-    return <PayziumLoginForm onSuccess={async () => { 
-      // Invalidate cache first
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      // Fetch fresh data directly (bypasses 304 cache issue)
-      try {
-        const response = await fetch("/api/auth/me", { credentials: "include" });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user && data.user.role === "admin") {
-            // Set local verified state to force portal render
-            setVerifiedAdmin(true);
-            // Also update query cache for consistency (use correct shape)
-            queryClient.setQueryData(["/api/auth/me"], data);
+    return (
+      <Layout>
+        <PayziumLoginForm onSuccess={async () => { 
+          // Invalidate cache first
+          await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+          // Fetch fresh data directly (bypasses 304 cache issue)
+          try {
+            const response = await fetch("/api/auth/me", { credentials: "include" });
+            if (response.ok) {
+              const data = await response.json();
+              if (data.user && data.user.role === "admin") {
+                // Set local verified state to force portal render
+                setVerifiedAdmin(true);
+                // Also update query cache for consistency (use correct shape)
+                queryClient.setQueryData(["/api/auth/me"], data);
+              }
+            }
+          } catch (e) {
+            console.error("Auth verification failed:", e);
           }
-        }
-      } catch (e) {
-        console.error("Auth verification failed:", e);
-      }
-    }} />;
+        }} />
+      </Layout>
+    );
   }
 
   return (
