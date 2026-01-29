@@ -145,35 +145,6 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
     }
   };
 
-  const [animationPhase, setAnimationPhase] = useState(0);
-  const [showLightning, setShowLightning] = useState(false);
-  const [lightningPosition, setLightningPosition] = useState({ x: 50, y: 0 });
-
-  // Lightning effect
-  useEffect(() => {
-    const lightningInterval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        setLightningPosition({ x: Math.random() * 100, y: 0 });
-        setShowLightning(true);
-        setTimeout(() => setShowLightning(false), 150);
-        setTimeout(() => {
-          setShowLightning(true);
-          setTimeout(() => setShowLightning(false), 100);
-        }, 200);
-      }
-    }, 800);
-    return () => clearInterval(lightningInterval);
-  }, []);
-
-  // Logo animation phases: 0=heart, 1=brain, 2=logo construction, 3=fire
-  useEffect(() => {
-    const timers = [
-      setTimeout(() => setAnimationPhase(1), 3000),
-      setTimeout(() => setAnimationPhase(2), 6000),
-      setTimeout(() => setAnimationPhase(3), 9000),
-    ];
-    return () => timers.forEach(t => clearTimeout(t));
-  }, []);
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
