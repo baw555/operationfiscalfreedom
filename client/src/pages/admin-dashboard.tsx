@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useAutoLogout } from "@/hooks/use-auto-logout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Shield, LogOut, Users, FileText, HelpCircle, Plus, Search, 
@@ -37,6 +38,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  useAutoLogout("/admin/login");
   const [activeTab, setActiveTab] = useState<MainTabType>("applications");
   const [requestSubTab, setRequestSubTab] = useState<RequestSubType>("get_help");
   const [searchTerm, setSearchTerm] = useState("");

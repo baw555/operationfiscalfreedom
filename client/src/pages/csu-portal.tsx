@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, BarChart3, Eye, EyeOff, Users, Globe, MapPin } from "lucide-react";
+import { useAutoLogout } from "@/hooks/use-auto-logout";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -1582,6 +1583,7 @@ export default function CsuPortal() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+  useAutoLogout("/Payzium");
   const [activeTab, setActiveTab] = useState("send");
   const [formData, setFormData] = useState({
     templateId: "",
@@ -1686,6 +1688,15 @@ export default function CsuPortal() {
       }
     }
   }, [showSelfSign]);
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    },
+    onSuccess: () => {
+      navigate("/Payzium");
+    },
+  });
 
   const sendContractMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -2117,6 +2128,14 @@ export default function CsuPortal() {
                       <p className="text-xs text-amber-700 font-medium">Portal Link:</p>
                       <p className="text-xs text-amber-600 break-all" data-testid="text-account-portal-link">{MAURICE_INFO.portalLink}</p>
                     </div>
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4 border-amber-300 text-amber-800 hover:bg-amber-100"
+                      onClick={() => logoutMutation.mutate()}
+                      data-testid="button-logout-sidebar"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" /> Logout
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
@@ -2469,6 +2488,14 @@ export default function CsuPortal() {
                       </Button>
                     </div>
                   </div>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4 border-amber-300 text-amber-800 hover:bg-amber-100"
+                    onClick={() => logoutMutation.mutate()}
+                    data-testid="button-logout-main"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" /> Logout
+                  </Button>
                 </CardContent>
               </Card>
             </div>

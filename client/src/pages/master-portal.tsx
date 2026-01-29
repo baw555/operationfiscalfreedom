@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useAutoLogout } from "@/hooks/use-auto-logout";
 import { 
   Shield, Users, FileText, FolderOpen, Eye, EyeOff, Download, ChevronRight, Camera, IdCard, 
   FileSignature, ClipboardCheck, Receipt, Link2, Store, CreditCard, Gift, LogIn,
@@ -113,6 +114,7 @@ interface AffiliateFile {
 
 export default function MasterPortal() {
   const [, setLocation] = useLocation();
+  useAutoLogout("/master-portal");
   const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateFile | null>(null);
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
   const [loginEmail, setLoginEmail] = useState(() => localStorage.getItem("master_remembered_email") || "");
