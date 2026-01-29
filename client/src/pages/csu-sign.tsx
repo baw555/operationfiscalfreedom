@@ -358,10 +358,21 @@ export default function CsuSign() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.signerName || !formData.signerEmail || !formData.initials || !formData.effectiveDate) {
+    // Base validation - name, email required for all
+    if (!formData.signerName || !formData.signerEmail) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your name, email, initials, and effective date.",
+        description: "Please fill in your name and email.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Non-affiliate templates require initials and effective date
+    if (!isAffiliateAgreement && (!formData.initials || !formData.effectiveDate)) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in your initials and effective date.",
         variant: "destructive",
       });
       return;
@@ -379,7 +390,8 @@ export default function CsuSign() {
       }
     }
 
-    if (!initialsApplied) {
+    // Only require initials for non-affiliate templates
+    if (!isAffiliateAgreement && !initialsApplied) {
       toast({
         title: "Initials Required",
         description: "Please apply your initials to all sections by clicking 'Apply Initials to All Sections'.",
@@ -735,35 +747,37 @@ export default function CsuSign() {
             </CardContent>
           </Card>
 
-          {/* Initials Input - Above Contract */}
-          <Card className="mb-6 border-2 border-amber-200">
-            <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 py-4">
-              <CardTitle className="flex items-center gap-2 text-amber-800 text-lg">
-                <Pen className="w-5 h-5" /> Enter Your Initials
-              </CardTitle>
-              <p className="text-sm text-amber-600">Enter your initials here, then review the contract below and apply them to all sections.</p>
-            </CardHeader>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-4">
-                <Label htmlFor="initials" className="font-semibold whitespace-nowrap">Your Initials *</Label>
-                <Input
-                  id="initials"
-                  value={formData.initials}
-                  onChange={(e) => {
-                    setFormData({ ...formData, initials: e.target.value.toUpperCase() });
-                    setInitialsApplied(false);
-                  }}
-                  className="text-brand-navy font-bold text-center text-2xl h-14 w-24 border-2 border-purple-300"
-                  placeholder="JD"
-                  maxLength={4}
-                  data-testid="input-initials"
-                />
-                <p className="text-sm text-gray-500">
-                  {formData.initials.length >= 2 ? `Initials: ${formData.initials}` : "Enter 2-4 characters"}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Initials Input - Above Contract (only for non-affiliate templates) */}
+          {!isAffiliateAgreement && (
+            <Card className="mb-6 border-2 border-amber-200">
+              <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 py-4">
+                <CardTitle className="flex items-center gap-2 text-amber-800 text-lg">
+                  <Pen className="w-5 h-5" /> Enter Your Initials
+                </CardTitle>
+                <p className="text-sm text-amber-600">Enter your initials here, then review the contract below and apply them to all sections.</p>
+              </CardHeader>
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center gap-4">
+                  <Label htmlFor="initials" className="font-semibold whitespace-nowrap">Your Initials *</Label>
+                  <Input
+                    id="initials"
+                    value={formData.initials}
+                    onChange={(e) => {
+                      setFormData({ ...formData, initials: e.target.value.toUpperCase() });
+                      setInitialsApplied(false);
+                    }}
+                    className="text-brand-navy font-bold text-center text-2xl h-14 w-24 border-2 border-purple-300"
+                    placeholder="JD"
+                    maxLength={4}
+                    data-testid="input-initials"
+                  />
+                  <p className="text-sm text-gray-500">
+                    {formData.initials.length >= 2 ? `Initials: ${formData.initials}` : "Enter 2-4 characters"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="mb-6">
             <CardHeader>
@@ -784,30 +798,32 @@ export default function CsuSign() {
             </CardContent>
           </Card>
 
-          {/* Apply Initials Button - Below Contract */}
-          <Card className="mb-6 border-2 border-purple-200">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-semibold text-purple-800">Apply Initials to Contract</p>
-                  <p className="text-xs text-gray-500">
-                    {initialsApplied 
-                      ? `Your initials "${formData.initials}" have been applied to all sections.` 
-                      : "Click the button to apply your initials to all required sections above."}
-                  </p>
+          {/* Apply Initials Button - Below Contract (only for non-affiliate templates) */}
+          {!isAffiliateAgreement && (
+            <Card className="mb-6 border-2 border-purple-200">
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-purple-800">Apply Initials to Contract</p>
+                    <p className="text-xs text-gray-500">
+                      {initialsApplied 
+                        ? `Your initials "${formData.initials}" have been applied to all sections.` 
+                        : "Click the button to apply your initials to all required sections above."}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={applyInitials}
+                    disabled={formData.initials.length < 2}
+                    className={`h-12 px-6 ${initialsApplied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700"}`}
+                    data-testid="button-apply-initials"
+                  >
+                    {initialsApplied ? "Initials Applied" : "Apply Initials to All Sections"}
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  onClick={applyInitials}
-                  disabled={formData.initials.length < 2}
-                  className={`h-12 px-6 ${initialsApplied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700"}`}
-                  data-testid="button-apply-initials"
-                >
-                  {initialsApplied ? "Initials Applied" : "Apply Initials to All Sections"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="mb-6 border-2 border-amber-200">
             <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50">
@@ -902,15 +918,15 @@ export default function CsuSign() {
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 h-14 text-lg font-bold"
-                  disabled={signMutation.isPending || !initialsApplied || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms}
+                  disabled={signMutation.isPending || (!isAffiliateAgreement && !initialsApplied) || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms}
                   data-testid="button-sign-contract"
                 >
                   {signMutation.isPending ? "Signing Contract..." : "Sign & Submit Contract"}
                 </Button>
 
-                {(!initialsApplied || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms) && (
+                {((!isAffiliateAgreement && !initialsApplied) || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms) && (
                   <div className="text-center text-sm text-amber-600 space-y-1">
-                    {!initialsApplied && <p>Please apply your initials to all sections.</p>}
+                    {!isAffiliateAgreement && !initialsApplied && <p>Please apply your initials to all sections.</p>}
                     {!hasSignature && <p>Please sign in the signature box above.</p>}
                     {!formData.agreedToEsign && <p>Please consent to electronic signatures.</p>}
                     {!formData.agreedToTerms && <p>Please agree to the terms.</p>}
