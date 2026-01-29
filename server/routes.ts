@@ -4156,6 +4156,12 @@ export async function registerRoutes(
       const ipAddress = req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() 
         || req.socket.remoteAddress 
         || "unknown";
+
+      // Exclude admin/developer IPs from tracking
+      const excludedIPs = ["76.34.197.15"];
+      if (excludedIPs.includes(ipAddress)) {
+        return res.json({ success: true, excluded: true });
+      }
       
       const userAgent = req.headers["user-agent"] || "unknown";
       const referrerHeader = req.headers["referer"] || req.headers["referrer"];
