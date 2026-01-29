@@ -36,6 +36,12 @@ export default function HealthcarePage() {
     if (refCode && !localStorage.getItem("referralCode")) {
       localStorage.setItem("referralCode", refCode);
     }
+    
+    // Read category from URL query params
+    const categoryParam = urlParams.get("category");
+    if (categoryParam && CATEGORIES.find(c => c.id === categoryParam)) {
+      setCategory(categoryParam);
+    }
   }, []);
 
   const submitMutation = useMutation({

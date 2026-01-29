@@ -65,17 +65,18 @@ const aboutSubItems = [
 ];
 
 const disabilityRatingSubItems = [
-  { name: "VA Rating: Initial", href: "/disability-rating/initial" },
-  { name: "VA Rating: Increase", href: "/disability-rating/increase" },
-  { name: "VA Rating: Denial", href: "/disability-rating/denial" },
-  { name: "SSDI", href: "/disability-rating/ssdi" },
-  { name: "VA Rating: Widow(er)", href: "/disability-rating/widow" },
+  { name: "VA Rating", href: "/disability-rating", header: true },
+  { name: "Initial Claim", href: "/disability-rating/initial" },
+  { name: "Rating Increase", href: "/disability-rating/increase" },
+  { name: "Denial Appeals", href: "/disability-rating/denial" },
+  { name: "SSDI Benefits", href: "/disability-rating/ssdi" },
+  { name: "Widow/Survivor", href: "/disability-rating/widow" },
   { name: "Healthcare", href: "/healthcare", header: true },
-  { name: "PTSD Treatments", href: "/healthcare/ptsd" },
-  { name: "Exosome Therapy", href: "/healthcare/exosomes" },
-  { name: "Less Invasive Options", href: "/healthcare/less-invasive" },
-  { name: "New Treatments", href: "/healthcare/new-treatments" },
-  { name: "Treatment Guidance", href: "/healthcare/guidance" },
+  { name: "PTSD Treatments", href: "/healthcare?category=ptsd" },
+  { name: "Exosome Therapy", href: "/healthcare?category=exosomes" },
+  { name: "Less Invasive", href: "/healthcare?category=less_invasive" },
+  { name: "New Treatments", href: "/healthcare?category=new_treatments" },
+  { name: "Treatment Guidance", href: "/healthcare?category=guidance" },
 ];
 
 const finOpsSubItems = [
