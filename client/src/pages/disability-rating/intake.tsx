@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 import { TCPAConsent } from "@/components/tcpa-consent";
+import { logConsent } from "@/lib/consent-logger";
 
 export default function DisabilityIntake() {
   const [, navigate] = useLocation();
@@ -57,7 +58,14 @@ export default function DisabilityIntake() {
         referralCode,
       });
     },
-    onSuccess: () => {
+    onSuccess: async (result: any) => {
+      await logConsent({
+        submissionType: "disability_referral",
+        submissionId: result.id,
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone,
+      });
       setSubmitted(true);
       localStorage.removeItem("disabilityReferralCode");
     },
