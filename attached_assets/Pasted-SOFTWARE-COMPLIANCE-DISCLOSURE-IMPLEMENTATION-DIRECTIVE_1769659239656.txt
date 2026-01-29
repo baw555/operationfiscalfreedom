@@ -1,0 +1,329 @@
+SOFTWARE, COMPLIANCE & DISCLOSURE IMPLEMENTATION DIRECTIVES
+
+Authoritative Build Specification — Follow Exactly
+
+SECTION 1 — LEGAL & BRAND STRUCTURE (FOUNDATIONAL)
+1.1 Entity Relationships (DO NOT CONFUSE)
+
+NavigatorUSA is the legal operating entity.
+
+NavigatorUSA is a registered 501(c)(3) nonprofit organization.
+
+Operation Fiscal Freedom is:
+
+A program / initiative / website name
+
+Operated by NavigatorUSA
+
+Not a separate legal entity
+
+All legal disclosures, privacy language, and compliance references must clearly tie back to NavigatorUSA as the operator.
+
+1.2 Required Operator Disclosure (GLOBAL)
+
+The following concept must appear (paraphrasing allowed, meaning must remain intact):
+
+Operation Fiscal Freedom is an initiative operated by NavigatorUSA, a 501(c)(3) nonprofit organization.
+
+This disclosure should appear:
+
+In the footer
+
+In the Privacy Policy
+
+In the Terms of Use
+
+SECTION 2 — NONPROFIT STATUS (ALLOWED & CONTROLLED)
+2.1 What You MAY Say
+
+You may truthfully state:
+
+NavigatorUSA is a 501(c)(3) nonprofit
+
+The initiative is mission-driven
+
+The initiative works with aligned partners to support individuals
+
+2.2 What You MAY NOT Imply
+
+Even as a nonprofit, you must not imply:
+
+Government authority
+
+Benefit approval power
+
+Guaranteed outcomes
+
+Official determinations
+
+Legal or financial advice
+
+Nonprofit ≠ government ≠ regulator ≠ adjudicator.
+
+SECTION 3 — DATA MODEL (EXPLICIT POSITION)
+3.1 Data Use Statement (NON-NEGOTIABLE)
+
+NavigatorUSA shares data. NavigatorUSA does NOT sell data.
+
+This distinction must be consistent across:
+
+Privacy Policy
+
+Notice at Collection
+
+Form disclosures
+
+Internal documentation
+
+3.2 Approved Sharing Language
+
+Use only:
+
+“Shared with affiliated or mission-aligned partners”
+
+“Shared to respond to your request”
+
+“Shared consistent with NavigatorUSA’s nonprofit mission”
+
+Never use:
+
+“Sold”
+
+“Purchased leads”
+
+“Lead buyers”
+
+“Advertising resale”
+
+SECTION 4 — FORM DESIGN & TCPA CONSENT
+4.1 Consent Checkbox (MANDATORY)
+
+Every form collecting contact info must include:
+
+A required checkbox
+
+Unchecked by default
+
+Submission disabled unless checked
+
+4.2 Approved Consent Meaning (ENGINEER MUST PRESERVE INTENT)
+
+The consent language must clearly communicate:
+
+By checking this box and submitting this form, I agree that NavigatorUSA, operating through the Operation Fiscal Freedom initiative, and its affiliated or mission-aligned partners may contact me by phone, text message, email, or prerecorded/artificial voice, including through automated technology, regarding my request. Consent is not a condition of purchase. Message and data rates may apply. Reply STOP to opt out.
+
+4.3 Visibility Rules
+
+Consent language must be:
+
+Immediately adjacent to the submit button
+
+Not hidden behind a link
+
+Not bundled with unrelated terms
+
+SECTION 5 — TRUSTEDFORM (MANDATORY IMPLEMENTATION)
+5.1 Purpose
+
+TrustedForm is required to:
+
+Independently certify consent
+
+Record the exact disclosure language
+
+Produce a timestamped certificate for audits
+
+5.2 Technical Requirements
+
+TrustedForm must:
+
+Load on every form
+
+Fire after checkbox interaction
+
+Generate a certificate URL
+
+Never be bypassed by alternate submission paths
+
+5.3 Required Lead Record Fields
+
+Each submission must permanently store:
+
+Name
+
+Phone number
+
+Email address
+
+Timestamp (UTC)
+
+IP address
+
+User agent (if available)
+
+Consent checkbox value
+
+TrustedForm certificate URL
+
+Landing page URL
+
+Partner(s) information was shared with
+
+SECTION 6 — RELAY / POSTING ENGINE (CONTROLLED SHARING)
+6.1 Purpose
+
+The relay engine exists to:
+
+Share data only with approved partners
+
+Support NavigatorUSA’s nonprofit mission
+
+Ensure accountability and auditability
+
+This is not a resale or auction system.
+
+6.2 Relay Engine Rules
+
+The system must:
+
+Route only to pre-approved partners
+
+Never re-broadcast data
+
+Never modify user-submitted claims
+
+Log all deliveries
+
+6.3 Logging (REQUIRED)
+
+Each partner share must log:
+
+Partner name
+
+Timestamp
+
+Delivery endpoint
+
+Success/failure status
+
+SECTION 7 — MEMBER / AFFILIATED PARTNERS PAGE
+7.1 Page Requirement
+
+Create a public page listing:
+
+Legal name of each affiliated or mission-aligned partner
+
+High-level description of role
+
+Statement of why sharing occurs
+
+7.2 Required Disclosure Language
+
+At the top of the page:
+
+If you submit information through Operation Fiscal Freedom, NavigatorUSA may share your information with one or more affiliated or mission-aligned partners to help respond to your request.
+
+7.3 Mandatory Linking
+
+Link this page from:
+
+All forms
+
+Privacy Policy
+
+Footer
+
+SECTION 8 — PRIVACY POLICY & CALIFORNIA COMPLIANCE
+8.1 Privacy Policy Must State Clearly:
+
+NavigatorUSA is the operator
+
+NavigatorUSA is a 501(c)(3)
+
+What data is collected
+
+Why it is collected
+
+That data is shared, not sold
+
+Who it may be shared with
+
+How users can exercise privacy rights
+
+8.2 California Notice at Collection (INLINE)
+
+Near each form:
+
+California Notice at Collection: NavigatorUSA collects the information you provide to respond to your request and may share it with affiliated or mission-aligned partners. For details on categories, purposes, and your rights, see our Privacy Policy.
+
+8.3 “Do Not Sell or Share” Page
+
+Even though data is not sold, include a page explaining:
+
+NavigatorUSA does not sell personal information
+
+How sharing works
+
+How to submit privacy requests
+
+SECTION 9 — COPY & UX RULES (GLOBAL)
+9.1 Language Rules
+
+Use:
+
+“You may be eligible”
+
+“Based on the information you provide”
+
+“Does not guarantee outcomes”
+
+Never use:
+
+“See if you qualify”
+
+“Approval”
+
+“Guaranteed”
+
+“Official determination”
+
+9.2 Visual & Structural Rules
+
+Do not:
+
+Use government seals or insignia
+
+Imply authority
+
+Create urgency or scarcity
+
+Use countdown timers
+
+SECTION 10 — THANK-YOU PAGE REQUIREMENTS
+
+The thank-you page must:
+
+Confirm receipt only
+
+State that NavigatorUSA or a partner may contact the user
+
+Reiterate opt-out rights
+
+Avoid timelines or promises
+
+SECTION 11 — DATA RETENTION & AUDIT READINESS
+11.1 Retention
+
+Store all submissions and consent artifacts for minimum 5 years.
+
+11.2 Audit Capability
+
+For any submission, the system must be able to produce:
+
+Consent proof
+
+Language shown at submission
+
+Timestamp
+
+Partner(s) data was shared with
