@@ -70,7 +70,6 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("payzium_remembered_email"));
   const [isLoading, setIsLoading] = useState(false);
-  const [lightningFlash, setLightningFlash] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   
@@ -152,26 +151,6 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
       }
     };
     trackVisit();
-  }, []);
-
-  // Random lightning flash effect
-  useEffect(() => {
-    const triggerFlash = () => {
-      setLightningFlash(true);
-      setTimeout(() => setLightningFlash(false), 150);
-      setTimeout(() => {
-        if (Math.random() > 0.5) {
-          setLightningFlash(true);
-          setTimeout(() => setLightningFlash(false), 100);
-        }
-      }, 200);
-    };
-
-    const interval = setInterval(() => {
-      if (Math.random() > 0.6) triggerFlash();
-    }, 3000 + Math.random() * 4000);
-
-    return () => clearInterval(interval);
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -382,249 +361,48 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         </div>
       )}
       
-      {/* Lightning flash overlay */}
-      <div 
-        className={`absolute inset-0 pointer-events-none z-50 transition-opacity duration-75 ${lightningFlash ? 'opacity-40' : 'opacity-0'}`}
-        style={{ background: 'linear-gradient(180deg, rgba(255,215,0,0.3) 0%, rgba(255,255,255,0.6) 30%, rgba(255,200,50,0.2) 100%)' }}
-      />
-
-      {/* Multi-layer storm background overlay - semi-transparent to show video */}
+      {/* Subtle overlay for text readability */}
       <div className="absolute inset-0 z-[2]">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/60 via-[#1a1005]/40 to-[#0a0a0a]/60" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[80vh] bg-gradient-to-b from-amber-950/20 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
       </div>
-
-      {/* Animated storm clouds at top */}
-      <div className="absolute top-0 left-0 right-0 h-64 overflow-hidden z-[3]">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-950/40 via-orange-950/20 to-transparent animate-stormCloud1" />
-        <div className="absolute inset-0 bg-gradient-to-b from-yellow-950/30 via-amber-950/15 to-transparent animate-stormCloud2" />
-      </div>
-
-      {/* Lightning bolts - multiple SVG paths */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[4]">
-        {/* Main central lightning bolt */}
-        <svg className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-[60vh] animate-lightningBolt1" viewBox="0 0 200 400" style={{ opacity: 0 }}>
-          <path d="M100 0 L95 80 L120 85 L90 180 L115 185 L85 300 L110 305 L70 400" 
-                stroke="url(#goldGradient)" strokeWidth="3" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 20px #ffd700) drop-shadow(0 0 40px #ff8c00)' }} />
-          <defs>
-            <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="30%" stopColor="#ffd700" />
-              <stop offset="100%" stopColor="#ff6600" />
-            </linearGradient>
-          </defs>
-        </svg>
-
-        {/* Left lightning */}
-        <svg className="absolute top-10 left-[15%] w-48 h-[50vh] animate-lightningBolt2" viewBox="0 0 100 300" style={{ opacity: 0 }}>
-          <path d="M50 0 L45 60 L65 65 L35 150 L55 155 L25 250 L50 255 L10 300" 
-                stroke="#ffd700" strokeWidth="2" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ff8c00)' }} />
-        </svg>
-
-        {/* Right lightning */}
-        <svg className="absolute top-20 right-[15%] w-48 h-[45vh] animate-lightningBolt3" viewBox="0 0 100 300" style={{ opacity: 0 }}>
-          <path d="M50 0 L55 70 L35 75 L60 160 L40 165 L70 250 L45 255 L85 300" 
-                stroke="#ffc800" strokeWidth="2" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ff8c00)' }} />
-        </svg>
-
-        {/* Small branch lightning bolts */}
-        {[...Array(8)].map((_, i) => (
-          <svg 
-            key={`branch-${i}`}
-            className="absolute w-24 h-32"
-            style={{
-              top: `${10 + Math.random() * 40}%`,
-              left: `${5 + i * 12}%`,
-              opacity: 0,
-              animation: `lightningBranch ${0.1 + Math.random() * 0.2}s ease-out forwards`,
-              animationDelay: `${3 + Math.random() * 5}s`,
-              animationIterationCount: 'infinite'
-            }}
-            viewBox="0 0 50 80"
-          >
-            <path d={`M25 0 L${20 + Math.random() * 10} 30 L${30 + Math.random() * 10} 35 L${15 + Math.random() * 20} 80`}
-                  stroke="#ffd700" strokeWidth="1.5" fill="none"
-                  style={{ filter: 'drop-shadow(0 0 8px #ffd700)' }} />
-          </svg>
-        ))}
-
-        {/* Electric particles / sparks */}
-        {[...Array(60)].map((_, i) => (
-          <div
-            key={`spark-${i}`}
-            className="absolute rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              width: `${2 + Math.random() * 4}px`,
-              height: `${2 + Math.random() * 4}px`,
-              backgroundColor: i % 3 === 0 ? '#ffd700' : i % 3 === 1 ? '#ff8c00' : '#ffaa00',
-              boxShadow: `0 0 ${6 + Math.random() * 12}px ${i % 2 === 0 ? '#ffd700' : '#ff6600'}`,
-              animation: `sparkFloat ${2 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 4}s`
-            }}
-          />
-        ))}
-
-        {/* Electric arc lines */}
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={`arc-${i}`}
-            className="absolute h-px"
-            style={{
-              left: `${10 + Math.random() * 30}%`,
-              top: `${15 + i * 12}%`,
-              width: `${15 + Math.random() * 30}%`,
-              background: 'linear-gradient(90deg, transparent, #ffd700, transparent)',
-              boxShadow: '0 0 10px #ffd700, 0 0 20px #ff8c00',
-              transform: `rotate(${-20 + Math.random() * 40}deg)`,
-              animation: `arcPulse ${2 + Math.random() * 3}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Central golden energy pillar behind logo */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[4px] h-[50%] bg-gradient-to-b from-amber-400/60 via-amber-500/30 to-transparent animate-pillarPulse z-[5]" style={{ boxShadow: '0 0 40px #ffd700, 0 0 80px #ff8c00' }} />
-
-      {/* Ambient golden glow orbs */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-radial from-amber-900/40 via-orange-900/20 to-transparent blur-3xl animate-breatheGold z-[5]" />
-      <div className="absolute bottom-40 left-1/4 w-[350px] h-[350px] bg-gradient-radial from-amber-900/25 via-transparent to-transparent blur-3xl animate-breatheGold2 z-[5]" />
-      <div className="absolute bottom-60 right-1/4 w-[300px] h-[300px] bg-gradient-radial from-orange-900/20 via-transparent to-transparent blur-3xl animate-breatheGold3 z-[5]" />
 
       {/* Main content */}
       <div className="relative z-[10] min-h-screen flex items-center justify-center px-4 py-12 overflow-visible">
         <div className="w-full max-w-lg overflow-visible">
           
-          {/* Logo Stage - EPIC Thor presentation with Extended Lightning */}
-          <div className="text-center mb-8 animate-fadeInDown relative overflow-visible">
-            {/* EXTENDED LIGHTNING FROM LOGO - Radiating across entire banner */}
-            {/* Large left-extending bolt from logo */}
-            <svg className="absolute top-1/2 left-1/2 -translate-y-1/2 w-[80vw] h-[60vh] pointer-events-none z-0" viewBox="0 0 800 400" style={{ transform: 'translate(-70%, -40%)', opacity: 0.7 }}>
-              <defs>
-                <linearGradient id="payziumBoltGradientL" x1="100%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ffd700" stopOpacity="0.9" />
-                  <stop offset="50%" stopColor="#ff8c00" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#ff6600" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {/* Main left bolt */}
-              <path 
-                d="M800 200 L700 180 L720 195 L600 170 L640 190 L500 150 L560 175 L400 130 L480 160 L300 100 L400 140 L150 60 L280 110 L0 20" 
-                stroke="url(#payziumBoltGradientL)" strokeWidth="3" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ff8c00)', animation: 'extendedBoltFlicker 4s ease-in-out infinite' }} 
-              />
-              {/* Branch 1 */}
-              <path 
-                d="M600 170 L550 200 L580 195 L480 250 L530 230 L400 300" 
-                stroke="#ffd700" strokeWidth="2" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 10px #ffd700)', opacity: 0.6, animation: 'extendedBoltFlicker 3.5s ease-in-out infinite 0.5s' }} 
-              />
-              {/* Branch 2 */}
-              <path 
-                d="M400 130 L350 180 L380 170 L280 240 L320 220 L200 320" 
-                stroke="#ffaa00" strokeWidth="1.5" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 8px #ff8c00)', opacity: 0.5, animation: 'extendedBoltFlicker 4.5s ease-in-out infinite 1s' }} 
-              />
-            </svg>
-            
-            {/* Large right-extending bolt from logo */}
-            <svg className="absolute top-1/2 left-1/2 -translate-y-1/2 w-[80vw] h-[60vh] pointer-events-none z-0" viewBox="0 0 800 400" style={{ transform: 'translate(-30%, -40%) scaleX(-1)', opacity: 0.7 }}>
-              <defs>
-                <linearGradient id="payziumBoltGradientR" x1="100%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ffd700" stopOpacity="0.9" />
-                  <stop offset="50%" stopColor="#ff8c00" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#ff6600" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {/* Main right bolt */}
-              <path 
-                d="M800 200 L700 220 L720 205 L600 230 L640 210 L500 250 L560 225 L400 270 L480 240 L300 300 L400 260 L150 340 L280 290 L0 380" 
-                stroke="url(#payziumBoltGradientR)" strokeWidth="3" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ff8c00)', animation: 'extendedBoltFlicker 4.2s ease-in-out infinite 0.3s' }} 
-              />
-              {/* Branch 1 */}
-              <path 
-                d="M600 230 L550 180 L580 195 L480 130 L530 160 L400 80" 
-                stroke="#ffd700" strokeWidth="2" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 10px #ffd700)', opacity: 0.6, animation: 'extendedBoltFlicker 3.8s ease-in-out infinite 0.7s' }} 
-              />
-            </svg>
-            
-            {/* Downward extending bolts from logo */}
-            <svg className="absolute top-full left-1/2 -translate-x-1/2 w-[60vw] h-[40vh] pointer-events-none z-0" viewBox="0 0 600 300" style={{ opacity: 0.6 }}>
-              {/* Center downward bolt */}
-              <path 
-                d="M300 0 L290 50 L310 45 L280 100 L320 90 L270 160 L330 140 L250 220 L340 190 L220 300" 
-                stroke="#ffd700" strokeWidth="2.5" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 12px #ffd700) drop-shadow(0 0 25px #ff8c00)', animation: 'extendedBoltFlicker 5s ease-in-out infinite 0.2s' }} 
-              />
-              {/* Left downward branch */}
-              <path 
-                d="M280 100 L200 140 L240 130 L140 200 L190 180 L80 280" 
-                stroke="#ff8c00" strokeWidth="2" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 10px #ff8c00)', opacity: 0.5, animation: 'extendedBoltFlicker 4.3s ease-in-out infinite 0.8s' }} 
-              />
-              {/* Right downward branch */}
-              <path 
-                d="M320 90 L400 130 L360 125 L460 190 L410 175 L520 270" 
-                stroke="#ff8c00" strokeWidth="2" fill="none" 
-                style={{ filter: 'drop-shadow(0 0 10px #ff8c00)', opacity: 0.5, animation: 'extendedBoltFlicker 4.6s ease-in-out infinite 1.2s' }} 
-              />
-            </svg>
-            
+          {/* Logo Stage - Clean presentation */}
+          <div className="text-center mb-8 animate-fadeInDown relative">
             <div className="relative inline-block">
-              {/* Outer power halo */}
-              <div className="absolute -inset-20 bg-gradient-radial from-amber-500/20 via-orange-600/10 to-transparent rounded-full blur-3xl animate-haloGold" />
+              {/* Subtle glow behind logo */}
+              <div className="absolute -inset-10 bg-gradient-radial from-amber-500/15 via-transparent to-transparent rounded-full blur-2xl" />
               
-              {/* Electric corona */}
-              <div className="absolute -inset-12 bg-gradient-radial from-yellow-400/15 via-transparent to-transparent rounded-full blur-2xl animate-coronaPulse" />
-              
-              {/* Main logo with lightning glow */}
+              {/* Main logo */}
               <div className="relative">
                 <img 
                   src="/payzium-lightning-logo.png" 
                   alt="Payzium" 
-                  className="w-[420px] h-auto relative z-10 animate-logoThunder"
+                  className="w-[420px] h-auto relative z-10"
                   style={{
-                    filter: 'drop-shadow(0 0 30px rgba(255, 215, 0, 0.5)) drop-shadow(0 0 60px rgba(255, 140, 0, 0.3)) drop-shadow(0 0 100px rgba(255, 100, 0, 0.2))',
+                    filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.4)) drop-shadow(0 0 40px rgba(255, 140, 0, 0.2))',
                   }}
                 />
-                
-                {/* Bottom electric reflection */}
-                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-60 h-2 bg-gradient-to-r from-transparent via-amber-400/50 to-transparent blur-sm animate-reflectionPulse" />
               </div>
             </div>
           </div>
 
-          {/* MJÖLNIR GATEWAY - Epic Login Card */}
+          {/* Login Card */}
           <div className="relative animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-            {/* Electric field rings */}
-            <div className="absolute -inset-6 rounded-3xl animate-fieldRing1">
-              <div className="absolute inset-0 rounded-3xl border border-amber-500/30" style={{ boxShadow: '0 0 20px rgba(255,215,0,0.2)' }} />
-            </div>
-            <div className="absolute -inset-10 rounded-3xl animate-fieldRing2">
-              <div className="absolute inset-0 rounded-3xl border border-orange-500/15" />
-            </div>
-            
-            {/* Energy surge */}
-            <div className="absolute -inset-3 rounded-2xl bg-gradient-to-r from-amber-500/25 via-orange-500/35 to-amber-500/25 blur-xl animate-energySurge" />
-            
-            {/* Card border glow */}
-            <div className="absolute -inset-[2px] bg-gradient-to-b from-amber-400/60 via-orange-500/50 to-amber-600/60 rounded-2xl blur-sm animate-borderGoldGlow" />
+            {/* Subtle border glow */}
+            <div className="absolute -inset-[1px] bg-gradient-to-b from-amber-400/40 via-orange-500/30 to-amber-600/40 rounded-2xl blur-sm" />
             
             <div 
-              className={`relative backdrop-blur-xl border border-amber-400/30 rounded-2xl p-8 shadow-2xl transition-all duration-500 ${
+              className={`relative backdrop-blur-xl border border-amber-400/20 rounded-2xl p-8 shadow-2xl transition-all duration-500 ${
                 isTyping || hasContent 
-                  ? 'bg-[#0d0905]/90' 
-                  : 'bg-[#0d0905]/40'
+                  ? 'bg-[#0d0905]/85' 
+                  : 'bg-[#0d0905]/30'
               }`} 
-              style={{ boxShadow: '0 0 60px rgba(255,140,0,0.2), inset 0 1px 1px rgba(255,215,0,0.1)' }}
+              style={{ boxShadow: '0 0 40px rgba(255,140,0,0.15)' }}
             >
               {/* Corner lightning indicators */}
               <div className="absolute top-2 left-2 w-3 h-3">
