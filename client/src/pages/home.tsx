@@ -123,15 +123,15 @@ export default function Home() {
           )}>
             <div className="text-center px-4">
               <h1 className={cn(
-                "text-4xl sm:text-6xl md:text-8xl font-display text-white tracking-wider transition-all duration-1000",
+                "text-5xl sm:text-7xl md:text-9xl text-white tracking-widest transition-all duration-1000 uppercase",
                 animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
+              )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 40px rgba(226, 28, 61, 0.6), 0 4px 20px rgba(0,0,0,0.8)' }}>
                 We can feel it
               </h1>
               <h2 className={cn(
-                "text-3xl sm:text-5xl md:text-7xl font-display text-brand-red tracking-wider mt-4 transition-all duration-1000 delay-[1500ms]",
+                "text-4xl sm:text-6xl md:text-8xl text-brand-red tracking-widest mt-6 transition-all duration-1000 delay-[1500ms] uppercase",
                 animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
+              )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 30px rgba(226, 28, 61, 0.8), 0 4px 15px rgba(0,0,0,0.6)' }}>
                 It's coming.
               </h2>
             </div>
