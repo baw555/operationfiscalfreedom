@@ -96,7 +96,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <span className="hidden sm:inline font-bold animate-veterans">YOU FOUGHT FOR US. WE FIGHT FOR YOU.</span>
         <span className="sm:hidden font-bold animate-veterans">YOU FOUGHT FOR US. WE FIGHT FOR YOU.</span>
         <span className="hidden md:inline text-brand-red text-lg">★</span>
-        <AnimatedNavigatorUSA />
+        <div className="flex flex-col items-center">
+          <AnimatedNavigatorUSA />
+          <span className="text-[8px] sm:text-[10px] text-brand-gold tracking-widest mt-0.5">TIER ONE VETERAN ECOSYSTEM FOR VETERAN FAMILIES</span>
+        </div>
       </div>
 
       {/* Navigation - INTENSE */}
