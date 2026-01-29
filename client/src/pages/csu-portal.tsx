@@ -861,9 +861,13 @@ interface IpGeoData {
   asn: string;
 }
 
+type AnalyticsView = "activity" | "unique_visitors" | "contracts_sent" | "contracts_signed" | "today_visits";
+
 function AnalyticsPanel() {
   const [selectedIp, setSelectedIp] = useState<string | null>(null);
   const [showIpModal, setShowIpModal] = useState(false);
+  const [activeView, setActiveView] = useState<AnalyticsView>("activity");
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   const { data: stats } = useQuery<PortalStats>({
     queryKey: ["/api/portal/stats/payzium"],
@@ -873,6 +877,14 @@ function AnalyticsPanel() {
   const { data: activity = [] } = useQuery<PortalActivity[]>({
     queryKey: ["/api/portal/activity/payzium"],
     refetchInterval: 30000,
+  });
+
+  const { data: contractSends = [] } = useQuery<CsuContractSend[]>({
+    queryKey: ["/api/csu/contract-sends"],
+  });
+
+  const { data: signedAgreements = [] } = useQuery<CsuSignedAgreement[]>({
+    queryKey: ["/api/csu/signed-agreements"],
   });
 
   const { data: ipGeoData, isLoading: ipLoading, error: ipError } = useQuery<IpGeoData>({
@@ -891,10 +903,48 @@ function AnalyticsPanel() {
     setShowIpModal(true);
   };
 
+  const handleDownloadPdf = async (agreementId: number, signerName: string) => {
+    try {
+      setDownloadingId(agreementId);
+      const response = await fetch(`/api/csu/signed-agreements/${agreementId}/pdf`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to download PDF");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Contract_${signerName.replace(/\s+/g, "_")}_${agreementId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Download failed:", error);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const getUniqueVisitors = () => {
+    const uniqueIps = new Set(activity.filter(a => a.ipAddress).map(a => a.ipAddress));
+    return Array.from(uniqueIps);
+  };
+
+  const getTodayActivity = () => {
+    const today = new Date().toDateString();
+    return activity.filter(a => new Date(a.createdAt).toDateString() === today);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${activeView === "activity" ? "ring-2 ring-purple-500" : ""}`}
+          onClick={() => setActiveView("activity")}
+          data-testid="card-total-visits"
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Eye className="w-5 h-5 text-amber-600" />
@@ -905,7 +955,11 @@ function AnalyticsPanel() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${activeView === "unique_visitors" ? "ring-2 ring-purple-500" : ""}`}
+          onClick={() => setActiveView("unique_visitors")}
+          data-testid="card-unique-visitors"
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-5 h-5 text-amber-600" />
@@ -916,7 +970,11 @@ function AnalyticsPanel() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${activeView === "contracts_sent" ? "ring-2 ring-purple-500" : ""}`}
+          onClick={() => setActiveView("contracts_sent")}
+          data-testid="card-contracts-sent"
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Send className="w-5 h-5 text-amber-600" />
@@ -927,7 +985,11 @@ function AnalyticsPanel() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${activeView === "contracts_signed" ? "ring-2 ring-purple-500" : ""}`}
+          onClick={() => setActiveView("contracts_signed")}
+          data-testid="card-contracts-signed"
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle className="w-5 h-5 text-amber-600" />
@@ -938,77 +1000,228 @@ function AnalyticsPanel() {
             </p>
           </CardContent>
         </Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${activeView === "today_visits" ? "ring-2 ring-purple-500" : ""}`}
+          onClick={() => setActiveView("today_visits")}
+          data-testid="card-today-visits"
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="w-5 h-5 text-amber-600" />
+              <span className="text-sm text-gray-600">Today's Visits</span>
+            </div>
+            <p className="text-2xl font-bold text-amber-900" data-testid="stat-today-visits">
+              {stats?.todayVisits ?? 0}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="w-5 h-5" /> Today's Visits
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-bold text-amber-600" data-testid="stat-today-visits">
-            {stats?.todayVisits ?? 0}
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" /> Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {activity.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No activity recorded yet</p>
-          ) : (
-            <div className="overflow-x-auto max-h-96 overflow-y-auto">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-white">
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-3">Time</th>
-                    <th className="text-left py-2 px-3">Event</th>
-                    <th className="text-left py-2 px-3">IP Address</th>
-                    <th className="text-left py-2 px-3">Path</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activity.map((item) => (
-                    <tr key={item.id} className="border-b hover:bg-gray-50" data-testid={`activity-row-${item.id}`}>
-                      <td className="py-2 px-3 whitespace-nowrap">
-                        {new Date(item.createdAt).toLocaleString()}
-                      </td>
-                      <td className="py-2 px-3">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          item.eventType === "page_view" ? "bg-blue-100 text-blue-700" :
-                          item.eventType === "contract_sent" ? "bg-yellow-100 text-yellow-700" :
-                          item.eventType === "contract_signed" ? "bg-green-100 text-green-700" :
-                          "bg-gray-100 text-gray-700"
-                        }`}>
-                          {item.eventType.replace("_", " ")}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3 font-mono text-xs">
-                        {item.ipAddress ? (
-                          <button
-                            onClick={() => handleIpClick(item.ipAddress!)}
-                            className="text-purple-600 hover:text-purple-800 hover:underline cursor-pointer"
-                            data-testid={`ip-link-${item.id}`}
-                          >
-                            {item.ipAddress}
-                          </button>
-                        ) : "-"}
-                      </td>
-                      <td className="py-2 px-3">{item.pagePath || "-"}</td>
+      {/* Activity View */}
+      {(activeView === "activity" || activeView === "today_visits") && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" /> 
+              {activeView === "today_visits" ? "Today's Activity" : "All Recent Activity"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(activeView === "today_visits" ? getTodayActivity() : activity).length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No activity recorded yet</p>
+            ) : (
+              <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-white">
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-3">Time</th>
+                      <th className="text-left py-2 px-3">Event</th>
+                      <th className="text-left py-2 px-3">IP Address</th>
+                      <th className="text-left py-2 px-3">Path</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </thead>
+                  <tbody>
+                    {(activeView === "today_visits" ? getTodayActivity() : activity).map((item) => (
+                      <tr key={item.id} className="border-b hover:bg-gray-50" data-testid={`activity-row-${item.id}`}>
+                        <td className="py-2 px-3 whitespace-nowrap">
+                          {new Date(item.createdAt).toLocaleString()}
+                        </td>
+                        <td className="py-2 px-3">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            item.eventType === "page_view" ? "bg-blue-100 text-blue-700" :
+                            item.eventType === "contract_sent" ? "bg-yellow-100 text-yellow-700" :
+                            item.eventType === "contract_signed" ? "bg-green-100 text-green-700" :
+                            "bg-gray-100 text-gray-700"
+                          }`}>
+                            {item.eventType.replace("_", " ")}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 font-mono text-xs">
+                          {item.ipAddress ? (
+                            <button
+                              onClick={() => handleIpClick(item.ipAddress!)}
+                              className="text-purple-600 hover:text-purple-800 hover:underline cursor-pointer"
+                              data-testid={`ip-link-${item.id}`}
+                            >
+                              {item.ipAddress}
+                            </button>
+                          ) : "-"}
+                        </td>
+                        <td className="py-2 px-3">{item.pagePath || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Unique Visitors View */}
+      {activeView === "unique_visitors" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" /> Unique Visitors ({getUniqueVisitors().length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {getUniqueVisitors().length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No visitors recorded yet</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {getUniqueVisitors().map((ip, index) => (
+                  <button
+                    key={ip}
+                    onClick={() => handleIpClick(ip!)}
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-purple-50 hover:ring-2 hover:ring-purple-200 transition-all text-left"
+                    data-testid={`unique-visitor-${index}`}
+                  >
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="font-mono text-sm text-purple-700">{ip}</p>
+                      <p className="text-xs text-gray-500">Click for location details</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Contracts Sent View */}
+      {activeView === "contracts_sent" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5" /> Contracts Sent ({contractSends.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {contractSends.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No contracts sent yet</p>
+            ) : (
+              <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-white">
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-3">Recipient</th>
+                      <th className="text-left py-2 px-3">Email</th>
+                      <th className="text-left py-2 px-3">Phone</th>
+                      <th className="text-left py-2 px-3">Status</th>
+                      <th className="text-left py-2 px-3">Sent</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contractSends.map((contract) => (
+                      <tr key={contract.id} className="border-b hover:bg-gray-50" data-testid={`contract-sent-${contract.id}`}>
+                        <td className="py-2 px-3 font-medium">{contract.recipientName}</td>
+                        <td className="py-2 px-3">{contract.recipientEmail}</td>
+                        <td className="py-2 px-3">{contract.recipientPhone || "-"}</td>
+                        <td className="py-2 px-3">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            contract.status === "signed" ? "bg-green-100 text-green-700" :
+                            contract.status === "pending" ? "bg-yellow-100 text-yellow-700" :
+                            "bg-red-100 text-red-700"
+                          }`}>
+                            {contract.status}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 whitespace-nowrap">
+                          {new Date(contract.sentAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Contracts Signed View */}
+      {activeView === "contracts_signed" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" /> Signed Contracts ({signedAgreements.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {signedAgreements.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No contracts signed yet</p>
+            ) : (
+              <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-white">
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-3">Signer</th>
+                      <th className="text-left py-2 px-3">Email</th>
+                      <th className="text-left py-2 px-3">Phone</th>
+                      <th className="text-left py-2 px-3">Signed Date</th>
+                      <th className="text-left py-2 px-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {signedAgreements.map((agreement) => (
+                      <tr key={agreement.id} className="border-b hover:bg-gray-50" data-testid={`contract-signed-${agreement.id}`}>
+                        <td className="py-2 px-3 font-medium">{agreement.signerName}</td>
+                        <td className="py-2 px-3">{agreement.signerEmail}</td>
+                        <td className="py-2 px-3">{agreement.signerPhone || "-"}</td>
+                        <td className="py-2 px-3 whitespace-nowrap">
+                          {new Date(agreement.signedAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-2 px-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownloadPdf(agreement.id, agreement.signerName)}
+                            disabled={downloadingId === agreement.id}
+                            className="flex items-center gap-1"
+                            data-testid={`download-pdf-${agreement.id}`}
+                          >
+                            {downloadingId === agreement.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
+                            Download PDF
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={showIpModal} onOpenChange={setShowIpModal}>
         <DialogContent className="max-w-md">
