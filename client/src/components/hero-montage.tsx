@@ -9,7 +9,6 @@ const montageVideos = [
   "/videos/montage-embrace-2.mp4",
   "/videos/montage-rain.mp4",
   "/videos/montage-gear.mp4",
-  "/videos/montage-patrol.mp4",
   "/videos/montage-helicopter.mp4",
   "/videos/montage-clip.mp4",
 ];
