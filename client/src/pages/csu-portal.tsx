@@ -145,14 +145,68 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
     }
   };
 
+  const [animationPhase, setAnimationPhase] = useState(0);
+  const [showLightning, setShowLightning] = useState(false);
+  const [lightningPosition, setLightningPosition] = useState({ x: 50, y: 0 });
+
+  // Lightning effect
+  useEffect(() => {
+    const lightningInterval = setInterval(() => {
+      if (Math.random() > 0.7) {
+        setLightningPosition({ x: Math.random() * 100, y: 0 });
+        setShowLightning(true);
+        setTimeout(() => setShowLightning(false), 150);
+        setTimeout(() => {
+          setShowLightning(true);
+          setTimeout(() => setShowLightning(false), 100);
+        }, 200);
+      }
+    }, 800);
+    return () => clearInterval(lightningInterval);
+  }, []);
+
+  // Logo animation phases: 0=heart, 1=brain, 2=logo construction, 3=fire
+  useEffect(() => {
+    const timers = [
+      setTimeout(() => setAnimationPhase(1), 3000),
+      setTimeout(() => setAnimationPhase(2), 6000),
+      setTimeout(() => setAnimationPhase(3), 9000),
+    ];
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
+      {/* Lightning flash overlay */}
+      {showLightning && (
+        <div className="absolute inset-0 z-50 pointer-events-none bg-white/20 animate-pulse" />
+      )}
+
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Floating orbs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-violet-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        
+        {/* Lightning bolts */}
+        {showLightning && (
+          <svg className="absolute inset-0 w-full h-full z-40 pointer-events-none" style={{ left: `${lightningPosition.x - 50}%` }}>
+            <path
+              d="M200,0 L180,120 L220,120 L160,280 L200,280 L120,450 L180,300 L140,300 L200,150 L160,150 Z"
+              fill="url(#lightningGradient)"
+              className="animate-pulse"
+              style={{ filter: 'drop-shadow(0 0 20px #a855f7) drop-shadow(0 0 40px #7c3aed)' }}
+            />
+            <defs>
+              <linearGradient id="lightningGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" />
+                <stop offset="50%" stopColor="#c084fc" />
+                <stop offset="100%" stopColor="#7c3aed" />
+              </linearGradient>
+            </defs>
+          </svg>
+        )}
         
         {/* Animated grid lines */}
         <div className="absolute inset-0 opacity-10">
@@ -167,30 +221,138 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         </div>
         
         {/* Floating particles */}
-        {[...Array(20)].map((_, i) => (
+        {[...Array(30)].map((_, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-purple-400/40 rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 5}s`
+              left: `${(i * 3.33) % 100}%`,
+              top: `${(i * 7.77) % 100}%`,
+              animation: `float ${5 + (i % 5)}s ease-in-out infinite`,
+              animationDelay: `${(i * 0.3) % 5}s`
             }}
           />
         ))}
+
+        {/* Electric arcs during brain phase */}
+        {animationPhase === 1 && (
+          <>
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute top-1/2 left-1/2 h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent origin-left"
+                style={{
+                  width: `${100 + i * 30}px`,
+                  transform: `rotate(${i * 45}deg)`,
+                  animation: `electricArc 0.3s ease-in-out infinite`,
+                  animationDelay: `${i * 0.1}s`,
+                  opacity: 0.6
+                }}
+              />
+            ))}
+          </>
+        )}
       </div>
 
       {/* Main content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          {/* Logo and branding */}
-          <div className="text-center mb-8 animate-fadeInDown">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 mb-6 shadow-2xl shadow-purple-500/30 animate-float">
-              <Building className="w-10 h-10 text-white" />
+          {/* Animated Logo Sequence */}
+          <div className="text-center mb-8">
+            <div className="relative inline-block mb-6">
+              {/* Phase 0: Beating Heart */}
+              <div className={`transition-all duration-500 ${animationPhase === 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-0 absolute'}`}>
+                <div className="w-24 h-24 flex items-center justify-center animate-heartbeat">
+                  <svg viewBox="0 0 24 24" className="w-20 h-20 text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]">
+                    <path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Phase 1: Electrified Brain */}
+              <div className={`transition-all duration-500 ${animationPhase === 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-0 absolute'}`}>
+                <div className="w-24 h-24 flex items-center justify-center relative">
+                  <svg viewBox="0 0 24 24" className="w-20 h-20 text-purple-400 animate-pulse drop-shadow-[0_0_30px_rgba(168,85,247,1)]">
+                    <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                  </svg>
+                  {/* Lightning bolts shooting from brain */}
+                  {[...Array(6)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-16 h-1 origin-left"
+                      style={{
+                        top: '50%',
+                        left: '50%',
+                        transform: `rotate(${i * 60}deg)`,
+                        background: 'linear-gradient(90deg, rgba(168,85,247,0.8), rgba(139,92,246,0.4), transparent)',
+                        animation: `brainZap 0.4s ease-out infinite`,
+                        animationDelay: `${i * 0.15}s`
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Phase 2: Logo Construction */}
+              <div className={`transition-all duration-500 ${animationPhase === 2 ? 'opacity-100 scale-100' : 'opacity-0 scale-0 absolute'}`}>
+                <div className="w-32 h-32 flex items-center justify-center relative animate-constructLogo">
+                  <img 
+                    src="/attached_assets/ChatGPT_Image_Jan_28,_2026,_07_29_38_PM_1769646589950.png" 
+                    alt="Payzium" 
+                    className="w-28 h-28 object-contain animate-flash"
+                    style={{ filter: 'brightness(1.2) drop-shadow(0 0 15px rgba(168,85,247,0.8))' }}
+                  />
+                </div>
+              </div>
+
+              {/* Phase 3: Burning Logo */}
+              <div className={`transition-all duration-500 ${animationPhase === 3 ? 'opacity-100 scale-100' : 'opacity-0 scale-0 absolute'}`}>
+                <div className="w-32 h-32 flex items-center justify-center relative">
+                  {/* Fire effect behind logo */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="fire-container">
+                      {[...Array(15)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="flame"
+                          style={{
+                            left: `${20 + i * 4}%`,
+                            animationDelay: `${i * 0.1}s`,
+                            height: `${30 + Math.random() * 40}px`
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <img 
+                    src="/attached_assets/ChatGPT_Image_Jan_28,_2026,_07_29_38_PM_1769646589950.png" 
+                    alt="Payzium" 
+                    className="w-28 h-28 object-contain relative z-10 animate-fireGlow"
+                    style={{ filter: 'brightness(1.3) drop-shadow(0 0 20px rgba(251,146,60,0.9)) drop-shadow(0 0 40px rgba(239,68,68,0.6))' }}
+                  />
+                  {/* Ember particles */}
+                  {[...Array(12)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 h-1 rounded-full bg-orange-400"
+                      style={{
+                        left: `${30 + i * 4}%`,
+                        bottom: '20%',
+                        animation: `ember ${1 + Math.random()}s ease-out infinite`,
+                        animationDelay: `${i * 0.2}s`
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
+
             <h1 className="text-4xl md:text-5xl font-display text-white mb-2 tracking-tight">
-              <span className="bg-gradient-to-r from-purple-200 via-white to-purple-200 bg-clip-text text-transparent">
+              <span className={`bg-clip-text text-transparent transition-all duration-1000 ${
+                animationPhase === 3 
+                  ? 'bg-gradient-to-r from-orange-400 via-red-500 to-orange-400 animate-fireText' 
+                  : 'bg-gradient-to-r from-purple-200 via-white to-purple-200'
+              }`}>
                 Payzium
               </span>
             </h1>
@@ -307,8 +469,8 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
       {/* CSS Animations */}
       <style>{`
         @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.4; }
-          50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+          0%, 100% { transform: translateY(0px); opacity: 0.4; }
+          50% { transform: translateY(-20px); opacity: 0.8; }
         }
         @keyframes gridMove {
           0% { transform: translate(0, 0); }
@@ -326,6 +488,64 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
           from { opacity: 0; }
           to { opacity: 1; }
         }
+        @keyframes heartbeat {
+          0%, 100% { transform: scale(1); }
+          10% { transform: scale(1.15); }
+          20% { transform: scale(1); }
+          30% { transform: scale(1.15); }
+          40% { transform: scale(1); }
+        }
+        @keyframes electricArc {
+          0%, 100% { opacity: 0; transform: scaleX(0); }
+          50% { opacity: 0.8; transform: scaleX(1); }
+        }
+        @keyframes brainZap {
+          0% { opacity: 0; transform: scaleX(0) translateX(0); }
+          30% { opacity: 1; transform: scaleX(1) translateX(10px); }
+          100% { opacity: 0; transform: scaleX(0.5) translateX(30px); }
+        }
+        @keyframes constructLogo {
+          0% { opacity: 0; transform: scale(0) rotate(-180deg); filter: blur(10px); }
+          50% { opacity: 0.5; transform: scale(0.8) rotate(-10deg); filter: blur(5px); }
+          100% { opacity: 1; transform: scale(1) rotate(0deg); filter: blur(0); }
+        }
+        @keyframes flash {
+          0%, 20%, 40%, 60%, 80%, 100% { opacity: 1; }
+          10%, 30%, 50%, 70%, 90% { opacity: 0.3; filter: brightness(2); }
+        }
+        @keyframes fireGlow {
+          0%, 100% { filter: brightness(1.2) drop-shadow(0 0 15px rgba(251,146,60,0.8)) drop-shadow(0 0 30px rgba(239,68,68,0.5)); }
+          50% { filter: brightness(1.4) drop-shadow(0 0 25px rgba(251,146,60,1)) drop-shadow(0 0 50px rgba(239,68,68,0.8)); }
+        }
+        @keyframes ember {
+          0% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-80px) translateX(20px) scale(0); opacity: 0; }
+        }
+        @keyframes flame {
+          0%, 100% { transform: scaleY(1) scaleX(1) translateY(0); opacity: 0.9; }
+          25% { transform: scaleY(1.2) scaleX(0.9) translateY(-5px); opacity: 1; }
+          50% { transform: scaleY(0.9) scaleX(1.1) translateY(-2px); opacity: 0.8; }
+          75% { transform: scaleY(1.1) scaleX(0.95) translateY(-4px); opacity: 0.95; }
+        }
+        @keyframes fireText {
+          0%, 100% { filter: drop-shadow(0 0 5px rgba(251,146,60,0.8)); }
+          50% { filter: drop-shadow(0 0 15px rgba(251,146,60,1)) drop-shadow(0 0 30px rgba(239,68,68,0.6)); }
+        }
+        .animate-heartbeat {
+          animation: heartbeat 1s ease-in-out infinite;
+        }
+        .animate-constructLogo {
+          animation: constructLogo 2s ease-out forwards;
+        }
+        .animate-flash {
+          animation: flash 1.5s ease-in-out;
+        }
+        .animate-fireGlow {
+          animation: fireGlow 0.5s ease-in-out infinite;
+        }
+        .animate-fireText {
+          animation: fireText 0.8s ease-in-out infinite;
+        }
         .animate-fadeInDown {
           animation: fadeInDown 0.8s ease-out forwards;
         }
@@ -337,6 +557,23 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         }
         .animate-float {
           animation: float 6s ease-in-out infinite;
+        }
+        .fire-container {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: flex-end;
+        }
+        .flame {
+          position: absolute;
+          bottom: 15%;
+          width: 8px;
+          background: linear-gradient(to top, #f97316, #fbbf24, #fef08a, transparent);
+          border-radius: 50% 50% 20% 20%;
+          animation: flame 0.3s ease-in-out infinite;
+          filter: blur(1px);
         }
       `}</style>
     </div>
