@@ -171,7 +171,7 @@ export default function Home() {
           )}>
             <div className="absolute inset-0">
               <video 
-                src="/videos/soldiers-marching.mp4"
+                src="/videos/soldiers-action.mp4"
                 autoPlay
                 loop
                 muted
@@ -273,7 +273,7 @@ export default function Home() {
         )}>
           <div className="absolute inset-0 z-0">
             <video 
-              src="/videos/soldiers-action.mp4"
+              src="/videos/soldiers-marching.mp4"
               autoPlay
               loop
               muted
