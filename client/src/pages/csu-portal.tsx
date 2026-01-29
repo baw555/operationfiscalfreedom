@@ -146,108 +146,193 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#0a0e17]">
-      {/* Deep space background with subtle gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0e17] via-[#0d1525] to-[#0a0e17]" />
+    <div className="min-h-screen relative overflow-hidden bg-[#030508]">
+      {/* Multi-layer background for depth */}
+      <div className="absolute inset-0">
+        {/* Base gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#030508] via-[#0a1628] to-[#030508]" />
+        
+        {/* Radial spotlight from top */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[70vh] bg-gradient-to-b from-blue-950/40 via-transparent to-transparent" />
+        
+        {/* Side vignettes */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60" />
+      </div>
       
-      {/* Matrix-style falling digital rain */}
+      {/* Animated aurora-like waves at top */}
+      <div className="absolute top-0 left-0 right-0 h-96 overflow-hidden opacity-30">
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/30 via-blue-900/20 to-transparent animate-aurora1" />
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/20 via-cyan-900/10 to-transparent animate-aurora2" />
+      </div>
+      
+      {/* Matrix-style falling digital rain - enhanced */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(40)].map((_, i) => (
+        {[...Array(50)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-px bg-gradient-to-b from-transparent via-cyan-500/20 to-transparent"
+            className="absolute bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent"
             style={{
-              left: `${(i * 2.5) + Math.random() * 2}%`,
-              height: `${100 + Math.random() * 200}px`,
-              animation: `matrixFall ${8 + Math.random() * 12}s linear infinite`,
-              animationDelay: `${Math.random() * 8}s`,
-              opacity: 0.3 + Math.random() * 0.4
+              left: `${(i * 2)}%`,
+              width: i % 3 === 0 ? '2px' : '1px',
+              height: `${80 + Math.random() * 150}px`,
+              animation: `matrixFall ${6 + Math.random() * 10}s linear infinite`,
+              animationDelay: `${Math.random() * 6}s`,
+              opacity: 0.2 + Math.random() * 0.3
             }}
           />
         ))}
         
-        {/* Scattered digital dots */}
-        {[...Array(60)].map((_, i) => (
+        {/* Scattered pulsing nodes */}
+        {[...Array(80)].map((_, i) => (
           <div
-            key={`dot-${i}`}
-            className="absolute w-[2px] h-[2px] rounded-full"
+            key={`node-${i}`}
+            className="absolute rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              backgroundColor: Math.random() > 0.5 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(59, 130, 246, 0.4)',
-              animation: `digitPulse ${2 + Math.random() * 3}s ease-in-out infinite`,
+              width: `${2 + Math.random() * 3}px`,
+              height: `${2 + Math.random() * 3}px`,
+              backgroundColor: i % 3 === 0 ? 'rgba(34, 211, 238, 0.5)' : i % 3 === 1 ? 'rgba(99, 102, 241, 0.4)' : 'rgba(59, 130, 246, 0.4)',
+              boxShadow: i % 5 === 0 ? '0 0 10px rgba(34, 211, 238, 0.5)' : 'none',
+              animation: `digitPulse ${1.5 + Math.random() * 2.5}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 3}s`
+            }}
+          />
+        ))}
+        
+        {/* Connecting lines between some nodes */}
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={`line-${i}`}
+            className="absolute h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent"
+            style={{
+              left: `${10 + Math.random() * 30}%`,
+              top: `${10 + i * 8}%`,
+              width: `${20 + Math.random() * 40}%`,
+              transform: `rotate(${-15 + Math.random() * 30}deg)`,
+              animation: `linePulse ${4 + Math.random() * 4}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 2}s`
             }}
           />
         ))}
       </div>
 
-      {/* Ambient light glow behind logo area */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-radial from-blue-900/20 via-transparent to-transparent blur-3xl" />
+      {/* Central light pillar behind logo */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] h-[45%] bg-gradient-to-b from-cyan-500/40 via-cyan-500/10 to-transparent" />
       
-      {/* Horizon light band */}
-      <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+      {/* Ambient glow orbs */}
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-gradient-radial from-cyan-900/30 via-blue-900/10 to-transparent blur-3xl animate-breathe" />
+      <div className="absolute bottom-40 left-1/4 w-[300px] h-[300px] bg-gradient-radial from-indigo-900/20 via-transparent to-transparent blur-3xl animate-breathe2" />
+      <div className="absolute bottom-60 right-1/4 w-[250px] h-[250px] bg-gradient-radial from-blue-900/15 via-transparent to-transparent blur-3xl animate-breathe3" />
+      
+      {/* Horizon light band with glow */}
+      <div className="absolute top-[38%] left-0 right-0">
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent blur-sm" />
+        <div className="h-px bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent" />
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent blur-sm" />
+      </div>
 
       {/* Main content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           
-          {/* Logo Stage - sophisticated presentation */}
-          <div className="text-center mb-10 animate-fadeInDown">
-            {/* Logo container with glow and blend effects */}
+          {/* Logo Stage - premium presentation */}
+          <div className="text-center mb-12 animate-fadeInDown">
+            {/* Logo container with multi-layer effects */}
             <div className="relative inline-block">
-              {/* Outer glow ring */}
-              <div className="absolute -inset-8 bg-gradient-radial from-cyan-500/10 via-blue-600/5 to-transparent rounded-full blur-2xl" />
+              {/* Outer halo ring */}
+              <div className="absolute -inset-16 bg-gradient-radial from-cyan-500/15 via-blue-600/5 to-transparent rounded-full blur-3xl animate-haloBreath" />
               
-              {/* Logo with sophisticated styling */}
+              {/* Inner glow pulse */}
+              <div className="absolute -inset-8 bg-gradient-radial from-cyan-400/10 via-transparent to-transparent rounded-full blur-xl animate-innerGlow" />
+              
+              {/* Logo with layered shadows and glow */}
               <div className="relative">
+                {/* Reflection/echo layer */}
+                <img 
+                  src="/payzium-logo.png" 
+                  alt="" 
+                  className="absolute top-2 left-0 w-80 h-auto opacity-20 blur-md scale-105"
+                  aria-hidden="true"
+                />
+                
+                {/* Main logo */}
                 <img 
                   src="/payzium-logo.png" 
                   alt="Payzium" 
-                  className="w-72 h-auto relative z-10"
+                  className="w-80 h-auto relative z-10 animate-logoFloat"
                   style={{
-                    filter: 'drop-shadow(0 0 40px rgba(34, 211, 238, 0.15)) drop-shadow(0 0 80px rgba(59, 130, 246, 0.1))',
+                    filter: 'drop-shadow(0 0 30px rgba(34, 211, 238, 0.25)) drop-shadow(0 0 60px rgba(59, 130, 246, 0.15)) drop-shadow(0 0 100px rgba(99, 102, 241, 0.1))',
                   }}
                 />
-                {/* Subtle reflection effect */}
-                <div 
-                  className="absolute -bottom-4 left-0 right-0 h-16 bg-gradient-to-b from-cyan-500/5 to-transparent blur-sm"
-                  style={{ transform: 'scaleY(-0.3)', opacity: 0.5 }}
-                />
+                
+                {/* Bottom reflection */}
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent blur-sm" />
               </div>
             </div>
             
-            <p className="text-cyan-300/60 text-lg mt-6 tracking-wide font-light">
-              Contract Management Portal
-            </p>
+            {/* Tagline with elegant styling */}
+            <div className="mt-8 space-y-1">
+              <p className="text-cyan-200/80 text-lg tracking-[0.2em] font-light uppercase">
+                Contract Management Portal
+              </p>
+              <div className="flex items-center justify-center gap-3 mt-2">
+                <div className="w-12 h-px bg-gradient-to-r from-transparent to-cyan-500/50" />
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400/60 animate-pulse" />
+                <div className="w-12 h-px bg-gradient-to-l from-transparent to-cyan-500/50" />
+              </div>
+            </div>
           </div>
 
-          {/* Premium login card */}
+          {/* POWER GATEWAY - Epic Login Card */}
           <div className="relative animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-            {/* Card border glow */}
-            <div className="absolute -inset-[1px] bg-gradient-to-b from-cyan-500/30 via-blue-600/20 to-cyan-500/30 rounded-2xl blur-sm" />
+            {/* Outer power rings */}
+            <div className="absolute -inset-8 rounded-3xl animate-powerRing1">
+              <div className="absolute inset-0 rounded-3xl border border-cyan-500/20" />
+            </div>
+            <div className="absolute -inset-12 rounded-3xl animate-powerRing2">
+              <div className="absolute inset-0 rounded-3xl border border-blue-500/10" />
+            </div>
+            <div className="absolute -inset-16 rounded-3xl animate-powerRing3">
+              <div className="absolute inset-0 rounded-3xl border border-indigo-500/5" />
+            </div>
             
-            <div className="relative bg-[#0d1525]/90 backdrop-blur-xl border border-cyan-500/10 rounded-2xl p-8 shadow-2xl shadow-black/50">
-              {/* Subtle inner glow at top */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
+            {/* Energy pulses radiating outward */}
+            <div className="absolute -inset-4 rounded-2xl bg-gradient-to-r from-cyan-500/20 via-blue-500/30 to-cyan-500/20 blur-xl animate-energyPulse" />
+            
+            {/* Card border glow - intense */}
+            <div className="absolute -inset-[2px] bg-gradient-to-b from-cyan-400/50 via-blue-500/40 to-indigo-500/50 rounded-2xl blur-sm animate-borderGlow" />
+            
+            <div className="relative bg-[#080d18]/95 backdrop-blur-xl border border-cyan-400/20 rounded-2xl p-8 shadow-2xl shadow-cyan-900/30">
+              {/* Corner power indicators */}
+              <div className="absolute top-3 left-3 w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50" />
+              <div className="absolute top-3 right-3 w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50" style={{ animationDelay: '0.5s' }} />
+              <div className="absolute bottom-3 left-3 w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-400/50" style={{ animationDelay: '1s' }} />
+              <div className="absolute bottom-3 right-3 w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-400/50" style={{ animationDelay: '1.5s' }} />
+              
+              {/* Top energy bar */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-scanLine" />
               
               <div className="text-center mb-8">
-                <h2 className="text-xl font-semibold text-white flex items-center justify-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center">
-                    <LogIn className="w-4 h-4 text-cyan-400" />
-                  </div>
-                  Secure Access
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/30 to-blue-600/30 border border-cyan-400/40 mb-4 animate-iconFloat shadow-lg shadow-cyan-500/20">
+                  <LogIn className="w-8 h-8 text-cyan-300" />
+                </div>
+                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-200 to-cyan-300 tracking-wide">
+                  ACCESS THE POWER
                 </h2>
-                <p className="text-slate-400 text-sm mt-2">Enter your credentials to continue</p>
+                <p className="text-cyan-400/60 text-sm mt-2 tracking-widest uppercase">
+                  Unlimited Potential Awaits
+                </p>
               </div>
 
               <form onSubmit={handleLogin} className="space-y-6">
                 <div className="space-y-2 group">
-                  <Label htmlFor="email" className="text-slate-300 text-sm font-medium">
-                    Email Address
+                  <Label htmlFor="email" className="text-cyan-200/80 text-sm font-medium tracking-wide">
+                    IDENTITY
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 transition-colors group-focus-within:text-cyan-400" />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-sm" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-500/50 transition-all group-focus-within:text-cyan-400 group-focus-within:scale-110" />
                     <Input
                       id="email"
                       type="email"
@@ -256,17 +341,18 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                       placeholder="Enter your email"
                       required
                       data-testid="input-payzium-email"
-                      className="pl-12 h-12 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-900/70 transition-all duration-300 rounded-xl"
+                      className="relative pl-12 h-14 bg-slate-900/70 border-cyan-500/20 text-white placeholder:text-slate-500 focus:border-cyan-400/60 focus:ring-cyan-400/30 focus:bg-slate-900/90 transition-all duration-300 rounded-xl text-lg"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2 group">
-                  <Label htmlFor="password" className="text-slate-300 text-sm font-medium">
-                    Password
+                  <Label htmlFor="password" className="text-cyan-200/80 text-sm font-medium tracking-wide">
+                    KEY
                   </Label>
                   <div className="relative">
-                    <LogIn className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 transition-colors group-focus-within:text-cyan-400" />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-sm" />
+                    <LogIn className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-500/50 transition-all group-focus-within:text-cyan-400 group-focus-within:scale-110" />
                     <Input
                       id="password"
                       type="password"
@@ -275,7 +361,7 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                       placeholder="Enter your password"
                       required
                       data-testid="input-payzium-password"
-                      className="pl-12 h-12 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-900/70 transition-all duration-300 rounded-xl"
+                      className="relative pl-12 h-14 bg-slate-900/70 border-cyan-500/20 text-white placeholder:text-slate-500 focus:border-cyan-400/60 focus:ring-cyan-400/30 focus:bg-slate-900/90 transition-all duration-300 rounded-xl text-lg"
                     />
                   </div>
                 </div>
@@ -286,58 +372,77 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
                     data-testid="checkbox-payzium-remember"
-                    className="border-slate-600 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
+                    className="border-cyan-500/40 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-400"
                   />
-                  <Label htmlFor="remember-me" className="text-sm text-slate-400 cursor-pointer">
-                    Remember my email
+                  <Label htmlFor="remember-me" className="text-sm text-cyan-300/60 cursor-pointer">
+                    Remember my identity
                   </Label>
                 </div>
 
+                {/* EPIC POWER BUTTON */}
                 <Button 
                   type="submit"
                   disabled={isLoading}
                   data-testid="button-payzium-login"
-                  className="w-full h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-900/30 hover:shadow-cyan-800/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group border border-cyan-500/20"
+                  className="w-full h-16 bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:via-blue-500 hover:to-indigo-500 text-white font-bold text-lg rounded-xl shadow-2xl shadow-cyan-500/40 hover:shadow-cyan-400/60 transition-all duration-500 hover:scale-[1.03] active:scale-[0.98] relative overflow-hidden group border-2 border-cyan-400/30 hover:border-cyan-300/50"
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
+                  {/* Multiple shimmer layers */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/0 via-cyan-400/20 to-cyan-400/0 translate-x-[100%] group-hover:translate-x-[-100%] transition-transform duration-1000 delay-100" />
+                  
+                  {/* Power surge effect on hover */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-t from-cyan-400/20 to-transparent" />
+                  </div>
+                  
+                  <span className="relative z-10 flex items-center justify-center gap-3">
                     {isLoading ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Authenticating...
+                        <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span className="animate-pulse">INITIALIZING POWER...</span>
                       </>
                     ) : (
                       <>
-                        Sign In
-                        <LogIn className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                        <span className="tracking-widest">ENTER THE REALM</span>
+                        <LogIn className="w-6 h-6 transition-all group-hover:translate-x-2 group-hover:scale-125" />
                       </>
                     )}
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 </Button>
               </form>
 
-              {/* Security badge */}
-              <div className="mt-8 pt-6 border-t border-slate-700/50">
-                <div className="flex items-center justify-center gap-2 text-slate-500 text-xs">
-                  <div className="w-4 h-4 rounded-full border border-cyan-500/30 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+              {/* Power status indicator */}
+              <div className="mt-8 pt-6 border-t border-cyan-500/20">
+                <div className="flex items-center justify-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-lg shadow-green-400/50" />
+                    <span className="text-green-400/80 text-xs tracking-wider">SYSTEMS ONLINE</span>
                   </div>
-                  <span>256-bit encrypted connection</span>
+                  <div className="w-px h-4 bg-cyan-500/30" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-lg shadow-cyan-400/50" />
+                    <span className="text-cyan-400/80 text-xs tracking-wider">POWER: MAXIMUM</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="mt-10 text-center animate-fadeIn" style={{ animationDelay: '0.6s' }}>
-            <p className="text-slate-600 text-xs tracking-wider">
-              PAYZIUM SECURE PORTAL
+          {/* Epic Footer */}
+          <div className="mt-12 text-center animate-fadeIn" style={{ animationDelay: '0.8s' }}>
+            <div className="flex items-center justify-center gap-4 mb-3">
+              <div className="w-20 h-px bg-gradient-to-r from-transparent to-cyan-500/50" />
+              <div className="w-3 h-3 rotate-45 border border-cyan-500/50 animate-pulse" />
+              <div className="w-20 h-px bg-gradient-to-l from-transparent to-cyan-500/50" />
+            </div>
+            <p className="text-cyan-500/40 text-xs tracking-[0.3em] uppercase">
+              Unlimited Power Awaits
             </p>
           </div>
         </div>
       </div>
 
-      {/* CSS Animations */}
+      {/* CSS Animations - UNLIMITED POWER */}
       <style>{`
         @keyframes matrixFall {
           0% { transform: translateY(-200px); opacity: 0; }
@@ -347,32 +452,105 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         }
         @keyframes digitPulse {
           0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.5); }
+          50% { opacity: 1; transform: scale(2); box-shadow: 0 0 15px currentColor; }
+        }
+        @keyframes linePulse {
+          0%, 100% { opacity: 0.1; }
+          50% { opacity: 0.4; }
         }
         @keyframes fadeInDown {
-          from { opacity: 0; transform: translateY(-40px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(-60px) scale(0.9); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(60px) scale(0.9); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        .animate-fadeInDown {
-          animation: fadeInDown 1s ease-out forwards;
+        @keyframes aurora1 {
+          0%, 100% { transform: translateX(-20%) skewX(-5deg); opacity: 0.3; }
+          50% { transform: translateX(20%) skewX(5deg); opacity: 0.5; }
         }
-        .animate-fadeInUp {
-          animation: fadeInUp 1s ease-out forwards;
+        @keyframes aurora2 {
+          0%, 100% { transform: translateX(20%) skewX(5deg); opacity: 0.2; }
+          50% { transform: translateX(-20%) skewX(-5deg); opacity: 0.4; }
         }
-        .animate-fadeIn {
-          animation: fadeIn 1s ease-out forwards;
+        @keyframes breathe {
+          0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
+          50% { opacity: 0.5; transform: translateX(-50%) scale(1.1); }
         }
-        .bg-gradient-radial {
-          background: radial-gradient(circle, var(--tw-gradient-stops));
+        @keyframes breathe2 {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.35; transform: scale(1.15); }
         }
+        @keyframes breathe3 {
+          0%, 100% { opacity: 0.15; transform: scale(1); }
+          50% { opacity: 0.3; transform: scale(1.2); }
+        }
+        @keyframes haloBreath {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        @keyframes innerGlow {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.6; }
+        }
+        @keyframes logoFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes powerRing1 {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.02); }
+        }
+        @keyframes powerRing2 {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(1.03); }
+        }
+        @keyframes powerRing3 {
+          0%, 100% { opacity: 0.1; transform: scale(1); }
+          50% { opacity: 0.25; transform: scale(1.04); }
+        }
+        @keyframes energyPulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.02); }
+        }
+        @keyframes borderGlow {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 0.8; }
+        }
+        @keyframes scanLine {
+          0% { transform: translateX(-50%) scaleX(0.3); opacity: 0.3; }
+          50% { transform: translateX(-50%) scaleX(1); opacity: 1; }
+          100% { transform: translateX(-50%) scaleX(0.3); opacity: 0.3; }
+        }
+        @keyframes iconFloat {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          25% { transform: translateY(-3px) rotate(1deg); }
+          75% { transform: translateY(3px) rotate(-1deg); }
+        }
+        .animate-fadeInDown { animation: fadeInDown 1.2s ease-out forwards; }
+        .animate-fadeInUp { animation: fadeInUp 1.2s ease-out forwards; }
+        .animate-fadeIn { animation: fadeIn 1s ease-out forwards; }
+        .animate-aurora1 { animation: aurora1 15s ease-in-out infinite; }
+        .animate-aurora2 { animation: aurora2 18s ease-in-out infinite; }
+        .animate-breathe { animation: breathe 8s ease-in-out infinite; }
+        .animate-breathe2 { animation: breathe2 10s ease-in-out infinite; }
+        .animate-breathe3 { animation: breathe3 12s ease-in-out infinite; }
+        .animate-haloBreath { animation: haloBreath 4s ease-in-out infinite; }
+        .animate-innerGlow { animation: innerGlow 3s ease-in-out infinite; }
+        .animate-logoFloat { animation: logoFloat 6s ease-in-out infinite; }
+        .animate-powerRing1 { animation: powerRing1 3s ease-in-out infinite; }
+        .animate-powerRing2 { animation: powerRing2 4s ease-in-out infinite; }
+        .animate-powerRing3 { animation: powerRing3 5s ease-in-out infinite; }
+        .animate-energyPulse { animation: energyPulse 2s ease-in-out infinite; }
+        .animate-borderGlow { animation: borderGlow 2s ease-in-out infinite; }
+        .animate-scanLine { animation: scanLine 3s ease-in-out infinite; }
+        .animate-iconFloat { animation: iconFloat 4s ease-in-out infinite; }
+        .bg-gradient-radial { background: radial-gradient(circle, var(--tw-gradient-stops)); }
       `}</style>
     </div>
   );
