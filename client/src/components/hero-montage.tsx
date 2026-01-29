@@ -2,15 +2,15 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 const montageVideos = [
-  "/videos/montage-iwojima.mp4",
+  "/videos/montage-clip.mp4",           // Soldiers shooting - first
   "/videos/soldiers-marching-new.mp4",
+  "/videos/montage-rain.mp4",           // Rain video 1
   "/videos/montage-embrace-1.mp4",
   "/videos/montage-salute.mp4",
-  "/videos/montage-embrace-2.mp4",
-  "/videos/montage-rain.mp4",
   "/videos/montage-gear.mp4",
+  "/videos/montage-embrace-2.mp4",
   "/videos/montage-helicopter.mp4",
-  "/videos/montage-clip.mp4",
+  "/videos/montage-iwojima.mp4",        // Iwo Jima - last
 ];
 
 export function HeroMontage() {

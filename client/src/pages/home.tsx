@@ -373,7 +373,7 @@ export default function Home() {
               <div className="relative bg-gradient-to-r from-brand-navy/80 via-brand-blue/60 to-brand-navy/80 backdrop-blur-sm border border-brand-gold/30 rounded-xl px-4 sm:px-8 py-4 sm:py-6 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-gold/10 to-transparent animate-pulse"></div>
                 <p className="text-center text-lg sm:text-2xl md:text-3xl relative z-10 text-white font-display">
-                  Get your Ranger Tab and ask how you can get no-cost contract mgmt & signature for your business
+                  Apply for your Ranger Tab and ask how you can get no-cost contract mgmt & signature for your business
                 </p>
                 <div className="text-center mt-3">
                   <a

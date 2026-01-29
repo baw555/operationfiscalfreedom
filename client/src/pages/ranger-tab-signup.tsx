@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
@@ -18,6 +19,7 @@ export default function RangerTabSignup() {
     business: "",
     address: "",
     initials: "",
+    credentials: "",
   });
 
   const submitMutation = useMutation({
@@ -150,7 +152,7 @@ export default function RangerTabSignup() {
             <Card className="border-brand-gold/30 bg-white/95 backdrop-blur shadow-2xl">
               <CardHeader className="text-center pb-2">
                 <CardTitle className="text-2xl font-display text-brand-navy">
-                  Get Your Ranger Tab
+                  Apply for Your Ranger Tab
                 </CardTitle>
                 <p className="text-gray-600">Fill out the form below to apply</p>
               </CardHeader>
@@ -231,6 +233,20 @@ export default function RangerTabSignup() {
                       data-testid="input-ranger-initials"
                     />
                     <p className="text-xs text-gray-500">Used for contract acknowledgments</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="credentials" className="text-brand-navy font-semibold">
+                      Credentials: Why do you want to be a Ranger? (How can you help the cause)
+                    </Label>
+                    <Textarea
+                      id="credentials"
+                      value={formData.credentials}
+                      onChange={(e) => setFormData({ ...formData, credentials: e.target.value })}
+                      placeholder="Tell us about your background, experience, and how you can contribute to helping veteran families..."
+                      className="text-brand-navy min-h-[120px] resize-y"
+                      data-testid="input-ranger-credentials"
+                    />
                   </div>
 
                   <Button

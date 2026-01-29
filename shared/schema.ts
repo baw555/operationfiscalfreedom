@@ -1274,6 +1274,7 @@ export const rangerTabApplications = pgTable("ranger_tab_applications", {
   business: text("business").notNull(),
   address: text("address").notNull(),
   initials: text("initials").notNull(),
+  credentials: text("credentials"), // Why do you want to be a Ranger? (How can you help the cause)
   status: text("status").notNull().default("new"), // new, contacted, approved, active
   notes: text("notes"),
   portalSlug: text("portal_slug"), // When approved, this is their portal URL
