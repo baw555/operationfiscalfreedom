@@ -29,6 +29,7 @@ export default function CsuSign() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const contractRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
   const [signed, setSigned] = useState(false);
@@ -170,12 +171,32 @@ export default function CsuSign() {
       initials: formData.initials || "[INITIALS]",
     };
 
+    // Raw values for input fields (ISO format for dates)
+    const inputValues: Record<string, string> = {
+      currentDate: formData.effectiveDate || "",
+      clientCompany: formData.clientCompany || "",
+      clientAddress: formData.clientAddress || "",
+      primaryOwner: formData.primaryOwner || formData.signerName || "",
+      primaryTitle: formData.primaryTitle || "",
+      secondaryOwner: formData.secondaryOwner || "",
+      clientEmail: formData.signerEmail || "",
+      initials: formData.initials || "",
+    };
+
     Object.entries(fieldReplacements).forEach(([field, value]) => {
       const regex = new RegExp(`<span class="auto-fill" data-field="${field}">[^<]*</span>`, "g");
       content = content.replace(regex, `<span class="auto-fill filled" data-field="${field}" style="color: #6b21a8; font-weight: 600;">${value}</span>`);
       
       const editableRegex = new RegExp(`<span class="editable-field" data-field="${field}"[^>]*>[^<]*</span>`, "g");
-      content = content.replace(editableRegex, `<span class="editable-field filled" data-field="${field}" style="color: #6b21a8; font-weight: 600; background: #f3e8ff; padding: 2px 6px; border-radius: 4px;">${value}</span>`);
+      const inputValue = inputValues[field] || "";
+      const placeholder = field === "currentDate" ? "Select date..." : 
+                         field === "clientCompany" ? "Enter company name..." :
+                         field === "clientAddress" ? "Enter address..." :
+                         field === "primaryOwner" ? "Enter name..." :
+                         field === "primaryTitle" ? "Enter title..." :
+                         field === "secondaryOwner" ? "Enter name (optional)..." :
+                         field === "clientEmail" ? "Enter email..." : "Enter value...";
+      content = content.replace(editableRegex, `<input type="${field === "currentDate" ? "date" : "text"}" class="embedded-input" data-field="${field}" value="${inputValue}" placeholder="${placeholder}" style="color: #6b21a8; font-weight: 600; background: #fff; border: 2px solid #9333ea; border-radius: 6px; padding: 8px 12px; width: 100%; font-size: 14px; outline: none;" />`);
     });
 
     if (formData.initials && initialsApplied) {
@@ -202,6 +223,44 @@ export default function CsuSign() {
 
     return content;
   }, [contractData, formData, initialsApplied, hasSignature]);
+
+  // Attach event listeners to embedded inputs for direct editing
+  useEffect(() => {
+    if (!contractRef.current) return;
+
+    const inputs = contractRef.current.querySelectorAll('.embedded-input');
+    
+    const handleInput = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const field = target.dataset.field;
+      if (!field) return;
+
+      const fieldMapping: Record<string, keyof typeof formData> = {
+        currentDate: 'effectiveDate',
+        clientCompany: 'clientCompany',
+        clientAddress: 'clientAddress',
+        primaryOwner: 'primaryOwner',
+        primaryTitle: 'primaryTitle',
+        secondaryOwner: 'secondaryOwner',
+        clientEmail: 'signerEmail',
+      };
+
+      const formField = fieldMapping[field];
+      if (formField) {
+        setFormData(prev => ({ ...prev, [formField]: target.value }));
+      }
+    };
+
+    inputs.forEach(input => {
+      input.addEventListener('input', handleInput);
+    });
+
+    return () => {
+      inputs.forEach(input => {
+        input.removeEventListener('input', handleInput);
+      });
+    };
+  }, [processedContent]);
 
   const applyInitials = () => {
     if (formData.initials.length >= 2) {
@@ -605,8 +664,12 @@ export default function CsuSign() {
             </CardHeader>
             <CardContent>
               <div 
+                ref={contractRef}
                 className="bg-white p-6 rounded-lg border-2 border-gray-200 max-h-[600px] overflow-y-auto text-sm prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(processedContent, { ADD_ATTR: ["data-field", "data-section"] }) }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(processedContent, { 
+                  ADD_TAGS: ["input"],
+                  ADD_ATTR: ["data-field", "data-section", "placeholder", "type", "value"]
+                }) }}
               />
             </CardContent>
           </Card>
