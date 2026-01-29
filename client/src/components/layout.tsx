@@ -65,18 +65,8 @@ const aboutSubItems = [
 ];
 
 const disabilityRatingSubItems = [
-  { name: "VA Rating", href: "/disability-rating", header: true },
-  { name: "Initial Claim", href: "/disability-rating/initial" },
-  { name: "Rating Increase", href: "/disability-rating/increase" },
-  { name: "Denial Appeals", href: "/disability-rating/denial" },
-  { name: "SSDI Benefits", href: "/disability-rating/ssdi" },
-  { name: "Widow/Survivor", href: "/disability-rating/widow" },
-  { name: "Healthcare", href: "/healthcare", header: true },
-  { name: "PTSD Treatments", href: "/healthcare?category=ptsd" },
-  { name: "Exosome Therapy", href: "/healthcare?category=exosomes" },
-  { name: "Less Invasive", href: "/healthcare?category=less_invasive" },
-  { name: "New Treatments", href: "/healthcare?category=new_treatments" },
-  { name: "Treatment Guidance", href: "/healthcare?category=guidance" },
+  { name: "Disability Benefits", href: "/disability-rating" },
+  { name: "Healthcare Services", href: "/healthcare" },
 ];
 
 const finOpsSubItems = [
