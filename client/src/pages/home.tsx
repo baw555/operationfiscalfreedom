@@ -12,6 +12,7 @@ import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
+import { HeroMontage } from "@/components/hero-montage";
 
 export default function Home() {
   const [animationPhase, setAnimationPhase] = useState(0);
@@ -271,17 +272,7 @@ export default function Home() {
           "relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-navy transition-opacity duration-1000",
           showContent ? "opacity-100" : "opacity-0"
         )}>
-          <div className="absolute inset-0 z-0">
-            <video 
-              src="/videos/soldiers-marching-new.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover opacity-40"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/70 to-brand-navy/50" />
-          </div>
+          <HeroMontage />
 
           <div className="container relative z-10 px-3 sm:px-4 py-10 sm:py-20 text-center max-w-5xl mx-auto">
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-white mb-1 sm:mb-2 leading-none animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
