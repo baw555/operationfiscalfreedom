@@ -677,6 +677,36 @@ export default function CsuSign() {
             </CardContent>
           </Card>
 
+          {/* Initials Input - Above Contract */}
+          <Card className="mb-6 border-2 border-amber-200">
+            <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 py-4">
+              <CardTitle className="flex items-center gap-2 text-amber-800 text-lg">
+                <Pen className="w-5 h-5" /> Enter Your Initials
+              </CardTitle>
+              <p className="text-sm text-amber-600">Enter your initials here, then review the contract below and apply them to all sections.</p>
+            </CardHeader>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-4">
+                <Label htmlFor="initials" className="font-semibold whitespace-nowrap">Your Initials *</Label>
+                <Input
+                  id="initials"
+                  value={formData.initials}
+                  onChange={(e) => {
+                    setFormData({ ...formData, initials: e.target.value.toUpperCase() });
+                    setInitialsApplied(false);
+                  }}
+                  className="text-brand-navy font-bold text-center text-2xl h-14 w-24 border-2 border-purple-300"
+                  placeholder="JD"
+                  maxLength={4}
+                  data-testid="input-initials"
+                />
+                <p className="text-sm text-gray-500">
+                  {formData.initials.length >= 2 ? `Initials: ${formData.initials}` : "Enter 2-4 characters"}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -696,48 +726,39 @@ export default function CsuSign() {
             </CardContent>
           </Card>
 
+          {/* Apply Initials Button - Below Contract */}
+          <Card className="mb-6 border-2 border-purple-200">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-semibold text-purple-800">Apply Initials to Contract</p>
+                  <p className="text-xs text-gray-500">
+                    {initialsApplied 
+                      ? `Your initials "${formData.initials}" have been applied to all sections.` 
+                      : "Click the button to apply your initials to all required sections above."}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  onClick={applyInitials}
+                  disabled={formData.initials.length < 2}
+                  className={`h-12 px-6 ${initialsApplied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700"}`}
+                  data-testid="button-apply-initials"
+                >
+                  {initialsApplied ? "Initials Applied" : "Apply Initials to All Sections"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="mb-6 border-2 border-amber-200">
             <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50">
               <CardTitle className="flex items-center gap-2 text-amber-800">
-                <Pen className="w-5 h-5" /> Initials & Signature
+                <Pen className="w-5 h-5" /> Signature
               </CardTitle>
-              <p className="text-sm text-amber-600">Enter your initials and apply them to all 11 sections, then sign below.</p>
+              <p className="text-sm text-amber-600">Sign below to complete the agreement.</p>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-3">
-                  <Label htmlFor="initials" className="text-lg font-semibold">Your Initials *</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="initials"
-                      value={formData.initials}
-                      onChange={(e) => {
-                        setFormData({ ...formData, initials: e.target.value.toUpperCase() });
-                        setInitialsApplied(false);
-                      }}
-                      className="text-brand-navy font-bold text-center text-2xl h-14 w-24 border-2 border-purple-300"
-                      placeholder="JD"
-                      maxLength={4}
-                      data-testid="input-initials"
-                    />
-                    <Button
-                      type="button"
-                      onClick={applyInitials}
-                      disabled={formData.initials.length < 2}
-                      className={`h-14 px-6 ${initialsApplied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700"}`}
-                      data-testid="button-apply-initials"
-                    >
-                      {initialsApplied ? "Initials Applied" : "Apply Initials to All Sections"}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {initialsApplied 
-                      ? `Your initials "${formData.initials}" have been applied to all 11 sections.` 
-                      : "Enter your initials (2-4 characters) and click to apply them to all sections."}
-                  </p>
-                </div>
-              </div>
-
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-lg font-semibold">Your Signature *</Label>
