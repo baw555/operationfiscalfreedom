@@ -10,7 +10,8 @@ interface CsuContractData {
   signerName: string;
   signerEmail: string;
   signerPhone?: string | null;
-  address?: string | null;
+  address?: string | null; // Signer address/website
+  clientAddress?: string | null; // FICA contract company address
   initials?: string | null;
   effectiveDate?: string | null;
   signedAt: string;
@@ -20,6 +21,7 @@ interface CsuContractData {
   userAgent?: string | null;
   clientCompany?: string | null;
   primaryTitle?: string | null;
+  secondaryOwner?: string | null;
   esignConsent?: boolean;
   termsConsent?: boolean;
 }
@@ -45,9 +47,14 @@ export function replaceContractPlaceholders(
   content: string,
   data: {
     signerName?: string;
+    signerEmail?: string;
     effectiveDate?: string;
     initials?: string;
     signatureData?: string;
+    clientCompany?: string;
+    clientAddress?: string;
+    primaryTitle?: string;
+    secondaryOwner?: string;
   }
 ): string {
   let result = content;
@@ -55,17 +62,48 @@ export function replaceContractPlaceholders(
   // Replace signer name placeholders
   if (data.signerName) {
     result = result.replace(/\[SIGNER NAME[^\]]*\]/gi, data.signerName);
+    result = result.replace(/\[PRIMARY OWNER\]/gi, data.signerName);
+    result = result.replace(/\[AFFILIATE NAME[^\]]*\]/gi, data.signerName);
+  }
+  
+  // Replace signer email placeholders
+  if (data.signerEmail) {
+    result = result.replace(/\[SIGNER EMAIL[^\]]*\]/gi, data.signerEmail);
+    result = result.replace(/\[EMAIL[^\]]*\]/gi, data.signerEmail);
   }
   
   // Replace effective date placeholders
   if (data.effectiveDate) {
     result = result.replace(/\[EFFECTIVE DATE[^\]]*\]/gi, data.effectiveDate);
+    result = result.replace(/\[DATE\]/gi, data.effectiveDate);
   }
   
   // Replace initials placeholders
   if (data.initials) {
     result = result.replace(/\[INITIALS[^\]]*\]/gi, data.initials);
   }
+  
+  // Replace company placeholders (FICA contract)
+  if (data.clientCompany) {
+    result = result.replace(/\[COMPANY NAME[^\]]*\]/gi, data.clientCompany);
+    result = result.replace(/\[COMPANY\]/gi, data.clientCompany);
+  }
+  
+  // Replace address placeholders (FICA contract)
+  if (data.clientAddress) {
+    result = result.replace(/\[COMPANY ADDRESS[^\]]*\]/gi, data.clientAddress);
+    result = result.replace(/\[ADDRESS\]/gi, data.clientAddress);
+  }
+  
+  // Replace title placeholders (FICA contract)
+  if (data.primaryTitle) {
+    result = result.replace(/\[TITLE[^\]]*\]/gi, data.primaryTitle);
+  }
+  
+  // Replace secondary owner placeholders (FICA contract)
+  const secondaryVal = data.secondaryOwner || "N/A";
+  result = result.replace(/\[SECONDARY OWNER\]/gi, secondaryVal);
+  result = result.replace(/\[OPTIONAL[^\]]*\]/gi, secondaryVal);
   
   // Replace signature placeholders (just mark as "See Signature Below" since actual signature is drawn)
   if (data.signatureData) {
@@ -194,9 +232,14 @@ export async function generateCsuContractPdf(data: CsuContractData): Promise<Buf
       // Contract Content (replace placeholders first, then clean)
       const contentWithReplacements = replaceContractPlaceholders(data.templateContent, {
         signerName: data.signerName,
+        signerEmail: data.signerEmail,
         effectiveDate: data.effectiveDate || undefined,
         initials: data.initials || undefined,
         signatureData: data.signatureData || undefined,
+        clientCompany: data.clientCompany || undefined,
+        clientAddress: data.clientAddress || data.address || undefined, // Prefer explicit clientAddress, fall back to address
+        primaryTitle: data.primaryTitle || undefined,
+        secondaryOwner: data.secondaryOwner || undefined,
       });
       
       // Check if this is a plain text template (no HTML tags) - add agreement details header

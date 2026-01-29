@@ -1863,7 +1863,8 @@ export default function CsuPortal() {
           signerName: MAURICE_INFO.name,
           signerEmail: MAURICE_INFO.email,
           signerPhone: MAURICE_INFO.phone1,
-          address: selfSignData.clientAddress || MAURICE_INFO.website,
+          address: MAURICE_INFO.website, // Signer website/address for non-FICA
+          clientAddress: selfSignData.clientAddress, // FICA contract company address
           initials: selfSignData.initials,
           effectiveDate: selfSignData.effectiveDate,
           signatureData,

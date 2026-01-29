@@ -4050,7 +4050,8 @@ export async function registerRoutes(
         signerName: z.string().min(1, "Name is required"),
         signerEmail: z.string().email("Valid email is required"),
         signerPhone: z.string().optional().nullable(),
-        address: z.string().optional().nullable(),
+        address: z.string().optional().nullable(), // Used for non-FICA contracts (signer address/website)
+        clientAddress: z.string().optional().nullable(), // FICA contract company address
         initials: z.string().min(1, "Initials are required"),
         effectiveDate: z.string().min(1, "Effective date is required"),
         signatureData: z.string().min(1, "Signature is required"),
@@ -4073,7 +4074,9 @@ export async function registerRoutes(
         });
       }
 
-      const { signerName, signerEmail, signerPhone, address, initials, effectiveDate, signatureData, agreedToEsign, agreedToTerms, clientCompany, primaryTitle } = validationResult.data;
+      const { signerName, signerEmail, signerPhone, address, clientAddress: ficaClientAddress, initials, effectiveDate, signatureData, agreedToEsign, agreedToTerms, clientCompany, primaryTitle, secondaryOwner } = validationResult.data;
+      // Use explicit clientAddress for FICA, or fall back to address field
+      const clientAddress = ficaClientAddress || address || "";
 
       const contractSend = await storage.getCsuContractSendByToken(token);
       
@@ -4096,7 +4099,7 @@ export async function registerRoutes(
       const signingUserAgent = req.headers["user-agent"] || "Unknown";
 
       // Build consent string for audit trail (includes both consents)
-      const consentRecord = `esign:${agreedToEsign === true || agreedToEsign === "true" ? "yes" : "no"},terms:${agreedToTerms === true || agreedToTerms === "true" ? "yes" : "no"},ua:${signingUserAgent.substring(0, 200)},company:${clientCompany || ""},title:${primaryTitle || ""}`;
+      const consentRecord = `esign:${agreedToEsign === true || agreedToEsign === "true" ? "yes" : "no"},terms:${agreedToTerms === true || agreedToTerms === "true" ? "yes" : "no"},ua:${signingUserAgent.substring(0, 200)},company:${clientCompany || ""},title:${primaryTitle || ""},address:${clientAddress || ""},secondary:${secondaryOwner || ""}`;
 
       // Create the signed agreement with validated consent
       const signedAgreement = await storage.createCsuSignedAgreement({
@@ -4150,6 +4153,8 @@ export async function registerRoutes(
       const storedUserAgent = parseConsentField("ua") || "Unknown";
       const clientCompany = parseConsentField("company") || "";
       const primaryTitle = parseConsentField("title") || "";
+      const clientAddress = parseConsentField("address") || "";
+      const secondaryOwner = parseConsentField("secondary") || "";
 
       // Import PDF generator
       const { generateCsuContractPdf } = await import("./pdfGenerator");
@@ -4161,7 +4166,8 @@ export async function registerRoutes(
         signerName: agreement.signerName,
         signerEmail: agreement.signerEmail,
         signerPhone: agreement.signerPhone,
-        address: agreement.address,
+        address: agreement.address, // Signer address/website
+        clientAddress, // FICA contract company address from consent record
         initials: agreement.initials,
         effectiveDate: agreement.effectiveDate,
         signedAt: agreement.signedAt?.toISOString() || new Date().toISOString(),
@@ -4171,6 +4177,7 @@ export async function registerRoutes(
         userAgent: storedUserAgent,
         clientCompany,
         primaryTitle,
+        secondaryOwner,
         esignConsent,
         termsConsent,
       });
@@ -4211,6 +4218,8 @@ export async function registerRoutes(
       const storedUserAgent = parseConsentField("ua") || "Unknown";
       const clientCompany = parseConsentField("company") || "";
       const primaryTitle = parseConsentField("title") || "";
+      const clientAddress = parseConsentField("address") || "";
+      const secondaryOwner = parseConsentField("secondary") || "";
 
       // Import PDF generator
       const { generateCsuContractPdf } = await import("./pdfGenerator");
@@ -4222,7 +4231,8 @@ export async function registerRoutes(
         signerName: agreement.signerName,
         signerEmail: agreement.signerEmail,
         signerPhone: agreement.signerPhone,
-        address: agreement.address,
+        address: agreement.address, // Signer address/website
+        clientAddress, // FICA contract company address from consent record
         initials: agreement.initials,
         effectiveDate: agreement.effectiveDate,
         signedAt: agreement.signedAt?.toISOString() || new Date().toISOString(),
@@ -4232,6 +4242,7 @@ export async function registerRoutes(
         userAgent: storedUserAgent,
         clientCompany,
         primaryTitle,
+        secondaryOwner,
         esignConsent,
         termsConsent,
       });
