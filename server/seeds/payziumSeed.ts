@@ -3,170 +3,82 @@ import { users, csuContractTemplates } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 
-const NEW_CLIENT_AGREEMENT_CONTENT = `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6;">
+// Mr. Verrelli's Agreement - CSU Independent Referral, Commission & MSO Agreement
+const MR_VERRELLI_AGREEMENT_CONTENT = `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.8;">
 
-<h1 style="text-align: center; color: #6b21a8; border-bottom: 3px solid #9333ea; padding-bottom: 15px;">NEW CLIENT AGREEMENT</h1>
+<h1 style="text-align: center; color: #6b21a8; border-bottom: 3px solid #9333ea; padding-bottom: 15px; font-size: 28px;">INDEPENDENT REFERRAL, COMMISSION & MSO AGREEMENT</h1>
 
-<div style="background: #f8f4ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-<p style="margin: 0;"><strong>Effective Date:</strong> [EFFECTIVE DATE - Enter Above]</p>
-<p style="margin: 10px 0;"><strong>Client:</strong> [SIGNER NAME - Enter Above]</p>
-</div>
+<h2 style="color: #6b21a8; margin-top: 30px;">1. Parties</h2>
+<p>This Agreement is entered into by and between <strong>Cost Savings University, LLC</strong> ("CSU"), a Wyoming limited liability company, located at 30 N Gould St Ste R, Sheridan, WY 82801, and <strong>[SIGNER NAME - Enter Above]</strong> ("Sales Representative").</p>
 
-<h2 style="color: #6b21a8;">1. AGREEMENT TO TERMS</h2>
-<p>By signing this agreement, the Client agrees to engage the services of Payzium and its affiliates for the purpose of payment processing, merchant services, and related financial services as detailed in this agreement.</p>
+<h2 style="color: #6b21a8;">2. Purpose</h2>
+<p>Sales Representative may introduce prospective clients or business opportunities to CSU. This Agreement governs commissions, confidentiality, non-circumvention, and liability related to such introductions.</p>
 
-<h2 style="color: #6b21a8;">2. SERVICES PROVIDED</h2>
-<p>Payzium agrees to provide the following services to the Client:</p>
-<ul>
-<li>Payment processing and merchant account services</li>
-<li>Point of sale solutions and integrations</li>
-<li>Financial reporting and analytics</li>
-<li>Customer support and technical assistance</li>
-<li>Compliance and security services</li>
-</ul>
+<h2 style="color: #6b21a8;">3. Managed Service Organization Disclosure</h2>
+<p>CSU operates solely as a managed services organization ("MSO"). CSU provides only administrative, marketing, technology, and referral coordination services and does not provide legal, tax, accounting, insurance, medical, clinical, payroll, PEO, or other regulated professional services. All such services are provided exclusively by independent third-party providers who are solely responsible for licensing, compliance, professional judgment, services rendered, fees charged, and outcomes.</p>
 
 <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
 <p style="margin: 0;"><strong>INITIAL HERE:</strong> [INITIALS - Enter Above]</p>
 </div>
 
-<h2 style="color: #6b21a8;">3. FEES AND PAYMENT TERMS</h2>
-<p>The Client agrees to pay all applicable fees as outlined in the accompanying fee schedule. Fees may include but are not limited to:</p>
-<ul>
-<li>Transaction processing fees</li>
-<li>Monthly service fees</li>
-<li>Equipment rental or purchase fees</li>
-<li>Chargeback and dispute resolution fees</li>
-</ul>
+<h2 style="color: #6b21a8;">4. Commission</h2>
+<p>CSU shall pay Sales Representative a commission equal to <strong>thirty-three percent (33%)</strong> of Net Fees actually received by CSU from business directly introduced by Sales Representative. "Net Fees" means amounts received by CSU after third-party vendor costs, refunds, chargebacks, taxes, and processing fees.</p>
 
-<h2 style="color: #6b21a8;">4. TERM AND TERMINATION</h2>
-<p>This agreement shall commence on the Effective Date and continue until terminated by either party with 30 days written notice. Early termination may be subject to applicable fees.</p>
+<h2 style="color: #6b21a8;">5. Independent Contractor</h2>
+<p>Sales Representative is an independent contractor and not an employee, agent, partner, joint venturer, or fiduciary of CSU. Sales Representative has no authority to bind CSU.</p>
+
+<h2 style="color: #6b21a8;">6. Confidentiality</h2>
+<p>Each party shall keep confidential all non-public business, financial, technical, and client information received from the other and shall not disclose or use such information except as necessary to perform under this Agreement.</p>
 
 <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
 <p style="margin: 0;"><strong>INITIAL HERE:</strong> [INITIALS - Enter Above]</p>
 </div>
 
-<h2 style="color: #6b21a8;">5. CONFIDENTIALITY</h2>
-<p>Both parties agree to maintain the confidentiality of all proprietary information shared during the course of this agreement. This includes customer data, transaction information, and business practices.</p>
+<h2 style="color: #6b21a8;">7. Non-Circumvention</h2>
+<p>Sales Representative shall not directly or indirectly bypass, interfere with, or circumvent CSU's relationships with any clients, vendors, partners, or opportunities introduced by or through CSU.</p>
 
-<h2 style="color: #6b21a8;">6. LIABILITY</h2>
-<p>Payzium shall not be liable for any indirect, incidental, or consequential damages arising from the use of its services. The Client assumes responsibility for maintaining accurate records and complying with all applicable laws.</p>
+<h2 style="color: #6b21a8;">8. Limitation of Sales Representative Liability</h2>
+<p>To the maximum extent permitted by law, Sales Representative shall not be liable for any indirect, incidental, consequential, special, exemplary, or punitive damages. Sales Representative's liability for any single claim shall be limited to the lesser of (a) commissions paid to Sales Representative during the three (3) months preceding the event giving rise to the claim, or (b) One Thousand Dollars ($1,000). Sales Representative shall have no liability for negligence, gross negligence, or willful misconduct. Liability shall exist only for knowing and intentional fraud proven by a final, non-appealable judgment.</p>
+
+<h2 style="color: #6b21a8;">9. Indemnity Limitation</h2>
+<p>Any indemnification obligation of Sales Representative is limited to knowing and intentional fraud proven by final, non-appealable judgment and is subject to the same per-claim cap set forth above. Sales Representative shall have no obligation to indemnify CSU for the acts or omissions of CSU or any third-party provider.</p>
+
+<div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
+<p style="margin: 0;"><strong>INITIAL HERE:</strong> [INITIALS - Enter Above]</p>
+</div>
+
+<h2 style="color: #6b21a8;">10. Term and Termination</h2>
+<p>This Agreement is effective as of <strong>[EFFECTIVE DATE - Enter Above]</strong> and may be terminated by either party upon thirty (30) days written notice. Commissions earned on Net Fees received prior to termination remain payable.</p>
+
+<h2 style="color: #6b21a8;">11. Governing Law and Dispute Resolution</h2>
+<p>This Agreement shall be governed by the laws of the State of Wyoming. Any dispute shall be resolved by binding arbitration in Wyoming.</p>
+
+<h2 style="color: #6b21a8;">12. Entire Agreement</h2>
+<p>This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements or understandings. Any amendment must be in writing and signed by both parties.</p>
 
 <hr style="border: 2px solid #6b21a8; margin: 40px 0;">
 
-<h2 style="color: #6b21a8; text-align: center;">SIGNATURE AND ACKNOWLEDGMENT</h2>
+<h2 style="color: #6b21a8; text-align: center;">13. Signatures</h2>
+
+<div style="background: #f8f4ff; padding: 20px; border-radius: 8px; border: 2px solid #6b21a8; margin-bottom: 20px;">
+  <h3 style="color: #6b21a8; margin-top: 0;">Cost Savings University, LLC</h3>
+  <p style="margin: 10px 0;"><strong>By:</strong> Maurice Verrelli</p>
+  <p style="margin: 10px 0;"><strong>Name:</strong> Maurice Verrelli</p>
+  <p style="margin: 10px 0;"><strong>Title:</strong> President & CEO</p>
+  <p style="margin: 10px 0;"><strong>Date:</strong> [EFFECTIVE DATE - See Form Above]</p>
+</div>
 
 <div style="background: #f3e8ff; padding: 25px; border-radius: 8px; margin: 25px 0; border: 2px solid #6b21a8;">
-<p style="font-size: 14px; margin-bottom: 20px;">By signing below, I acknowledge that I have read, understood, and agree to all terms and conditions set forth in this New Client Agreement.</p>
-<p style="margin: 15px 0;"><strong>Full Legal Name:</strong> [SIGNER NAME - See Form Above]</p>
-<p style="margin: 15px 0;"><strong>Email Address:</strong> [SIGNER EMAIL - See Form Above]</p>
-<p style="margin: 15px 0;"><strong>Effective Date:</strong> [EFFECTIVE DATE - See Form Above]</p>
-<p style="margin: 15px 0;"><strong>Initials:</strong> [INITIALS - See Form Above]</p>
-<p style="margin: 15px 0;"><strong>Signature:</strong> [SIGNATURE - Use Signature Pad Below]</p>
+  <h3 style="color: #6b21a8; margin-top: 0;">Sales Representative</h3>
+  <p style="margin: 15px 0;"><strong>Full Legal Name:</strong> [SIGNER NAME - See Form Above]</p>
+  <p style="margin: 15px 0;"><strong>Email Address:</strong> [SIGNER EMAIL - See Form Above]</p>
+  <p style="margin: 15px 0;"><strong>Date:</strong> [EFFECTIVE DATE - See Form Above]</p>
+  <p style="margin: 15px 0;"><strong>Signature:</strong> [SIGNATURE - Use Signature Pad Below]</p>
 </div>
 
 <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
 <p style="font-size: 12px; color: #666; margin: 0;">This document is electronically signed and legally binding upon submission.</p>
-<p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">Payzium | payzium.com</p>
-</div>
-
-</div>`;
-
-const SIGN_AFFILIATE_AGREEMENT_CONTENT = `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6;">
-
-<h1 style="text-align: center; color: #6b21a8; border-bottom: 3px solid #9333ea; padding-bottom: 15px;">AFFILIATE AGREEMENT</h1>
-<p style="text-align: center; color: #6b21a8; font-weight: bold; margin-bottom: 30px;">Including Non-Disclosure Agreement (NDA)</p>
-
-<div style="background: #f8f4ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-<p style="margin: 0;"><strong>Effective Date:</strong> [EFFECTIVE DATE - Enter Above]</p>
-<p style="margin: 10px 0;"><strong>Affiliate:</strong> [SIGNER NAME - Enter Above]</p>
-<p style="margin: 0;"><strong>Company:</strong> Payzium</p>
-</div>
-
-<h2 style="color: #6b21a8;">PART I: AFFILIATE PARTNERSHIP AGREEMENT</h2>
-
-<h3 style="color: #9333ea;">1. APPOINTMENT</h3>
-<p>Payzium hereby appoints the Affiliate as an independent representative to promote and refer customers for Payzium's payment processing and merchant services. The Affiliate accepts this appointment under the terms and conditions set forth herein.</p>
-
-<h3 style="color: #9333ea;">2. AFFILIATE RESPONSIBILITIES</h3>
-<p>The Affiliate agrees to:</p>
-<ul>
-<li>Represent Payzium in a professional manner at all times</li>
-<li>Accurately describe services and pricing to potential customers</li>
-<li>Comply with all applicable laws and regulations</li>
-<li>Maintain confidentiality of customer and company information</li>
-<li>Submit referrals through official company channels</li>
-</ul>
-
-<div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
-<p style="margin: 0;"><strong>INITIAL HERE TO ACKNOWLEDGE RESPONSIBILITIES:</strong> [INITIALS - Enter Above]</p>
-</div>
-
-<h3 style="color: #9333ea;">3. COMPENSATION</h3>
-<p>The Affiliate shall receive commission payments as outlined in the Payzium compensation structure for all qualified referrals that result in active merchant accounts. Commissions are paid monthly on active accounts.</p>
-
-<h3 style="color: #9333ea;">4. INDEPENDENT CONTRACTOR STATUS</h3>
-<p>The Affiliate is an independent contractor and not an employee of Payzium. The Affiliate is responsible for their own taxes, insurance, and business expenses. Payzium will not withhold taxes or provide benefits.</p>
-
-<div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
-<p style="margin: 0;"><strong>INITIAL HERE TO ACKNOWLEDGE CONTRACTOR STATUS:</strong> [INITIALS - Enter Above]</p>
-</div>
-
-<hr style="border: 1px solid #ddd; margin: 30px 0;">
-
-<h2 style="color: #6b21a8;">PART II: NON-DISCLOSURE AGREEMENT (NDA)</h2>
-
-<h3 style="color: #9333ea;">5. CONFIDENTIAL INFORMATION</h3>
-<p>The Affiliate acknowledges that during the course of this relationship, they will have access to confidential and proprietary information belonging to Payzium ("Confidential Information"). This includes but is not limited to:</p>
-<ul>
-<li>Customer lists, contact information, and transaction data</li>
-<li>Pricing structures, commission rates, and business strategies</li>
-<li>Training materials, sales processes, and marketing strategies</li>
-<li>Software, technology systems, and trade secrets</li>
-<li>Financial information and business operations data</li>
-</ul>
-
-<h3 style="color: #9333ea;">6. NON-DISCLOSURE OBLIGATIONS</h3>
-<p>The Affiliate agrees to:</p>
-<ul>
-<li><strong>Maintain Confidentiality:</strong> Keep all Confidential Information strictly confidential and not disclose it to any third party without prior written consent</li>
-<li><strong>Limited Use:</strong> Use Confidential Information solely for the purpose of performing affiliate duties</li>
-<li><strong>Secure Storage:</strong> Take all reasonable precautions to protect Confidential Information from unauthorized access or disclosure</li>
-<li><strong>Return of Materials:</strong> Return or destroy all Confidential Information upon termination of this agreement</li>
-</ul>
-
-<div style="background: #fce8e8; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #dc2626;">
-<p style="margin: 0; font-weight: bold; color: #dc2626;">IMPORTANT: Violation of this NDA may result in immediate termination and legal action.</p>
-</div>
-
-<div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
-<p style="margin: 0;"><strong>INITIAL HERE TO ACKNOWLEDGE NDA TERMS:</strong> [INITIALS - Enter Above]</p>
-</div>
-
-<h3 style="color: #9333ea;">7. DURATION OF CONFIDENTIALITY</h3>
-<p>The confidentiality obligations in this agreement shall survive the termination of the affiliate relationship and continue for a period of five (5) years thereafter, or for as long as the information remains confidential, whichever is longer.</p>
-
-<h3 style="color: #9333ea;">8. TERM AND TERMINATION</h3>
-<p>This agreement shall commence on the Effective Date and continue until terminated by either party with 30 days written notice. Either party may terminate immediately for material breach of this agreement.</p>
-
-<h3 style="color: #9333ea;">9. GOVERNING LAW</h3>
-<p>This agreement shall be governed by and construed in accordance with the laws of the State of Arizona. Any disputes arising from this agreement shall be resolved through binding arbitration.</p>
-
-<hr style="border: 2px solid #6b21a8; margin: 40px 0;">
-
-<h2 style="color: #6b21a8; text-align: center;">SIGNATURE AND ACKNOWLEDGMENT</h2>
-
-<div style="background: #f3e8ff; padding: 25px; border-radius: 8px; margin: 25px 0; border: 2px solid #6b21a8;">
-<p style="font-size: 14px; margin-bottom: 20px;">By signing below, I acknowledge that I have read, understood, and agree to all terms and conditions set forth in this Affiliate Agreement and Non-Disclosure Agreement. I understand that this is a legally binding document.</p>
-<p style="margin: 15px 0;"><strong>Full Legal Name:</strong> [SIGNER NAME - See Form Above]</p>
-<p style="margin: 15px 0;"><strong>Email Address:</strong> [SIGNER EMAIL - See Form Above]</p>
-<p style="margin: 15px 0;"><strong>Effective Date:</strong> [EFFECTIVE DATE - See Form Above]</p>
-<p style="margin: 15px 0;"><strong>Initials:</strong> [INITIALS - See Form Above]</p>
-<p style="margin: 15px 0;"><strong>Signature:</strong> [SIGNATURE - Use Signature Pad Below]</p>
-</div>
-
-<div style="text-align: center; margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
-<p style="font-size: 12px; color: #666; margin: 0;">This document is electronically signed and legally binding upon submission.</p>
-<p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">Payzium | payzium.com</p>
+<p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">Cost Savings University, LLC | 30 N Gould St Ste R, Sheridan, WY 82801</p>
 </div>
 
 </div>`;
@@ -184,12 +96,11 @@ export async function seedPayziumData() {
         email: "maurice@payzium.com",
         passwordHash,
         role: "admin",
-        portal: "payzium", // Restricts login to Payzium portal only
+        portal: "payzium",
         referralCode: "PAYZIUM",
       });
       console.log("[seed] Created Maurice Verrelli admin account");
     } else {
-      // Update existing user to have portal restriction if not set
       if (!existingUser[0].portal) {
         await db.update(users)
           .set({ portal: "payzium" })
@@ -200,32 +111,27 @@ export async function seedPayziumData() {
       }
     }
 
-    // Check and create New Client Agreement template
-    const existingNewClient = await db.select().from(csuContractTemplates)
-      .where(eq(csuContractTemplates.name, "New Client Agreement")).limit(1);
+    // Check and create Mr. Verrelli's Agreement template
+    const existingVerrelliAgreement = await db.select().from(csuContractTemplates)
+      .where(eq(csuContractTemplates.name, "Mr. Verrelli's Agreement")).limit(1);
     
-    if (existingNewClient.length === 0) {
+    if (existingVerrelliAgreement.length === 0) {
       await db.insert(csuContractTemplates).values({
-        name: "New Client Agreement",
-        description: "Standard client agreement for new customers",
-        content: NEW_CLIENT_AGREEMENT_CONTENT,
+        name: "Mr. Verrelli's Agreement",
+        description: "CSU Independent Referral, Commission & MSO Agreement",
+        content: MR_VERRELLI_AGREEMENT_CONTENT,
         isActive: true,
       });
-      console.log("[seed] Created New Client Agreement template");
-    }
-
-    // Check and create Sign Affiliate Agreement template
-    const existingAffiliate = await db.select().from(csuContractTemplates)
-      .where(eq(csuContractTemplates.name, "Sign Affiliate Agreement")).limit(1);
-    
-    if (existingAffiliate.length === 0) {
-      await db.insert(csuContractTemplates).values({
-        name: "Sign Affiliate Agreement",
-        description: "Affiliate partnership agreement with NDA for Payzium representatives",
-        content: SIGN_AFFILIATE_AGREEMENT_CONTENT,
-        isActive: true,
-      });
-      console.log("[seed] Created Sign Affiliate Agreement template");
+      console.log("[seed] Created Mr. Verrelli's Agreement template");
+    } else {
+      // Update existing template with correct content
+      await db.update(csuContractTemplates)
+        .set({ 
+          content: MR_VERRELLI_AGREEMENT_CONTENT,
+          description: "CSU Independent Referral, Commission & MSO Agreement"
+        })
+        .where(eq(csuContractTemplates.name, "Mr. Verrelli's Agreement"));
+      console.log("[seed] Updated Mr. Verrelli's Agreement template");
     }
 
     console.log("[seed] Payzium seed data complete");

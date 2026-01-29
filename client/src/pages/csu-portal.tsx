@@ -287,7 +287,7 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
             )}
           </div>
           
-          {/* WELCOME BACK Text */}
+          {/* WELCOME BACK Text with Letter-by-Letter Shine */}
           <div 
             className={`absolute transition-all ${
               cinematicPhase === 'welcome' ? 'opacity-100 scale-100' : 
@@ -295,30 +295,93 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
             }`}
             style={{ transitionDuration: '500ms' }}
           >
-            <h1 
-              className="text-4xl sm:text-6xl font-black tracking-[0.15em] text-white text-center relative"
-              style={{
-                textShadow: cinematicPhase === 'welcome' ? '0 0 10px #fff, 0 0 20px #ffd700, 0 0 40px #ffd700, 0 0 80px #ff8c00' : 'none',
-                animation: cinematicPhase === 'welcome' ? 'welcomePulse 2s ease-in-out' : 'none'
-              }}
-            >
-              <span className="block mb-2 text-amber-400" style={{ textShadow: '0 0 15px #ffd700, 0 0 30px #ff8c00' }}>Welcome Back</span>
-              <span className="block text-white">Mr. Verrelli</span>
-              {/* Electric sparks around text */}
-              {cinematicPhase === 'welcome' && [...Array(12)].map((_, i) => (
+            <div className="text-center relative">
+              {/* Welcome Back - static golden glow */}
+              <h2 
+                className="text-3xl sm:text-5xl font-bold tracking-[0.1em] text-amber-400 mb-4"
+                style={{ textShadow: '0 0 15px #ffd700, 0 0 30px #ff8c00' }}
+              >
+                Welcome Back
+              </h2>
+              
+              {/* Mr. Verrelli - Letter by letter shine animation */}
+              <h1 className="text-5xl sm:text-7xl font-black tracking-[0.12em] text-white mb-6 relative">
+                {cinematicPhase === 'welcome' && "Mr. Verrelli".split('').map((letter, i) => (
+                  <span 
+                    key={i}
+                    className="inline-block letter-shine"
+                    style={{
+                      animationDelay: `${i * 0.12}s`,
+                      opacity: 0,
+                    }}
+                  >
+                    {letter === ' ' ? '\u00A0' : letter}
+                  </span>
+                ))}
+              </h1>
+              
+              {/* President & CEO - Letter by letter with sparkle on O */}
+              <h3 className="text-2xl sm:text-3xl font-semibold tracking-[0.15em] text-purple-300 relative">
+                {cinematicPhase === 'welcome' && "President & CEO".split('').map((letter, i) => {
+                  const isLastO = letter === 'O' && i === 14;
+                  return (
+                    <span 
+                      key={i}
+                      className={`inline-block ${isLastO ? 'letter-shine-sparkle' : 'letter-shine'}`}
+                      style={{
+                        animationDelay: `${1.4 + i * 0.08}s`,
+                        opacity: 0,
+                        position: 'relative',
+                      }}
+                    >
+                      {letter === ' ' ? '\u00A0' : letter}
+                      {/* Elaborate sparkle burst on the O */}
+                      {isLastO && (
+                        <>
+                          {[...Array(16)].map((_, s) => (
+                            <span
+                              key={s}
+                              className="sparkle-particle"
+                              style={{
+                                '--angle': `${s * 22.5}deg`,
+                                '--delay': `${2.6 + s * 0.03}s`,
+                                '--distance': `${40 + Math.random() * 30}px`,
+                              } as React.CSSProperties}
+                            />
+                          ))}
+                          {/* Inner ring sparkles */}
+                          {[...Array(8)].map((_, s) => (
+                            <span
+                              key={`inner-${s}`}
+                              className="sparkle-particle-inner"
+                              style={{
+                                '--angle': `${s * 45 + 22.5}deg`,
+                                '--delay': `${2.65 + s * 0.04}s`,
+                                '--distance': `${20 + Math.random() * 15}px`,
+                              } as React.CSSProperties}
+                            />
+                          ))}
+                        </>
+                      )}
+                    </span>
+                  );
+                })}
+              </h3>
+              
+              {/* Ambient floating particles */}
+              {cinematicPhase === 'welcome' && [...Array(20)].map((_, i) => (
                 <span 
                   key={i}
-                  className="absolute w-1 h-1 bg-yellow-400 rounded-full"
+                  className="absolute w-1 h-1 bg-yellow-400 rounded-full ambient-particle"
                   style={{
-                    left: `${10 + Math.random() * 80}%`,
-                    top: `${10 + Math.random() * 80}%`,
-                    boxShadow: '0 0 6px #ffd700, 0 0 12px #ff8c00',
-                    animation: `sparkBurst ${0.3 + Math.random() * 0.5}s ease-out forwards`,
-                    animationDelay: `${Math.random() * 1}s`
+                    left: `${5 + Math.random() * 90}%`,
+                    top: `${5 + Math.random() * 90}%`,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random() * 1.5}s`,
                   }}
                 />
               ))}
-            </h1>
+            </div>
           </div>
           
           {/* Video Transition Phase */}
@@ -376,6 +439,145 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
               0% { transform: scale(0) translate(0, 0); opacity: 1; }
               50% { transform: scale(2) translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px); opacity: 0.8; }
               100% { transform: scale(0) translate(${Math.random() * 60 - 30}px, ${Math.random() * 60 - 30}px); opacity: 0; }
+            }
+            
+            /* Letter-by-letter shine animation */
+            @keyframes letterShine {
+              0% { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.8);
+                text-shadow: none;
+                color: #333;
+              }
+              30% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1.1);
+                text-shadow: 0 0 20px #fff, 0 0 40px #ffd700, 0 0 60px #ffd700, 0 0 80px #ff8c00;
+                color: #fff;
+              }
+              50% {
+                transform: scale(1.05);
+                text-shadow: 0 0 30px #fff, 0 0 60px #ffd700, 0 0 90px #ffd700, 0 0 120px #ff8c00;
+              }
+              100% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+                text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(255,215,0,0.3);
+                color: #fff;
+              }
+            }
+            
+            .letter-shine {
+              animation: letterShine 0.6s ease-out forwards;
+            }
+            
+            /* Special sparkle animation for the O */
+            @keyframes letterShineSparkle {
+              0% { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.8);
+                text-shadow: none;
+                color: #333;
+              }
+              30% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1.2);
+                text-shadow: 0 0 30px #fff, 0 0 60px #ffd700, 0 0 90px #9333ea, 0 0 120px #ff8c00;
+                color: #ffd700;
+              }
+              50% {
+                transform: scale(1.4);
+                text-shadow: 0 0 50px #fff, 0 0 100px #ffd700, 0 0 150px #9333ea, 0 0 200px #ff00ff;
+                color: #fff;
+              }
+              70% {
+                transform: scale(1.1);
+                text-shadow: 0 0 40px #fff, 0 0 80px #ffd700;
+              }
+              100% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+                text-shadow: 0 0 15px #ffd700, 0 0 30px #9333ea;
+                color: #ffd700;
+              }
+            }
+            
+            .letter-shine-sparkle {
+              animation: letterShineSparkle 0.8s ease-out forwards;
+            }
+            
+            /* Sparkle particles that burst from the O */
+            .sparkle-particle {
+              position: absolute;
+              width: 4px;
+              height: 4px;
+              background: radial-gradient(circle, #fff 0%, #ffd700 50%, transparent 100%);
+              border-radius: 50%;
+              top: 50%;
+              left: 50%;
+              opacity: 0;
+              animation: sparkleExplode 0.8s ease-out forwards;
+              animation-delay: var(--delay);
+              box-shadow: 0 0 6px #ffd700, 0 0 12px #ff8c00, 0 0 18px #9333ea;
+            }
+            
+            .sparkle-particle-inner {
+              position: absolute;
+              width: 3px;
+              height: 3px;
+              background: radial-gradient(circle, #fff 0%, #9333ea 50%, transparent 100%);
+              border-radius: 50%;
+              top: 50%;
+              left: 50%;
+              opacity: 0;
+              animation: sparkleExplodeInner 0.6s ease-out forwards;
+              animation-delay: var(--delay);
+              box-shadow: 0 0 4px #9333ea, 0 0 8px #ff00ff;
+            }
+            
+            @keyframes sparkleExplode {
+              0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0);
+              }
+              20% {
+                opacity: 1;
+              }
+              100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance));
+              }
+            }
+            
+            @keyframes sparkleExplodeInner {
+              0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0);
+              }
+              30% {
+                opacity: 1;
+              }
+              100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance));
+              }
+            }
+            
+            /* Ambient floating particles */
+            .ambient-particle {
+              animation: ambientFloat 2s ease-in-out infinite;
+              box-shadow: 0 0 6px #ffd700, 0 0 12px #ff8c00;
+            }
+            
+            @keyframes ambientFloat {
+              0%, 100% { 
+                opacity: 0; 
+                transform: translateY(0) scale(0.5); 
+              }
+              50% { 
+                opacity: 0.8; 
+                transform: translateY(-20px) scale(1.2); 
+              }
             }
           `}</style>
         </div>
