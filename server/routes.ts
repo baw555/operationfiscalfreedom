@@ -128,9 +128,9 @@ export async function registerRoutes(
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: process.env.NODE_ENV === "production",
+        secure: false, // Allow non-HTTPS for broader compatibility
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+        sameSite: 'lax', // More compatible than 'none'
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
       },
     })
@@ -4112,10 +4112,10 @@ export async function registerRoutes(
         signerName: z.string().min(1, "Name is required"),
         signerEmail: z.string().email("Valid email is required"),
         signerPhone: z.string().optional().nullable(),
-        address: z.string().optional().nullable(), // Used for non-FICA contracts (signer address/website)
-        clientAddress: z.string().optional().nullable(), // FICA contract company address
-        initials: z.string().min(1, "Initials are required"),
-        effectiveDate: z.string().min(1, "Effective date is required"),
+        address: z.string().optional().nullable(),
+        clientAddress: z.string().optional().nullable(),
+        initials: z.string().optional().nullable(),
+        effectiveDate: z.string().optional().nullable(),
         signatureData: z.string().min(1, "Signature is required"),
         agreedToEsign: z.union([z.boolean(), z.string()]).refine(val => val === true || val === "true", {
           message: "You must consent to electronic signatures"

@@ -324,7 +324,7 @@ function renderHtmlToPdf(
         
         // Calculate dynamic height based on text content
         doc.fontSize(9);
-        const initialsTextHeight = doc.heightOfString(cleanText, { width: data.contentWidth - 80 });
+        const initialsTextHeight = doc.heightOfString(cleanText, { width: data.contentWidth - 24 });
         const boxHeight = Math.max(40, initialsTextHeight + 24);
         
         ensureSpace(boxHeight + 15);
@@ -339,7 +339,7 @@ function renderHtmlToPdf(
         
         // Text content
         doc.fontSize(9).font('Helvetica-Bold').fillColor('#92400e')
-          .text(cleanText, data.leftMargin + 12, boxY + 12, { width: data.contentWidth - 80 });
+          .text(cleanText, data.leftMargin + 12, boxY + 12, { width: data.contentWidth - 24 });
         
         // Initials box on the right
         const initialsBoxX = data.leftMargin + data.contentWidth - 70;
