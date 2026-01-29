@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import DOMPurify from "dompurify";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, CheckCircle, AlertCircle, Pen, RotateCcw } from "lucide-react";
+import { FileText, CheckCircle, AlertCircle, Pen, RotateCcw, Building2, User, Mail, Phone, MapPin, Calendar } from "lucide-react";
 
 interface ContractData {
   contractSend: {
@@ -32,6 +32,7 @@ export default function CsuSign() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
   const [signed, setSigned] = useState(false);
+  const [initialsApplied, setInitialsApplied] = useState(false);
 
   const [formData, setFormData] = useState({
     signerName: "",
@@ -41,6 +42,11 @@ export default function CsuSign() {
     initials: "",
     effectiveDate: new Date().toISOString().split("T")[0],
     agreedToTerms: false,
+    clientCompany: "",
+    clientAddress: "",
+    primaryOwner: "",
+    primaryTitle: "",
+    secondaryOwner: "",
   });
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -59,6 +65,7 @@ export default function CsuSign() {
         signerName: contractData.contractSend.recipientName,
         signerEmail: contractData.contractSend.recipientEmail,
         signerPhone: contractData.contractSend.recipientPhone || "",
+        primaryOwner: contractData.contractSend.recipientName,
       }));
     }
   }, [contractData]);
@@ -138,6 +145,76 @@ export default function CsuSign() {
     setHasSignature(false);
   };
 
+  const processedContent = useMemo(() => {
+    if (!contractData?.template?.content) return "";
+    
+    let content = contractData.template.content;
+    
+    const formatDate = (dateStr: string) => {
+      if (!dateStr) return "[DATE]";
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    };
+
+    const fieldReplacements: Record<string, string> = {
+      currentDate: formData.effectiveDate ? formatDate(formData.effectiveDate) : "[DATE]",
+      clientCompany: formData.clientCompany || "[COMPANY NAME]",
+      clientAddress: formData.clientAddress || "[COMPANY ADDRESS]",
+      primaryOwner: formData.primaryOwner || formData.signerName || "[PRIMARY OWNER]",
+      primaryTitle: formData.primaryTitle || "[TITLE]",
+      secondaryOwner: formData.secondaryOwner || "N/A",
+      clientEmail: formData.signerEmail || "[EMAIL]",
+    };
+
+    Object.entries(fieldReplacements).forEach(([field, value]) => {
+      const regex = new RegExp(`<span class="auto-fill" data-field="${field}">[^<]*</span>`, "g");
+      content = content.replace(regex, `<span class="auto-fill filled" data-field="${field}" style="color: #6b21a8; font-weight: 600;">${value}</span>`);
+      
+      const editableRegex = new RegExp(`<span class="editable-field" data-field="${field}"[^>]*>[^<]*</span>`, "g");
+      content = content.replace(editableRegex, `<span class="editable-field filled" data-field="${field}" style="color: #6b21a8; font-weight: 600; background: #f3e8ff; padding: 2px 6px; border-radius: 4px;">${value}</span>`);
+    });
+
+    if (formData.initials && initialsApplied) {
+      content = content.replace(
+        /<div class="initials-capture"[^>]*>[\s\S]*?<span[^>]*>\[INITIALS\]<\/span>[\s\S]*?<\/div>/g,
+        `<div class="initials-capture captured" style="width: 80px; height: 50px; border: 2px solid #22c55e; border-radius: 6px; background: #dcfce7; display: flex; align-items: center; justify-content: center;">
+          <span style="color: #166534; font-weight: bold; font-size: 18px; font-family: 'Brush Script MT', cursive;">${formData.initials}</span>
+        </div>`
+      );
+    }
+
+    if (hasSignature) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const signatureData = canvas.toDataURL("image/png");
+        content = content.replace(
+          /<div class="signature-capture"[^>]*>[\s\S]*?<\/div>/,
+          `<div class="signature-capture captured" style="background: #fff; min-height: 100px; border-radius: 8px; border: 3px solid #22c55e; display: flex; align-items: center; justify-content: center; padding: 10px;">
+            <img src="${signatureData}" alt="Signature" style="max-height: 80px; max-width: 100%;" />
+          </div>`
+        );
+      }
+    }
+
+    return content;
+  }, [contractData, formData, initialsApplied, hasSignature]);
+
+  const applyInitials = () => {
+    if (formData.initials.length >= 2) {
+      setInitialsApplied(true);
+      toast({
+        title: "Initials Applied",
+        description: `Your initials "${formData.initials}" have been applied to all 11 sections.`,
+      });
+    } else {
+      toast({
+        title: "Enter Initials",
+        description: "Please enter at least 2 characters for your initials.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const signMutation = useMutation({
     mutationFn: async () => {
       const canvas = canvasRef.current;
@@ -152,11 +229,15 @@ export default function CsuSign() {
           signerName: formData.signerName,
           signerEmail: formData.signerEmail,
           signerPhone: formData.signerPhone,
-          address: formData.address,
+          address: formData.clientAddress || formData.address,
           initials: formData.initials,
           effectiveDate: formData.effectiveDate,
           signatureData,
           agreedToTerms: "true",
+          clientCompany: formData.clientCompany,
+          primaryOwner: formData.primaryOwner,
+          primaryTitle: formData.primaryTitle,
+          secondaryOwner: formData.secondaryOwner,
         }),
       });
 
@@ -190,6 +271,15 @@ export default function CsuSign() {
       toast({
         title: "Missing Information",
         description: "Please fill in your name, email, initials, and effective date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!initialsApplied) {
+      toast({
+        title: "Initials Required",
+        description: "Please apply your initials to all sections by clicking 'Apply Initials to All Sections'.",
         variant: "destructive",
       });
       return;
@@ -237,7 +327,7 @@ export default function CsuSign() {
       <Layout>
         <section className="min-h-screen bg-gray-100 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading contract...</p>
           </div>
         </section>
@@ -272,9 +362,9 @@ export default function CsuSign() {
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-2 text-green-700">Contract Signed Successfully!</h2>
               <p className="text-gray-600 mb-4">
-                Thank you for signing. You will receive a confirmation email shortly.
+                Thank you for signing the FICA Tips Tax Credit Agreement. You will receive a confirmation email shortly.
               </p>
-              <Button onClick={() => navigate("/")} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={() => navigate("/")} className="bg-purple-600 hover:bg-purple-700">
                 Return to Home
               </Button>
             </CardContent>
@@ -294,159 +384,255 @@ export default function CsuSign() {
       </section>
 
       <section className="py-8 bg-gray-100 min-h-screen">
-        <div className="container mx-auto px-4 max-w-3xl">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <Card className="mb-6 border-2 border-purple-200">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50">
+              <CardTitle className="flex items-center gap-2 text-purple-800">
+                <User className="w-5 h-5" /> Client Information
+              </CardTitle>
+              <p className="text-sm text-purple-600">Fill in your information below. It will automatically populate throughout the agreement.</p>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <Label htmlFor="clientCompany" className="flex items-center gap-1">
+                    <Building2 className="w-4 h-4" /> Company Name *
+                  </Label>
+                  <Input
+                    id="clientCompany"
+                    value={formData.clientCompany}
+                    onChange={(e) => setFormData({ ...formData, clientCompany: e.target.value })}
+                    placeholder="ABC Restaurant LLC"
+                    className="text-brand-navy border-purple-200 focus:border-purple-500"
+                    data-testid="input-client-company"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="clientAddress" className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" /> Company Address *
+                  </Label>
+                  <Input
+                    id="clientAddress"
+                    value={formData.clientAddress}
+                    onChange={(e) => setFormData({ ...formData, clientAddress: e.target.value })}
+                    placeholder="123 Main St, Phoenix, AZ 85001"
+                    className="text-brand-navy border-purple-200 focus:border-purple-500"
+                    data-testid="input-client-address"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <Label htmlFor="primaryOwner" className="flex items-center gap-1">
+                    <User className="w-4 h-4" /> Primary Business Owner *
+                  </Label>
+                  <Input
+                    id="primaryOwner"
+                    value={formData.primaryOwner}
+                    onChange={(e) => setFormData({ ...formData, primaryOwner: e.target.value, signerName: e.target.value })}
+                    placeholder="John Smith"
+                    className="text-brand-navy border-purple-200 focus:border-purple-500"
+                    data-testid="input-primary-owner"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="primaryTitle">Title *</Label>
+                  <Input
+                    id="primaryTitle"
+                    value={formData.primaryTitle}
+                    onChange={(e) => setFormData({ ...formData, primaryTitle: e.target.value })}
+                    placeholder="Owner / CEO / President"
+                    className="text-brand-navy border-purple-200 focus:border-purple-500"
+                    data-testid="input-primary-title"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signerEmail" className="flex items-center gap-1">
+                    <Mail className="w-4 h-4" /> Email *
+                  </Label>
+                  <Input
+                    id="signerEmail"
+                    type="email"
+                    value={formData.signerEmail}
+                    onChange={(e) => setFormData({ ...formData, signerEmail: e.target.value })}
+                    placeholder="john@company.com"
+                    className="text-brand-navy border-purple-200 focus:border-purple-500"
+                    data-testid="input-signer-email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signerPhone" className="flex items-center gap-1">
+                    <Phone className="w-4 h-4" /> Phone (Optional)
+                  </Label>
+                  <Input
+                    id="signerPhone"
+                    type="tel"
+                    value={formData.signerPhone}
+                    onChange={(e) => setFormData({ ...formData, signerPhone: e.target.value })}
+                    placeholder="(555) 123-4567"
+                    className="text-brand-navy border-purple-200 focus:border-purple-500"
+                    data-testid="input-signer-phone"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="secondaryOwner">Secondary Business Owner (Optional)</Label>
+                  <Input
+                    id="secondaryOwner"
+                    value={formData.secondaryOwner}
+                    onChange={(e) => setFormData({ ...formData, secondaryOwner: e.target.value })}
+                    placeholder="Jane Smith (if applicable)"
+                    className="text-brand-navy border-purple-200 focus:border-purple-500"
+                    data-testid="input-secondary-owner"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="effectiveDate" className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" /> Agreement Date *
+                  </Label>
+                  <Input
+                    id="effectiveDate"
+                    type="date"
+                    value={formData.effectiveDate}
+                    onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
+                    className="text-brand-navy border-purple-200 focus:border-purple-500"
+                    data-testid="input-effective-date"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5" /> Contract Agreement
               </CardTitle>
+              <p className="text-sm text-gray-500">Review the agreement below. Your information will auto-populate in the highlighted fields.</p>
             </CardHeader>
             <CardContent>
               <div 
-                className="bg-gray-50 p-6 rounded-lg border max-h-96 overflow-y-auto text-sm prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contractData.template.content) }}
+                className="bg-white p-6 rounded-lg border-2 border-gray-200 max-h-[600px] overflow-y-auto text-sm prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(processedContent, { ADD_ATTR: ["data-field", "data-section"] }) }}
               />
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Pen className="w-5 h-5" /> Sign Below
+          <Card className="mb-6 border-2 border-amber-200">
+            <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50">
+              <CardTitle className="flex items-center gap-2 text-amber-800">
+                <Pen className="w-5 h-5" /> Initials & Signature
               </CardTitle>
+              <p className="text-sm text-amber-600">Enter your initials and apply them to all 11 sections, then sign below.</p>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signerName">Full Name *</Label>
-                    <Input
-                      id="signerName"
-                      value={formData.signerName}
-                      onChange={(e) => setFormData({ ...formData, signerName: e.target.value })}
-                      className="text-brand-navy"
-                      data-testid="input-signer-name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signerEmail">Email *</Label>
-                    <Input
-                      id="signerEmail"
-                      type="email"
-                      value={formData.signerEmail}
-                      onChange={(e) => setFormData({ ...formData, signerEmail: e.target.value })}
-                      className="text-brand-navy"
-                      data-testid="input-signer-email"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signerPhone">Phone (Optional)</Label>
-                    <Input
-                      id="signerPhone"
-                      type="tel"
-                      value={formData.signerPhone}
-                      onChange={(e) => setFormData({ ...formData, signerPhone: e.target.value })}
-                      className="text-brand-navy"
-                      data-testid="input-signer-phone"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address (Optional)</Label>
-                    <Input
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="text-brand-navy"
-                      data-testid="input-address"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="initials">Initials *</Label>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-3">
+                  <Label htmlFor="initials" className="text-lg font-semibold">Your Initials *</Label>
+                  <div className="flex gap-2">
                     <Input
                       id="initials"
                       value={formData.initials}
-                      onChange={(e) => setFormData({ ...formData, initials: e.target.value.toUpperCase() })}
-                      className="text-brand-navy font-bold text-center text-lg"
-                      placeholder="e.g. JD"
+                      onChange={(e) => {
+                        setFormData({ ...formData, initials: e.target.value.toUpperCase() });
+                        setInitialsApplied(false);
+                      }}
+                      className="text-brand-navy font-bold text-center text-2xl h-14 w-24 border-2 border-purple-300"
+                      placeholder="JD"
                       maxLength={4}
                       data-testid="input-initials"
                     />
-                    <p className="text-xs text-gray-500">Enter your initials to acknowledge this agreement</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="effectiveDate">Effective Date *</Label>
-                    <Input
-                      id="effectiveDate"
-                      type="date"
-                      value={formData.effectiveDate}
-                      onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
-                      className="text-brand-navy"
-                      data-testid="input-effective-date"
-                    />
-                    <p className="text-xs text-gray-500">Date this agreement becomes effective</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Signature *</Label>
                     <Button
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={clearSignature}
-                      data-testid="button-clear-signature"
+                      onClick={applyInitials}
+                      disabled={formData.initials.length < 2}
+                      className={`h-14 px-6 ${initialsApplied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700"}`}
+                      data-testid="button-apply-initials"
                     >
-                      <RotateCcw className="w-4 h-4 mr-1" /> Clear
+                      {initialsApplied ? "Initials Applied" : "Apply Initials to All Sections"}
                     </Button>
                   </div>
-                  <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
-                    <canvas
-                      ref={canvasRef}
-                      width={600}
-                      height={200}
-                      className="w-full touch-none cursor-crosshair"
-                      onMouseDown={startDrawing}
-                      onMouseMove={draw}
-                      onMouseUp={stopDrawing}
-                      onMouseLeave={stopDrawing}
-                      onTouchStart={startDrawing}
-                      onTouchMove={draw}
-                      onTouchEnd={stopDrawing}
-                      data-testid="signature-canvas"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500">Draw your signature above using mouse or touch</p>
+                  <p className="text-xs text-gray-500">
+                    {initialsApplied 
+                      ? `Your initials "${formData.initials}" have been applied to all 11 sections.` 
+                      : "Enter your initials (2-4 characters) and click to apply them to all sections."}
+                  </p>
                 </div>
+              </div>
 
-                <div className="flex items-center space-x-2">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-lg font-semibold">Your Signature *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clearSignature}
+                    data-testid="button-clear-signature"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-1" /> Clear
+                  </Button>
+                </div>
+                <div className="border-2 border-purple-300 rounded-lg overflow-hidden bg-white">
+                  <canvas
+                    ref={canvasRef}
+                    width={600}
+                    height={200}
+                    className="w-full touch-none cursor-crosshair"
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
+                    data-testid="signature-canvas"
+                  />
+                </div>
+                <p className="text-xs text-gray-500">Draw your signature above using mouse or finger (touch)</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
                   <Checkbox
                     id="agreedToTerms"
                     checked={formData.agreedToTerms}
                     onCheckedChange={(checked) =>
                       setFormData({ ...formData, agreedToTerms: checked as boolean })
                     }
+                    className="h-5 w-5"
                     data-testid="checkbox-agree"
                   />
-                  <Label htmlFor="agreedToTerms" className="text-sm">
-                    I have read and agree to all terms of this agreement *
+                  <Label htmlFor="agreedToTerms" className="text-sm leading-relaxed">
+                    I have read, understood, and agree to all terms of this FICA Tips Tax Credit Services Agreement. I acknowledge that this is a legally binding document and that my electronic signature is valid. *
                   </Label>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg"
-                  disabled={signMutation.isPending}
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 h-14 text-lg font-bold"
+                  disabled={signMutation.isPending || !initialsApplied || !hasSignature}
                   data-testid="button-sign-contract"
                 >
-                  {signMutation.isPending ? "Signing..." : "Sign Contract"}
+                  {signMutation.isPending ? "Signing Contract..." : "Sign & Submit Contract"}
                 </Button>
+
+                {(!initialsApplied || !hasSignature) && (
+                  <p className="text-center text-sm text-amber-600">
+                    {!initialsApplied && "Please apply your initials to all sections. "}
+                    {!hasSignature && "Please sign in the signature box above."}
+                  </p>
+                )}
               </form>
             </CardContent>
           </Card>

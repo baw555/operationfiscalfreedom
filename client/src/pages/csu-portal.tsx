@@ -1568,8 +1568,8 @@ export default function CsuPortal() {
     enabled: !!user,
   });
   
-  // Filter to only show Payzium-specific templates
-  const PAYZIUM_TEMPLATE_NAMES = ["New Client Agreement", "Sign Affiliate Agreement"];
+  // Filter to only show Payzium-specific templates (FICA Tips Agreement)
+  const PAYZIUM_TEMPLATE_NAMES = ["FICA Tips Tax Credit Agreement"];
   const templates = allTemplates.filter(t => PAYZIUM_TEMPLATE_NAMES.includes(t.name));
 
   const { data: contractSends = [] } = useQuery<CsuContractSend[]>({
