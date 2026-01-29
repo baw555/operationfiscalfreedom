@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 const montageVideos = [
   "/videos/montage-iwojima.mp4",
   "/videos/soldiers-marching-new.mp4",
-  "/videos/montage-reunion.mp4",
+  "/videos/montage-embrace-1.mp4",
   "/videos/montage-salute.mp4",
-  "/videos/montage-embrace.mp4",
+  "/videos/montage-embrace-2.mp4",
   "/videos/montage-rain.mp4",
   "/videos/montage-gear.mp4",
   "/videos/montage-patrol.mp4",
