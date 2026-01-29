@@ -10,6 +10,7 @@ import { CheckCircle, Shield, Clock, HeartHandshake, Users } from "lucide-react"
 import { useLocation, Link } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 import { TCPAConsent } from "@/components/tcpa-consent";
+import { logConsent } from "@/lib/consent-logger";
 
 const helpTypes = [
   { value: "disability_denial", label: "Disability Rating Denial" },
@@ -75,7 +76,14 @@ export default function GetHelp() {
       if (!response.ok) throw new Error("Failed to submit request");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
+      await logConsent({
+        submissionType: "help_request",
+        submissionId: result.id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      });
       setSubmitted(true);
       toast({
         title: "Request Received",
@@ -155,7 +163,7 @@ export default function GetHelp() {
           <h1 className="text-2xl sm:text-5xl font-display mb-4 sm:mb-6">Free VA Rating Assistance</h1>
           <p className="text-base sm:text-xl text-white/90 max-w-2xl mx-auto px-2">
             Struggling with your disability rating or VA claim? Our veteran advocates are here to help you 
-            navigate the system and get the benefits you deserve - at no cost to you.
+            navigate the system and may help you access benefits you may be eligible for - at no cost to you.
           </p>
         </div>
       </section>

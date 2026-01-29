@@ -34,7 +34,8 @@ import {
   insertCsuContractSendSchema,
   insertCsuSignedAgreementSchema,
   insertPortalActivitySchema,
-  portalActivity
+  portalActivity,
+  insertConsentRecordSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -4258,6 +4259,99 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error looking up IP:", error);
       res.status(500).json({ message: "Failed to lookup IP address" });
+    }
+  });
+
+  // Log consent record for TCPA/CCPA compliance
+  app.post("/api/consent-record", async (req, res) => {
+    try {
+      const consentSchema = z.object({
+        submissionType: z.string(),
+        submissionId: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        consentCheckbox: z.boolean(),
+        trustedFormCertUrl: z.string().optional(),
+        landingPageUrl: z.string().optional(),
+        partnersSharedWith: z.string().optional(),
+      });
+      
+      const data = consentSchema.parse(req.body);
+      
+      const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() 
+        || req.socket.remoteAddress 
+        || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      
+      const record = await storage.createConsentRecord({
+        ...data,
+        ipAddress,
+        userAgent,
+        consentLanguageVersion: 'v1.0',
+      });
+      
+      res.status(201).json({ success: true, id: record.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Error logging consent:", error);
+      res.status(500).json({ message: "Failed to log consent" });
+    }
+  });
+
+  // Get consent records for admin (requires auth)
+  app.get("/api/consent-records", requireAdmin, async (req, res) => {
+    try {
+      const records = await storage.getAllConsentRecords();
+      res.json(records);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch consent records" });
+    }
+  });
+
+  // Log partner sharing for compliance
+  app.post("/api/partner-sharing-log", requireAdmin, async (req, res) => {
+    try {
+      const logSchema = z.object({
+        submissionType: z.string(),
+        submissionId: z.number(),
+        partnerName: z.string(),
+        partnerEndpoint: z.string().optional(),
+        deliveryStatus: z.enum(["success", "failed", "pending"]),
+        responseCode: z.number().optional(),
+        errorMessage: z.string().optional(),
+      });
+      
+      const data = logSchema.parse(req.body);
+      const log = await storage.createPartnerSharingLog(data);
+      res.status(201).json({ success: true, id: log.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to log partner sharing" });
+    }
+  });
+
+  // Get partner sharing logs for admin
+  app.get("/api/partner-sharing-logs", requireAdmin, async (req, res) => {
+    try {
+      const logs = await storage.getAllPartnerSharingLogs();
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch partner sharing logs" });
+    }
+  });
+
+  // Get affiliated partners (public)
+  app.get("/api/affiliated-partners", async (req, res) => {
+    try {
+      const partners = await storage.getActiveAffiliatedPartners();
+      res.json(partners);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch affiliated partners" });
     }
   });
 

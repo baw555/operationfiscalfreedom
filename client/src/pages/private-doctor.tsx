@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { logConsent } from "@/lib/consent-logger";
 
 export default function PrivateDoctor() {
   const { toast } = useToast();
@@ -36,7 +37,14 @@ export default function PrivateDoctor() {
       if (!response.ok) throw new Error("Failed to submit request");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
+      await logConsent({
+        submissionType: "private_doctor_request",
+        submissionId: result.id,
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone,
+      });
       setSubmitted(true);
       toast({
         title: "Request Submitted!",
@@ -106,7 +114,7 @@ export default function PrivateDoctor() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-display text-red-200 mb-4 sm:mb-6">You Have The Right To See A Private Doctor</h2>
           <p className="text-base sm:text-xl text-red-100 max-w-3xl mx-auto px-2">
             Under the VA MISSION Act, veterans can access private healthcare when VA wait times exceed standards. 
-            Stop waiting months for appointments — get the care you deserve now.
+            Stop waiting months for appointments — may help you access private healthcare options.
           </p>
         </div>
       </section>

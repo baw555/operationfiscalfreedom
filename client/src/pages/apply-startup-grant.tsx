@@ -12,6 +12,7 @@ import { Banknote, CheckCircle, DollarSign, Rocket, TrendingUp } from "lucide-re
 import { useLocation } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 import { TCPAConsent } from "@/components/tcpa-consent";
+import { logConsent } from "@/lib/consent-logger";
 
 export default function ApplyStartupGrant() {
   const { toast } = useToast();
@@ -44,7 +45,14 @@ export default function ApplyStartupGrant() {
       if (!response.ok) throw new Error("Failed to submit application");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
+      await logConsent({
+        submissionType: "startup_grant",
+        submissionId: result.id,
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone,
+      });
       setSubmitted(true);
       toast({
         title: "Application Submitted!",

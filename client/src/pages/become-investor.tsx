@@ -11,6 +11,7 @@ import { CheckCircle, TrendingUp, Users, Shield, DollarSign } from "lucide-react
 import { useLocation } from "wouter";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 import { TCPAConsent } from "@/components/tcpa-consent";
+import { logConsent } from "@/lib/consent-logger";
 
 export default function BecomeInvestor() {
   const { toast } = useToast();
@@ -39,7 +40,14 @@ export default function BecomeInvestor() {
       if (!response.ok) throw new Error("Failed to submit");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
+      await logConsent({
+        submissionType: "investor_submission",
+        submissionId: result.id,
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone,
+      });
       setSubmitted(true);
       toast({
         title: "Information Received",

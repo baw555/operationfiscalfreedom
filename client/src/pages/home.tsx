@@ -402,7 +402,7 @@ export default function Home() {
                   <Shield size={28} className="sm:w-9 sm:h-9 text-white" />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-display text-white mb-2 sm:mb-3">VA Claims Support</h3>
-                <p className="text-sm sm:text-base text-white/80 leading-relaxed">Understand the system, appeal denied claims, and get the rating you deserve.</p>
+                <p className="text-sm sm:text-base text-white/80 leading-relaxed">Understand the system, appeal denied claims, and may help you understand your potential benefits.</p>
               </CardContent>
             </Card>
             <Card className="bg-white border-2 border-brand-navy/20 hover:shadow-2xl transition-all shadow-lg">

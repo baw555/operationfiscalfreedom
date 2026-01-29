@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, Users, DollarSign, Rocket } from "lucide-react";
 import { TCPAConsent } from "@/components/tcpa-consent";
+import { logConsent } from "@/lib/consent-logger";
 
 export default function AffiliateApply() {
   const { toast } = useToast();
@@ -39,6 +40,13 @@ export default function AffiliateApply() {
     },
     onSuccess: async (data) => {
       console.log("Signup successful, user:", data);
+      await logConsent({
+        submissionType: "affiliate_application",
+        submissionId: data.id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      });
       toast({
         title: "Account Created",
         description: "Redirecting you to sign the agreement. You may opt out of communications at any time by replying STOP to texts or clicking unsubscribe in emails.",

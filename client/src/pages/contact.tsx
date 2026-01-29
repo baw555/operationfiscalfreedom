@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TCPAConsent } from "@/components/tcpa-consent";
+import { logConsent } from "@/lib/consent-logger";
 import { CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -35,7 +36,14 @@ export default function Contact() {
       if (!response.ok) throw new Error("Failed to submit");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
+      await logConsent({
+        submissionType: "general_contact",
+        submissionId: result.id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      });
       setSubmitted(true);
       toast({
         title: "Message Received",

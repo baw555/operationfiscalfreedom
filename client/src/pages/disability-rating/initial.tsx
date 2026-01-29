@@ -33,7 +33,7 @@ export default function DisabilityInitial() {
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
               We've partnered with the nation's leading VA disability attorneys and advocacy groups 
-              who will help you file your initial claim at absolutely no cost. Get the rating you deserve 
+              who will help you file your initial claim at absolutely no cost. Pursue the benefits you may be eligible for 
               from day one with expert legal guidance.
             </p>
             <Link href="/disability-rating/intake?type=initial">
@@ -210,7 +210,7 @@ export default function DisabilityInitial() {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-red-400 mt-1">•</span>
-                    May settle for a lower rating than you deserve
+                    May receive less than you may be entitled to
                   </li>
                 </ul>
               </div>

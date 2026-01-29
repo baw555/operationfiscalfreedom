@@ -481,7 +481,7 @@ export default function DisabilityBenefitsHub() {
               READY TO GET STARTED?
             </h2>
             <p className="text-white/90 text-lg mb-8">
-              Our attorney partners are standing by to help you get the benefits you deserve. 
+              Our attorney partners are standing by to help you explore benefits you may be eligible for. 
               No upfront fees - ever.
             </p>
             <Link href={`/disability-rating/intake?type=${currentService.intakeType}`}>

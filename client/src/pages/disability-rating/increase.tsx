@@ -240,10 +240,10 @@ export default function DisabilityIncrease() {
         <div className="py-16 px-4 bg-gradient-to-r from-brand-gold/20 to-yellow-600/20">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="font-display text-3xl md:text-4xl text-white mb-6">
-              READY TO GET THE RATING YOU DESERVE?
+              READY TO EXPLORE YOUR POTENTIAL BENEFITS?
             </h2>
             <p className="text-xl text-gray-300 mb-8">
-              Don't wait any longer. Get connected with expert partners who will fight for your benefits.
+              Connect with experienced partners who may be able to help with your claim.
             </p>
             <Link href="/disability-rating/intake?type=increase">
               <Button className="bg-brand-red hover:bg-brand-red/90 text-white text-xl px-12 py-6 h-auto">

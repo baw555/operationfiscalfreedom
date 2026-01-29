@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Shield, Heart, Activity, DollarSign, CheckCircle } from "lucide-react";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 import { TCPAConsent } from "@/components/tcpa-consent";
+import { logConsent } from "@/lib/consent-logger";
 
 export default function VeteranIntake() {
   const [formData, setFormData] = useState({
@@ -33,7 +34,16 @@ export default function VeteranIntake() {
       if (!res.ok) throw new Error("Failed to submit");
       return res.json();
     },
-    onSuccess: () => setSubmitted(true),
+    onSuccess: async (result) => {
+      await logConsent({
+        submissionType: "veteran_intake",
+        submissionId: result.id,
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone,
+      });
+      setSubmitted(true);
+    },
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
