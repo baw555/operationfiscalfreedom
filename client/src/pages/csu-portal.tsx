@@ -992,6 +992,8 @@ export default function CsuPortal() {
   const [signedSuccessfully, setSignedSuccessfully] = useState(false);
   const [lastSignedAgreementId, setLastSignedAgreementId] = useState<number | null>(null);
   
+  // Local state to track verified admin login (bypasses 304 cache issue)
+  const [verifiedAdmin, setVerifiedAdmin] = useState(false);
 
   // Generate or retrieve session ID for tracking
   const getSessionId = () => {
@@ -1028,10 +1030,16 @@ export default function CsuPortal() {
   }, []);
 
   // Check if user is authenticated
-  const { data: user, isLoading: authLoading } = useQuery<User>({
+  const { data: authData, isLoading: authLoading } = useQuery<{ user: User }>({
     queryKey: ["/api/auth/me"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      if (!res.ok) return { user: null };
+      return res.json();
+    },
     retry: false,
   });
+  const user = authData?.user;
 
   const { data: templates = [] } = useQuery<CsuContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
@@ -1518,12 +1526,25 @@ export default function CsuPortal() {
     );
   }
 
-  if (!user || user.role !== "admin") {
+  if (!verifiedAdmin && (!user || user.role !== "admin")) {
     return <PayziumLoginForm onSuccess={async () => { 
-      // Invalidate cache and await fresh server verification
+      // Invalidate cache first
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      // Blocking refetch - only proceed once server confirms auth state
-      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] }); 
+      // Fetch fresh data directly (bypasses 304 cache issue)
+      try {
+        const response = await fetch("/api/auth/me", { credentials: "include" });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user && data.user.role === "admin") {
+            // Set local verified state to force portal render
+            setVerifiedAdmin(true);
+            // Also update query cache for consistency (use correct shape)
+            queryClient.setQueryData(["/api/auth/me"], data);
+          }
+        }
+      } catch (e) {
+        console.error("Auth verification failed:", e);
+      }
     }} />;
   }
 
