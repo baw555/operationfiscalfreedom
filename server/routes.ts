@@ -4127,6 +4127,130 @@ export async function registerRoutes(
     }
   });
 
+  // Batch send contracts to multiple recipients (admin)
+  app.post("/api/csu/send-contract-batch", requireAdmin, async (req, res) => {
+    try {
+      const batchSchema = z.object({
+        templateId: z.number().int().positive("Template is required"),
+        recipients: z.array(z.object({
+          name: z.string().min(1, "Recipient name is required"),
+          email: z.string().email("Valid email is required"),
+          phone: z.string().optional().nullable(),
+        })).min(1, "At least one recipient is required"),
+      });
+
+      const validationResult = batchSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: validationResult.error.errors[0]?.message || "Invalid request data" 
+        });
+      }
+
+      const { templateId, recipients } = validationResult.data;
+
+      // Verify template exists
+      const template = await storage.getCsuContractTemplate(templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Contract template not found" });
+      }
+
+      const crypto = await import("crypto");
+      const { client: resend, fromEmail } = await getResendClient();
+      
+      const baseUrl = process.env.CUSTOM_DOMAIN
+        ? `https://${process.env.CUSTOM_DOMAIN}`
+        : process.env.REPLIT_DOMAINS?.split(",")[0] 
+          ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}`
+          : "http://localhost:5000";
+
+      const results: { recipient: string; success: boolean; error?: string; signingUrl?: string }[] = [];
+
+      for (const recipient of recipients) {
+        try {
+          const signToken = crypto.randomBytes(32).toString("hex");
+          const tokenExpiresAt = new Date();
+          tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7);
+
+          const contractSend = await storage.createCsuContractSend({
+            templateId,
+            recipientName: recipient.name,
+            recipientEmail: recipient.email,
+            recipientPhone: recipient.phone || null,
+            signToken,
+            tokenExpiresAt,
+            status: "pending",
+            sentBy: req.session.userId || null,
+          });
+
+          const signingUrl = `${baseUrl}/csu-sign?token=${signToken}`;
+
+          // Send email
+          const emailResult = await resend.emails.send({
+            from: `Operation Fiscal Freedom <${fromEmail}>`,
+            replyTo: fromEmail,
+            to: recipient.email,
+            subject: "Contract Ready for Signature - Operation Fiscal Freedom",
+            html: `
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              </head>
+              <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+                  <h1 style="color: white; margin: 0; font-size: 28px;">Operation Fiscal Freedom</h1>
+                  <p style="color: #bfdbfe; margin: 10px 0 0 0;">Contract Management</p>
+                </div>
+                
+                <div style="background: #eff6ff; padding: 30px; border: 1px solid #bfdbfe;">
+                  <h2 style="color: #1a365d; margin-top: 0;">Hello ${recipient.name},</h2>
+                  <p>You have a contract ready for your signature from <strong>Operation Fiscal Freedom</strong>.</p>
+                  
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${signingUrl}" style="background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">Sign Contract Now</a>
+                  </div>
+                  
+                  <p style="font-size: 14px; color: #666;">Or copy and paste this link into your browser:</p>
+                  <p style="background: #fff; padding: 12px; border-radius: 6px; word-break: break-all; font-size: 12px; border: 1px solid #bfdbfe;">${signingUrl}</p>
+                  
+                  <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0; border-radius: 4px;">
+                    <p style="margin: 0; color: #92400e; font-size: 14px;"><strong>Important:</strong> This link will expire in 7 days.</p>
+                  </div>
+                </div>
+                
+                <div style="background: #1a365d; padding: 20px; border-radius: 0 0 12px 12px; text-align: center;">
+                  <p style="color: #9ca3af; margin: 0; font-size: 12px;">This is an automated message from Operation Fiscal Freedom.</p>
+                </div>
+              </body>
+              </html>
+            `,
+          });
+
+          if (emailResult.error) {
+            results.push({ recipient: recipient.email, success: false, error: emailResult.error.message, signingUrl });
+          } else {
+            results.push({ recipient: recipient.email, success: true, signingUrl });
+          }
+        } catch (err: any) {
+          results.push({ recipient: recipient.email, success: false, error: err?.message || "Unknown error" });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      res.json({
+        success: successCount > 0,
+        totalSent: successCount,
+        totalFailed: results.length - successCount,
+        results,
+        message: `Sent ${successCount} of ${results.length} contracts successfully`,
+      });
+    } catch (error) {
+      console.error("Error batch sending contracts:", error);
+      res.status(500).json({ message: "Failed to batch send contracts" });
+    }
+  });
+
   // Get all contract sends (admin)
   app.get("/api/csu/contract-sends", requireAdmin, async (req, res) => {
     try {

@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoLogout } from "@/hooks/use-auto-logout";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin, Plus, Trash2, Edit, FileEdit, GripVertical, Save, Upload, Loader2, Sparkles } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin, Plus, Trash2, Edit, FileEdit, GripVertical, Save, Upload, Loader2, Sparkles, X, AlertCircle } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -1604,6 +1604,12 @@ export default function CsuPortal() {
     recipientEmail: "",
     recipientPhone: "",
   });
+  const [recipients, setRecipients] = useState<Array<{name: string; email: string; phone: string}>>([
+    { name: "", email: "", phone: "" }
+  ]);
+  const [batchMode, setBatchMode] = useState(false);
+  const [batchSending, setBatchSending] = useState(false);
+  const [batchResults, setBatchResults] = useState<{totalSent: number; totalFailed: number; results: Array<{recipient: string; success: boolean; error?: string}>} | null>(null);
   const [lastSigningUrl, setLastSigningUrl] = useState<string | null>(null);
   const [showSelfSign, setShowSelfSign] = useState(false);
   const [selfSignData, setSelfSignData] = useState({
@@ -2087,6 +2093,84 @@ export default function CsuPortal() {
       return;
     }
     sendContractMutation.mutate(formData);
+  };
+
+  const addRecipient = () => {
+    setRecipients([...recipients, { name: "", email: "", phone: "" }]);
+  };
+
+  const removeRecipient = (index: number) => {
+    if (recipients.length > 1) {
+      setRecipients(recipients.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateRecipient = (index: number, field: "name" | "email" | "phone", value: string) => {
+    const updated = [...recipients];
+    updated[index][field] = value;
+    setRecipients(updated);
+  };
+
+  const handleBatchSend = async () => {
+    if (!formData.templateId) {
+      toast({
+        title: "Select Template",
+        description: "Please select a contract template first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const validRecipients = recipients.filter(r => r.name && r.email);
+    if (validRecipients.length === 0) {
+      toast({
+        title: "No Recipients",
+        description: "Please add at least one recipient with name and email.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBatchSending(true);
+    setBatchResults(null);
+
+    try {
+      const response = await fetch("/api/csu/send-contract-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          templateId: parseInt(formData.templateId),
+          recipients: validRecipients,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to send contracts");
+      }
+
+      setBatchResults(data);
+      queryClient.invalidateQueries({ queryKey: ["/api/csu/contract-sends"] });
+
+      toast({
+        title: "Batch Send Complete",
+        description: data.message,
+      });
+
+      if (data.totalSent === validRecipients.length) {
+        setRecipients([{ name: "", email: "", phone: "" }]);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to batch send contracts",
+        variant: "destructive",
+      });
+    } finally {
+      setBatchSending(false);
+    }
   };
 
   const handleSignItMyself = () => {
@@ -2618,7 +2702,7 @@ export default function CsuPortal() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="space-y-6">
                         <div className="space-y-2">
                           <Label htmlFor="template">Contract Template *</Label>
                           <Select
@@ -2638,66 +2722,193 @@ export default function CsuPortal() {
                           </Select>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="recipientName">Recipient Name *</Label>
-                          <Input
-                            id="recipientName"
-                            value={formData.recipientName}
-                            onChange={(e) => setFormData({ ...formData, recipientName: e.target.value })}
-                            placeholder="John Doe"
-                            className="text-brand-navy"
-                            data-testid="input-recipient-name"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="recipientEmail">Recipient Email *</Label>
-                          <Input
-                            id="recipientEmail"
-                            type="email"
-                            value={formData.recipientEmail}
-                            onChange={(e) => setFormData({ ...formData, recipientEmail: e.target.value })}
-                            placeholder="john@example.com"
-                            className="text-brand-navy"
-                            data-testid="input-recipient-email"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="recipientPhone">Recipient Phone (Optional)</Label>
-                          <Input
-                            id="recipientPhone"
-                            type="tel"
-                            value={formData.recipientPhone}
-                            onChange={(e) => setFormData({ ...formData, recipientPhone: e.target.value })}
-                            placeholder="(555) 123-4567"
-                            className="text-brand-navy"
-                            data-testid="input-recipient-phone"
-                          />
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex items-center gap-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
                           <Button
-                            type="submit"
-                            className="flex-1 bg-amber-600 hover:bg-amber-700"
-                            disabled={sendContractMutation.isPending}
-                            data-testid="button-send-contract"
+                            type="button"
+                            variant={!batchMode ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setBatchMode(false)}
+                            className={!batchMode ? "bg-purple-700 hover:bg-purple-800" : ""}
+                            data-testid="button-single-send-mode"
                           >
-                            {sendContractMutation.isPending ? "Sending..." : "Send Contract"}
+                            Single Send
                           </Button>
                           <Button
                             type="button"
-                            variant="outline"
-                            className="flex-1 border-amber-600 text-amber-600 hover:bg-amber-50"
-                            onClick={handleSignItMyself}
-                            data-testid="button-sign-myself"
+                            variant={batchMode ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setBatchMode(true)}
+                            className={batchMode ? "bg-amber-600 hover:bg-amber-700" : ""}
+                            data-testid="button-batch-send-mode"
                           >
-                            <Pen className="w-4 h-4 mr-2" /> Sign It Myself
+                            <Users className="w-4 h-4 mr-2" /> Batch Send (Multiple)
                           </Button>
                         </div>
-                      </form>
 
-                      {lastSigningUrl && (
+                        {!batchMode ? (
+                          <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="recipientName">Recipient Name *</Label>
+                              <Input
+                                id="recipientName"
+                                value={formData.recipientName}
+                                onChange={(e) => setFormData({ ...formData, recipientName: e.target.value })}
+                                placeholder="John Doe"
+                                className="text-brand-navy"
+                                data-testid="input-recipient-name"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="recipientEmail">Recipient Email *</Label>
+                              <Input
+                                id="recipientEmail"
+                                type="email"
+                                value={formData.recipientEmail}
+                                onChange={(e) => setFormData({ ...formData, recipientEmail: e.target.value })}
+                                placeholder="john@example.com"
+                                className="text-brand-navy"
+                                data-testid="input-recipient-email"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="recipientPhone">Recipient Phone (Optional)</Label>
+                              <Input
+                                id="recipientPhone"
+                                type="tel"
+                                value={formData.recipientPhone}
+                                onChange={(e) => setFormData({ ...formData, recipientPhone: e.target.value })}
+                                placeholder="(555) 123-4567"
+                                className="text-brand-navy"
+                                data-testid="input-recipient-phone"
+                              />
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-4">
+                              <Button
+                                type="submit"
+                                className="flex-1 bg-amber-600 hover:bg-amber-700"
+                                disabled={sendContractMutation.isPending}
+                                data-testid="button-send-contract"
+                              >
+                                {sendContractMutation.isPending ? "Sending..." : "Send Contract"}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1 border-amber-600 text-amber-600 hover:bg-amber-50"
+                                onClick={handleSignItMyself}
+                                data-testid="button-sign-myself"
+                              >
+                                <Pen className="w-4 h-4 mr-2" /> Sign It Myself
+                              </Button>
+                            </div>
+                          </form>
+                        ) : (
+                          <div className="space-y-4" data-testid="batch-send-section">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold text-purple-800">Recipients List</h3>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={addRecipient}
+                                className="bg-green-600 hover:bg-green-700"
+                                data-testid="button-add-recipient"
+                              >
+                                <Plus className="w-4 h-4 mr-1" /> Add Recipient
+                              </Button>
+                            </div>
+
+                            <div className="space-y-3 max-h-96 overflow-y-auto">
+                              {recipients.map((recipient, index) => (
+                                <div key={index} className="p-4 border border-gray-200 rounded-lg bg-white space-y-3" data-testid={`recipient-row-${index}`}>
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium text-sm text-gray-600">Recipient #{index + 1}</span>
+                                    {recipients.length > 1 && (
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => removeRecipient(index)}
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        data-testid={`button-remove-recipient-${index}`}
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <Input
+                                      placeholder="Name *"
+                                      value={recipient.name}
+                                      onChange={(e) => updateRecipient(index, "name", e.target.value)}
+                                      className="text-brand-navy"
+                                      data-testid={`input-batch-name-${index}`}
+                                    />
+                                    <Input
+                                      type="email"
+                                      placeholder="Email *"
+                                      value={recipient.email}
+                                      onChange={(e) => updateRecipient(index, "email", e.target.value)}
+                                      className="text-brand-navy"
+                                      data-testid={`input-batch-email-${index}`}
+                                    />
+                                    <Input
+                                      type="tel"
+                                      placeholder="Phone (optional)"
+                                      value={recipient.phone}
+                                      onChange={(e) => updateRecipient(index, "phone", e.target.value)}
+                                      className="text-brand-navy"
+                                      data-testid={`input-batch-phone-${index}`}
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="pt-4 border-t">
+                              <Button
+                                type="button"
+                                onClick={handleBatchSend}
+                                disabled={batchSending}
+                                className="w-full bg-amber-600 hover:bg-amber-700 text-lg py-6"
+                                data-testid="button-batch-send-all"
+                              >
+                                {batchSending ? (
+                                  <>Sending to {recipients.filter(r => r.name && r.email).length} recipients...</>
+                                ) : (
+                                  <>
+                                    <Send className="w-5 h-5 mr-2" />
+                                    Send to All ({recipients.filter(r => r.name && r.email).length} recipients)
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+
+                            {batchResults && (
+                              <div className={`p-4 rounded-lg border ${batchResults.totalFailed > 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200'}`} data-testid="batch-results-summary">
+                                <p className="font-medium mb-2" data-testid="text-batch-results-count">
+                                  {batchResults.totalFailed === 0 
+                                    ? `All ${batchResults.totalSent} contracts sent successfully!`
+                                    : `Sent ${batchResults.totalSent} of ${batchResults.totalSent + batchResults.totalFailed} contracts`
+                                  }
+                                </p>
+                                <div className="space-y-1 text-sm">
+                                  {batchResults.results.map((result, i) => (
+                                    <div key={i} className={`flex items-center gap-2 ${result.success ? 'text-green-700' : 'text-red-600'}`} data-testid={`batch-result-${i}`}>
+                                      {result.success ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                      <span>{result.recipient}</span>
+                                      {result.error && <span className="text-xs">({result.error})</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {lastSigningUrl && (
                         <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
                           <p className="text-green-800 font-medium mb-2">Contract Sent! Signing Link:</p>
                           <div className="flex items-center gap-2">
@@ -2720,7 +2931,8 @@ export default function CsuPortal() {
                             </Button>
                           </div>
                         </div>
-                      )}
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
