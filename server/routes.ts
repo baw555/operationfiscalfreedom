@@ -3760,6 +3760,54 @@ export async function registerRoutes(
   });
 
   // ============================================
+  // COMPLIANCE & AUDIT ADMIN ROUTES
+  // ============================================
+
+  // Get all affiliate NDAs (for compliance audit)
+  app.get("/api/admin/affiliate-ndas", requireAdmin, async (req, res) => {
+    try {
+      const ndas = await storage.getAllAffiliateNdas();
+      res.json(ndas);
+    } catch (error) {
+      console.error("Error fetching affiliate NDAs:", error);
+      res.status(500).json({ message: "Failed to fetch affiliate NDAs" });
+    }
+  });
+
+  // Get all affiliate W9s (for compliance audit)
+  app.get("/api/admin/affiliate-w9s", requireAdmin, async (req, res) => {
+    try {
+      const w9s = await storage.getAllAffiliateW9s();
+      res.json(w9s);
+    } catch (error) {
+      console.error("Error fetching affiliate W9s:", error);
+      res.status(500).json({ message: "Failed to fetch affiliate W9s" });
+    }
+  });
+
+  // Get all consent records (for TCPA audit)
+  app.get("/api/admin/consent-records", requireAdmin, async (req, res) => {
+    try {
+      const records = await storage.getAllConsentRecords();
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching consent records:", error);
+      res.status(500).json({ message: "Failed to fetch consent records" });
+    }
+  });
+
+  // Get all partner sharing logs (for compliance audit)
+  app.get("/api/admin/partner-sharing-logs", requireAdmin, async (req, res) => {
+    try {
+      const logs = await storage.getAllPartnerSharingLogs();
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching partner sharing logs:", error);
+      res.status(500).json({ message: "Failed to fetch partner sharing logs" });
+    }
+  });
+
+  // ============================================
   // COST SAVINGS UNIVERSITY (CSU) API ROUTES
   // ============================================
 

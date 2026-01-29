@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Shield, Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -9,6 +9,15 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberEmail, setRememberEmail] = useState(false);
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("navusa_admin_email");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberEmail(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +41,11 @@ export default function AdminLogin() {
       }
 
       if (data.user?.role === "admin") {
+        if (rememberEmail) {
+          localStorage.setItem("navusa_admin_email", email);
+        } else {
+          localStorage.removeItem("navusa_admin_email");
+        }
         setLocation("/master-portal");
       } else {
         setError("Access denied. Admin credentials required.");
@@ -103,6 +117,20 @@ export default function AdminLogin() {
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="rememberEmail"
+              checked={rememberEmail}
+              onChange={(e) => setRememberEmail(e.target.checked)}
+              className="w-4 h-4 rounded border-white/30 bg-white/10 text-blue-500 focus:ring-blue-500"
+              data-testid="checkbox-remember-email"
+            />
+            <label htmlFor="rememberEmail" className="text-sm text-gray-300 cursor-pointer">
+              Remember my email
+            </label>
           </div>
 
           <button
