@@ -34,7 +34,8 @@ import {
   csuContractTemplates, type CsuContractTemplate, type InsertCsuContractTemplate,
   csuContractSends, type CsuContractSend, type InsertCsuContractSend,
   csuSignedAgreements, type CsuSignedAgreement, type InsertCsuSignedAgreement,
-  portalActivity, type PortalActivity, type InsertPortalActivity
+  portalActivity, type PortalActivity, type InsertPortalActivity,
+  passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -268,6 +269,12 @@ export interface IStorage {
   createPortalActivity(activity: InsertPortalActivity): Promise<PortalActivity>;
   getPortalActivity(portal: string, limit: number): Promise<PortalActivity[]>;
   getPortalStats(portal: string): Promise<{ totalVisits: number; uniqueIps: number; contractsSent: number; contractsSigned: number; todayVisits: number }>;
+
+  // Password Reset Tokens
+  createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getValidPasswordResetToken(tokenHash: string): Promise<PasswordResetToken | undefined>;
+  invalidatePasswordResetToken(id: number): Promise<void>;
+  invalidateAllUserPasswordResetTokens(userId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1301,6 +1308,43 @@ export class DatabaseStorage implements IStorage {
       contractsSigned,
       todayVisits: todayActivity.filter(a => a.eventType === "page_view").length,
     };
+  }
+
+  // Password Reset Tokens
+  async createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const [result] = await db.insert(passwordResetTokens).values(token).returning();
+    return result;
+  }
+
+  async getValidPasswordResetToken(tokenHash: string): Promise<PasswordResetToken | undefined> {
+    const now = new Date();
+    const [token] = await db.select()
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.tokenHash, tokenHash),
+          isNull(passwordResetTokens.usedAt),
+          gt(passwordResetTokens.expiresAt, now)
+        )
+      );
+    return token || undefined;
+  }
+
+  async invalidatePasswordResetToken(id: number): Promise<void> {
+    await db.update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(passwordResetTokens.id, id));
+  }
+
+  async invalidateAllUserPasswordResetTokens(userId: number): Promise<void> {
+    await db.update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(
+        and(
+          eq(passwordResetTokens.userId, userId),
+          isNull(passwordResetTokens.usedAt)
+        )
+      );
   }
 }
 
