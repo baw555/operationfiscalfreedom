@@ -186,14 +186,13 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         <div className="w-full max-w-md">
           {/* Logo and branding */}
           <div className="text-center mb-8 animate-fadeInDown">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 mb-6 shadow-2xl shadow-purple-500/30 animate-float">
-              <Building className="w-10 h-10 text-white" />
+            <div className="inline-flex items-center justify-center w-full mb-6">
+              <img 
+                src="/payzium-logo.png" 
+                alt="Payzium Logo" 
+                className="w-64 h-auto drop-shadow-[0_0_30px_rgba(139,92,246,0.3)] animate-float"
+              />
             </div>
-            <h1 className="text-4xl md:text-5xl font-display text-white mb-2 tracking-tight">
-              <span className="bg-gradient-to-r from-purple-200 via-white to-purple-200 bg-clip-text text-transparent">
-                Payzium
-              </span>
-            </h1>
             <p className="text-purple-300/80 text-lg">Contract Management Portal</p>
           </div>
 
