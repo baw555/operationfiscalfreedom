@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoLogout } from "@/hooks/use-auto-logout";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin, Plus, Trash2, Edit, FileEdit, GripVertical, Save } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -1626,6 +1626,24 @@ export default function CsuPortal() {
   
   // Local state to track verified admin login (bypasses 304 cache issue)
   const [verifiedAdmin, setVerifiedAdmin] = useState(false);
+  
+  // Template builder state
+  const [showTemplateBuilder, setShowTemplateBuilder] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<CsuContractTemplate | null>(null);
+  const [templateForm, setTemplateForm] = useState({
+    name: "",
+    description: "",
+    content: "",
+    isActive: true,
+    fields: [] as Array<{
+      fieldKey: string;
+      label: string;
+      placeholder: string;
+      fieldType: string;
+      required: boolean;
+      order: number;
+    }>,
+  });
 
   // Helper function to create styled value display
   const styledValue = (value: string, placeholder: string, isFilled: boolean) => {
@@ -2425,9 +2443,9 @@ export default function CsuPortal() {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-8">
+                <TabsList className="grid w-full grid-cols-5 mb-8">
                   <TabsTrigger value="send" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-send">
-                    <Send className="w-4 h-4 mr-2" /> Send Contract
+                    <Send className="w-4 h-4 mr-2" /> Send
                   </TabsTrigger>
                   <TabsTrigger value="pending" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-pending">
                     <Clock className="w-4 h-4 mr-2" /> Pending ({contractSends.filter(s => s.status === "pending").length})
@@ -2435,8 +2453,11 @@ export default function CsuPortal() {
                   <TabsTrigger value="signed" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-signed">
                     <CheckCircle className="w-4 h-4 mr-2" /> Signed ({signedAgreements.length})
                   </TabsTrigger>
+                  <TabsTrigger value="templates" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-templates">
+                    <FileEdit className="w-4 h-4 mr-2" /> Templates
+                  </TabsTrigger>
                   <TabsTrigger value="analytics" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-analytics">
-                    <BarChart3 className="w-4 h-4 mr-2" /> Analytics
+                    <BarChart3 className="w-4 h-4 mr-2" /> Stats
                   </TabsTrigger>
                 </TabsList>
 
@@ -2652,6 +2673,118 @@ export default function CsuPortal() {
                   </Card>
                 </TabsContent>
 
+                <TabsContent value="templates">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="flex items-center gap-2">
+                          <FileEdit className="w-5 h-5" /> Contract Templates
+                        </CardTitle>
+                        <Button
+                          onClick={() => {
+                            setEditingTemplate(null);
+                            setTemplateForm({
+                              name: "",
+                              description: "",
+                              content: "",
+                              isActive: true,
+                              fields: [],
+                            });
+                            setShowTemplateBuilder(true);
+                          }}
+                          className="bg-amber-600 hover:bg-amber-700"
+                          data-testid="button-new-template"
+                        >
+                          <Plus className="w-4 h-4 mr-2" /> New Template
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {templates.length === 0 ? (
+                        <div className="text-center py-12">
+                          <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                          <p className="text-gray-500">No templates yet</p>
+                          <p className="text-sm text-gray-400">Create your first contract template to get started</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {templates.map((template) => (
+                            <div
+                              key={template.id}
+                              className="border rounded-lg p-4 hover:border-amber-300 transition-colors"
+                              data-testid={`template-card-${template.id}`}
+                            >
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="font-semibold text-lg">{template.name}</h3>
+                                  <p className="text-sm text-gray-500">{template.description || "No description"}</p>
+                                  <div className="flex gap-2 mt-2">
+                                    <span className={`px-2 py-1 rounded text-xs ${template.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
+                                      {template.isActive ? "Active" : "Inactive"}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                      setEditingTemplate(template);
+                                      // Fetch template with fields
+                                      try {
+                                        const response = await fetch(`/api/csu/templates/${template.id}`, {
+                                          credentials: "include",
+                                        });
+                                        if (response.ok) {
+                                          const templateWithFields = await response.json();
+                                          setTemplateForm({
+                                            name: templateWithFields.name,
+                                            description: templateWithFields.description || "",
+                                            content: templateWithFields.content,
+                                            isActive: templateWithFields.isActive,
+                                            fields: templateWithFields.fields?.map((f: any) => ({
+                                              fieldKey: f.fieldKey,
+                                              label: f.label,
+                                              placeholder: f.placeholder || "",
+                                              fieldType: f.fieldType || "text",
+                                              required: f.required ?? true,
+                                              order: f.order || 0,
+                                            })) || [],
+                                          });
+                                        } else {
+                                          setTemplateForm({
+                                            name: template.name,
+                                            description: template.description || "",
+                                            content: template.content,
+                                            isActive: template.isActive,
+                                            fields: [],
+                                          });
+                                        }
+                                      } catch {
+                                        setTemplateForm({
+                                          name: template.name,
+                                          description: template.description || "",
+                                          content: template.content,
+                                          isActive: template.isActive,
+                                          fields: [],
+                                        });
+                                      }
+                                      setShowTemplateBuilder(true);
+                                    }}
+                                    data-testid={`button-edit-template-${template.id}`}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
                 <TabsContent value="analytics">
                   <AnalyticsPanel />
                 </TabsContent>
@@ -2725,6 +2858,241 @@ export default function CsuPortal() {
           </div>
         </div>
       </section>
+
+      {/* Template Builder Dialog */}
+      <Dialog open={showTemplateBuilder} onOpenChange={setShowTemplateBuilder}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileEdit className="w-5 h-5" />
+              {editingTemplate ? "Edit Template" : "Create New Template"}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="template-name">Template Name *</Label>
+                <Input
+                  id="template-name"
+                  value={templateForm.name}
+                  onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
+                  placeholder="e.g., Affiliate Agreement"
+                  data-testid="input-template-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="template-description">Description</Label>
+                <Input
+                  id="template-description"
+                  value={templateForm.description}
+                  onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })}
+                  placeholder="Brief description of this template"
+                  data-testid="input-template-description"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="template-content">Template Content (HTML) *</Label>
+              <p className="text-xs text-gray-500 mb-2">
+                Use placeholders like [NAME], [EMAIL], [DATE], [INITIALS], [SIGNATURE] that will be replaced when signing.
+              </p>
+              <textarea
+                id="template-content"
+                value={templateForm.content}
+                onChange={(e) => setTemplateForm({ ...templateForm, content: e.target.value })}
+                className="w-full min-h-[300px] p-4 border rounded-md font-mono text-sm"
+                placeholder="<div>Your contract content here...</div>"
+                data-testid="textarea-template-content"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Custom Form Fields</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setTemplateForm({
+                      ...templateForm,
+                      fields: [
+                        ...templateForm.fields,
+                        {
+                          fieldKey: `field_${Date.now()}`,
+                          label: "",
+                          placeholder: "",
+                          fieldType: "text",
+                          required: true,
+                          order: templateForm.fields.length,
+                        },
+                      ],
+                    });
+                  }}
+                  data-testid="button-add-field"
+                >
+                  <Plus className="w-4 h-4 mr-2" /> Add Field
+                </Button>
+              </div>
+              
+              {templateForm.fields.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  No custom fields. Add fields to collect additional information when signing.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {templateForm.fields.map((field, index) => (
+                    <div key={index} className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg" data-testid={`field-row-${index}`}>
+                      <div className="flex-1 grid grid-cols-3 gap-3">
+                        <div>
+                          <Label className="text-xs">Field Key</Label>
+                          <Input
+                            value={field.fieldKey}
+                            onChange={(e) => {
+                              const newFields = [...templateForm.fields];
+                              newFields[index].fieldKey = e.target.value;
+                              setTemplateForm({ ...templateForm, fields: newFields });
+                            }}
+                            placeholder="company_name"
+                            className="text-sm"
+                            data-testid={`input-field-key-${index}`}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Label</Label>
+                          <Input
+                            value={field.label}
+                            onChange={(e) => {
+                              const newFields = [...templateForm.fields];
+                              newFields[index].label = e.target.value;
+                              setTemplateForm({ ...templateForm, fields: newFields });
+                            }}
+                            placeholder="Company Name"
+                            className="text-sm"
+                            data-testid={`input-field-label-${index}`}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Type</Label>
+                          <Select
+                            value={field.fieldType}
+                            onValueChange={(value) => {
+                              const newFields = [...templateForm.fields];
+                              newFields[index].fieldType = value;
+                              setTemplateForm({ ...templateForm, fields: newFields });
+                            }}
+                          >
+                            <SelectTrigger className="text-sm" data-testid={`select-field-type-${index}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="text">Text</SelectItem>
+                              <SelectItem value="email">Email</SelectItem>
+                              <SelectItem value="phone">Phone</SelectItem>
+                              <SelectItem value="date">Date</SelectItem>
+                              <SelectItem value="textarea">Text Area</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => {
+                          const newFields = templateForm.fields.filter((_, i) => i !== index);
+                          setTemplateForm({ ...templateForm, fields: newFields });
+                        }}
+                        data-testid={`button-delete-field-${index}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="template-active"
+                checked={templateForm.isActive}
+                onCheckedChange={(checked) => setTemplateForm({ ...templateForm, isActive: checked === true })}
+              />
+              <Label htmlFor="template-active">Template is active (visible in dropdown)</Label>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setShowTemplateBuilder(false)}
+                data-testid="button-cancel-template"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!templateForm.name || !templateForm.content) {
+                    toast({
+                      title: "Error",
+                      description: "Please fill in template name and content",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  
+                  try {
+                    const url = editingTemplate
+                      ? `/api/csu/templates/${editingTemplate.id}`
+                      : "/api/csu/templates";
+                    const method = editingTemplate ? "PUT" : "POST";
+                    
+                    const response = await fetch(url, {
+                      method,
+                      headers: { "Content-Type": "application/json" },
+                      credentials: "include",
+                      body: JSON.stringify({
+                        name: templateForm.name,
+                        description: templateForm.description || null,
+                        content: templateForm.content,
+                        isActive: templateForm.isActive,
+                        fields: templateForm.fields,
+                      }),
+                    });
+                    
+                    if (!response.ok) {
+                      const error = await response.json();
+                      throw new Error(error.message || "Failed to save template");
+                    }
+                    
+                    toast({
+                      title: "Success",
+                      description: editingTemplate ? "Template updated successfully" : "Template created successfully",
+                    });
+                    
+                    queryClient.invalidateQueries({ queryKey: ["/api/csu/templates"] });
+                    setShowTemplateBuilder(false);
+                  } catch (error: any) {
+                    toast({
+                      title: "Error",
+                      description: error.message || "Failed to save template",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                className="bg-amber-600 hover:bg-amber-700"
+                data-testid="button-save-template"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {editingTemplate ? "Update Template" : "Create Template"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

@@ -4046,6 +4046,204 @@ export async function registerRoutes(
     }
   });
 
+  // Get template fields for a specific template (admin)
+  app.get("/api/csu/templates/:id/fields", requireAdmin, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+      const fields = await storage.getCsuContractTemplateFields(templateId);
+      res.json(fields);
+    } catch (error) {
+      console.error("Error fetching template fields:", error);
+      res.status(500).json({ message: "Failed to fetch template fields" });
+    }
+  });
+
+  // Create or update template with fields (admin)
+  app.post("/api/csu/templates", requireAdmin, async (req, res) => {
+    try {
+      const templateSchema = z.object({
+        name: z.string().min(1, "Template name is required"),
+        description: z.string().optional().nullable(),
+        content: z.string().min(1, "Template content is required"),
+        portal: z.string().optional().nullable(),
+        isActive: z.boolean().optional().default(true),
+        fields: z.array(z.object({
+          fieldKey: z.string().min(1),
+          label: z.string().min(1),
+          placeholder: z.string().optional().default(""),
+          fieldType: z.enum(["text", "email", "phone", "date", "textarea", "select"]).optional().default("text"),
+          required: z.boolean().optional().default(true),
+          order: z.number().optional().default(0),
+          defaultValue: z.string().optional().nullable(),
+          validation: z.string().optional().nullable(),
+        })).optional().default([]),
+      });
+
+      const validationResult = templateSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: validationResult.error.errors[0]?.message || "Invalid request data" 
+        });
+      }
+
+      const { name, description, content, portal, isActive, fields } = validationResult.data;
+
+      // Create the template
+      const template = await storage.createCsuContractTemplate({
+        name,
+        description: description || null,
+        content,
+        portal: portal || null,
+        isActive,
+      });
+
+      // Create fields if provided
+      if (fields.length > 0) {
+        for (let i = 0; i < fields.length; i++) {
+          const field = fields[i];
+          await storage.createCsuContractTemplateField({
+            templateId: template.id,
+            fieldKey: field.fieldKey,
+            label: field.label,
+            placeholder: field.placeholder || "",
+            fieldType: field.fieldType || "text",
+            required: field.required ?? true,
+            order: field.order ?? i,
+            defaultValue: field.defaultValue || null,
+            validation: field.validation || null,
+          });
+        }
+      }
+
+      // Fetch fields back
+      const createdFields = await storage.getCsuContractTemplateFields(template.id);
+      
+      res.json({ ...template, fields: createdFields });
+    } catch (error) {
+      console.error("Error creating template:", error);
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  // Update template with fields (admin)
+  app.put("/api/csu/templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+
+      const templateSchema = z.object({
+        name: z.string().min(1).optional(),
+        description: z.string().optional().nullable(),
+        content: z.string().min(1).optional(),
+        portal: z.string().optional().nullable(),
+        isActive: z.boolean().optional(),
+        fields: z.array(z.object({
+          id: z.number().optional(),
+          fieldKey: z.string().min(1),
+          label: z.string().min(1),
+          placeholder: z.string().optional().default(""),
+          fieldType: z.enum(["text", "email", "phone", "date", "textarea", "select"]).optional().default("text"),
+          required: z.boolean().optional().default(true),
+          order: z.number().optional().default(0),
+          defaultValue: z.string().optional().nullable(),
+          validation: z.string().optional().nullable(),
+        })).optional(),
+      });
+
+      const validationResult = templateSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: validationResult.error.errors[0]?.message || "Invalid request data" 
+        });
+      }
+
+      const { fields, ...templateUpdates } = validationResult.data;
+
+      // Update template
+      const template = await storage.updateCsuContractTemplate(templateId, templateUpdates);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Update fields if provided
+      if (fields !== undefined) {
+        // Delete all existing fields and recreate
+        await storage.deleteAllCsuContractTemplateFields(templateId);
+        
+        for (let i = 0; i < fields.length; i++) {
+          const field = fields[i];
+          await storage.createCsuContractTemplateField({
+            templateId,
+            fieldKey: field.fieldKey,
+            label: field.label,
+            placeholder: field.placeholder || "",
+            fieldType: field.fieldType || "text",
+            required: field.required ?? true,
+            order: field.order ?? i,
+            defaultValue: field.defaultValue || null,
+            validation: field.validation || null,
+          });
+        }
+      }
+
+      // Fetch fields back
+      const updatedFields = await storage.getCsuContractTemplateFields(templateId);
+      
+      res.json({ ...template, fields: updatedFields });
+    } catch (error) {
+      console.error("Error updating template:", error);
+      res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
+  // Delete template (admin)
+  app.delete("/api/csu/templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+
+      // Delete fields first
+      await storage.deleteAllCsuContractTemplateFields(templateId);
+      
+      // Delete template
+      await storage.deleteCsuContractTemplate(templateId);
+      
+      res.json({ success: true, message: "Template deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      res.status(500).json({ message: "Failed to delete template" });
+    }
+  });
+
+  // Get single template with fields (admin)
+  app.get("/api/csu/templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+
+      const template = await storage.getCsuContractTemplate(templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      const fields = await storage.getCsuContractTemplateFields(templateId);
+      
+      res.json({ ...template, fields });
+    } catch (error) {
+      console.error("Error fetching template:", error);
+      res.status(500).json({ message: "Failed to fetch template" });
+    }
+  });
+
   // Public: Get contract by token (for signing page)
   app.get("/api/csu/contract/:token", async (req, res) => {
     try {

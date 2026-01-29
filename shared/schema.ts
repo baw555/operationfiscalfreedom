@@ -1063,6 +1063,7 @@ export const csuContractTemplates = pgTable("csu_contract_templates", {
   description: text("description"),
   content: text("content").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  portal: text("portal"), // Optional: restrict template to specific portal (e.g., "payzium")
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -1076,6 +1077,29 @@ export const insertCsuContractTemplateSchema = createInsertSchema(csuContractTem
 export type InsertCsuContractTemplate = z.infer<typeof insertCsuContractTemplateSchema>;
 export type CsuContractTemplate = typeof csuContractTemplates.$inferSelect;
 
+// CSU Contract Template Fields - Dynamic field definitions for each template
+export const csuContractTemplateFields = pgTable("csu_contract_template_fields", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").references(() => csuContractTemplates.id).notNull(),
+  fieldKey: text("field_key").notNull(), // e.g., "clientCompany", "primaryOwner"
+  label: text("label").notNull(), // e.g., "Company Name", "Full Name"
+  placeholder: text("placeholder").notNull(), // e.g., "[COMPANY]", "[NAME]"
+  fieldType: text("field_type").notNull().default("text"), // text, email, phone, date, initials
+  required: boolean("required").notNull().default(true),
+  order: integer("order").notNull().default(0), // Display order in form
+  defaultValue: text("default_value"), // Optional default value
+  validation: text("validation"), // Optional regex or validation rules
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCsuContractTemplateFieldSchema = createInsertSchema(csuContractTemplateFields).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCsuContractTemplateField = z.infer<typeof insertCsuContractTemplateFieldSchema>;
+export type CsuContractTemplateField = typeof csuContractTemplateFields.$inferSelect;
+
 // CSU Contract Sends - When admin sends a contract to someone
 export const csuContractSends = pgTable("csu_contract_sends", {
   id: serial("id").primaryKey(),
@@ -1086,6 +1110,7 @@ export const csuContractSends = pgTable("csu_contract_sends", {
   signToken: text("sign_token").notNull().unique(),
   tokenExpiresAt: timestamp("token_expires_at").notNull(),
   status: text("status").notNull().default("pending"), // pending, signed, expired
+  fieldValues: text("field_values"), // JSON string of submitted field values for dynamic templates
   sentAt: timestamp("sent_at").defaultNow().notNull(),
   sentBy: integer("sent_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),

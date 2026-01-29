@@ -34,6 +34,7 @@ import {
   csuContractTemplates, type CsuContractTemplate, type InsertCsuContractTemplate,
   csuContractSends, type CsuContractSend, type InsertCsuContractSend,
   csuSignedAgreements, type CsuSignedAgreement, type InsertCsuSignedAgreement,
+  csuContractTemplateFields, type CsuContractTemplateField, type InsertCsuContractTemplateField,
   portalActivity, type PortalActivity, type InsertPortalActivity,
   passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken,
   partnerSharingLog, type PartnerSharingLog, type InsertPartnerSharingLog,
@@ -254,7 +255,16 @@ export interface IStorage {
   getCsuContractTemplate(id: number): Promise<CsuContractTemplate | undefined>;
   getAllCsuContractTemplates(): Promise<CsuContractTemplate[]>;
   getActiveCsuContractTemplates(): Promise<CsuContractTemplate[]>;
+  getActiveTemplatesByPortal(portal: string): Promise<CsuContractTemplate[]>;
   updateCsuContractTemplate(id: number, updates: Partial<CsuContractTemplate>): Promise<CsuContractTemplate | undefined>;
+  deleteCsuContractTemplate(id: number): Promise<void>;
+
+  // CSU Contract Template Fields
+  createCsuContractTemplateField(field: InsertCsuContractTemplateField): Promise<CsuContractTemplateField>;
+  getCsuContractTemplateFields(templateId: number): Promise<CsuContractTemplateField[]>;
+  updateCsuContractTemplateField(id: number, updates: Partial<CsuContractTemplateField>): Promise<CsuContractTemplateField | undefined>;
+  deleteCsuContractTemplateField(id: number): Promise<void>;
+  deleteAllCsuContractTemplateFields(templateId: number): Promise<void>;
 
   // CSU Contract Sends
   createCsuContractSend(send: InsertCsuContractSend): Promise<CsuContractSend>;
@@ -1231,6 +1241,50 @@ export class DatabaseStorage implements IStorage {
       .where(eq(csuContractTemplates.id, id))
       .returning();
     return updated || undefined;
+  }
+
+  async getActiveTemplatesByPortal(portal: string): Promise<CsuContractTemplate[]> {
+    return db.select().from(csuContractTemplates)
+      .where(and(
+        eq(csuContractTemplates.isActive, true),
+        or(
+          eq(csuContractTemplates.portal, portal),
+          isNull(csuContractTemplates.portal)
+        )
+      ))
+      .orderBy(desc(csuContractTemplates.createdAt));
+  }
+
+  async deleteCsuContractTemplate(id: number): Promise<void> {
+    await db.delete(csuContractTemplates).where(eq(csuContractTemplates.id, id));
+  }
+
+  // CSU Contract Template Fields
+  async createCsuContractTemplateField(field: InsertCsuContractTemplateField): Promise<CsuContractTemplateField> {
+    const [created] = await db.insert(csuContractTemplateFields).values(field).returning();
+    return created;
+  }
+
+  async getCsuContractTemplateFields(templateId: number): Promise<CsuContractTemplateField[]> {
+    return db.select().from(csuContractTemplateFields)
+      .where(eq(csuContractTemplateFields.templateId, templateId))
+      .orderBy(csuContractTemplateFields.order);
+  }
+
+  async updateCsuContractTemplateField(id: number, updates: Partial<CsuContractTemplateField>): Promise<CsuContractTemplateField | undefined> {
+    const [updated] = await db.update(csuContractTemplateFields)
+      .set(updates)
+      .where(eq(csuContractTemplateFields.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteCsuContractTemplateField(id: number): Promise<void> {
+    await db.delete(csuContractTemplateFields).where(eq(csuContractTemplateFields.id, id));
+  }
+
+  async deleteAllCsuContractTemplateFields(templateId: number): Promise<void> {
+    await db.delete(csuContractTemplateFields).where(eq(csuContractTemplateFields.templateId, templateId));
   }
 
   // CSU Contract Sends
