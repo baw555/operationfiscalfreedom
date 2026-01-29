@@ -126,31 +126,58 @@ export default function HealthcarePage() {
       <div className="h-2 bg-gradient-to-r from-brand-red via-white to-brand-navy"></div>
       
       <div className="min-h-screen bg-gradient-to-br from-brand-red via-brand-navy to-brand-navy">
-        {/* Sticky Service Selector */}
-        <div className="sticky top-0 z-50 bg-brand-navy/95 backdrop-blur border-b border-white/10 py-4 px-4">
-          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Activity className="w-8 h-8 text-green-400" />
-              <h2 className="font-display text-xl text-white">HEALTHCARE SERVICES</h2>
+        {/* Page Header */}
+        <div className="py-12 px-4 text-center border-b border-white/10">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Activity className="w-10 h-10 text-green-400" />
+              <h1 className="font-display text-3xl md:text-4xl text-white">HEALTHCARE SERVICES</h1>
             </div>
-            <div className="w-full sm:w-80">
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white" data-testid="select-healthcare-service">
-                  <SelectValue placeholder="Select a treatment category" />
-                </SelectTrigger>
-                <SelectContent className="z-[100] bg-white border shadow-lg">
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id} data-testid={`option-${cat.id}`}>
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-gray-900">{cat.label}</span>
-                        <span className="text-xs text-gray-500">{cat.description}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+              Select a treatment category below to explore your healthcare options.
+            </p>
+          </div>
+        </div>
+
+        {/* Category Tabs - Desktop */}
+        <div className="hidden md:block bg-brand-navy/50 border-b border-white/10">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex justify-center gap-1">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setCategory(cat.id)}
+                  data-testid={`tab-${cat.id}`}
+                  className={`px-6 py-4 font-semibold text-sm transition-all border-b-2 ${
+                    category === cat.id
+                      ? 'text-white border-green-400 bg-white/5'
+                      : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
           </div>
+        </div>
+
+        {/* Category Selector - Mobile */}
+        <div className="md:hidden bg-brand-navy/50 border-b border-white/10 py-4 px-4">
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="bg-white/10 border-white/20 text-white w-full" data-testid="select-healthcare-service">
+              <SelectValue placeholder="Select a treatment category" />
+            </SelectTrigger>
+            <SelectContent className="z-[100] bg-white border shadow-lg">
+              {CATEGORIES.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id} data-testid={`option-${cat.id}`}>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900">{cat.label}</span>
+                    <span className="text-xs text-gray-500">{cat.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Hero Section */}

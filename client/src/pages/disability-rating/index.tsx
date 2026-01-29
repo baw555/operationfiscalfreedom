@@ -419,30 +419,58 @@ export default function DisabilityBenefitsHub() {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800">
-        <div className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-white/10 py-4 px-4">
-          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Shield className="w-8 h-8 text-brand-red" />
-              <h2 className="font-display text-xl text-white">DISABILITY BENEFITS</h2>
+        {/* Hero Section */}
+        <div className="py-12 px-4 text-center border-b border-white/10">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Shield className="w-10 h-10 text-brand-red" />
+              <h1 className="font-display text-3xl md:text-4xl text-white">DISABILITY BENEFITS</h1>
             </div>
-            <div className="w-full sm:w-80">
-              <Select value={selectedService} onValueChange={handleServiceChange}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white" data-testid="select-disability-service">
-                  <SelectValue placeholder="Select a service" />
-                </SelectTrigger>
-                <SelectContent className="z-[100] bg-white border shadow-lg">
-                  {SERVICES.map((service) => (
-                    <SelectItem key={service.id} value={service.id} data-testid={`option-${service.id}`}>
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-gray-900">{service.label}</span>
-                        <span className="text-xs text-gray-500">{service.description}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+              Select a service below to learn more and get started with your claim.
+            </p>
+          </div>
+        </div>
+
+        {/* Service Tabs - Desktop */}
+        <div className="hidden md:block bg-slate-800/50 border-b border-white/10">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex justify-center gap-1">
+              {SERVICES.map((service) => (
+                <button
+                  key={service.id}
+                  onClick={() => handleServiceChange(service.id)}
+                  data-testid={`tab-${service.id}`}
+                  className={`px-6 py-4 font-semibold text-sm transition-all border-b-2 ${
+                    selectedService === service.id
+                      ? 'text-white border-brand-red bg-white/5'
+                      : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {service.label}
+                </button>
+              ))}
             </div>
           </div>
+        </div>
+
+        {/* Service Selector - Mobile */}
+        <div className="md:hidden bg-slate-800/50 border-b border-white/10 py-4 px-4">
+          <Select value={selectedService} onValueChange={handleServiceChange}>
+            <SelectTrigger className="bg-white/10 border-white/20 text-white w-full" data-testid="select-disability-service">
+              <SelectValue placeholder="Select a service" />
+            </SelectTrigger>
+            <SelectContent className="z-[100] bg-white border shadow-lg">
+              {SERVICES.map((service) => (
+                <SelectItem key={service.id} value={service.id} data-testid={`option-${service.id}`}>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900">{service.label}</span>
+                    <span className="text-xs text-gray-500">{service.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {renderContent()}
