@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoLogout } from "@/hooks/use-auto-logout";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin, Plus, Trash2, Edit, FileEdit, GripVertical, Save, Upload, Loader2, Sparkles, X, AlertCircle } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin, Plus, Trash2, Edit, FileEdit, GripVertical, Save, Upload, Loader2, Sparkles, X, AlertCircle, LayoutDashboard } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -1597,7 +1597,7 @@ export default function CsuPortal() {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   useAutoLogout("/Payzium");
-  const [activeTab, setActiveTab] = useState("send");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [formData, setFormData] = useState({
     templateId: "",
     recipientName: "",
@@ -2669,7 +2669,10 @@ export default function CsuPortal() {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-6 mb-8">
+                <TabsList className="grid w-full grid-cols-7 mb-8">
+                  <TabsTrigger value="dashboard" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-dashboard">
+                    <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
+                  </TabsTrigger>
                   <TabsTrigger value="send" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-send">
                     <Send className="w-4 h-4 mr-2" /> Send
                   </TabsTrigger>
@@ -2689,6 +2692,113 @@ export default function CsuPortal() {
                     <BarChart3 className="w-4 h-4 mr-2" /> Stats
                   </TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="dashboard">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <LayoutDashboard className="w-5 h-5" /> Contract Dashboard
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">Overview of all contracts grouped by template</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        {/* Summary Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200" data-testid="stat-total-sent">
+                            <p className="text-sm text-purple-600 font-medium">Total Sent</p>
+                            <p className="text-2xl font-bold text-purple-800">{contractSends.length}</p>
+                          </div>
+                          <div className="bg-amber-50 p-4 rounded-lg border border-amber-200" data-testid="stat-pending">
+                            <p className="text-sm text-amber-600 font-medium">Pending</p>
+                            <p className="text-2xl font-bold text-amber-800">{contractSends.filter(s => s.status === "pending").length}</p>
+                          </div>
+                          <div className="bg-green-50 p-4 rounded-lg border border-green-200" data-testid="stat-signed">
+                            <p className="text-sm text-green-600 font-medium">Signed</p>
+                            <p className="text-2xl font-bold text-green-800">{signedAgreements.length}</p>
+                          </div>
+                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200" data-testid="stat-templates">
+                            <p className="text-sm text-blue-600 font-medium">Templates</p>
+                            <p className="text-2xl font-bold text-blue-800">{templates.length}</p>
+                          </div>
+                        </div>
+
+                        {/* Contracts by Template */}
+                        <div>
+                          <h3 className="font-semibold text-lg text-purple-800 mb-4">Contracts by Template</h3>
+                          <div className="space-y-4">
+                            {templates.map((template) => {
+                              const templateSends = contractSends.filter(s => s.templateId === template.id);
+                              const pendingCount = templateSends.filter(s => s.status === "pending").length;
+                              const signedCount = templateSends.filter(s => s.status === "signed").length;
+                              const totalCount = templateSends.length;
+                              const signedPercent = totalCount > 0 ? Math.round((signedCount / totalCount) * 100) : 0;
+
+                              return (
+                                <div key={template.id} className="bg-white border rounded-lg p-4" data-testid={`template-row-${template.id}`}>
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div>
+                                      <h4 className="font-medium text-gray-900">{template.name}</h4>
+                                      <p className="text-sm text-gray-500">{template.description || "No description"}</p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-lg font-semibold text-purple-700">{totalCount} sent</p>
+                                      <p className="text-sm text-gray-500">{signedPercent}% signed</p>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Progress bar */}
+                                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                                    <div 
+                                      className="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                                      style={{ width: `${signedPercent}%` }}
+                                    />
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-4 text-sm">
+                                    <span className="flex items-center gap-1 text-amber-600">
+                                      <Clock className="w-4 h-4" /> {pendingCount} pending
+                                    </span>
+                                    <span className="flex items-center gap-1 text-green-600">
+                                      <CheckCircle className="w-4 h-4" /> {signedCount} signed
+                                    </span>
+                                  </div>
+
+                                  {/* Recipients list */}
+                                  {templateSends.length > 0 && (
+                                    <div className="mt-4 border-t pt-3">
+                                      <p className="text-xs font-medium text-gray-500 mb-2">Recipients:</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {templateSends.map((send) => (
+                                          <span 
+                                            key={send.id}
+                                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                                              send.status === "signed" 
+                                                ? "bg-green-100 text-green-700" 
+                                                : "bg-amber-100 text-amber-700"
+                                            }`}
+                                            data-testid={`recipient-badge-${send.id}`}
+                                          >
+                                            {send.status === "signed" ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                            {send.recipientName}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+
+                            {templates.length === 0 && (
+                              <p className="text-center text-gray-500 py-8">No templates yet. Create one in the Templates tab.</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
                 <TabsContent value="send">
                   <Card>
