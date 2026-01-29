@@ -629,7 +629,7 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                     className="border-amber-500/50 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-400"
                   />
                   <Label htmlFor="remember-me" className="text-sm text-amber-300/70 cursor-pointer">
-                    Remember my identity
+                    Remember My Honor
                   </Label>
                 </div>
 
