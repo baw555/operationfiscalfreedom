@@ -126,7 +126,28 @@ export default function Home() {
   const startIntro = () => {
     setIntroStarted(true);
     if (introVideoRef.current) {
-      introVideoRef.current.play().catch(() => {});
+      const video = introVideoRef.current;
+      video.play().catch(() => {
+        // If video fails to play, skip to animation after 1 second
+        setTimeout(() => setIntroPlayed(true), 1000);
+      });
+      
+      // Fallback: if video doesn't trigger ended event, move on after video duration + buffer
+      video.addEventListener('loadedmetadata', () => {
+        const fallbackTime = (video.duration * 1000) + 500;
+        setTimeout(() => {
+          if (!introPlayed) {
+            setIntroPlayed(true);
+          }
+        }, fallbackTime);
+      });
+      
+      // Additional fallback: max 15 seconds wait
+      setTimeout(() => {
+        if (!introPlayed) {
+          setIntroPlayed(true);
+        }
+      }, 15000);
     }
   };
 
@@ -139,6 +160,7 @@ export default function Home() {
             ref={introVideoRef}
             src="/videos/intro-video.mp4"
             playsInline
+            preload="auto"
             onEnded={handleIntroEnded}
             className={cn(
               "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
