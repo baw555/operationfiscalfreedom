@@ -24,7 +24,7 @@ const CATEGORIES = [
 export default function HealthcarePage() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
-  const [category, setCategory] = useState<string>("");
+  const [category, setCategory] = useState<string>("ptsd");
   const [isOfferingServices, setIsOfferingServices] = useState(false);
   const [referralCode, setReferralCode] = useState<string>("");
   useScrollToTopOnChange(submitted);

@@ -71,13 +71,8 @@ const JobPlacement = lazy(() => import("@/pages/job-placement"));
 const VetProfessionals = lazy(() => import("@/pages/vet-professionals"));
 const HealthcarePage = lazy(() => import("@/pages/healthcare"));
 
-// Disability Rating pages
+// Disability Rating pages - consolidated into hub
 const DisabilityBenefitsHub = lazy(() => import("@/pages/disability-rating/index"));
-const DisabilityInitial = lazy(() => import("@/pages/disability-rating/initial"));
-const DisabilityIncrease = lazy(() => import("@/pages/disability-rating/increase"));
-const DisabilityDenial = lazy(() => import("@/pages/disability-rating/denial"));
-const DisabilitySSDI = lazy(() => import("@/pages/disability-rating/ssdi"));
-const DisabilityWidow = lazy(() => import("@/pages/disability-rating/widow"));
 const DisabilityReferEarn = lazy(() => import("@/pages/disability-rating/refer-earn"));
 const DisabilityIntake = lazy(() => import("@/pages/disability-rating/intake"));
 
