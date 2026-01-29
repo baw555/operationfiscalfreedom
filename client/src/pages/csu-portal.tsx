@@ -146,73 +146,200 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   };
 
   return (
-    <Layout>
-      <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
-          <p className="text-lg text-purple-200">Contract Management Portal</p>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Floating orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-violet-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        
+        {/* Animated grid lines */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(139, 92, 246, 0.1) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(139, 92, 246, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            animation: 'gridMove 20s linear infinite'
+          }} />
         </div>
-      </section>
-      
-      <section className="py-16 bg-gray-100 min-h-screen">
-        <div className="container mx-auto px-4 max-w-md">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                <LogIn className="w-6 h-6 text-purple-600" /> Payzium Login
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                    data-testid="input-payzium-email"
-                  />
+        
+        {/* Floating particles */}
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-purple-400/40 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 5}s`
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* Logo and branding */}
+          <div className="text-center mb-8 animate-fadeInDown">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 mb-6 shadow-2xl shadow-purple-500/30 animate-float">
+              <Building className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-display text-white mb-2 tracking-tight">
+              <span className="bg-gradient-to-r from-purple-200 via-white to-purple-200 bg-clip-text text-transparent">
+                Payzium
+              </span>
+            </h1>
+            <p className="text-purple-300/80 text-lg">Contract Management Portal</p>
+          </div>
+
+          {/* Glassmorphism login card */}
+          <div className="relative animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+            {/* Card glow effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 rounded-3xl blur-lg opacity-30 animate-pulse" />
+            
+            <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 shadow-2xl">
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-semibold text-white flex items-center justify-center gap-2">
+                  <LogIn className="w-5 h-5 text-purple-400" />
+                  Welcome Back
+                </h2>
+                <p className="text-purple-300/60 text-sm mt-1">Sign in to your account</p>
+              </div>
+
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div className="space-y-2 group">
+                  <Label htmlFor="email" className="text-purple-200 text-sm font-medium">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400/50 transition-colors group-focus-within:text-purple-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      required
+                      data-testid="input-payzium-email"
+                      className="pl-11 h-12 bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 focus:border-purple-500 focus:ring-purple-500/20 focus:bg-white/10 transition-all duration-300 rounded-xl"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    required
-                    data-testid="input-payzium-password"
-                  />
+
+                <div className="space-y-2 group">
+                  <Label htmlFor="password" className="text-purple-200 text-sm font-medium">
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <LogIn className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400/50 transition-colors group-focus-within:text-purple-400" />
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      required
+                      data-testid="input-payzium-password"
+                      className="pl-11 h-12 bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 focus:border-purple-500 focus:ring-purple-500/20 focus:bg-white/10 transition-all duration-300 rounded-xl"
+                    />
+                  </div>
                 </div>
+
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="remember-me"
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
                     data-testid="checkbox-payzium-remember"
+                    className="border-purple-400/50 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
                   />
-                  <Label htmlFor="remember-me" className="text-sm font-normal cursor-pointer">
+                  <Label htmlFor="remember-me" className="text-sm text-purple-300/80 cursor-pointer">
                     Remember my email
                   </Label>
                 </div>
+
                 <Button 
                   type="submit"
-                  className="w-full bg-purple-600 hover:bg-purple-700"
                   disabled={isLoading}
                   data-testid="button-payzium-login"
+                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group"
                 >
-                  {isLoading ? "Logging in..." : "Log In"}
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {isLoading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      <>
+                        Sign In
+                        <LogIn className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                      </>
+                    )}
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 </Button>
               </form>
-            </CardContent>
-          </Card>
+
+              {/* Decorative bottom line */}
+              <div className="mt-8 pt-6 border-t border-white/10">
+                <p className="text-center text-purple-300/50 text-xs">
+                  Secure portal access for authorized users only
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-8 text-center animate-fadeIn" style={{ animationDelay: '0.5s' }}>
+            <p className="text-purple-300/40 text-sm">
+              Powered by <span className="text-purple-400">Payzium</span>
+            </p>
+          </div>
         </div>
-      </section>
-    </Layout>
+      </div>
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.4; }
+          50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+        }
+        @keyframes gridMove {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(60px, 60px); }
+        }
+        @keyframes fadeInDown {
+          from { opacity: 0; transform: translateY(-30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fadeInDown {
+          animation: fadeInDown 0.8s ease-out forwards;
+        }
+        .animate-fadeInUp {
+          animation: fadeInUp 0.8s ease-out forwards;
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.8s ease-out forwards;
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
   );
 }
 
