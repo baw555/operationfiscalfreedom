@@ -18,8 +18,6 @@ export function HeroMontage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-  const videos = montageVideos;
-
   // Play active video, pause others
   useEffect(() => {
     videoRefs.current.forEach((video, index) => {
@@ -34,18 +32,28 @@ export function HeroMontage() {
     });
   }, [activeIndex]);
 
-  // Cycle through videos
+  // Listen for video end to advance to next
   useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveIndex(prev => (prev + 1) % videos.length);
-    }, 5000);
+    const currentVideo = videoRefs.current[activeIndex];
+    
+    const handleEnded = () => {
+      setActiveIndex(prev => (prev + 1) % montageVideos.length);
+    };
 
-    return () => clearInterval(timer);
-  }, [videos.length]);
+    if (currentVideo) {
+      currentVideo.addEventListener("ended", handleEnded);
+    }
+
+    return () => {
+      if (currentVideo) {
+        currentVideo.removeEventListener("ended", handleEnded);
+      }
+    };
+  }, [activeIndex]);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-brand-navy">
-      {videos.map((src, index) => (
+      {montageVideos.map((src, index) => (
         <video
           key={src}
           ref={el => { videoRefs.current[index] = el; }}
@@ -64,7 +72,7 @@ export function HeroMontage() {
       <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/50 to-brand-navy/30 z-10" />
       
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 sm:gap-2">
-        {videos.map((_, index) => (
+        {montageVideos.map((_, index) => (
           <div
             key={index}
             className={cn(
