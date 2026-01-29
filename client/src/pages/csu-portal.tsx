@@ -71,8 +71,42 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("payzium_remembered_email"));
   const [isLoading, setIsLoading] = useState(false);
   const [lightningFlash, setLightningFlash] = useState(false);
+  
+  // Post-login cinematic sequence state
+  const [cinematicPhase, setCinematicPhase] = useState<'idle' | 'black' | 'scanning' | 'scanningOut' | 'welcome' | 'welcomeOut' | 'done'>('idle');
+  const cinematicTimeouts = useRef<NodeJS.Timeout[]>([]);
 
   const isWorthy = email.trim().length > 0 && password.length > 0;
+  
+  // Cleanup cinematic timeouts
+  useEffect(() => {
+    return () => {
+      cinematicTimeouts.current.forEach(clearTimeout);
+    };
+  }, []);
+  
+  // Run cinematic sequence
+  const startCinematicSequence = () => {
+    setCinematicPhase('black');
+    
+    // Timing: black 2s -> scanning 2s -> fade 0.5s -> welcome 2s -> fade 0.5s -> done
+    const t1 = setTimeout(() => setCinematicPhase('scanning'), 2000);      // Show "Scanning" at 2s
+    const t2 = setTimeout(() => setCinematicPhase('scanningOut'), 4000);   // Fade out at 4s
+    const t3 = setTimeout(() => setCinematicPhase('welcome'), 4500);       // Show "Welcome" at 4.5s
+    const t4 = setTimeout(() => setCinematicPhase('welcomeOut'), 6500);    // Fade out at 6.5s
+    const t5 = setTimeout(() => {
+      setCinematicPhase('done');
+      onSuccess();
+    }, 7000);                                                               // Done at 7s
+    
+    cinematicTimeouts.current = [t1, t2, t3, t4, t5];
+  };
+  
+  const skipCinematic = () => {
+    cinematicTimeouts.current.forEach(clearTimeout);
+    setCinematicPhase('done');
+    onSuccess();
+  };
 
   // Track page view for unauthenticated visitors
   useEffect(() => {
@@ -149,12 +183,8 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         localStorage.removeItem("payzium_remembered_email");
       }
       
-      await onSuccess();
-      
-      toast({
-        title: "Welcome!",
-        description: "Logged in successfully",
-      });
+      // Start cinematic sequence instead of immediate login
+      startCinematicSequence();
     } catch (error) {
       toast({
         title: "Error",
@@ -168,6 +198,133 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
+      {/* POST-LOGIN CINEMATIC SEQUENCE */}
+      {cinematicPhase !== 'idle' && cinematicPhase !== 'done' && (
+        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center" data-testid="cinematic-overlay">
+          {/* Skip Animation Button */}
+          <button
+            onClick={skipCinematic}
+            className="absolute top-6 right-6 px-4 py-2 text-amber-400/70 hover:text-amber-300 text-sm font-medium tracking-wider uppercase border border-amber-500/30 hover:border-amber-400/50 rounded-lg transition-all duration-300 hover:bg-amber-500/10 z-10"
+            data-testid="button-skip-animation"
+          >
+            Skip Animation →
+          </button>
+          
+          {/* SCANNING Text */}
+          <div 
+            className={`absolute transition-all ${
+              cinematicPhase === 'scanning' ? 'opacity-100 scale-100' : 
+              cinematicPhase === 'scanningOut' ? 'opacity-0 scale-95' : 'opacity-0 scale-110'
+            }`}
+            style={{ transitionDuration: '500ms' }}
+          >
+            <h1 
+              className="text-6xl sm:text-8xl font-black tracking-[0.3em] text-white relative"
+              style={{
+                textShadow: cinematicPhase === 'scanning' ? '0 0 10px #fff, 0 0 20px #ffd700, 0 0 40px #ffd700, 0 0 80px #ff8c00' : 'none',
+                animation: cinematicPhase === 'scanning' ? 'scanFlicker 0.15s infinite' : 'none'
+              }}
+            >
+              <span className="relative">
+                SCANNING
+                {/* Electric overlay effect */}
+                <span 
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400 to-transparent bg-clip-text"
+                  style={{
+                    backgroundSize: '200% 100%',
+                    animation: cinematicPhase === 'scanning' ? 'electricGlide 0.8s linear infinite' : 'none',
+                    mixBlendMode: 'overlay'
+                  }}
+                />
+              </span>
+            </h1>
+            {/* Scanning line effect */}
+            {cinematicPhase === 'scanning' && (
+              <div 
+                className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent" 
+                style={{ 
+                  top: '50%', 
+                  boxShadow: '0 0 20px #ffd700, 0 0 40px #ff8c00',
+                  animation: 'scanLine 1.5s ease-in-out infinite'
+                }} 
+              />
+            )}
+          </div>
+          
+          {/* WELCOME BACK Text */}
+          <div 
+            className={`absolute transition-all ${
+              cinematicPhase === 'welcome' ? 'opacity-100 scale-100' : 
+              cinematicPhase === 'welcomeOut' ? 'opacity-0 scale-95' : 'opacity-0 scale-110'
+            }`}
+            style={{ transitionDuration: '500ms' }}
+          >
+            <h1 
+              className="text-4xl sm:text-6xl font-black tracking-[0.15em] text-white text-center relative"
+              style={{
+                textShadow: cinematicPhase === 'welcome' ? '0 0 10px #fff, 0 0 20px #ffd700, 0 0 40px #ffd700, 0 0 80px #ff8c00' : 'none',
+                animation: cinematicPhase === 'welcome' ? 'welcomePulse 2s ease-in-out' : 'none'
+              }}
+            >
+              <span className="block mb-2 text-amber-400" style={{ textShadow: '0 0 15px #ffd700, 0 0 30px #ff8c00' }}>Welcome Back</span>
+              <span className="block text-white">Mr. Verrelli</span>
+              {/* Electric sparks around text */}
+              {cinematicPhase === 'welcome' && [...Array(12)].map((_, i) => (
+                <span 
+                  key={i}
+                  className="absolute w-1 h-1 bg-yellow-400 rounded-full"
+                  style={{
+                    left: `${10 + Math.random() * 80}%`,
+                    top: `${10 + Math.random() * 80}%`,
+                    boxShadow: '0 0 6px #ffd700, 0 0 12px #ff8c00',
+                    animation: `sparkBurst ${0.3 + Math.random() * 0.5}s ease-out forwards`,
+                    animationDelay: `${Math.random() * 1}s`
+                  }}
+                />
+              ))}
+            </h1>
+          </div>
+          
+          {/* Cinematic animation keyframes */}
+          <style>{`
+            @keyframes scanFlicker {
+              0%, 100% { opacity: 1; }
+              5% { opacity: 0.8; }
+              10% { opacity: 1; }
+              15% { opacity: 0.9; }
+              30% { opacity: 1; }
+              32% { opacity: 0.7; }
+              35% { opacity: 1; }
+              50% { opacity: 0.95; }
+              70% { opacity: 1; }
+              72% { opacity: 0.85; }
+              75% { opacity: 1; }
+            }
+            @keyframes electricGlide {
+              0% { background-position: -200% 0; }
+              100% { background-position: 200% 0; }
+            }
+            @keyframes scanLine {
+              0% { transform: translateY(-100px); opacity: 0; }
+              20% { opacity: 1; }
+              80% { opacity: 1; }
+              100% { transform: translateY(100px); opacity: 0; }
+            }
+            @keyframes welcomePulse {
+              0% { transform: scale(0.9); opacity: 0; filter: blur(10px); }
+              20% { transform: scale(1.02); opacity: 1; filter: blur(0); }
+              40% { transform: scale(1); }
+              100% { transform: scale(1); opacity: 1; }
+            }
+            @keyframes sparkBurst {
+              0% { transform: scale(0) translate(0, 0); opacity: 1; }
+              50% { transform: scale(2) translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px); opacity: 0.8; }
+              100% { transform: scale(0) translate(${Math.random() * 60 - 30}px, ${Math.random() * 60 - 30}px); opacity: 0; }
+            }
+          `}</style>
+        </div>
+      )}
+      
       {/* Lightning flash overlay */}
       <div 
         className={`absolute inset-0 pointer-events-none z-50 transition-opacity duration-75 ${lightningFlash ? 'opacity-40' : 'opacity-0'}`}
@@ -284,11 +441,86 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
       <div className="absolute bottom-60 right-1/4 w-[300px] h-[300px] bg-gradient-radial from-orange-900/20 via-transparent to-transparent blur-3xl animate-breatheGold3" />
 
       {/* Main content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-lg">
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12 overflow-visible">
+        <div className="w-full max-w-lg overflow-visible">
           
-          {/* Logo Stage - EPIC Thor presentation */}
-          <div className="text-center mb-8 animate-fadeInDown">
+          {/* Logo Stage - EPIC Thor presentation with Extended Lightning */}
+          <div className="text-center mb-8 animate-fadeInDown relative overflow-visible">
+            {/* EXTENDED LIGHTNING FROM LOGO - Radiating across entire banner */}
+            {/* Large left-extending bolt from logo */}
+            <svg className="absolute top-1/2 left-1/2 -translate-y-1/2 w-[80vw] h-[60vh] pointer-events-none z-0" viewBox="0 0 800 400" style={{ transform: 'translate(-70%, -40%)', opacity: 0.7 }}>
+              <defs>
+                <linearGradient id="payziumBoltGradientL" x1="100%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ffd700" stopOpacity="0.9" />
+                  <stop offset="50%" stopColor="#ff8c00" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#ff6600" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {/* Main left bolt */}
+              <path 
+                d="M800 200 L700 180 L720 195 L600 170 L640 190 L500 150 L560 175 L400 130 L480 160 L300 100 L400 140 L150 60 L280 110 L0 20" 
+                stroke="url(#payziumBoltGradientL)" strokeWidth="3" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ff8c00)', animation: 'extendedBoltFlicker 4s ease-in-out infinite' }} 
+              />
+              {/* Branch 1 */}
+              <path 
+                d="M600 170 L550 200 L580 195 L480 250 L530 230 L400 300" 
+                stroke="#ffd700" strokeWidth="2" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 10px #ffd700)', opacity: 0.6, animation: 'extendedBoltFlicker 3.5s ease-in-out infinite 0.5s' }} 
+              />
+              {/* Branch 2 */}
+              <path 
+                d="M400 130 L350 180 L380 170 L280 240 L320 220 L200 320" 
+                stroke="#ffaa00" strokeWidth="1.5" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 8px #ff8c00)', opacity: 0.5, animation: 'extendedBoltFlicker 4.5s ease-in-out infinite 1s' }} 
+              />
+            </svg>
+            
+            {/* Large right-extending bolt from logo */}
+            <svg className="absolute top-1/2 left-1/2 -translate-y-1/2 w-[80vw] h-[60vh] pointer-events-none z-0" viewBox="0 0 800 400" style={{ transform: 'translate(-30%, -40%) scaleX(-1)', opacity: 0.7 }}>
+              <defs>
+                <linearGradient id="payziumBoltGradientR" x1="100%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ffd700" stopOpacity="0.9" />
+                  <stop offset="50%" stopColor="#ff8c00" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#ff6600" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {/* Main right bolt */}
+              <path 
+                d="M800 200 L700 220 L720 205 L600 230 L640 210 L500 250 L560 225 L400 270 L480 240 L300 300 L400 260 L150 340 L280 290 L0 380" 
+                stroke="url(#payziumBoltGradientR)" strokeWidth="3" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ff8c00)', animation: 'extendedBoltFlicker 4.2s ease-in-out infinite 0.3s' }} 
+              />
+              {/* Branch 1 */}
+              <path 
+                d="M600 230 L550 180 L580 195 L480 130 L530 160 L400 80" 
+                stroke="#ffd700" strokeWidth="2" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 10px #ffd700)', opacity: 0.6, animation: 'extendedBoltFlicker 3.8s ease-in-out infinite 0.7s' }} 
+              />
+            </svg>
+            
+            {/* Downward extending bolts from logo */}
+            <svg className="absolute top-full left-1/2 -translate-x-1/2 w-[60vw] h-[40vh] pointer-events-none z-0" viewBox="0 0 600 300" style={{ opacity: 0.6 }}>
+              {/* Center downward bolt */}
+              <path 
+                d="M300 0 L290 50 L310 45 L280 100 L320 90 L270 160 L330 140 L250 220 L340 190 L220 300" 
+                stroke="#ffd700" strokeWidth="2.5" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 12px #ffd700) drop-shadow(0 0 25px #ff8c00)', animation: 'extendedBoltFlicker 5s ease-in-out infinite 0.2s' }} 
+              />
+              {/* Left downward branch */}
+              <path 
+                d="M280 100 L200 140 L240 130 L140 200 L190 180 L80 280" 
+                stroke="#ff8c00" strokeWidth="2" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 10px #ff8c00)', opacity: 0.5, animation: 'extendedBoltFlicker 4.3s ease-in-out infinite 0.8s' }} 
+              />
+              {/* Right downward branch */}
+              <path 
+                d="M320 90 L400 130 L360 125 L460 190 L410 175 L520 270" 
+                stroke="#ff8c00" strokeWidth="2" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 10px #ff8c00)', opacity: 0.5, animation: 'extendedBoltFlicker 4.6s ease-in-out infinite 1.2s' }} 
+              />
+            </svg>
+            
             <div className="relative inline-block">
               {/* Outer power halo */}
               <div className="absolute -inset-20 bg-gradient-radial from-amber-500/20 via-orange-600/10 to-transparent rounded-full blur-3xl animate-haloGold" />
@@ -517,6 +749,18 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         @keyframes arcPulse {
           0%, 100% { opacity: 0.1; transform: scaleX(0.8); }
           50% { opacity: 0.6; transform: scaleX(1.2); }
+        }
+        @keyframes extendedBoltFlicker {
+          0%, 100% { opacity: 0.7; }
+          10% { opacity: 0.5; }
+          20% { opacity: 0.8; }
+          30% { opacity: 0.4; }
+          40% { opacity: 0.9; }
+          50% { opacity: 0.6; }
+          60% { opacity: 1; }
+          70% { opacity: 0.5; }
+          80% { opacity: 0.8; }
+          90% { opacity: 0.6; }
         }
         @keyframes pillarPulse {
           0%, 100% { opacity: 0.6; }
