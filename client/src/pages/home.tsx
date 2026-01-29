@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 import { HeroMontage } from "@/components/hero-montage";
+import { RangerTabSVG } from "@/components/ranger-tab-svg";
 
 export default function Home() {
   const [animationPhase, setAnimationPhase] = useState(0);
@@ -291,10 +292,9 @@ export default function Home() {
                 <div className="text-center mt-3">
                   <a
                     href="/ranger-tab-signup"
-                    className="ranger-tab-patch ranger-tab-patch-lg"
                     data-testid="link-ranger-tab-signup"
                   >
-                    Ranger
+                    <RangerTabSVG size="lg" />
                   </a>
                 </div>
               </div>

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import logoImage from "@assets/Navigaor_USA_Logo_396x86_1767699671480.png";
 import logoStacked from "@assets/NavStar-Stacked_(2)_1769496493964.png";
+import { RangerTabSVG } from "@/components/ranger-tab-svg";
 
 const animatedTextStyles = `
   @keyframes letterWave {
@@ -240,8 +241,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/login" className={cn(buttonVariants(), "bg-black hover:bg-gray-900 text-white font-bold border-2 border-black cursor-pointer shadow-lg")}>
                 Deploy
             </Link>
-            <Link href="/ranger-tab-signup" className="ranger-tab-patch ranger-tab-patch-nav cursor-pointer" data-testid="nav-ranger-tab">
-                Ranger
+            <Link href="/ranger-tab-signup" className="cursor-pointer" data-testid="nav-ranger-tab">
+                <RangerTabSVG size="nav" />
             </Link>
             <Link href="/admin/login" className={cn(buttonVariants(), "bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold border-2 border-gray-400 cursor-pointer shadow-lg")}>
                 Admin
@@ -397,11 +398,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </Link>
             <Link 
               href="/ranger-tab-signup" 
-              className="ranger-tab-patch w-full justify-center min-h-[48px]" 
+              className="flex justify-center min-h-[48px] items-center" 
               onClick={() => setMobileMenuOpen(false)}
               data-testid="nav-mobile-ranger-tab"
             >
-              Ranger
+              <RangerTabSVG size="banner" />
             </Link>
             <Link 
               href="/admin/login" 

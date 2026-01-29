@@ -265,40 +265,30 @@
   letter-spacing: 0.05em;
 }
 
-/* Ranger Tab Patch Style - arched banner shape like the real military patch */
-.ranger-tab-patch {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #000000;
-  color: #EAB308;
-  font-family: var(--font-display);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  padding: 0.6rem 2rem 0.5rem;
-  border: 3px solid #EAB308;
-  border-radius: 100px 100px 0 0;
-  position: relative;
-  text-shadow: 0 0 4px rgba(234, 179, 8, 0.5);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(234, 179, 8, 0.2);
+/* Ranger Tab SVG Container */
+.ranger-tab-svg {
+  display: inline-block;
   transition: all 0.3s ease;
-  clip-path: ellipse(100% 100% at 50% 100%);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
 }
 
-.ranger-tab-patch:hover {
-  background: #1a1a1a;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(234, 179, 8, 0.3), 0 0 20px rgba(234, 179, 8, 0.3);
+.ranger-tab-svg:hover {
   transform: translateY(-2px);
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 15px rgba(234, 179, 8, 0.3));
 }
 
-.ranger-tab-patch-nav {
-  font-size: 0.875rem;
-  padding: 0.5rem 1.2rem 0.4rem;
+.ranger-tab-svg-nav {
+  width: 90px;
+  height: 28px;
 }
 
-.ranger-tab-patch-lg {
-  font-size: 1.125rem;
-  padding: 0.7rem 2.5rem 0.5rem;
+.ranger-tab-svg-lg {
+  width: 140px;
+  height: 42px;
+}
+
+.ranger-tab-svg-banner {
+  width: 120px;
+  height: 36px;
 }
 
