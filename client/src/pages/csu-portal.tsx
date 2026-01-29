@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import DOMPurify from "dompurify";
@@ -106,21 +106,30 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   };
   
   // Handle video end - transition to done
-  const handleTransitionVideoEnd = () => {
+  const handleTransitionVideoEnd = useCallback(() => {
     setCinematicPhase('done');
     onSuccess();
-  };
+  }, [onSuccess]);
   
-  // Fallback timeout for video transition (15 seconds max)
+  // Fallback timeout for video transition (5 seconds max) and handle video errors
   useEffect(() => {
     if (cinematicPhase === 'videoTransition') {
+      // Shorter fallback - 5 seconds is enough
       const fallbackTimeout = setTimeout(() => {
-        setCinematicPhase('done');
-        onSuccess();
-      }, 15000);
+        handleTransitionVideoEnd();
+      }, 5000);
+      
+      // Also try to play video manually
+      if (videoRef.current) {
+        videoRef.current.play().catch(() => {
+          // If video can't play, immediately transition
+          handleTransitionVideoEnd();
+        });
+      }
+      
       return () => clearTimeout(fallbackTimeout);
     }
-  }, [cinematicPhase, onSuccess]);
+  }, [cinematicPhase, handleTransitionVideoEnd]);
   
   const skipCinematic = () => {
     cinematicTimeouts.current?.forEach(clearTimeout);
@@ -320,6 +329,7 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                 muted
                 playsInline
                 onEnded={handleTransitionVideoEnd}
+                onError={handleTransitionVideoEnd}
                 className="w-full h-full object-cover"
                 style={{ 
                   filter: 'brightness(1.1) contrast(1.1)',
@@ -981,6 +991,7 @@ export default function CsuPortal() {
   const [hasSignature, setHasSignature] = useState(false);
   const [signedSuccessfully, setSignedSuccessfully] = useState(false);
   const [lastSignedAgreementId, setLastSignedAgreementId] = useState<number | null>(null);
+  
 
   // Generate or retrieve session ID for tracking
   const getSessionId = () => {
@@ -1508,7 +1519,12 @@ export default function CsuPortal() {
   }
 
   if (!user || user.role !== "admin") {
-    return <PayziumLoginForm onSuccess={async () => { await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] }); }} />;
+    return <PayziumLoginForm onSuccess={async () => { 
+      // Invalidate cache and await fresh server verification
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Blocking refetch - only proceed once server confirms auth state
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] }); 
+    }} />;
   }
 
   return (
