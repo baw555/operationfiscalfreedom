@@ -157,9 +157,9 @@ export default function Home() {
               <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
-              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-1000",
+              "relative z-10 text-5xl sm:text-7xl md:text-9xl text-white tracking-widest transition-all duration-1000 uppercase",
               animationPhase === 2 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-            )}>
+            )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 40px rgba(226, 28, 61, 0.6), 0 4px 20px rgba(0,0,0,0.8)' }}>
               Something...
             </h1>
           </div>
@@ -184,9 +184,9 @@ export default function Home() {
               <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
-              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-1000",
+              "relative z-10 text-5xl sm:text-7xl md:text-9xl text-white tracking-widest transition-all duration-1000 uppercase",
               animationPhase === 3 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-            )}>
+            )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 40px rgba(226, 28, 61, 0.6), 0 4px 20px rgba(0,0,0,0.8)' }}>
               Someone...
             </h1>
           </div>
@@ -211,9 +211,9 @@ export default function Home() {
               <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
-              "relative z-10 text-3xl sm:text-5xl md:text-7xl font-display text-white tracking-wider text-center px-4 transition-all duration-1000",
+              "relative z-10 text-3xl sm:text-5xl md:text-7xl text-white tracking-widest text-center px-4 transition-all duration-1000 uppercase",
               animationPhase === 4 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-            )}>
+            )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 40px rgba(226, 28, 61, 0.6), 0 4px 20px rgba(0,0,0,0.8)' }}>
               Will You Be Ready<br />To Answer The Call?
             </h1>
           </div>
@@ -231,21 +231,21 @@ export default function Home() {
           )}>
             <div className="text-center px-4 max-w-4xl">
               <h1 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-red tracking-wider leading-tight transition-all duration-[1500ms] ease-out",
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-brand-red tracking-widest leading-tight transition-all duration-[1500ms] ease-out uppercase",
                 animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
-              )}>
+              )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 30px rgba(226, 28, 61, 0.8), 0 4px 15px rgba(0,0,0,0.6)' }}>
                 This time it isn't for "God and Country."
               </h1>
               <h2 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white tracking-wider mt-4 transition-all duration-[1500ms] delay-700 ease-out",
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-white tracking-widest mt-4 transition-all duration-[1500ms] delay-700 ease-out uppercase",
                 animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
-              )}>
+              )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 40px rgba(255, 255, 255, 0.4), 0 4px 20px rgba(0,0,0,0.8)' }}>
                 It's for you, your family
               </h2>
               <h3 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-blue tracking-wider mt-4 transition-all duration-[1500ms] delay-[1400ms] ease-out",
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-brand-blue tracking-widest mt-4 transition-all duration-[1500ms] delay-[1400ms] ease-out uppercase",
                 animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
-              )}>
+              )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 30px rgba(37, 99, 235, 0.6), 0 4px 15px rgba(0,0,0,0.6)' }}>
                 and each other.
               </h3>
             </div>
