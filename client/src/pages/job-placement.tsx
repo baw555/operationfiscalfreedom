@@ -76,7 +76,7 @@ export default function JobPlacement() {
       setSubmitted(true);
       toast({
         title: "Application Submitted!",
-        description: "We'll be in touch with opportunities soon.",
+        description: "We'll be in touch with opportunities soon. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.",
       });
     },
     onError: (error: any) => {
@@ -168,10 +168,10 @@ export default function JobPlacement() {
             <h1 data-testid="text-success-title" className="font-display text-3xl text-white mb-4">APPLICATION SUBMITTED!</h1>
             <p data-testid="text-success-message" className="text-gray-300 mb-6">
               {intakeType === "job_seeker" 
-                ? "Thank you for your interest in job placement. We'll review your application and connect you with opportunities in your selected industries."
+                ? "Thank you for your interest in job placement. You may be eligible for opportunities in your selected industries. We'll review your application and be in touch. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails."
                 : intakeType === "business_referral"
-                ? "Thank you for referring your business! We'll be in touch to discuss how we can help with your hiring needs."
-                : "Thank you for your interest in our veteran services! We'll be in touch to discuss how we can help your business."
+                ? "Thank you for referring your business! We'll be in touch to discuss how we may be able to help with your hiring needs. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails."
+                : "Thank you for your interest in our veteran services! We'll be in touch to discuss how we may be able to help your business. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails."
               }
             </p>
             <a href="/" className="inline-block">

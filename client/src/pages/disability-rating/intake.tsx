@@ -103,9 +103,12 @@ export default function DisabilityIntake() {
             <div className="bg-green-500/20 border border-green-500/50 rounded-2xl p-12">
               <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-6" />
               <h1 className="font-display text-4xl text-white mb-4">THANK YOU!</h1>
-              <p className="text-xl text-gray-300 mb-8">
-                Your information has been received. One of our partners will contact you 
-                within 24-48 hours to discuss your disability claim options.
+              <p className="text-xl text-gray-300 mb-4">
+                Your information has been received. One of our partners may contact you 
+                within 24-48 hours to discuss your disability claim options and determine if you may be eligible for assistance.
+              </p>
+              <p className="text-gray-400 text-sm mb-6">
+                You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
               </p>
               <div className="bg-white/10 rounded-lg p-6 mb-8">
                 <h3 className="font-display text-lg text-white mb-2">WHAT HAPPENS NEXT?</h3>

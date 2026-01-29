@@ -58,7 +58,10 @@ export default function VLTIntake() {
               Your intake has been received and routed to our <strong>{status}</strong> team.
             </p>
             <p className="mt-2 text-gray-600">
-              A specialist will contact you within 24-48 hours to discuss your tax situation.
+              A specialist may contact you within 24-48 hours to discuss your tax situation and determine if you may be eligible for assistance.
+            </p>
+            <p className="mt-3 text-gray-500 text-sm">
+              You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
             <Link href="/veteran-led-tax">
               <span className="inline-block mt-6 px-6 py-3 bg-brand-red text-white font-semibold rounded hover:bg-brand-red/90 cursor-pointer">

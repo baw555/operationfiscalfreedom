@@ -83,8 +83,11 @@ export default function BusinessDevelopment() {
           <div className="text-center text-white max-w-lg mx-auto px-4">
             <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-6" />
             <h1 className="text-4xl font-display mb-4">Inquiry Received!</h1>
-            <p className="text-xl text-gray-300 mb-6">
-              Thank you for your business development inquiry. Our team will contact you within 24-48 hours.
+            <p className="text-xl text-gray-300 mb-4">
+              Thank you for your business development inquiry. Our team may contact you within 24-48 hours to discuss potential opportunities.
+            </p>
+            <p className="text-gray-400 text-sm mb-6">
+              You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
           </div>
         </div>

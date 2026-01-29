@@ -38,8 +38,8 @@ export default function Contact() {
     onSuccess: () => {
       setSubmitted(true);
       toast({
-        title: "Message Sent!",
-        description: "We'll get back to you as soon as possible.",
+        title: "Message Received",
+        description: "We may contact you regarding your inquiry. You may opt out of communications at any time by replying STOP to texts or clicking unsubscribe in emails.",
       });
     },
     onError: () => {
@@ -78,9 +78,9 @@ export default function Contact() {
         <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
           <div className="container mx-auto px-4">
             <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-red mx-auto mb-4 sm:mb-6" />
-            <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6">Message Received!</h1>
+            <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6">Message Received</h1>
             <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-              Thank you for reaching out. Our team will review your message and get back to you as soon as possible.
+              Thank you for reaching out. Our team will review your message and may contact you regarding your inquiry. You may opt out of communications at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
             <Button 
               onClick={() => setLocation("/")}

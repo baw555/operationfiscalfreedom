@@ -48,7 +48,7 @@ export default function ApplyStartupGrant() {
       setSubmitted(true);
       toast({
         title: "Application Submitted!",
-        description: "We'll review your grant application and get back to you soon.",
+        description: "We'll review your grant application and contact you soon. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.",
       });
     },
     onError: () => {
@@ -104,8 +104,8 @@ export default function ApplyStartupGrant() {
             <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-red mx-auto mb-4 sm:mb-6" />
             <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6" data-testid="text-success-title">Grant Application Received!</h1>
             <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2" data-testid="text-success-message">
-              Thank you for applying for our Veteran Business Startup Grant. Our team will review your application 
-              and contact you within 3-5 business days to discuss next steps.
+              Thank you for applying for our Veteran Business Startup Grant. You may be eligible for funding assistance. Our team will review your application 
+              and contact you within 3-5 business days to discuss next steps. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
             <Button 
               onClick={() => setLocation("/")}

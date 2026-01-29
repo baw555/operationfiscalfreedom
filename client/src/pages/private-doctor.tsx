@@ -40,7 +40,7 @@ export default function PrivateDoctor() {
       setSubmitted(true);
       toast({
         title: "Request Submitted!",
-        description: "We'll contact you within 24-48 hours with provider options.",
+        description: "We'll contact you within 24-48 hours with provider options. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.",
       });
     },
     onError: () => {
@@ -83,7 +83,7 @@ export default function PrivateDoctor() {
             </div>
             <h1 className="text-3xl sm:text-5xl font-display text-white mb-4">Request Received!</h1>
             <p className="text-base sm:text-xl text-white/90 max-w-xl mx-auto mb-6 sm:mb-8 px-2">
-              Our team will contact you within 24-48 hours with information about approved private healthcare providers in your area.
+              You may be eligible for private healthcare under the VA MISSION Act. Our team will contact you within 24-48 hours with information about approved providers in your area. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
             <Button onClick={() => setSubmitted(false)} variant="outline" className="border-white text-white hover:bg-white hover:text-brand-red">
               Submit Another Request

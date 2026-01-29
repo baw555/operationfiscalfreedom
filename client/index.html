@@ -18,6 +18,19 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
     
+    <!-- TrustedForm - Consent Certificate (configure your TrustedForm token below) -->
+    <script type="text/javascript">
+      (function() {
+        var field = 'xxTrustedFormCertUrl';
+        var provideReferrer = false;
+        var tf = document.createElement('script');
+        tf.type = 'text/javascript'; tf.async = true;
+        tf.src = 'https://api.trustedform.com/trustedform.js?provide_referrer=' + escape(provideReferrer) + '&field=' + escape(field) + '&l=' + new Date().getTime() + Math.random();
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(tf, s);
+      })();
+    </script>
+    <noscript><img src="https://api.trustedform.com/ns.gif" /></noscript>
+    
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
     <script>

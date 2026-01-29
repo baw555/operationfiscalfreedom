@@ -40,8 +40,8 @@ export default function AffiliateApply() {
     onSuccess: async (data) => {
       console.log("Signup successful, user:", data);
       toast({
-        title: "Account Created!",
-        description: "Redirecting you to sign the agreement...",
+        title: "Account Created",
+        description: "Redirecting you to sign the agreement. You may opt out of communications at any time by replying STOP to texts or clicking unsubscribe in emails.",
       });
       
       // Invalidate any cached auth state

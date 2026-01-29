@@ -61,8 +61,8 @@ export default function VeteranIntake() {
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-xl mx-auto text-center">
             <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-brand-navy mb-4">Thank You!</h2>
-            <p className="text-gray-600">Your intake form has been submitted. A member of our team will reach out within 24-48 hours.</p>
+            <h2 className="text-3xl font-bold text-brand-navy mb-4">Thank You</h2>
+            <p className="text-gray-600">Your intake form has been submitted. A member of our team may reach out within 24-48 hours. You may be eligible for assistance based on the information provided. You may opt out of communications at any time by replying STOP to texts or clicking unsubscribe in emails.</p>
           </div>
         </div>
       </Layout>

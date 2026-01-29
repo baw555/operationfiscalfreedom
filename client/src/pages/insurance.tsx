@@ -61,7 +61,7 @@ export default function Insurance() {
     },
     onSuccess: () => {
       setSubmitted(true);
-      toast({ title: "Request Submitted!", description: "We'll contact you within 24 hours." });
+      toast({ title: "Request Submitted!", description: "We'll contact you within 24 hours. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails." });
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -107,10 +107,10 @@ export default function Insurance() {
             <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-6" />
             <h1 className="text-4xl font-display mb-4">Request Received!</h1>
             <p className="text-xl text-gray-300 mb-6">
-              Thank you for your interest in saving on insurance. Our team will contact you within 24 hours with your personalized quote.
+              Thank you for your interest. You may be eligible for savings on insurance. Our team will contact you within 24 hours to discuss your options. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
             <p className="text-sm text-gray-400">
-              Average savings: 20-40% compared to traditional insurance agents
+              Potential savings vary by individual circumstances
             </p>
           </div>
         </div>

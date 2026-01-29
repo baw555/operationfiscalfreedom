@@ -123,8 +123,11 @@ export default function HealthcarePage() {
             <h1 data-testid="text-success-title" className="font-display text-3xl text-white mb-4">REQUEST SUBMITTED!</h1>
             <p data-testid="text-success-message" className="text-gray-300 mb-6">
               {isOfferingServices 
-                ? "Thank you for offering to provide medical services to veterans. Our team will review your application and connect you with veterans in need."
-                : "Thank you for reaching out. Our healthcare navigation team will review your request and connect you with appropriate treatment options and providers."}
+                ? "Thank you for expressing interest in providing medical services to veterans. Our team will review your application and you may be connected with veterans who could benefit from your services."
+                : "Thank you for reaching out. Our healthcare navigation team will review your request and you may be connected with treatment options and providers that could be a fit for your needs."}
+            </p>
+            <p className="text-gray-400 text-sm mb-6">
+              You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
             <a href="/" className="inline-block">
               <Button data-testid="button-return-home" className="bg-brand-red hover:bg-brand-red/90 text-white">

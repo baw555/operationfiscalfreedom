@@ -78,8 +78,8 @@ export default function GetHelp() {
     onSuccess: () => {
       setSubmitted(true);
       toast({
-        title: "Request Submitted!",
-        description: "A veteran advocate will contact you soon.",
+        title: "Request Received",
+        description: "A veteran advocate may contact you regarding your case. You may opt out of communications at any time by replying STOP to texts or clicking unsubscribe in emails.",
       });
     },
     onError: () => {
@@ -126,10 +126,10 @@ export default function GetHelp() {
         <section className="bg-brand-navy text-white py-12 sm:py-20 text-center">
           <div className="container mx-auto px-4">
             <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-red mx-auto mb-4 sm:mb-6" />
-            <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6">Help Request Received!</h1>
+            <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6">Help Request Received</h1>
             <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-              Your request has been submitted. One of our veteran advocates will review your case and 
-              contact you within 24-48 hours. We're here to help you get the rating you deserve.
+              Your request has been submitted. One of our veteran advocates may review your case and 
+              contact you within 24-48 hours. You may be eligible for assistance with your VA claim. You may opt out of communications at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
             <Button 
               onClick={() => setLocation("/")}

@@ -47,7 +47,7 @@ export default function ApplyWebsite() {
       setSubmitted(true);
       toast({
         title: "Application Submitted!",
-        description: "We'll review your application and get back to you within 24-48 hours.",
+        description: "We'll review your application and contact you within 24-48 hours. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.",
       });
     },
     onError: () => {
@@ -96,8 +96,8 @@ export default function ApplyWebsite() {
             <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-brand-red mx-auto mb-4 sm:mb-6" />
             <h1 className="text-3xl sm:text-5xl font-display mb-4 sm:mb-6">Application Received!</h1>
             <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-              Thank you for applying for our free website grant! Our team will review your application 
-              and contact you within 24-48 hours. Approved websites are typically delivered within 24 hours of approval.
+              Thank you for applying for our free website grant! You may be eligible for this program. Our team will review your application 
+              and contact you within 24-48 hours to discuss next steps. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
             <Button 
               onClick={() => setLocation("/")}
