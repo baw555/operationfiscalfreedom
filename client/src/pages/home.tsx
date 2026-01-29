@@ -16,6 +16,7 @@ import { HeroMontage } from "@/components/hero-montage";
 import { RangerTabSVG } from "@/components/ranger-tab-svg";
 
 export default function Home() {
+  const [introStarted, setIntroStarted] = useState(false);
   const [introPlayed, setIntroPlayed] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
   const [showContent, setShowContent] = useState(false);
@@ -122,6 +123,13 @@ export default function Home() {
     setIntroPlayed(true);
   };
 
+  const startIntro = () => {
+    setIntroStarted(true);
+    if (introVideoRef.current) {
+      introVideoRef.current.play().catch(() => {});
+    }
+  };
+
   return (
     <Layout>
       {/* Intro Video with Audio */}
@@ -130,18 +138,38 @@ export default function Home() {
           <video
             ref={introVideoRef}
             src="/videos/intro-video.mp4"
-            autoPlay
             playsInline
             onEnded={handleIntroEnded}
-            className="absolute inset-0 w-full h-full object-cover"
+            className={cn(
+              "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
+              introStarted ? "opacity-100" : "opacity-0"
+            )}
             style={{ objectPosition: 'center 30%' }}
           />
-          <button
-            onClick={skipIntro}
-            className="absolute bottom-8 right-8 z-20 px-6 py-3 bg-black/60 hover:bg-black/80 text-white font-bold uppercase tracking-wider rounded-lg border border-white/30 transition-all"
-          >
-            Skip
-          </button>
+          
+          {!introStarted && (
+            <div 
+              onClick={startIntro}
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center cursor-pointer bg-black"
+            >
+              <div className="text-center px-4">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-brand-gold flex items-center justify-center mb-6 mx-auto animate-pulse">
+                  <Play className="w-12 h-12 sm:w-16 sm:h-16 text-brand-gold ml-2" fill="#EAB308" />
+                </div>
+                <p className="text-white text-xl sm:text-2xl font-display uppercase tracking-widest mb-2">Tap to Start</p>
+                <p className="text-white/60 text-sm sm:text-base">Sound On</p>
+              </div>
+            </div>
+          )}
+          
+          {introStarted && (
+            <button
+              onClick={skipIntro}
+              className="absolute bottom-8 right-8 z-20 px-6 py-3 bg-black/60 hover:bg-black/80 text-white font-bold uppercase tracking-wider rounded-lg border border-white/30 transition-all"
+            >
+              Skip
+            </button>
+          )}
         </section>
       )}
 
