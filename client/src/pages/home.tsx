@@ -302,6 +302,33 @@ export default function Home() {
               <span className="text-brand-red text-2xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight">in 2026 and Beyond</span>
             </h1>
 
+            {/* Ranger Tab Animated Banner */}
+            <div className="w-full max-w-4xl mx-auto my-6 sm:my-8 px-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150">
+              <div className="relative bg-gradient-to-r from-brand-navy/80 via-brand-blue/60 to-brand-navy/80 backdrop-blur-sm border border-brand-gold/30 rounded-xl px-4 sm:px-8 py-4 sm:py-6 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-gold/10 to-transparent animate-pulse"></div>
+                <p className="ranger-banner-text text-center text-lg sm:text-2xl md:text-3xl relative z-10">
+                  {"Tired of document management fees? Get your Ranger Tab and never pay them again!".split("").map((char, index) => (
+                    <span
+                      key={index}
+                      className="ranger-shine-letter"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      {char === " " ? "\u00A0" : char}
+                    </span>
+                  ))}
+                </p>
+                <div className="text-center mt-3">
+                  <a
+                    href="/ranger-tab-signup"
+                    className="inline-flex items-center gap-2 px-6 py-2 bg-brand-gold text-brand-navy font-display text-lg rounded-lg hover:bg-brand-gold/90 transition-all shadow-lg shadow-brand-gold/30"
+                    data-testid="link-ranger-tab-signup"
+                  >
+                    Get Your Ranger Tab
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <div className="flex flex-col items-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
               <div className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-brand-red text-white shadow-lg shadow-brand-red/30">
                 <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />

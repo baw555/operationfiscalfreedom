@@ -230,6 +230,40 @@ export async function registerRoutes(
     }
   });
 
+  // Ranger Tab Signup - Public route for requesting a contract portal
+  app.post("/api/ranger-tab-signup", async (req, res) => {
+    try {
+      const signupSchema = z.object({
+        name: z.string().min(1, "Name is required"),
+        phone: z.string().min(1, "Phone is required"),
+        email: z.string().email("Valid email is required"),
+        business: z.string().min(1, "Business name is required"),
+        address: z.string().min(1, "Address is required"),
+        initials: z.string().min(1, "Initials are required"),
+      });
+
+      const validationResult = signupSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: validationResult.error.errors[0]?.message || "Invalid request data" 
+        });
+      }
+
+      const application = await storage.createRangerTabApplication(validationResult.data);
+      
+      console.log(`[Ranger Tab] New application from ${application.name} (${application.email})`);
+      
+      res.status(201).json({ 
+        success: true, 
+        id: application.id,
+        message: "Application submitted successfully" 
+      });
+    } catch (error) {
+      console.error("Ranger Tab signup error:", error);
+      res.status(500).json({ message: "Failed to submit application. Please try again." });
+    }
+  });
+
   // Track referral link visit - locks IP to affiliate for 30 days (first-touch attribution)
   app.post("/api/track-referral", async (req, res) => {
     try {

@@ -1264,3 +1264,31 @@ export const insertAffiliatedPartnerSchema = createInsertSchema(affiliatedPartne
 
 export type InsertAffiliatedPartner = z.infer<typeof insertAffiliatedPartnerSchema>;
 export type AffiliatedPartner = typeof affiliatedPartners.$inferSelect;
+
+// Ranger Tab Applications - People requesting their own contract portal
+export const rangerTabApplications = pgTable("ranger_tab_applications", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").notNull(),
+  business: text("business").notNull(),
+  address: text("address").notNull(),
+  initials: text("initials").notNull(),
+  status: text("status").notNull().default("new"), // new, contacted, approved, active
+  notes: text("notes"),
+  portalSlug: text("portal_slug"), // When approved, this is their portal URL
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertRangerTabApplicationSchema = createInsertSchema(rangerTabApplications).omit({
+  id: true,
+  status: true,
+  notes: true,
+  portalSlug: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertRangerTabApplication = z.infer<typeof insertRangerTabApplicationSchema>;
+export type RangerTabApplication = typeof rangerTabApplications.$inferSelect;

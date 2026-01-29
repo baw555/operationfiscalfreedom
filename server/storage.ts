@@ -39,7 +39,8 @@ import {
   passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken,
   partnerSharingLog, type PartnerSharingLog, type InsertPartnerSharingLog,
   consentRecords, type ConsentRecord, type InsertConsentRecord,
-  affiliatedPartners, type AffiliatedPartner, type InsertAffiliatedPartner
+  affiliatedPartners, type AffiliatedPartner, type InsertAffiliatedPartner,
+  rangerTabApplications, type RangerTabApplication, type InsertRangerTabApplication
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
@@ -288,6 +289,11 @@ export interface IStorage {
   getValidPasswordResetToken(tokenHash: string): Promise<PasswordResetToken | undefined>;
   invalidatePasswordResetToken(id: number): Promise<void>;
   invalidateAllUserPasswordResetTokens(userId: number): Promise<void>;
+
+  // Ranger Tab Applications
+  createRangerTabApplication(application: InsertRangerTabApplication): Promise<RangerTabApplication>;
+  getAllRangerTabApplications(): Promise<RangerTabApplication[]>;
+  updateRangerTabApplication(id: number, updates: Partial<RangerTabApplication>): Promise<RangerTabApplication | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1482,6 +1488,24 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db.update(affiliatedPartners)
       .set(updates)
       .where(eq(affiliatedPartners.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  // Ranger Tab Applications
+  async createRangerTabApplication(application: InsertRangerTabApplication): Promise<RangerTabApplication> {
+    const [created] = await db.insert(rangerTabApplications).values(application).returning();
+    return created;
+  }
+
+  async getAllRangerTabApplications(): Promise<RangerTabApplication[]> {
+    return db.select().from(rangerTabApplications).orderBy(desc(rangerTabApplications.createdAt));
+  }
+
+  async updateRangerTabApplication(id: number, updates: Partial<RangerTabApplication>): Promise<RangerTabApplication | undefined> {
+    const [result] = await db.update(rangerTabApplications)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(rangerTabApplications.id, id))
       .returning();
     return result || undefined;
   }

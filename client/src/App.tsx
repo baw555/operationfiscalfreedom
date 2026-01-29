@@ -160,6 +160,9 @@ const TermsOfUse = lazy(() => import("@/pages/terms-of-use"));
 const AffiliatedPartners = lazy(() => import("@/pages/affiliated-partners"));
 const DoNotSell = lazy(() => import("@/pages/do-not-sell"));
 
+// Ranger Tab Signup
+const RangerTabSignup = lazy(() => import("@/pages/ranger-tab-signup"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -320,6 +323,9 @@ function Router() {
         <Route path="/csu-portal" component={CsuPortal} />
         <Route path="/Payzium" component={CsuPortal} />
         <Route path="/csu-sign" component={CsuSign} />
+        
+        {/* Ranger Tab Signup */}
+        <Route path="/ranger-tab-signup" component={RangerTabSignup} />
         
         <Route component={NotFound} />
       </Switch>

@@ -205,3 +205,35 @@
     background-position: -100% 0;
   }
 }
+
+/* Ranger Tab Shining Letter Animation */
+@keyframes rangerShine {
+  0%, 5% {
+    color: rgba(255, 255, 255, 0.4);
+    text-shadow: none;
+  }
+  10%, 15% {
+    color: #fff;
+    text-shadow: 
+      0 0 10px #ffd700,
+      0 0 20px #ffd700,
+      0 0 30px #ffd700,
+      0 0 40px #ffd700;
+  }
+  20%, 100% {
+    color: rgba(255, 255, 255, 0.4);
+    text-shadow: none;
+  }
+}
+
+.ranger-shine-letter {
+  display: inline-block;
+  animation: rangerShine 4s ease-in-out infinite;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ranger-banner-text {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
