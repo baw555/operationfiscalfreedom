@@ -134,6 +134,7 @@ export default function Home() {
             playsInline
             onEnded={handleIntroEnded}
             className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: 'center 70%' }}
           />
           <button
             onClick={skipIntro}
