@@ -6,10 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -87,15 +89,26 @@ export default function Login() {
                 <Label htmlFor="password" className="text-gray-300 text-sm">Password</Label>
                 <a href="#" className="text-xs text-white hover:underline">Forgot password?</a>
               </div>
-              <Input 
-                id="password" 
-                name="password" 
-                type="password" 
-                autoComplete="current-password" 
-                className="bg-brand-black/50 border-white/10 text-white"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  name="password" 
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password" 
+                  className="bg-brand-black/50 border-white/10 text-white pr-10"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  data-testid="button-toggle-password"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <Button 

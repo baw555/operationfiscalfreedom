@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, BarChart3, Eye, Users, Globe } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, BarChart3, Eye, EyeOff, Users, Globe } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -71,6 +71,7 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("payzium_remembered_email"));
   const [isLoading, setIsLoading] = useState(false);
   const [lightningFlash, setLightningFlash] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   // Post-login cinematic sequence state
   const [cinematicPhase, setCinematicPhase] = useState<'idle' | 'black' | 'scanning' | 'scanningOut' | 'welcome' | 'welcomeOut' | 'done'>('idle');
@@ -606,17 +607,26 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                   </Label>
                   <div className="relative">
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-sm" />
-                    <LogIn className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500/60 transition-all group-focus-within:text-amber-400 group-focus-within:scale-110" />
+                    <LogIn className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500/60 transition-all group-focus-within:text-amber-400 group-focus-within:scale-110 z-10" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       required
                       data-testid="input-payzium-password"
-                      className="relative pl-12 h-14 bg-black/50 border-amber-500/30 text-amber-100 placeholder:text-amber-700/50 focus:border-amber-400/70 focus:ring-amber-400/40 focus:bg-black/70 transition-all duration-300 rounded-xl text-lg"
+                      className="relative pl-12 pr-12 h-14 bg-black/50 border-amber-500/30 text-amber-100 placeholder:text-amber-700/50 focus:border-amber-400/70 focus:ring-amber-400/40 focus:bg-black/70 transition-all duration-300 rounded-xl text-lg"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-500/60 hover:text-amber-400 transition-colors z-10"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      data-testid="button-toggle-password"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </div>
 
@@ -633,44 +643,101 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                   </Label>
                 </div>
 
-                {/* MJÖLNIR POWER BUTTON */}
-                <Button 
-                  type="submit"
-                  disabled={isLoading}
-                  data-testid="button-payzium-login"
-                  className={`w-full h-18 py-5 text-white font-black text-xl rounded-xl transition-all duration-500 hover:scale-[1.03] active:scale-[0.98] relative overflow-hidden group border-2 ${
-                    isWorthy 
-                      ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:via-yellow-300 hover:to-amber-400 border-yellow-300/60 hover:border-yellow-200/80 shadow-[0_0_40px_rgba(255,215,0,0.5)]'
-                      : 'bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 hover:from-amber-600 hover:via-orange-500 hover:to-amber-600 border-amber-400/40 hover:border-amber-300/60 shadow-[0_0_30px_rgba(255,140,0,0.3)]'
-                  }`}
-                >
-                  {/* Thunder shimmer effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/0 via-yellow-300/30 to-yellow-300/0 translate-x-[100%] group-hover:translate-x-[-100%] transition-transform duration-700 delay-100" />
+                {/* MJÖLNIR POWER BUTTON with Electricity Animation */}
+                <div className="relative">
+                  {/* Electric arcs around button */}
+                  <div className="absolute -inset-2 pointer-events-none">
+                    {/* Left arc */}
+                    <svg className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-16" viewBox="0 0 20 40" style={{ animation: 'buttonArcLeft 2s ease-in-out infinite' }}>
+                      <path d="M18 0 L12 10 L16 12 L8 22 L14 24 L4 40" stroke="#ffd700" strokeWidth="1.5" fill="none" style={{ filter: 'drop-shadow(0 0 4px #ffd700)' }} />
+                    </svg>
+                    {/* Right arc */}
+                    <svg className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-8 h-16" viewBox="0 0 20 40" style={{ animation: 'buttonArcRight 2.3s ease-in-out infinite 0.5s' }}>
+                      <path d="M2 0 L8 10 L4 12 L12 22 L6 24 L16 40" stroke="#ffd700" strokeWidth="1.5" fill="none" style={{ filter: 'drop-shadow(0 0 4px #ffd700)' }} />
+                    </svg>
+                    {/* Top sparks */}
+                    {[...Array(5)].map((_, i) => (
+                      <div 
+                        key={`spark-top-${i}`}
+                        className="absolute w-1 h-1 bg-yellow-400 rounded-full"
+                        style={{
+                          left: `${15 + i * 18}%`,
+                          top: '-4px',
+                          boxShadow: '0 0 6px #ffd700',
+                          animation: `buttonSpark ${0.8 + Math.random() * 0.4}s ease-out infinite`,
+                          animationDelay: `${i * 0.2}s`
+                        }}
+                      />
+                    ))}
+                    {/* Bottom sparks */}
+                    {[...Array(5)].map((_, i) => (
+                      <div 
+                        key={`spark-bottom-${i}`}
+                        className="absolute w-1 h-1 bg-yellow-400 rounded-full"
+                        style={{
+                          left: `${15 + i * 18}%`,
+                          bottom: '-4px',
+                          boxShadow: '0 0 6px #ffd700',
+                          animation: `buttonSpark ${0.8 + Math.random() * 0.4}s ease-out infinite`,
+                          animationDelay: `${0.1 + i * 0.2}s`
+                        }}
+                      />
+                    ))}
+                  </div>
                   
-                  {/* Power surge on worthy */}
-                  {isWorthy && (
-                    <div className="absolute inset-0 animate-worthyPulse">
-                      <div className="absolute inset-0 bg-gradient-to-t from-yellow-300/30 to-transparent" />
-                    </div>
-                  )}
-                  
-                  <span className="relative z-10 flex items-center justify-center gap-3 drop-shadow-lg">
-                    {isLoading ? (
-                      <>
-                        <div className="w-7 h-7 border-3 border-white/40 border-t-white rounded-full animate-spin" />
-                        <span className="animate-pulse tracking-wider">CHANNELING POWER...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className={`tracking-[0.15em] transition-all duration-500 ${isWorthy ? 'text-black' : 'text-white'}`}>
-                          {isWorthy ? 'Mjölnir is yours' : 'Are you worthy?'}
-                        </span>
-                        <LogIn className={`w-7 h-7 transition-all group-hover:translate-x-2 group-hover:scale-125 ${isWorthy ? 'text-black' : 'text-white'}`} />
-                      </>
+                  <Button 
+                    type="submit"
+                    disabled={isLoading}
+                    data-testid="button-payzium-login"
+                    className={`w-full h-18 py-5 text-white font-black text-xl rounded-xl transition-all duration-500 hover:scale-[1.03] active:scale-[0.98] relative overflow-hidden group border-2 ${
+                      isWorthy 
+                        ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:via-yellow-300 hover:to-amber-400 border-yellow-300/60 hover:border-yellow-200/80 shadow-[0_0_40px_rgba(255,215,0,0.5)]'
+                        : 'bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 hover:from-amber-600 hover:via-orange-500 hover:to-amber-600 border-amber-400/40 hover:border-amber-300/60 shadow-[0_0_30px_rgba(255,140,0,0.3)]'
+                    }`}
+                  >
+                    {/* Electric pulse overlay */}
+                    <div 
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-300/40 to-transparent"
+                      style={{ 
+                        backgroundSize: '200% 100%',
+                        animation: 'electricPulse 1.5s ease-in-out infinite'
+                      }}
+                    />
+                    
+                    {/* Thunder shimmer effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/0 via-yellow-300/30 to-yellow-300/0 translate-x-[100%] group-hover:translate-x-[-100%] transition-transform duration-700 delay-100" />
+                    
+                    {/* Crackling border effect */}
+                    <div 
+                      className="absolute inset-0 rounded-xl border-2 border-yellow-300/50"
+                      style={{ animation: 'borderCrackle 0.3s ease-in-out infinite' }}
+                    />
+                    
+                    {/* Power surge on worthy */}
+                    {isWorthy && (
+                      <div className="absolute inset-0 animate-worthyPulse">
+                        <div className="absolute inset-0 bg-gradient-to-t from-yellow-300/30 to-transparent" />
+                      </div>
                     )}
-                  </span>
-                </Button>
+                    
+                    <span className="relative z-10 flex items-center justify-center gap-3 drop-shadow-lg">
+                      {isLoading ? (
+                        <>
+                          <div className="w-7 h-7 border-3 border-white/40 border-t-white rounded-full animate-spin" />
+                          <span className="animate-pulse tracking-wider">CHANNELING POWER...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className={`tracking-[0.15em] transition-all duration-500 ${isWorthy ? 'text-black' : 'text-white'}`}>
+                            {isWorthy ? 'Mjölnir is yours' : 'Are you worthy?'}
+                          </span>
+                          <LogIn className={`w-7 h-7 transition-all group-hover:translate-x-2 group-hover:scale-125 ${isWorthy ? 'text-black' : 'text-white'}`} />
+                        </>
+                      )}
+                    </span>
+                  </Button>
+                </div>
               </form>
 
               {/* Power status */}
@@ -830,6 +897,35 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         @keyframes worthyPulse {
           0%, 100% { opacity: 0.5; }
           50% { opacity: 1; }
+        }
+        @keyframes buttonArcLeft {
+          0%, 100% { opacity: 0.3; transform: translateX(-50%) translateY(-50%) scaleY(0.9); }
+          25% { opacity: 1; transform: translateX(-50%) translateY(-50%) scaleY(1.1); }
+          50% { opacity: 0.5; transform: translateX(-50%) translateY(-50%) scaleY(1); }
+          75% { opacity: 0.8; transform: translateX(-50%) translateY(-50%) scaleY(0.95); }
+        }
+        @keyframes buttonArcRight {
+          0%, 100% { opacity: 0.4; transform: translateX(50%) translateY(-50%) scaleY(1); }
+          30% { opacity: 1; transform: translateX(50%) translateY(-50%) scaleY(1.15); }
+          60% { opacity: 0.6; transform: translateX(50%) translateY(-50%) scaleY(0.9); }
+        }
+        @keyframes buttonSpark {
+          0% { opacity: 0; transform: scale(0); }
+          30% { opacity: 1; transform: scale(1.5); }
+          60% { opacity: 0.8; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.5); }
+        }
+        @keyframes electricPulse {
+          0% { background-position: -200% 0; opacity: 0; }
+          50% { opacity: 0.6; }
+          100% { background-position: 200% 0; opacity: 0; }
+        }
+        @keyframes borderCrackle {
+          0%, 100% { opacity: 0.5; }
+          20% { opacity: 0.8; }
+          40% { opacity: 0.3; }
+          60% { opacity: 0.9; }
+          80% { opacity: 0.4; }
         }
         .animate-fadeInDown { animation: fadeInDown 1.2s ease-out forwards; }
         .animate-fadeInUp { animation: fadeInUp 1.2s ease-out forwards; }

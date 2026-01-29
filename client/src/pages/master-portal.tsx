@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { 
-  Shield, Users, FileText, FolderOpen, Eye, Download, ChevronRight, Camera, IdCard, 
+  Shield, Users, FileText, FolderOpen, Eye, EyeOff, Download, ChevronRight, Camera, IdCard, 
   FileSignature, ClipboardCheck, Receipt, Link2, Store, CreditCard, Gift, LogIn,
   LayoutDashboard, ClipboardList, HelpCircle, DollarSign, Stethoscope, Globe, 
   Mail, Briefcase, TrendingUp, Building, Target, Heart, Truck, UserCheck, AlertCircle,
@@ -119,6 +119,7 @@ export default function MasterPortal() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("master_remembered_email"));
   const [pdfSecurityKey, setPdfSecurityKey] = useState("");
   const [pdfDownloadError, setPdfDownloadError] = useState("");
@@ -489,16 +490,27 @@ export default function MasterPortal() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-white">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                className="bg-white/20 border-white/30 text-white placeholder:text-gray-400"
-                required
-                data-testid="input-login-password"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="bg-white/20 border-white/30 text-white placeholder:text-gray-400 pr-10"
+                  required
+                  data-testid="input-login-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  data-testid="button-toggle-password"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
             
             <div className="flex items-center space-x-2">
