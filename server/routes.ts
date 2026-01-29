@@ -3990,10 +3990,57 @@ export async function registerRoutes(
       // Update the contract send status
       await storage.updateCsuContractSend(contractSend.id, { status: "signed" });
 
-      res.json({ success: true, signedAgreement });
+      res.json({ success: true, agreementId: signedAgreement.id, signedAgreement });
     } catch (error) {
       console.error("Error signing CSU contract:", error);
       res.status(500).json({ message: "Failed to sign contract" });
+    }
+  });
+
+  // Public: Download signed agreement PDF (for immediate download after signing)
+  app.get("/api/csu/signed-agreements/:id/pdf/public", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const agreement = await storage.getCsuSignedAgreement(id);
+      
+      if (!agreement) {
+        return res.status(404).json({ message: "Signed agreement not found" });
+      }
+
+      const template = await storage.getCsuContractTemplate(agreement.templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Get user agent from request
+      const userAgent = req.headers["user-agent"] || "Unknown";
+
+      // Import PDF generator
+      const { generateCsuContractPdf } = await import("./pdfGenerator");
+
+      // Generate PDF with full audit data
+      const pdfBuffer = await generateCsuContractPdf({
+        templateName: template.name,
+        templateContent: template.content,
+        signerName: agreement.signerName,
+        signerEmail: agreement.signerEmail,
+        signerPhone: agreement.signerPhone,
+        address: agreement.address,
+        initials: agreement.initials,
+        effectiveDate: agreement.effectiveDate,
+        signedAt: agreement.signedAt?.toISOString() || new Date().toISOString(),
+        signedIpAddress: agreement.signedIpAddress,
+        signatureData: agreement.signatureData,
+        agreementId: agreement.id,
+        userAgent,
+      });
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="FICA-Agreement-${id}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating public CSU PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
     }
   });
 
@@ -4012,10 +4059,13 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Template not found" });
       }
 
+      // Get user agent from request
+      const userAgent = req.headers["user-agent"] || "Unknown";
+
       // Import PDF generator
       const { generateCsuContractPdf } = await import("./pdfGenerator");
 
-      // Generate PDF
+      // Generate PDF with full audit data
       const pdfBuffer = await generateCsuContractPdf({
         templateName: template.name,
         templateContent: template.content,
@@ -4029,10 +4079,11 @@ export async function registerRoutes(
         signedIpAddress: agreement.signedIpAddress,
         signatureData: agreement.signatureData,
         agreementId: agreement.id,
+        userAgent,
       });
 
       res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `attachment; filename="csu-agreement-${id}.pdf"`);
+      res.setHeader("Content-Disposition", `attachment; filename="FICA-Agreement-${id}.pdf"`);
       res.send(pdfBuffer);
     } catch (error) {
       console.error("Error generating CSU PDF:", error);

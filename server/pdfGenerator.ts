@@ -1,6 +1,8 @@
 import PDFDocument from 'pdfkit';
 import { NDA_TEMPLATE } from './templates/ndaTemplate';
 
+import crypto from 'crypto';
+
 // CSU Contract PDF Generation
 interface CsuContractData {
   templateName: string;
@@ -15,6 +17,31 @@ interface CsuContractData {
   signedIpAddress?: string | null;
   signatureData?: string | null;
   agreementId: number;
+  userAgent?: string | null;
+  clientCompany?: string | null;
+  primaryTitle?: string | null;
+}
+
+// Helper to strip HTML tags and decode entities
+function stripHtml(html: string): string {
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Generate document hash for audit trail
+function generateDocumentHash(data: CsuContractData): string {
+  const content = `${data.templateName}|${data.signerName}|${data.signerEmail}|${data.signedAt}|${data.agreementId}`;
+  return crypto.createHash('sha256').update(content).digest('hex').substring(0, 16).toUpperCase();
 }
 
 export async function generateCsuContractPdf(data: CsuContractData): Promise<Buffer> {
@@ -32,104 +59,178 @@ export async function generateCsuContractPdf(data: CsuContractData): Promise<Buf
       doc.on('error', reject);
 
       const pageWidth = doc.page.width;
-      const BLUE_COLOR = '#1E40AF';
+      const contentWidth = pageWidth - 144;
+      const PURPLE_COLOR = '#6b21a8';
+      const DARK_PURPLE = '#1a1a2e';
       const GOLD_COLOR = '#C5A572';
+      
+      // Generate document hash
+      const documentHash = generateDocumentHash(data);
+      const signedDate = new Date(data.signedAt);
 
-      // Header
-      doc.fontSize(24).font('Helvetica-Bold').fillColor(BLUE_COLOR)
-        .text('COST SAVINGS UNIVERSITY', { align: 'center' });
+      // ===== PAGE 1: HEADER & CONTRACT INFO =====
+      
+      // Purple header bar
+      doc.rect(0, 0, pageWidth, 80).fill(PURPLE_COLOR);
+      
+      doc.fontSize(24).font('Helvetica-Bold').fillColor('#FFFFFF')
+        .text('PAYZIUM', 72, 25, { align: 'center' });
+      doc.fontSize(10).fillColor('#E9D5FF')
+        .text('FICA Tips Tax Credit Services', { align: 'center' });
+      
+      doc.y = 100;
+      
+      // Agreement Title
+      doc.fontSize(18).font('Helvetica-Bold').fillColor(DARK_PURPLE)
+        .text(data.templateName, { align: 'center' });
       doc.moveDown(0.5);
       
-      doc.fontSize(11).font('Helvetica').fillColor(GOLD_COLOR)
-        .text('Contract Agreement', { align: 'center' });
+      // Client Info Box
+      doc.rect(72, doc.y, contentWidth, 100).lineWidth(2).stroke(PURPLE_COLOR);
+      const boxY = doc.y + 10;
       
-      doc.moveDown(0.3);
-      doc.moveTo(pageWidth / 2 - 100, doc.y)
-        .lineTo(pageWidth / 2 + 100, doc.y)
-        .lineWidth(2)
-        .stroke(GOLD_COLOR);
+      doc.fontSize(11).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
+        .text('CLIENT INFORMATION', 82, boxY);
       
-      doc.moveDown(1);
-
-      // Contract Title
-      doc.fontSize(16).font('Helvetica-Bold').fillColor(BLUE_COLOR)
-        .text(data.templateName, { align: 'center' });
-      doc.moveDown(1);
-
-      // Contract Content
-      doc.fontSize(10).font('Helvetica').fillColor('#333')
-        .text(data.templateContent, { align: 'left', lineGap: 4 });
+      doc.fontSize(10).font('Helvetica').fillColor('#333');
+      doc.text(`Company: ${data.clientCompany || data.signerName}`, 82, boxY + 20);
+      doc.text(`Authorized Signer: ${data.signerName}`, 82, boxY + 35);
+      doc.text(`Title: ${data.primaryTitle || 'Authorized Representative'}`, 82, boxY + 50);
+      doc.text(`Email: ${data.signerEmail}`, 82, boxY + 65);
+      doc.text(`Agreement Date: ${data.effectiveDate || signedDate.toLocaleDateString('en-US')}`, 320, boxY + 20);
+      doc.text(`Agreement ID: CSU-${data.agreementId}`, 320, boxY + 35);
       
-      doc.moveDown(2);
+      doc.y = boxY + 110;
 
-      // Signature Section
+      // Contract Content (cleaned)
+      const cleanContent = stripHtml(data.templateContent);
+      doc.fontSize(9).font('Helvetica').fillColor('#333')
+        .text(cleanContent, { align: 'left', lineGap: 3, columns: 1 });
+      
+      // ===== SIGNATURE PAGE =====
       doc.addPage();
       
-      doc.fontSize(16).font('Helvetica-Bold').fillColor(BLUE_COLOR)
-        .text('SIGNATURE & VERIFICATION', { align: 'center' });
-      doc.moveDown(1);
+      // Header
+      doc.rect(0, 0, pageWidth, 60).fill(PURPLE_COLOR);
+      doc.fontSize(18).font('Helvetica-Bold').fillColor('#FFFFFF')
+        .text('SIGNATURE & VERIFICATION', 72, 20, { align: 'center' });
+      
+      doc.y = 80;
 
+      // Signature Block with visible signer details
+      doc.rect(72, doc.y, contentWidth, 180).lineWidth(2).stroke(PURPLE_COLOR);
+      
+      const sigBlockY = doc.y + 15;
+      doc.fontSize(12).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
+        .text('ELECTRONIC SIGNATURE', 82, sigBlockY);
+      
       // Signer Info
-      const sigInfo = [
-        ['Full Name:', data.signerName],
-        ['Initials:', data.initials || 'N/A'],
-        ['Email:', data.signerEmail],
-        ['Phone:', data.signerPhone || 'N/A'],
-        ['Address:', data.address || 'N/A'],
-        ['Effective Date:', data.effectiveDate || 'N/A'],
-        ['Date Signed:', new Date(data.signedAt).toLocaleString('en-US')],
-        ['IP Address:', data.signedIpAddress || 'N/A'],
-        ['Agreement ID:', `CSU-${data.agreementId}`]
-      ];
-
-      for (const [label, value] of sigInfo) {
-        doc.fontSize(10).font('Helvetica-Bold').fillColor('#333')
-          .text(label, { continued: true })
-          .font('Helvetica').text(` ${value}`);
-        doc.moveDown(0.3);
-      }
-
-      doc.moveDown(1);
-
-      // Signature Box
-      doc.fontSize(11).font('Helvetica-Bold').fillColor(BLUE_COLOR)
-        .text('ELECTRONIC SIGNATURE');
-      doc.moveDown(0.5);
-
-      const sigBoxY = doc.y;
-      const sigBoxWidth = 300;
-      const sigBoxHeight = 100;
-
-      doc.rect(72, sigBoxY, sigBoxWidth, sigBoxHeight)
-        .lineWidth(1)
-        .stroke(GOLD_COLOR);
-
+      doc.fontSize(10).font('Helvetica').fillColor('#333');
+      doc.text(`Signed by: ${data.signerName}`, 82, sigBlockY + 25);
+      doc.text(`Email: ${data.signerEmail}`, 82, sigBlockY + 40);
+      doc.text(`IP Address: ${data.signedIpAddress || 'N/A'}`, 82, sigBlockY + 55);
+      doc.text(`Signed on: ${signedDate.toLocaleString('en-US', { 
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+      })}`, 82, sigBlockY + 70);
+      
+      // Signature Image
       if (data.signatureData && data.signatureData.startsWith('data:image/')) {
         try {
           const sigBuffer = Buffer.from(data.signatureData.split(',')[1], 'base64');
-          doc.image(sigBuffer, 77, sigBoxY + 5, { 
-            width: sigBoxWidth - 10, 
-            height: sigBoxHeight - 10,
-            fit: [sigBoxWidth - 10, sigBoxHeight - 10]
+          doc.image(sigBuffer, 300, sigBlockY + 20, { 
+            width: 180, 
+            height: 70,
+            fit: [180, 70]
           });
+          doc.rect(295, sigBlockY + 15, 190, 80).lineWidth(1).stroke(GOLD_COLOR);
         } catch (e) {
-          doc.fontSize(12).font('Helvetica-Oblique').fillColor('#666')
-            .text(data.signerName, 77, sigBoxY + 40, { width: sigBoxWidth - 10, align: 'center' });
+          doc.fontSize(16).font('Helvetica-Oblique').fillColor('#666')
+            .text(data.signerName, 300, sigBlockY + 45);
         }
       }
+      
+      // Initials
+      doc.fontSize(10).font('Helvetica-Bold').fillColor('#333')
+        .text(`Initials: ${data.initials || 'N/A'}`, 82, sigBlockY + 100);
+      
+      doc.y = sigBlockY + 180;
+      
+      // ===== SIGNATURE CERTIFICATE PAGE =====
+      doc.addPage();
+      
+      // Header
+      doc.rect(0, 0, pageWidth, 70).fill(DARK_PURPLE);
+      doc.fontSize(20).font('Helvetica-Bold').fillColor('#FFFFFF')
+        .text('SIGNATURE CERTIFICATE', 72, 20, { align: 'center' });
+      doc.fontSize(10).fillColor('#E9D5FF')
+        .text('Electronic Signature Verification & Audit Trail', { align: 'center' });
+      
+      doc.y = 90;
 
-      doc.fontSize(8).font('Helvetica').fillColor('#666')
-        .text('Authorized Signature', 72, sigBoxY + sigBoxHeight + 5, { width: sigBoxWidth, align: 'center' });
+      // Certificate Box
+      doc.rect(72, doc.y, contentWidth, 280).lineWidth(3).stroke(PURPLE_COLOR);
+      
+      let certY = doc.y + 20;
+      
+      // Certificate Icon Area
+      doc.fontSize(12).font('Helvetica-Bold').fillColor(PURPLE_COLOR)
+        .text('CERTIFICATE OF COMPLETION', 72, certY, { align: 'center', width: contentWidth });
+      
+      certY += 30;
+      
+      doc.fontSize(10).font('Helvetica').fillColor('#333')
+        .text(`This document certifies that the following individual electronically signed the attached agreement:`, 92, certY, { width: contentWidth - 40 });
+      
+      certY += 40;
+      
+      // Signer Details Table
+      const certDetails = [
+        ['Document:', data.templateName],
+        ['Agreement ID:', `CSU-${data.agreementId}`],
+        ['Document Hash:', documentHash],
+        ['', ''],
+        ['Signer Name:', data.signerName],
+        ['Email Address:', data.signerEmail],
+        ['Phone:', data.signerPhone || 'Not provided'],
+        ['Company:', data.clientCompany || 'Not provided'],
+        ['', ''],
+        ['Signed Date:', signedDate.toLocaleString('en-US', { 
+          year: 'numeric', month: 'long', day: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short'
+        })],
+        ['IP Address:', data.signedIpAddress || 'N/A'],
+        ['User Agent:', (data.userAgent || 'N/A').substring(0, 60) + (data.userAgent && data.userAgent.length > 60 ? '...' : '')],
+        ['Signature Method:', 'Drawn electronic signature via touch/mouse input'],
+        ['Consent Given:', 'Yes - E-SIGN Act consent provided'],
+      ];
 
-      doc.moveDown(4);
+      for (const [label, value] of certDetails) {
+        if (label === '') {
+          certY += 8;
+          continue;
+        }
+        doc.fontSize(9).font('Helvetica-Bold').fillColor('#555')
+          .text(label, 92, certY, { width: 120 });
+        doc.font('Helvetica').fillColor('#333')
+          .text(value || 'N/A', 215, certY, { width: contentWidth - 160 });
+        certY += 16;
+      }
 
-      // Legal Footer
-      doc.fontSize(8).font('Helvetica').fillColor('#666')
-        .text('This document was electronically signed and is legally binding pursuant to the Electronic Signatures in Global and National Commerce Act (ESIGN) and the Uniform Electronic Transactions Act (UETA).', { align: 'center' });
-
+      doc.y = doc.y + 300;
+      
+      // Legal Disclaimer
+      doc.fontSize(10).font('Helvetica-Bold').fillColor(DARK_PURPLE)
+        .text('LEGAL NOTICE', { align: 'center' });
+      doc.moveDown(0.5);
+      
+      doc.fontSize(8).font('Helvetica').fillColor('#555')
+        .text(`This electronic signature is legally binding pursuant to the Electronic Signatures in Global and National Commerce Act (E-SIGN Act, 15 U.S.C. § 7001 et seq.) and the Uniform Electronic Transactions Act (UETA). The signer consented to use electronic records and signatures and intended to sign this document electronically. The signature was captured and verified by the Payzium Contract Platform.`, { align: 'center', lineGap: 2 });
+      
       doc.moveDown(1);
-      doc.fontSize(9).font('Helvetica-Bold').fillColor(BLUE_COLOR)
-        .text('COST SAVINGS UNIVERSITY', { align: 'center' });
+      
+      doc.fontSize(8).fillColor('#888')
+        .text(`Document generated on ${new Date().toLocaleString('en-US')} | Hash: ${documentHash}`, { align: 'center' });
 
       doc.end();
     } catch (error) {

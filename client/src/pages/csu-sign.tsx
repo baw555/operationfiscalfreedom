@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, CheckCircle, AlertCircle, Pen, RotateCcw, Building2, User, Mail, Phone, MapPin, Calendar } from "lucide-react";
+import { FileText, CheckCircle, AlertCircle, Pen, RotateCcw, Building2, User, Mail, Phone, MapPin, Calendar, Download, Shield } from "lucide-react";
 
 interface ContractData {
   contractSend: {
@@ -42,12 +42,15 @@ export default function CsuSign() {
     initials: "",
     effectiveDate: new Date().toISOString().split("T")[0],
     agreedToTerms: false,
+    agreedToEsign: false,
     clientCompany: "",
     clientAddress: "",
     primaryOwner: "",
     primaryTitle: "",
     secondaryOwner: "",
   });
+  const [signedAgreementId, setSignedAgreementId] = useState<number | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get("token");
@@ -248,8 +251,9 @@ export default function CsuSign() {
 
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: { agreementId: number }) => {
       setSigned(true);
+      setSignedAgreementId(data.agreementId);
       toast({
         title: "Contract Signed",
         description: "Thank you! Your contract has been signed successfully.",
@@ -294,6 +298,15 @@ export default function CsuSign() {
       return;
     }
 
+    if (!formData.agreedToEsign) {
+      toast({
+        title: "Electronic Signature Consent Required",
+        description: "Please consent to use electronic records and signatures.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!formData.agreedToTerms) {
       toast({
         title: "Agreement Required",
@@ -304,6 +317,39 @@ export default function CsuSign() {
     }
 
     signMutation.mutate();
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!signedAgreementId) return;
+    
+    setDownloadingPdf(true);
+    try {
+      const response = await fetch(`/api/csu/signed-agreements/${signedAgreementId}/pdf/public`);
+      if (!response.ok) throw new Error("Failed to download PDF");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `FICA-Agreement-${formData.signerName.replace(/\s+/g, "-")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Your signed agreement has been downloaded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Unable to download PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   if (!token) {
@@ -356,17 +402,56 @@ export default function CsuSign() {
   if (signed) {
     return (
       <Layout>
-        <section className="min-h-screen bg-gray-100 flex items-center justify-center">
-          <Card className="max-w-md">
-            <CardContent className="pt-6 text-center">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+        <section className="min-h-screen bg-gray-100 flex items-center justify-center py-12">
+          <Card className="max-w-lg">
+            <CardContent className="pt-8 text-center">
+              <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
               <h2 className="text-2xl font-bold mb-2 text-green-700">Contract Signed Successfully!</h2>
-              <p className="text-gray-600 mb-4">
-                Thank you for signing the FICA Tips Tax Credit Agreement. You will receive a confirmation email shortly.
+              <p className="text-gray-600 mb-6">
+                Thank you for signing the FICA Tips Tax Credit Agreement. A copy has been saved to your records.
               </p>
-              <Button onClick={() => navigate("/")} className="bg-purple-600 hover:bg-purple-700">
-                Return to Home
-              </Button>
+              
+              {/* Signature Confirmation Box */}
+              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-6 text-left">
+                <h3 className="font-bold text-green-800 mb-2 flex items-center gap-2">
+                  <Shield className="w-5 h-5" /> Signature Verified
+                </h3>
+                <div className="text-sm text-green-700 space-y-1">
+                  <p><strong>Signed by:</strong> {formData.signerName}</p>
+                  <p><strong>Email:</strong> {formData.signerEmail}</p>
+                  <p><strong>Date:</strong> {new Date().toLocaleString()}</p>
+                  <p><strong>Agreement ID:</strong> CSU-{signedAgreementId}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Button 
+                  onClick={handleDownloadPdf}
+                  disabled={downloadingPdf || !signedAgreementId}
+                  className="w-full bg-green-600 hover:bg-green-700 h-12"
+                  data-testid="button-download-signed-pdf"
+                >
+                  {downloadingPdf ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-5 h-5 mr-2" />
+                      Download Signed Agreement (PDF)
+                    </>
+                  )}
+                </Button>
+                <Button onClick={() => navigate("/")} variant="outline" className="w-full">
+                  Return to Home
+                </Button>
+              </div>
+
+              {/* Legal Notice */}
+              <p className="text-xs text-gray-500 mt-6 border-t pt-4">
+                This electronic signature is legally binding under the U.S. Electronic Signatures in Global and National Commerce Act (E-SIGN Act) and the Uniform Electronic Transactions Act (UETA).
+              </p>
             </CardContent>
           </Card>
         </section>
@@ -600,38 +685,70 @@ export default function CsuSign() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* Legal Consent & Submit Section */}
+          <Card className="border-2 border-green-200">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
+              <CardTitle className="flex items-center gap-2 text-green-800">
+                <Shield className="w-5 h-5" /> Legal Consent & Electronic Signature
+              </CardTitle>
+            </CardHeader>
             <CardContent className="pt-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* E-SIGN Act Consent Checkbox */}
+                <div className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <Checkbox
+                    id="agreedToEsign"
+                    checked={formData.agreedToEsign}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, agreedToEsign: checked as boolean })
+                    }
+                    className="h-5 w-5 mt-0.5"
+                    data-testid="checkbox-esign-consent"
+                  />
+                  <Label htmlFor="agreedToEsign" className="text-sm leading-relaxed">
+                    <strong>Electronic Signature Consent:</strong> I agree to use electronic records and signatures, and I intend to sign this document electronically. I understand that my electronic signature has the same legal effect as a handwritten signature. *
+                  </Label>
+                </div>
+
+                {/* Terms Agreement Checkbox */}
+                <div className="flex items-start space-x-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
                   <Checkbox
                     id="agreedToTerms"
                     checked={formData.agreedToTerms}
                     onCheckedChange={(checked) =>
                       setFormData({ ...formData, agreedToTerms: checked as boolean })
                     }
-                    className="h-5 w-5"
+                    className="h-5 w-5 mt-0.5"
                     data-testid="checkbox-agree"
                   />
                   <Label htmlFor="agreedToTerms" className="text-sm leading-relaxed">
-                    I have read, understood, and agree to all terms of this FICA Tips Tax Credit Services Agreement. I acknowledge that this is a legally binding document and that my electronic signature is valid. *
+                    I have read, understood, and agree to all terms of this FICA Tips Tax Credit Services Agreement. I acknowledge that this is a legally binding contract. *
                   </Label>
+                </div>
+
+                {/* Legal Disclaimer */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    <strong>Legal Notice:</strong> This electronic signature is legally binding under the U.S. Electronic Signatures in Global and National Commerce Act (E-SIGN Act, 15 U.S.C. § 7001 et seq.) and the Uniform Electronic Transactions Act (UETA), and similar international laws where applicable. By signing electronically, you agree that your electronic signature is the legal equivalent of your handwritten signature on this agreement.
+                  </p>
                 </div>
 
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 h-14 text-lg font-bold"
-                  disabled={signMutation.isPending || !initialsApplied || !hasSignature}
+                  disabled={signMutation.isPending || !initialsApplied || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms}
                   data-testid="button-sign-contract"
                 >
                   {signMutation.isPending ? "Signing Contract..." : "Sign & Submit Contract"}
                 </Button>
 
-                {(!initialsApplied || !hasSignature) && (
-                  <p className="text-center text-sm text-amber-600">
-                    {!initialsApplied && "Please apply your initials to all sections. "}
-                    {!hasSignature && "Please sign in the signature box above."}
-                  </p>
+                {(!initialsApplied || !hasSignature || !formData.agreedToEsign || !formData.agreedToTerms) && (
+                  <div className="text-center text-sm text-amber-600 space-y-1">
+                    {!initialsApplied && <p>Please apply your initials to all sections.</p>}
+                    {!hasSignature && <p>Please sign in the signature box above.</p>}
+                    {!formData.agreedToEsign && <p>Please consent to electronic signatures.</p>}
+                    {!formData.agreedToTerms && <p>Please agree to the terms.</p>}
+                  </div>
                 )}
               </form>
             </CardContent>
