@@ -3936,10 +3936,12 @@ export async function registerRoutes(
         sentBy: req.session.userId || null,
       });
 
-      // Generate signing URL
-      const baseUrl = process.env.REPLIT_DOMAINS?.split(",")[0] 
-        ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}`
-        : "http://localhost:5000";
+      // Generate signing URL - use custom domain if set, otherwise fall back to Replit domains
+      const baseUrl = process.env.CUSTOM_DOMAIN
+        ? `https://${process.env.CUSTOM_DOMAIN}`
+        : process.env.REPLIT_DOMAINS?.split(",")[0] 
+          ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}`
+          : "http://localhost:5000";
       const signingUrl = `${baseUrl}/csu-sign?token=${signToken}`;
 
       // Try to send email via Resend integration
