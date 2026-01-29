@@ -121,25 +121,19 @@ export default function Home() {
             "absolute inset-0 flex items-center justify-center transition-all duration-1500",
             animationPhase === 1 ? "opacity-100" : "opacity-0"
           )}>
-            <div className="text-center px-4 max-w-5xl">
+            <div className="text-center px-4">
               <h1 className={cn(
-                "text-3xl sm:text-5xl md:text-7xl font-display text-white tracking-wider transition-all duration-1000 leading-tight",
+                "text-4xl sm:text-6xl md:text-8xl font-display text-white tracking-wider transition-all duration-1000",
                 animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
               )}>
-                In the silence before the storm,
+                We can feel it.
               </h1>
               <h2 className={cn(
-                "text-2xl sm:text-4xl md:text-6xl font-display text-gray-300 tracking-wider mt-2 transition-all duration-1000 delay-700",
-                animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
-                we can feel it building...
-              </h2>
-              <h3 className={cn(
                 "text-3xl sm:text-5xl md:text-7xl font-display text-brand-red tracking-wider mt-4 transition-all duration-1000 delay-[1500ms]",
                 animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
               )}>
-                Change is coming.
-              </h3>
+                It's coming.
+              </h2>
             </div>
           </div>
 
@@ -162,20 +156,12 @@ export default function Home() {
               )}
               <div className="absolute inset-0 bg-black/50" />
             </div>
-            <div className="relative z-10 text-center px-4 max-w-4xl">
-              <h1 className={cn(
-                "text-4xl sm:text-6xl md:text-8xl font-display text-white tracking-wider transition-all duration-1000",
-                animationPhase === 2 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
-                Something bigger
-              </h1>
-              <h2 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl font-display text-gray-300 tracking-wider mt-2 transition-all duration-1000 delay-500",
-                animationPhase === 2 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
-                than ourselves awaits...
-              </h2>
-            </div>
+            <h1 className={cn(
+              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-1000",
+              animationPhase === 2 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            )}>
+              Something...
+            </h1>
           </div>
 
           {/* Phase 3: Someone - Soldiers Marching Video */}
@@ -197,20 +183,12 @@ export default function Home() {
               />
               <div className="absolute inset-0 bg-black/50" />
             </div>
-            <div className="relative z-10 text-center px-4 max-w-4xl">
-              <h1 className={cn(
-                "text-4xl sm:text-6xl md:text-8xl font-display text-white tracking-wider transition-all duration-1000",
-                animationPhase === 3 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
-                Someone who served
-              </h1>
-              <h2 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl font-display text-brand-red tracking-wider mt-2 transition-all duration-1000 delay-500",
-                animationPhase === 3 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
-                is ready to rise again...
-              </h2>
-            </div>
+            <h1 className={cn(
+              "relative z-10 text-5xl sm:text-7xl md:text-9xl font-display text-white tracking-wider transition-all duration-1000",
+              animationPhase === 3 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            )}>
+              Someone...
+            </h1>
           </div>
 
           {/* Phase 4: Will you be ready - Soldier Sitting Video */}
@@ -232,26 +210,12 @@ export default function Home() {
               />
               <div className="absolute inset-0 bg-black/50" />
             </div>
-            <div className="relative z-10 text-center px-4 max-w-5xl">
-              <h1 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl font-display text-gray-300 tracking-wider transition-all duration-1000",
-                animationPhase === 4 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
-                When the moment arrives...
-              </h1>
-              <h2 className={cn(
-                "text-3xl sm:text-5xl md:text-7xl font-display text-white tracking-wider mt-4 transition-all duration-1000 delay-700",
-                animationPhase === 4 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
-                Will You Be Ready
-              </h2>
-              <h3 className={cn(
-                "text-3xl sm:text-5xl md:text-7xl font-display text-brand-red tracking-wider mt-2 transition-all duration-1000 delay-[1200ms]",
-                animationPhase === 4 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )}>
-                To Answer The Call?
-              </h3>
-            </div>
+            <h1 className={cn(
+              "relative z-10 text-3xl sm:text-5xl md:text-7xl font-display text-white tracking-wider text-center px-4 transition-all duration-1000",
+              animationPhase === 4 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            )}>
+              Will You Be Ready<br />To Answer The Call?
+            </h1>
           </div>
 
           {/* Phase 5: Fade to black */}
@@ -265,31 +229,25 @@ export default function Home() {
             "absolute inset-0 flex items-center justify-center bg-black transition-all duration-[2000ms] ease-in-out",
             animationPhase === 6 ? "opacity-100" : "opacity-0"
           )}>
-            <div className="text-center px-4 max-w-5xl">
+            <div className="text-center px-4 max-w-4xl">
               <h1 className={cn(
-                "text-xl sm:text-3xl md:text-4xl font-display text-gray-400 tracking-wider leading-tight transition-all duration-[1500ms] ease-out",
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-red tracking-wider leading-tight transition-all duration-[1500ms] ease-out",
                 animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
               )}>
-                You already gave everything for God and Country.
+                This time it isn't for "God and Country."
               </h1>
               <h2 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-red tracking-wider mt-6 transition-all duration-[1500ms] delay-500 ease-out",
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white tracking-wider mt-4 transition-all duration-[1500ms] delay-700 ease-out",
                 animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
               )}>
-                This time, the mission is different.
+                It's for you, your family
               </h2>
               <h3 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-white tracking-wider mt-4 transition-all duration-[1500ms] delay-[1200ms] ease-out",
+                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-blue tracking-wider mt-4 transition-all duration-[1500ms] delay-[1400ms] ease-out",
                 animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
               )}>
-                It's for you, your family,
+                and each other.
               </h3>
-              <h4 className={cn(
-                "text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display text-brand-blue tracking-wider mt-2 transition-all duration-[1500ms] delay-[1900ms] ease-out",
-                animationPhase === 6 ? "opacity-100 scale-100" : "opacity-0 scale-95"
-              )}>
-                and the brothers & sisters beside you.
-              </h4>
             </div>
           </div>
 
