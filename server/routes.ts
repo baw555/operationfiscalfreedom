@@ -3,11 +3,13 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import pg from "pg";
+import multer from "multer";
 import { storage } from "./storage";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
 import Stripe from "stripe";
+import { extractDocumentText, analyzeContractDocument } from "./contractDocumentAnalyzer";
 import { 
   insertAffiliateApplicationSchema, 
   insertHelpRequestSchema, 
@@ -3913,6 +3915,60 @@ export async function registerRoutes(
   // ============================================
   // COST SAVINGS UNIVERSITY (CSU) API ROUTES
   // ============================================
+
+  // Configure multer for contract document uploads (in-memory storage)
+  const contractUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only PDF and Word documents are allowed'));
+      }
+    }
+  });
+
+  // Upload and analyze a contract document to extract form fields
+  app.post("/api/csu/analyze-document", requireAdmin, contractUpload.single('document'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No document uploaded" });
+      }
+
+      const { buffer, originalname } = req.file;
+      
+      // Extract text from the document
+      const documentText = await extractDocumentText(buffer, originalname);
+      
+      if (!documentText || documentText.trim().length < 50) {
+        return res.status(400).json({ 
+          message: "Could not extract enough text from the document. Please ensure it's a valid PDF or Word document with readable text." 
+        });
+      }
+
+      // Analyze the document with AI to detect form fields
+      const analysis = await analyzeContractDocument(documentText);
+
+      res.json({
+        success: true,
+        filename: originalname,
+        summary: analysis.summary,
+        extractedText: analysis.extractedText.substring(0, 1000) + (analysis.extractedText.length > 1000 ? '...' : ''),
+        detectedFields: analysis.detectedFields,
+        generatedTemplate: analysis.generatedTemplate,
+      });
+    } catch (error) {
+      console.error("Error analyzing document:", error);
+      const message = error instanceof Error ? error.message : "Failed to analyze document";
+      res.status(500).json({ message });
+    }
+  });
 
   // Get all CSU contract templates (admin)
   app.get("/api/csu/templates", requireAdmin, async (req, res) => {
