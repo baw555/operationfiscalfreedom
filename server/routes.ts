@@ -3951,9 +3951,10 @@ export async function registerRoutes(
         console.log(`[Email] Using from_email: ${fromEmail}`);
         
         const emailResult = await resend.emails.send({
-          from: `Payzium Contract Services <${fromEmail}>`,
+          from: `Operation Fiscal Freedom <${fromEmail}>`,
+          reply_to: fromEmail,
           to: recipientEmail,
-          subject: "Contract Ready for Signature - Payzium",
+          subject: "Contract Ready for Signature - Operation Fiscal Freedom",
           html: `
             <!DOCTYPE html>
             <html>
@@ -3962,29 +3963,29 @@ export async function registerRoutes(
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
             </head>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <div style="background: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-                <h1 style="color: white; margin: 0; font-size: 28px;">Payzium</h1>
-                <p style="color: #e9d5ff; margin: 10px 0 0 0;">Contract Management</p>
+              <div style="background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Operation Fiscal Freedom</h1>
+                <p style="color: #bfdbfe; margin: 10px 0 0 0;">Contract Management</p>
               </div>
               
-              <div style="background: #f8f4ff; padding: 30px; border: 1px solid #e9d5ff;">
-                <h2 style="color: #6b21a8; margin-top: 0;">Hello ${recipientName},</h2>
-                <p>You have a contract ready for your signature from <strong>Maurice Verrelli</strong> at Payzium.</p>
+              <div style="background: #eff6ff; padding: 30px; border: 1px solid #bfdbfe;">
+                <h2 style="color: #1a365d; margin-top: 0;">Hello ${recipientName},</h2>
+                <p>You have a contract ready for your signature from <strong>Operation Fiscal Freedom</strong>.</p>
                 
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${signingUrl}" style="background: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">Sign Contract Now</a>
+                  <a href="${signingUrl}" style="background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">Sign Contract Now</a>
                 </div>
                 
                 <p style="font-size: 14px; color: #666;">Or copy and paste this link into your browser:</p>
-                <p style="background: #fff; padding: 12px; border-radius: 6px; word-break: break-all; font-size: 12px; border: 1px solid #e9d5ff;">${signingUrl}</p>
+                <p style="background: #fff; padding: 12px; border-radius: 6px; word-break: break-all; font-size: 12px; border: 1px solid #bfdbfe;">${signingUrl}</p>
                 
                 <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0; border-radius: 4px;">
                   <p style="margin: 0; color: #92400e; font-size: 14px;"><strong>Important:</strong> This link will expire in 7 days.</p>
                 </div>
               </div>
               
-              <div style="background: #1a1a2e; padding: 20px; border-radius: 0 0 12px 12px; text-align: center;">
-                <p style="color: #9ca3af; margin: 0; font-size: 12px;">This is an automated message from Payzium Contract Services.</p>
+              <div style="background: #1a365d; padding: 20px; border-radius: 0 0 12px 12px; text-align: center;">
+                <p style="color: #9ca3af; margin: 0; font-size: 12px;">This is an automated message from Operation Fiscal Freedom.</p>
                 <p style="color: #6b7280; margin: 10px 0 0 0; font-size: 11px;">If you did not expect this email, please disregard it.</p>
               </div>
             </body>
