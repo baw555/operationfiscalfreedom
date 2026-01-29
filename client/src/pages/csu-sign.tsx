@@ -340,6 +340,7 @@ export default function CsuSign() {
     onSuccess: (data: { agreementId: number }) => {
       setSigned(true);
       setSignedAgreementId(data.agreementId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast({
         title: "Contract Signed",
         description: "Thank you! Your contract has been signed successfully.",
