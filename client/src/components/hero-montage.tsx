@@ -14,9 +14,28 @@ const montageVideos = [
   "/videos/montage-clip.mp4",
 ];
 
+// On mobile, only load 4 videos to reduce memory usage
+const mobileVideos = [
+  "/videos/montage-iwojima.mp4",
+  "/videos/montage-reunion.mp4",
+  "/videos/montage-embrace.mp4",
+  "/videos/montage-salute.mp4",
+];
+
 export function HeroMontage() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+  // Detect mobile on mount
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const videos = isMobile ? mobileVideos : montageVideos;
 
   // Play active video, pause others
   useEffect(() => {
@@ -35,22 +54,22 @@ export function HeroMontage() {
   // Cycle through videos
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveIndex(prev => (prev + 1) % montageVideos.length);
+      setActiveIndex(prev => (prev + 1) % videos.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [videos.length]);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-brand-navy">
-      {montageVideos.map((src, index) => (
+      {videos.map((src, index) => (
         <video
           key={src}
           ref={el => { videoRefs.current[index] = el; }}
           src={src}
           muted
           playsInline
-          preload="auto"
+          preload={isMobile ? "metadata" : "auto"}
           className={cn(
             "absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out",
             index === activeIndex ? "opacity-100" : "opacity-0"
@@ -61,15 +80,15 @@ export function HeroMontage() {
       
       <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/50 to-brand-navy/30 z-10" />
       
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-        {montageVideos.map((_, index) => (
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 sm:gap-2">
+        {videos.map((_, index) => (
           <div
             key={index}
             className={cn(
-              "w-2 h-2 rounded-full transition-all duration-500",
+              "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-500",
               index === activeIndex 
-                ? "bg-brand-gold w-6" 
-                : "bg-white/40 hover:bg-white/60"
+                ? "bg-brand-gold w-4 sm:w-6" 
+                : "bg-white/40"
             )}
           />
         ))}
