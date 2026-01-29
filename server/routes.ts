@@ -1381,6 +1381,153 @@ export async function registerRoutes(
     }
   });
 
+  // Request password reset
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email, portal } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email.toLowerCase().trim());
+      
+      // Always return success to prevent email enumeration
+      if (!user) {
+        return res.json({ message: "If an account exists with this email, you will receive a password reset link." });
+      }
+
+      // If portal is specified, check user has access to that portal
+      if (portal && user.portal && user.portal !== portal) {
+        return res.json({ message: "If an account exists with this email, you will receive a password reset link." });
+      }
+
+      // Invalidate any existing tokens for this user
+      await storage.invalidateAllUserPasswordResetTokens(user.id);
+
+      // Generate a secure random token
+      const crypto = await import("crypto");
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+      
+      // Token expires in 1 hour
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+      await storage.createPasswordResetToken({
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+      });
+
+      // Determine base URL and from email based on portal
+      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+        : process.env.REPLIT_DOMAINS?.split(",")[0] 
+          ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}`
+          : "http://localhost:5000";
+      
+      let fromEmail = "NavigatorUSA <no-reply@navigatorusa.com>";
+      let portalName = "NavigatorUSA";
+      
+      if (portal === "payzium") {
+        fromEmail = "Payzium <no-reply@payzium.com>";
+        portalName = "Payzium";
+      }
+
+      const resetLink = `${baseUrl}/reset-password?token=${rawToken}${portal ? `&portal=${portal}` : ""}`;
+
+      // Send email if Resend is configured
+      if (process.env.RESEND_API_KEY) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: fromEmail,
+          to: user.email,
+          subject: `Reset Your ${portalName} Password`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #1a365d;">Password Reset Request</h2>
+              <p>Hello ${user.name},</p>
+              <p>We received a request to reset your password for your ${portalName} account.</p>
+              <p>Click the button below to set a new password:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetLink}" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reset Password</a>
+              </div>
+              <p style="color: #666; font-size: 14px;">This link will expire in 1 hour.</p>
+              <p style="color: #666; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+              <p style="color: #999; font-size: 12px;">${portalName} - Secure Password Reset</p>
+            </div>
+          `,
+        });
+        console.log(`Password reset email sent to ${user.email}`);
+      } else {
+        console.log(`Password reset link (no email configured): ${resetLink}`);
+      }
+
+      res.json({ message: "If an account exists with this email, you will receive a password reset link." });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "Failed to process password reset request" });
+    }
+  });
+
+  // Reset password with token
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      
+      if (!token || !password) {
+        return res.status(400).json({ message: "Token and password are required" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      // Hash the token to look it up
+      const crypto = await import("crypto");
+      const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+      const resetToken = await storage.getValidPasswordResetToken(tokenHash);
+      
+      if (!resetToken) {
+        return res.status(400).json({ message: "Invalid or expired reset link. Please request a new one." });
+      }
+
+      // Update user's password
+      const newPasswordHash = await hashPassword(password);
+      await storage.updateUserPassword(resetToken.userId, newPasswordHash);
+
+      // Invalidate the token
+      await storage.invalidatePasswordResetToken(resetToken.id);
+
+      res.json({ message: "Password has been reset successfully. You can now log in with your new password." });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
+  // Validate reset token (for UI)
+  app.get("/api/auth/validate-reset-token", async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== "string") {
+        return res.json({ valid: false });
+      }
+
+      const crypto = await import("crypto");
+      const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+      
+      const resetToken = await storage.getValidPasswordResetToken(tokenHash);
+      
+      res.json({ valid: !!resetToken });
+    } catch (error) {
+      res.json({ valid: false });
+    }
+  });
+
   // ===== ADMIN ROUTES =====
 
   // Get all affiliate applications
@@ -3921,7 +4068,8 @@ export async function registerRoutes(
         || "unknown";
       
       const userAgent = req.headers["user-agent"] || "unknown";
-      const referrer = req.headers["referer"] || req.headers["referrer"] || null;
+      const referrerHeader = req.headers["referer"] || req.headers["referrer"];
+      const referrer = typeof referrerHeader === "string" ? referrerHeader : null;
 
       await storage.createPortalActivity({
         portal,

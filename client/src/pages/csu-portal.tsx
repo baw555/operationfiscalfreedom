@@ -740,8 +740,18 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                 </div>
               </form>
 
+              {/* Forgot password link */}
+              <div className="mt-4 text-center">
+                <a 
+                  href="/forgot-password?portal=payzium" 
+                  className="text-amber-400/80 hover:text-amber-300 text-sm transition-colors"
+                >
+                  Forgot your Power Key?
+                </a>
+              </div>
+
               {/* Power status */}
-              <div className="mt-8 pt-6 border-t border-amber-500/20">
+              <div className="mt-6 pt-6 border-t border-amber-500/20">
                 <div className="flex items-center justify-center gap-6">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" style={{ boxShadow: '0 0 10px #4ade80' }} />

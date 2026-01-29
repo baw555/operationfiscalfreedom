@@ -150,6 +150,10 @@ const VLTIntakeClient = lazy(() => import("@/pages/vlt/intake-client"));
 const CsuPortal = lazy(() => import("@/pages/csu-portal"));
 const CsuSign = lazy(() => import("@/pages/csu-sign"));
 
+// Password Reset pages
+const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
+const ResetPassword = lazy(() => import("@/pages/reset-password"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -169,6 +173,8 @@ function Router() {
         <Route path="/join" component={JoinMission} />
         <Route path="/contact" component={Contact} />
         <Route path="/login" component={Login} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
         <Route path="/apply-website" component={ApplyWebsite} />
         <Route path="/apply-startup-grant" component={ApplyStartupGrant} />
         <Route path="/new-home-furniture" component={NewHomeFurniture} />

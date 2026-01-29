@@ -122,7 +122,13 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        <div className="text-center mt-6 text-sm text-gray-500">
+        <div className="text-center mt-4">
+          <a href="/forgot-password?portal=admin" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+            Forgot password?
+          </a>
+        </div>
+        
+        <div className="text-center mt-4 text-sm text-gray-500">
           Authorized personnel only
         </div>
       </div>
