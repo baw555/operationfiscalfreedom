@@ -292,8 +292,7 @@ export default function Home() {
                 loop
                 muted
                 playsInline
-                className="h-32 sm:h-40 md:h-52 object-contain drop-shadow-2xl"
-                style={{ mixBlendMode: 'screen' }}
+                className="h-32 sm:h-40 md:h-52 object-contain drop-shadow-2xl rounded-lg"
               />
             </div>
 
