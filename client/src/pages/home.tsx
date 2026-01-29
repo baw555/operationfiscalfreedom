@@ -164,23 +164,23 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* Phase 3: Someone - Soldiers */}
+          {/* Phase 3: Someone - Soldiers Marching Video */}
           <div className={cn(
             "absolute inset-0 flex items-center justify-center transition-all duration-1500",
             animationPhase === 3 ? "opacity-100" : "opacity-0"
           )}>
             <div className="absolute inset-0">
-              {animationImages.somethingImg && (
-                <img 
-                  src={animationImages.somethingImg}
-                  alt="Something is coming"
-                  loading="eager" 
-                  className={cn(
-                    "w-full h-full object-contain sm:object-cover transition-all duration-1000",
-                    animationPhase === 3 ? "opacity-60 scale-105" : "opacity-0 scale-100"
-                  )}
-                />
-              )}
+              <video 
+                src="/videos/soldiers-marching.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className={cn(
+                  "w-full h-full object-cover transition-all duration-1000",
+                  animationPhase === 3 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                )}
+              />
               <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
@@ -191,23 +191,23 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* Phase 4: Will you be ready - Homeless Veteran */}
+          {/* Phase 4: Will you be ready - Soldier Sitting Video */}
           <div className={cn(
             "absolute inset-0 flex items-center justify-center transition-all duration-1500",
             animationPhase === 4 ? "opacity-100" : "opacity-0"
           )}>
             <div className="absolute inset-0">
-              {animationImages.someoneImg && (
-                <img 
-                  src={animationImages.someoneImg}
-                  alt="Veteran needs help"
-                  loading="eager" 
-                  className={cn(
-                    "w-full h-full object-contain sm:object-cover transition-all duration-1000",
-                    animationPhase === 4 ? "opacity-60 scale-105" : "opacity-0 scale-100"
-                  )}
-                />
-              )}
+              <video 
+                src="/videos/soldier-sitting.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className={cn(
+                  "w-full h-full object-cover transition-all duration-1000",
+                  animationPhase === 4 ? "opacity-60 scale-105" : "opacity-0 scale-100"
+                )}
+              />
               <div className="absolute inset-0 bg-black/50" />
             </div>
             <h1 className={cn(
@@ -272,14 +272,14 @@ export default function Home() {
           showContent ? "opacity-100" : "opacity-0"
         )}>
           <div className="absolute inset-0 z-0">
-            {animationImages.heroBg && (
-              <img 
-                src={animationImages.heroBg}
-                alt="Veterans standing together"
-                loading="lazy" 
-                className="w-full h-full object-cover opacity-40"
-              />
-            )}
+            <video 
+              src="/videos/soldiers-action.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover opacity-40"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/70 to-brand-navy/50" />
           </div>
 
