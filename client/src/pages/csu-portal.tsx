@@ -63,13 +63,16 @@ interface User {
   lastName?: string;
 }
 
-// Payzium-specific login form component
+// Payzium-specific login form component - Thor/Mjölnir Lightning Theme
 function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void }) {
   const { toast } = useToast();
   const [email, setEmail] = useState(() => localStorage.getItem("payzium_remembered_email") || "");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("payzium_remembered_email"));
   const [isLoading, setIsLoading] = useState(false);
+  const [lightningFlash, setLightningFlash] = useState(false);
+
+  const isWorthy = email.trim().length > 0 && password.length > 0;
 
   // Track page view for unauthenticated visitors
   useEffect(() => {
@@ -97,6 +100,26 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
     trackVisit();
   }, []);
 
+  // Random lightning flash effect
+  useEffect(() => {
+    const triggerFlash = () => {
+      setLightningFlash(true);
+      setTimeout(() => setLightningFlash(false), 150);
+      setTimeout(() => {
+        if (Math.random() > 0.5) {
+          setLightningFlash(true);
+          setTimeout(() => setLightningFlash(false), 100);
+        }
+      }, 200);
+    };
+
+    const interval = setInterval(() => {
+      if (Math.random() > 0.6) triggerFlash();
+    }, 3000 + Math.random() * 4000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -120,14 +143,12 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
         return;
       }
       
-      // Save or clear remembered email
       if (rememberMe) {
         localStorage.setItem("payzium_remembered_email", email);
       } else {
         localStorage.removeItem("payzium_remembered_email");
       }
       
-      // Wait for auth state to update before showing success
       await onSuccess();
       
       toast({
@@ -146,193 +167,194 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#030508]">
-      {/* Multi-layer background for depth */}
+    <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
+      {/* Lightning flash overlay */}
+      <div 
+        className={`absolute inset-0 pointer-events-none z-50 transition-opacity duration-75 ${lightningFlash ? 'opacity-40' : 'opacity-0'}`}
+        style={{ background: 'linear-gradient(180deg, rgba(255,215,0,0.3) 0%, rgba(255,255,255,0.6) 30%, rgba(255,200,50,0.2) 100%)' }}
+      />
+
+      {/* Multi-layer storm background */}
       <div className="absolute inset-0">
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#030508] via-[#0a1628] to-[#030508]" />
-        
-        {/* Radial spotlight from top */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[70vh] bg-gradient-to-b from-blue-950/40 via-transparent to-transparent" />
-        
-        {/* Side vignettes */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#1a1005] to-[#0a0a0a]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[80vh] bg-gradient-to-b from-amber-950/30 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/70" />
       </div>
-      
-      {/* Animated aurora-like waves at top */}
-      <div className="absolute top-0 left-0 right-0 h-96 overflow-hidden opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/30 via-blue-900/20 to-transparent animate-aurora1" />
-        <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/20 via-cyan-900/10 to-transparent animate-aurora2" />
+
+      {/* Animated storm clouds at top */}
+      <div className="absolute top-0 left-0 right-0 h-64 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-950/40 via-orange-950/20 to-transparent animate-stormCloud1" />
+        <div className="absolute inset-0 bg-gradient-to-b from-yellow-950/30 via-amber-950/15 to-transparent animate-stormCloud2" />
       </div>
-      
-      {/* Matrix-style falling digital rain - enhanced */}
+
+      {/* Lightning bolts - multiple SVG paths */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(50)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent"
+        {/* Main central lightning bolt */}
+        <svg className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-[60vh] animate-lightningBolt1" viewBox="0 0 200 400" style={{ opacity: 0 }}>
+          <path d="M100 0 L95 80 L120 85 L90 180 L115 185 L85 300 L110 305 L70 400" 
+                stroke="url(#goldGradient)" strokeWidth="3" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 20px #ffd700) drop-shadow(0 0 40px #ff8c00)' }} />
+          <defs>
+            <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="30%" stopColor="#ffd700" />
+              <stop offset="100%" stopColor="#ff6600" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        {/* Left lightning */}
+        <svg className="absolute top-10 left-[15%] w-48 h-[50vh] animate-lightningBolt2" viewBox="0 0 100 300" style={{ opacity: 0 }}>
+          <path d="M50 0 L45 60 L65 65 L35 150 L55 155 L25 250 L50 255 L10 300" 
+                stroke="#ffd700" strokeWidth="2" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ff8c00)' }} />
+        </svg>
+
+        {/* Right lightning */}
+        <svg className="absolute top-20 right-[15%] w-48 h-[45vh] animate-lightningBolt3" viewBox="0 0 100 300" style={{ opacity: 0 }}>
+          <path d="M50 0 L55 70 L35 75 L60 160 L40 165 L70 250 L45 255 L85 300" 
+                stroke="#ffc800" strokeWidth="2" fill="none" 
+                style={{ filter: 'drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ff8c00)' }} />
+        </svg>
+
+        {/* Small branch lightning bolts */}
+        {[...Array(8)].map((_, i) => (
+          <svg 
+            key={`branch-${i}`}
+            className="absolute w-24 h-32"
             style={{
-              left: `${(i * 2)}%`,
-              width: i % 3 === 0 ? '2px' : '1px',
-              height: `${80 + Math.random() * 150}px`,
-              animation: `matrixFall ${6 + Math.random() * 10}s linear infinite`,
-              animationDelay: `${Math.random() * 6}s`,
-              opacity: 0.2 + Math.random() * 0.3
+              top: `${10 + Math.random() * 40}%`,
+              left: `${5 + i * 12}%`,
+              opacity: 0,
+              animation: `lightningBranch ${0.1 + Math.random() * 0.2}s ease-out forwards`,
+              animationDelay: `${3 + Math.random() * 5}s`,
+              animationIterationCount: 'infinite'
             }}
-          />
+            viewBox="0 0 50 80"
+          >
+            <path d={`M25 0 L${20 + Math.random() * 10} 30 L${30 + Math.random() * 10} 35 L${15 + Math.random() * 20} 80`}
+                  stroke="#ffd700" strokeWidth="1.5" fill="none"
+                  style={{ filter: 'drop-shadow(0 0 8px #ffd700)' }} />
+          </svg>
         ))}
-        
-        {/* Scattered pulsing nodes */}
-        {[...Array(80)].map((_, i) => (
+
+        {/* Electric particles / sparks */}
+        {[...Array(60)].map((_, i) => (
           <div
-            key={`node-${i}`}
+            key={`spark-${i}`}
             className="absolute rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              width: `${2 + Math.random() * 3}px`,
-              height: `${2 + Math.random() * 3}px`,
-              backgroundColor: i % 3 === 0 ? 'rgba(34, 211, 238, 0.5)' : i % 3 === 1 ? 'rgba(99, 102, 241, 0.4)' : 'rgba(59, 130, 246, 0.4)',
-              boxShadow: i % 5 === 0 ? '0 0 10px rgba(34, 211, 238, 0.5)' : 'none',
-              animation: `digitPulse ${1.5 + Math.random() * 2.5}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 3}s`
+              width: `${2 + Math.random() * 4}px`,
+              height: `${2 + Math.random() * 4}px`,
+              backgroundColor: i % 3 === 0 ? '#ffd700' : i % 3 === 1 ? '#ff8c00' : '#ffaa00',
+              boxShadow: `0 0 ${6 + Math.random() * 12}px ${i % 2 === 0 ? '#ffd700' : '#ff6600'}`,
+              animation: `sparkFloat ${2 + Math.random() * 4}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 4}s`
             }}
           />
         ))}
-        
-        {/* Connecting lines between some nodes */}
-        {[...Array(12)].map((_, i) => (
+
+        {/* Electric arc lines */}
+        {[...Array(6)].map((_, i) => (
           <div
-            key={`line-${i}`}
-            className="absolute h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent"
+            key={`arc-${i}`}
+            className="absolute h-px"
             style={{
               left: `${10 + Math.random() * 30}%`,
-              top: `${10 + i * 8}%`,
-              width: `${20 + Math.random() * 40}%`,
-              transform: `rotate(${-15 + Math.random() * 30}deg)`,
-              animation: `linePulse ${4 + Math.random() * 4}s ease-in-out infinite`,
+              top: `${15 + i * 12}%`,
+              width: `${15 + Math.random() * 30}%`,
+              background: 'linear-gradient(90deg, transparent, #ffd700, transparent)',
+              boxShadow: '0 0 10px #ffd700, 0 0 20px #ff8c00',
+              transform: `rotate(${-20 + Math.random() * 40}deg)`,
+              animation: `arcPulse ${2 + Math.random() * 3}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 2}s`
             }}
           />
         ))}
       </div>
 
-      {/* Central light pillar behind logo */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] h-[45%] bg-gradient-to-b from-cyan-500/40 via-cyan-500/10 to-transparent" />
-      
-      {/* Ambient glow orbs */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-gradient-radial from-cyan-900/30 via-blue-900/10 to-transparent blur-3xl animate-breathe" />
-      <div className="absolute bottom-40 left-1/4 w-[300px] h-[300px] bg-gradient-radial from-indigo-900/20 via-transparent to-transparent blur-3xl animate-breathe2" />
-      <div className="absolute bottom-60 right-1/4 w-[250px] h-[250px] bg-gradient-radial from-blue-900/15 via-transparent to-transparent blur-3xl animate-breathe3" />
-      
-      {/* Horizon light band with glow */}
-      <div className="absolute top-[38%] left-0 right-0">
-        <div className="h-[2px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent blur-sm" />
-        <div className="h-px bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent" />
-        <div className="h-[2px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent blur-sm" />
-      </div>
+      {/* Central golden energy pillar behind logo */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[4px] h-[50%] bg-gradient-to-b from-amber-400/60 via-amber-500/30 to-transparent animate-pillarPulse" style={{ boxShadow: '0 0 40px #ffd700, 0 0 80px #ff8c00' }} />
+
+      {/* Ambient golden glow orbs */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-radial from-amber-900/40 via-orange-900/20 to-transparent blur-3xl animate-breatheGold" />
+      <div className="absolute bottom-40 left-1/4 w-[350px] h-[350px] bg-gradient-radial from-amber-900/25 via-transparent to-transparent blur-3xl animate-breatheGold2" />
+      <div className="absolute bottom-60 right-1/4 w-[300px] h-[300px] bg-gradient-radial from-orange-900/20 via-transparent to-transparent blur-3xl animate-breatheGold3" />
 
       {/* Main content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-lg">
           
-          {/* Logo Stage - premium presentation */}
-          <div className="text-center mb-12 animate-fadeInDown">
-            {/* Logo container with multi-layer effects */}
+          {/* Logo Stage - EPIC Thor presentation */}
+          <div className="text-center mb-8 animate-fadeInDown">
             <div className="relative inline-block">
-              {/* Outer halo ring */}
-              <div className="absolute -inset-16 bg-gradient-radial from-cyan-500/15 via-blue-600/5 to-transparent rounded-full blur-3xl animate-haloBreath" />
+              {/* Outer power halo */}
+              <div className="absolute -inset-20 bg-gradient-radial from-amber-500/20 via-orange-600/10 to-transparent rounded-full blur-3xl animate-haloGold" />
               
-              {/* Inner glow pulse */}
-              <div className="absolute -inset-8 bg-gradient-radial from-cyan-400/10 via-transparent to-transparent rounded-full blur-xl animate-innerGlow" />
+              {/* Electric corona */}
+              <div className="absolute -inset-12 bg-gradient-radial from-yellow-400/15 via-transparent to-transparent rounded-full blur-2xl animate-coronaPulse" />
               
-              {/* Logo with layered shadows and glow */}
+              {/* Main logo with lightning glow */}
               <div className="relative">
-                {/* Reflection/echo layer */}
                 <img 
-                  src="/payzium-logo.png" 
-                  alt="" 
-                  className="absolute top-2 left-0 w-80 h-auto opacity-20 blur-md scale-105"
-                  aria-hidden="true"
-                />
-                
-                {/* Main logo */}
-                <img 
-                  src="/payzium-logo.png" 
+                  src="/payzium-lightning-logo.png" 
                   alt="Payzium" 
-                  className="w-80 h-auto relative z-10 animate-logoFloat"
+                  className="w-[420px] h-auto relative z-10 animate-logoThunder"
                   style={{
-                    filter: 'drop-shadow(0 0 30px rgba(34, 211, 238, 0.25)) drop-shadow(0 0 60px rgba(59, 130, 246, 0.15)) drop-shadow(0 0 100px rgba(99, 102, 241, 0.1))',
+                    filter: 'drop-shadow(0 0 30px rgba(255, 215, 0, 0.5)) drop-shadow(0 0 60px rgba(255, 140, 0, 0.3)) drop-shadow(0 0 100px rgba(255, 100, 0, 0.2))',
                   }}
                 />
                 
-                {/* Bottom reflection */}
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent blur-sm" />
-              </div>
-            </div>
-            
-            {/* Tagline with elegant styling */}
-            <div className="mt-8 space-y-1">
-              <p className="text-cyan-200/80 text-lg tracking-[0.2em] font-light uppercase">
-                Contract Management Portal
-              </p>
-              <div className="flex items-center justify-center gap-3 mt-2">
-                <div className="w-12 h-px bg-gradient-to-r from-transparent to-cyan-500/50" />
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400/60 animate-pulse" />
-                <div className="w-12 h-px bg-gradient-to-l from-transparent to-cyan-500/50" />
+                {/* Bottom electric reflection */}
+                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-60 h-2 bg-gradient-to-r from-transparent via-amber-400/50 to-transparent blur-sm animate-reflectionPulse" />
               </div>
             </div>
           </div>
 
-          {/* POWER GATEWAY - Epic Login Card */}
+          {/* MJÖLNIR GATEWAY - Epic Login Card */}
           <div className="relative animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-            {/* Outer power rings */}
-            <div className="absolute -inset-8 rounded-3xl animate-powerRing1">
-              <div className="absolute inset-0 rounded-3xl border border-cyan-500/20" />
+            {/* Electric field rings */}
+            <div className="absolute -inset-6 rounded-3xl animate-fieldRing1">
+              <div className="absolute inset-0 rounded-3xl border border-amber-500/30" style={{ boxShadow: '0 0 20px rgba(255,215,0,0.2)' }} />
             </div>
-            <div className="absolute -inset-12 rounded-3xl animate-powerRing2">
-              <div className="absolute inset-0 rounded-3xl border border-blue-500/10" />
-            </div>
-            <div className="absolute -inset-16 rounded-3xl animate-powerRing3">
-              <div className="absolute inset-0 rounded-3xl border border-indigo-500/5" />
+            <div className="absolute -inset-10 rounded-3xl animate-fieldRing2">
+              <div className="absolute inset-0 rounded-3xl border border-orange-500/15" />
             </div>
             
-            {/* Energy pulses radiating outward */}
-            <div className="absolute -inset-4 rounded-2xl bg-gradient-to-r from-cyan-500/20 via-blue-500/30 to-cyan-500/20 blur-xl animate-energyPulse" />
+            {/* Energy surge */}
+            <div className="absolute -inset-3 rounded-2xl bg-gradient-to-r from-amber-500/25 via-orange-500/35 to-amber-500/25 blur-xl animate-energySurge" />
             
-            {/* Card border glow - intense */}
-            <div className="absolute -inset-[2px] bg-gradient-to-b from-cyan-400/50 via-blue-500/40 to-indigo-500/50 rounded-2xl blur-sm animate-borderGlow" />
+            {/* Card border glow */}
+            <div className="absolute -inset-[2px] bg-gradient-to-b from-amber-400/60 via-orange-500/50 to-amber-600/60 rounded-2xl blur-sm animate-borderGoldGlow" />
             
-            <div className="relative bg-[#080d18]/95 backdrop-blur-xl border border-cyan-400/20 rounded-2xl p-8 shadow-2xl shadow-cyan-900/30">
-              {/* Corner power indicators */}
-              <div className="absolute top-3 left-3 w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50" />
-              <div className="absolute top-3 right-3 w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50" style={{ animationDelay: '0.5s' }} />
-              <div className="absolute bottom-3 left-3 w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-400/50" style={{ animationDelay: '1s' }} />
-              <div className="absolute bottom-3 right-3 w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-400/50" style={{ animationDelay: '1.5s' }} />
-              
-              {/* Top energy bar */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-scanLine" />
-              
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/30 to-blue-600/30 border border-cyan-400/40 mb-4 animate-iconFloat shadow-lg shadow-cyan-500/20">
-                  <LogIn className="w-8 h-8 text-cyan-300" />
-                </div>
-                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-200 to-cyan-300 tracking-wide">
-                  ACCESS THE POWER
-                </h2>
-                <p className="text-cyan-400/60 text-sm mt-2 tracking-widest uppercase">
-                  Unlimited Potential Awaits
-                </p>
+            <div className="relative bg-[#0d0905]/95 backdrop-blur-xl border border-amber-400/30 rounded-2xl p-8 shadow-2xl" style={{ boxShadow: '0 0 60px rgba(255,140,0,0.2), inset 0 1px 1px rgba(255,215,0,0.1)' }}>
+              {/* Corner lightning indicators */}
+              <div className="absolute top-2 left-2 w-3 h-3">
+                <div className="absolute inset-0 bg-amber-400 rounded-full animate-pulse" style={{ boxShadow: '0 0 12px #ffd700' }} />
               </div>
+              <div className="absolute top-2 right-2 w-3 h-3">
+                <div className="absolute inset-0 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s', boxShadow: '0 0 12px #ffd700' }} />
+              </div>
+              <div className="absolute bottom-2 left-2 w-3 h-3">
+                <div className="absolute inset-0 bg-orange-400 rounded-full animate-pulse" style={{ animationDelay: '0.6s', boxShadow: '0 0 12px #ff8c00' }} />
+              </div>
+              <div className="absolute bottom-2 right-2 w-3 h-3">
+                <div className="absolute inset-0 bg-orange-400 rounded-full animate-pulse" style={{ animationDelay: '0.9s', boxShadow: '0 0 12px #ff8c00' }} />
+              </div>
+              
+              {/* Top electric bar */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent animate-electricScan" style={{ boxShadow: '0 0 15px #ffd700' }} />
 
               <form onSubmit={handleLogin} className="space-y-6">
                 <div className="space-y-2 group">
-                  <Label htmlFor="email" className="text-cyan-200/80 text-sm font-medium tracking-wide">
-                    IDENTITY
+                  <Label htmlFor="email" className="text-amber-200/90 text-sm font-bold tracking-[0.2em] uppercase">
+                    Identity
                   </Label>
                   <div className="relative">
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-sm" />
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-500/50 transition-all group-focus-within:text-cyan-400 group-focus-within:scale-110" />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-sm" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500/60 transition-all group-focus-within:text-amber-400 group-focus-within:scale-110" />
                     <Input
                       id="email"
                       type="email"
@@ -341,18 +363,18 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                       placeholder="Enter your email"
                       required
                       data-testid="input-payzium-email"
-                      className="relative pl-12 h-14 bg-slate-900/70 border-cyan-500/20 text-white placeholder:text-slate-500 focus:border-cyan-400/60 focus:ring-cyan-400/30 focus:bg-slate-900/90 transition-all duration-300 rounded-xl text-lg"
+                      className="relative pl-12 h-14 bg-black/50 border-amber-500/30 text-amber-100 placeholder:text-amber-700/50 focus:border-amber-400/70 focus:ring-amber-400/40 focus:bg-black/70 transition-all duration-300 rounded-xl text-lg"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2 group">
-                  <Label htmlFor="password" className="text-cyan-200/80 text-sm font-medium tracking-wide">
-                    KEY
+                  <Label htmlFor="password" className="text-amber-200/90 text-sm font-bold tracking-[0.2em] uppercase">
+                    Power Key
                   </Label>
                   <div className="relative">
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-sm" />
-                    <LogIn className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-500/50 transition-all group-focus-within:text-cyan-400 group-focus-within:scale-110" />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-sm" />
+                    <LogIn className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500/60 transition-all group-focus-within:text-amber-400 group-focus-within:scale-110" />
                     <Input
                       id="password"
                       type="password"
@@ -361,7 +383,7 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                       placeholder="Enter your password"
                       required
                       data-testid="input-payzium-password"
-                      className="relative pl-12 h-14 bg-slate-900/70 border-cyan-500/20 text-white placeholder:text-slate-500 focus:border-cyan-400/60 focus:ring-cyan-400/30 focus:bg-slate-900/90 transition-all duration-300 rounded-xl text-lg"
+                      className="relative pl-12 h-14 bg-black/50 border-amber-500/30 text-amber-100 placeholder:text-amber-700/50 focus:border-amber-400/70 focus:ring-amber-400/40 focus:bg-black/70 transition-all duration-300 rounded-xl text-lg"
                     />
                   </div>
                 </div>
@@ -372,56 +394,64 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
                     data-testid="checkbox-payzium-remember"
-                    className="border-cyan-500/40 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-400"
+                    className="border-amber-500/50 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-400"
                   />
-                  <Label htmlFor="remember-me" className="text-sm text-cyan-300/60 cursor-pointer">
+                  <Label htmlFor="remember-me" className="text-sm text-amber-300/70 cursor-pointer">
                     Remember my identity
                   </Label>
                 </div>
 
-                {/* EPIC POWER BUTTON */}
+                {/* MJÖLNIR POWER BUTTON */}
                 <Button 
                   type="submit"
                   disabled={isLoading}
                   data-testid="button-payzium-login"
-                  className="w-full h-16 bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:via-blue-500 hover:to-indigo-500 text-white font-bold text-lg rounded-xl shadow-2xl shadow-cyan-500/40 hover:shadow-cyan-400/60 transition-all duration-500 hover:scale-[1.03] active:scale-[0.98] relative overflow-hidden group border-2 border-cyan-400/30 hover:border-cyan-300/50"
+                  className={`w-full h-18 py-5 text-white font-black text-xl rounded-xl transition-all duration-500 hover:scale-[1.03] active:scale-[0.98] relative overflow-hidden group border-2 ${
+                    isWorthy 
+                      ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:via-yellow-300 hover:to-amber-400 border-yellow-300/60 hover:border-yellow-200/80 shadow-[0_0_40px_rgba(255,215,0,0.5)]'
+                      : 'bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 hover:from-amber-600 hover:via-orange-500 hover:to-amber-600 border-amber-400/40 hover:border-amber-300/60 shadow-[0_0_30px_rgba(255,140,0,0.3)]'
+                  }`}
                 >
-                  {/* Multiple shimmer layers */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/0 via-cyan-400/20 to-cyan-400/0 translate-x-[100%] group-hover:translate-x-[-100%] transition-transform duration-1000 delay-100" />
+                  {/* Thunder shimmer effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/0 via-yellow-300/30 to-yellow-300/0 translate-x-[100%] group-hover:translate-x-[-100%] transition-transform duration-700 delay-100" />
                   
-                  {/* Power surge effect on hover */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-t from-cyan-400/20 to-transparent" />
-                  </div>
+                  {/* Power surge on worthy */}
+                  {isWorthy && (
+                    <div className="absolute inset-0 animate-worthyPulse">
+                      <div className="absolute inset-0 bg-gradient-to-t from-yellow-300/30 to-transparent" />
+                    </div>
+                  )}
                   
-                  <span className="relative z-10 flex items-center justify-center gap-3">
+                  <span className="relative z-10 flex items-center justify-center gap-3 drop-shadow-lg">
                     {isLoading ? (
                       <>
-                        <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span className="animate-pulse">INITIALIZING POWER...</span>
+                        <div className="w-7 h-7 border-3 border-white/40 border-t-white rounded-full animate-spin" />
+                        <span className="animate-pulse tracking-wider">CHANNELING POWER...</span>
                       </>
                     ) : (
                       <>
-                        <span className="tracking-widest">ENTER THE REALM</span>
-                        <LogIn className="w-6 h-6 transition-all group-hover:translate-x-2 group-hover:scale-125" />
+                        <span className={`tracking-[0.15em] transition-all duration-500 ${isWorthy ? 'text-black' : 'text-white'}`}>
+                          {isWorthy ? 'Mjölnir is yours' : 'Are you worthy?'}
+                        </span>
+                        <LogIn className={`w-7 h-7 transition-all group-hover:translate-x-2 group-hover:scale-125 ${isWorthy ? 'text-black' : 'text-white'}`} />
                       </>
                     )}
                   </span>
                 </Button>
               </form>
 
-              {/* Power status indicator */}
-              <div className="mt-8 pt-6 border-t border-cyan-500/20">
-                <div className="flex items-center justify-center gap-4">
+              {/* Power status */}
+              <div className="mt-8 pt-6 border-t border-amber-500/20">
+                <div className="flex items-center justify-center gap-6">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-lg shadow-green-400/50" />
-                    <span className="text-green-400/80 text-xs tracking-wider">SYSTEMS ONLINE</span>
+                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" style={{ boxShadow: '0 0 10px #4ade80' }} />
+                    <span className="text-green-400/90 text-xs tracking-wider font-medium">ONLINE</span>
                   </div>
-                  <div className="w-px h-4 bg-cyan-500/30" />
+                  <div className="w-px h-4 bg-amber-500/30" />
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-lg shadow-cyan-400/50" />
-                    <span className="text-cyan-400/80 text-xs tracking-wider">POWER: MAXIMUM</span>
+                    <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" style={{ boxShadow: '0 0 10px #fbbf24' }} />
+                    <span className="text-amber-400/90 text-xs tracking-wider font-medium">POWER: UNLIMITED</span>
                   </div>
                 </div>
               </div>
@@ -429,34 +459,68 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
           </div>
 
           {/* Epic Footer */}
-          <div className="mt-12 text-center animate-fadeIn" style={{ animationDelay: '0.8s' }}>
+          <div className="mt-10 text-center animate-fadeIn" style={{ animationDelay: '0.8s' }}>
             <div className="flex items-center justify-center gap-4 mb-3">
-              <div className="w-20 h-px bg-gradient-to-r from-transparent to-cyan-500/50" />
-              <div className="w-3 h-3 rotate-45 border border-cyan-500/50 animate-pulse" />
-              <div className="w-20 h-px bg-gradient-to-l from-transparent to-cyan-500/50" />
+              <div className="w-24 h-px bg-gradient-to-r from-transparent to-amber-500/60" />
+              <div className="w-4 h-4 rotate-45 border-2 border-amber-500/60 animate-pulse" style={{ boxShadow: '0 0 10px rgba(255,215,0,0.3)' }} />
+              <div className="w-24 h-px bg-gradient-to-l from-transparent to-amber-500/60" />
             </div>
-            <p className="text-cyan-500/40 text-xs tracking-[0.3em] uppercase">
+            <p className="text-amber-500/50 text-xs tracking-[0.4em] uppercase font-medium">
               Unlimited Power Awaits
             </p>
           </div>
         </div>
       </div>
 
-      {/* CSS Animations - UNLIMITED POWER */}
+      {/* CSS Animations - THOR'S LIGHTNING */}
       <style>{`
-        @keyframes matrixFall {
-          0% { transform: translateY(-200px); opacity: 0; }
-          10% { opacity: 1; }
+        @keyframes stormCloud1 {
+          0%, 100% { transform: translateX(-10%) scale(1.05); opacity: 0.4; }
+          50% { transform: translateX(10%) scale(1); opacity: 0.6; }
+        }
+        @keyframes stormCloud2 {
+          0%, 100% { transform: translateX(15%) scale(1); opacity: 0.3; }
+          50% { transform: translateX(-15%) scale(1.1); opacity: 0.5; }
+        }
+        @keyframes lightningBolt1 {
+          0%, 89%, 100% { opacity: 0; }
           90% { opacity: 1; }
-          100% { transform: translateY(100vh); opacity: 0; }
+          91% { opacity: 0; }
+          92% { opacity: 0.8; }
+          93% { opacity: 0; }
         }
-        @keyframes digitPulse {
-          0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 1; transform: scale(2); box-shadow: 0 0 15px currentColor; }
+        @keyframes lightningBolt2 {
+          0%, 84%, 100% { opacity: 0; }
+          85% { opacity: 1; }
+          86% { opacity: 0; }
+          87% { opacity: 0.6; }
+          88% { opacity: 0; }
         }
-        @keyframes linePulse {
-          0%, 100% { opacity: 0.1; }
-          50% { opacity: 0.4; }
+        @keyframes lightningBolt3 {
+          0%, 79%, 100% { opacity: 0; }
+          80% { opacity: 0.8; }
+          81% { opacity: 0; }
+          82% { opacity: 1; }
+          83% { opacity: 0; }
+        }
+        @keyframes lightningBranch {
+          0%, 95%, 100% { opacity: 0; }
+          96% { opacity: 1; }
+          97% { opacity: 0; }
+          98% { opacity: 0.7; }
+          99% { opacity: 0; }
+        }
+        @keyframes sparkFloat {
+          0%, 100% { opacity: 0.3; transform: translateY(0) scale(1); }
+          50% { opacity: 1; transform: translateY(-20px) scale(1.5); }
+        }
+        @keyframes arcPulse {
+          0%, 100% { opacity: 0.1; transform: scaleX(0.8); }
+          50% { opacity: 0.6; transform: scaleX(1.2); }
+        }
+        @keyframes pillarPulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
         }
         @keyframes fadeInDown {
           from { opacity: 0; transform: translateY(-60px) scale(0.9); }
@@ -470,86 +534,81 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        @keyframes aurora1 {
-          0%, 100% { transform: translateX(-20%) skewX(-5deg); opacity: 0.3; }
-          50% { transform: translateX(20%) skewX(5deg); opacity: 0.5; }
+        @keyframes breatheGold {
+          0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(1); }
+          50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
         }
-        @keyframes aurora2 {
-          0%, 100% { transform: translateX(20%) skewX(5deg); opacity: 0.2; }
-          50% { transform: translateX(-20%) skewX(-5deg); opacity: 0.4; }
+        @keyframes breatheGold2 {
+          0%, 100% { opacity: 0.25; transform: scale(1); }
+          50% { opacity: 0.45; transform: scale(1.15); }
         }
-        @keyframes breathe {
-          0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
-          50% { opacity: 0.5; transform: translateX(-50%) scale(1.1); }
-        }
-        @keyframes breathe2 {
+        @keyframes breatheGold3 {
           0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.35; transform: scale(1.15); }
+          50% { opacity: 0.35; transform: scale(1.2); }
         }
-        @keyframes breathe3 {
+        @keyframes haloGold {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.05); }
+        }
+        @keyframes coronaPulse {
           0%, 100% { opacity: 0.15; transform: scale(1); }
-          50% { opacity: 0.3; transform: scale(1.2); }
+          50% { opacity: 0.4; transform: scale(1.1); }
         }
-        @keyframes haloBreath {
-          0%, 100% { opacity: 0.5; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.05); }
-        }
-        @keyframes innerGlow {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        @keyframes logoFloat {
+        @keyframes logoThunder {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
+          50% { transform: translateY(-6px); }
         }
-        @keyframes powerRing1 {
+        @keyframes reflectionPulse {
+          0%, 100% { opacity: 0.3; transform: translateX(-50%) scaleX(0.8); }
+          50% { opacity: 0.7; transform: translateX(-50%) scaleX(1.2); }
+        }
+        @keyframes fieldRing1 {
           0%, 100% { opacity: 0.3; transform: scale(1); }
           50% { opacity: 0.6; transform: scale(1.02); }
         }
-        @keyframes powerRing2 {
-          0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(1.03); }
+        @keyframes fieldRing2 {
+          0%, 100% { opacity: 0.15; transform: scale(1); }
+          50% { opacity: 0.35; transform: scale(1.03); }
         }
-        @keyframes powerRing3 {
-          0%, 100% { opacity: 0.1; transform: scale(1); }
-          50% { opacity: 0.25; transform: scale(1.04); }
+        @keyframes energySurge {
+          0%, 100% { opacity: 0.25; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.02); }
         }
-        @keyframes energyPulse {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.6; transform: scale(1.02); }
-        }
-        @keyframes borderGlow {
+        @keyframes borderGoldGlow {
           0%, 100% { opacity: 0.5; }
-          50% { opacity: 0.8; }
+          50% { opacity: 0.9; }
         }
-        @keyframes scanLine {
-          0% { transform: translateX(-50%) scaleX(0.3); opacity: 0.3; }
+        @keyframes electricScan {
+          0% { transform: translateX(-50%) scaleX(0.3); opacity: 0.4; }
           50% { transform: translateX(-50%) scaleX(1); opacity: 1; }
-          100% { transform: translateX(-50%) scaleX(0.3); opacity: 0.3; }
+          100% { transform: translateX(-50%) scaleX(0.3); opacity: 0.4; }
         }
-        @keyframes iconFloat {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          25% { transform: translateY(-3px) rotate(1deg); }
-          75% { transform: translateY(3px) rotate(-1deg); }
+        @keyframes worthyPulse {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
         }
         .animate-fadeInDown { animation: fadeInDown 1.2s ease-out forwards; }
         .animate-fadeInUp { animation: fadeInUp 1.2s ease-out forwards; }
         .animate-fadeIn { animation: fadeIn 1s ease-out forwards; }
-        .animate-aurora1 { animation: aurora1 15s ease-in-out infinite; }
-        .animate-aurora2 { animation: aurora2 18s ease-in-out infinite; }
-        .animate-breathe { animation: breathe 8s ease-in-out infinite; }
-        .animate-breathe2 { animation: breathe2 10s ease-in-out infinite; }
-        .animate-breathe3 { animation: breathe3 12s ease-in-out infinite; }
-        .animate-haloBreath { animation: haloBreath 4s ease-in-out infinite; }
-        .animate-innerGlow { animation: innerGlow 3s ease-in-out infinite; }
-        .animate-logoFloat { animation: logoFloat 6s ease-in-out infinite; }
-        .animate-powerRing1 { animation: powerRing1 3s ease-in-out infinite; }
-        .animate-powerRing2 { animation: powerRing2 4s ease-in-out infinite; }
-        .animate-powerRing3 { animation: powerRing3 5s ease-in-out infinite; }
-        .animate-energyPulse { animation: energyPulse 2s ease-in-out infinite; }
-        .animate-borderGlow { animation: borderGlow 2s ease-in-out infinite; }
-        .animate-scanLine { animation: scanLine 3s ease-in-out infinite; }
-        .animate-iconFloat { animation: iconFloat 4s ease-in-out infinite; }
+        .animate-stormCloud1 { animation: stormCloud1 12s ease-in-out infinite; }
+        .animate-stormCloud2 { animation: stormCloud2 15s ease-in-out infinite; }
+        .animate-lightningBolt1 { animation: lightningBolt1 8s ease-out infinite; }
+        .animate-lightningBolt2 { animation: lightningBolt2 7s ease-out infinite; animation-delay: 2s; }
+        .animate-lightningBolt3 { animation: lightningBolt3 9s ease-out infinite; animation-delay: 4s; }
+        .animate-breatheGold { animation: breatheGold 8s ease-in-out infinite; }
+        .animate-breatheGold2 { animation: breatheGold2 10s ease-in-out infinite; }
+        .animate-breatheGold3 { animation: breatheGold3 12s ease-in-out infinite; }
+        .animate-haloGold { animation: haloGold 4s ease-in-out infinite; }
+        .animate-coronaPulse { animation: coronaPulse 3s ease-in-out infinite; }
+        .animate-logoThunder { animation: logoThunder 5s ease-in-out infinite; }
+        .animate-reflectionPulse { animation: reflectionPulse 4s ease-in-out infinite; }
+        .animate-fieldRing1 { animation: fieldRing1 3s ease-in-out infinite; }
+        .animate-fieldRing2 { animation: fieldRing2 4s ease-in-out infinite; }
+        .animate-energySurge { animation: energySurge 2.5s ease-in-out infinite; }
+        .animate-borderGoldGlow { animation: borderGoldGlow 2s ease-in-out infinite; }
+        .animate-electricScan { animation: electricScan 3s ease-in-out infinite; }
+        .animate-worthyPulse { animation: worthyPulse 1.5s ease-in-out infinite; }
+        .animate-pillarPulse { animation: pillarPulse 2s ease-in-out infinite; }
         .bg-gradient-radial { background: radial-gradient(circle, var(--tw-gradient-stops)); }
       `}</style>
     </div>
@@ -594,10 +653,10 @@ function AnalyticsPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Eye className="w-5 h-5 text-purple-600" />
+              <Eye className="w-5 h-5 text-amber-600" />
               <span className="text-sm text-gray-600">Total Visits</span>
             </div>
-            <p className="text-2xl font-bold text-purple-900" data-testid="stat-total-visits">
+            <p className="text-2xl font-bold text-amber-900" data-testid="stat-total-visits">
               {stats?.totalVisits ?? 0}
             </p>
           </CardContent>
@@ -605,10 +664,10 @@ function AnalyticsPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Users className="w-5 h-5 text-purple-600" />
+              <Users className="w-5 h-5 text-amber-600" />
               <span className="text-sm text-gray-600">Unique Visitors</span>
             </div>
-            <p className="text-2xl font-bold text-purple-900" data-testid="stat-unique-visitors">
+            <p className="text-2xl font-bold text-amber-900" data-testid="stat-unique-visitors">
               {stats?.uniqueIps ?? 0}
             </p>
           </CardContent>
@@ -616,10 +675,10 @@ function AnalyticsPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Send className="w-5 h-5 text-purple-600" />
+              <Send className="w-5 h-5 text-amber-600" />
               <span className="text-sm text-gray-600">Contracts Sent</span>
             </div>
-            <p className="text-2xl font-bold text-purple-900" data-testid="stat-contracts-sent">
+            <p className="text-2xl font-bold text-amber-900" data-testid="stat-contracts-sent">
               {stats?.contractsSent ?? 0}
             </p>
           </CardContent>
@@ -627,10 +686,10 @@ function AnalyticsPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <CheckCircle className="w-5 h-5 text-purple-600" />
+              <CheckCircle className="w-5 h-5 text-amber-600" />
               <span className="text-sm text-gray-600">Contracts Signed</span>
             </div>
-            <p className="text-2xl font-bold text-purple-900" data-testid="stat-contracts-signed">
+            <p className="text-2xl font-bold text-amber-900" data-testid="stat-contracts-signed">
               {stats?.contractsSigned ?? 0}
             </p>
           </CardContent>
@@ -644,7 +703,7 @@ function AnalyticsPanel() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-purple-600" data-testid="stat-today-visits">
+          <p className="text-3xl font-bold text-amber-600" data-testid="stat-today-visits">
             {stats?.todayVisits ?? 0}
           </p>
         </CardContent>
@@ -1011,13 +1070,13 @@ export default function CsuPortal() {
     if (signedSuccessfully) {
       return (
         <Layout>
-          <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
+          <section className="bg-gradient-to-br from-amber-950 via-amber-900 to-orange-950 text-white py-12">
             <div className="container mx-auto px-4 text-center">
               <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
-              <p className="text-lg text-purple-200">Contract Signed Successfully!</p>
+              <p className="text-lg text-amber-200">Contract Signed Successfully!</p>
             </div>
           </section>
-          <section className="py-8 bg-gray-100 min-h-screen">
+          <section className="py-8 bg-stone-100 min-h-screen">
             <div className="container mx-auto px-4 max-w-xl">
               <Card>
                 <CardContent className="pt-6 text-center">
@@ -1028,7 +1087,7 @@ export default function CsuPortal() {
                     {lastSignedAgreementId && (
                       <Button
                         onClick={() => window.open(`/api/csu/signed-agreements/${lastSignedAgreementId}/pdf`, "_blank")}
-                        className="bg-purple-600 hover:bg-purple-700"
+                        className="bg-amber-600 hover:bg-amber-700"
                         data-testid="button-download-signed-pdf"
                       >
                         <Download className="w-4 h-4 mr-2" /> Download PDF
@@ -1057,14 +1116,14 @@ export default function CsuPortal() {
 
     return (
       <Layout>
-        <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-8">
+        <section className="bg-gradient-to-br from-amber-950 via-amber-900 to-orange-950 text-white py-8">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-2xl sm:text-4xl font-display mb-2">Payzium</h1>
-            <p className="text-purple-200">{currentTemplate.name}</p>
+            <p className="text-amber-200">{currentTemplate.name}</p>
           </div>
         </section>
 
-        <section className="py-8 bg-gray-100 min-h-screen">
+        <section className="py-8 bg-stone-100 min-h-screen">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Main Content - Contract & Signing */}
@@ -1168,7 +1227,7 @@ export default function CsuPortal() {
                       <div className="flex gap-4">
                         <Button
                           onClick={handleSelfSignSubmit}
-                          className="flex-1 bg-purple-600 hover:bg-purple-700"
+                          className="flex-1 bg-amber-600 hover:bg-amber-700"
                           disabled={selfSignMutation.isPending}
                           data-testid="button-self-sign-submit"
                         >
@@ -1192,39 +1251,39 @@ export default function CsuPortal() {
 
               {/* Right Sidebar - Account Info */}
               <div className="space-y-6" data-testid="account-info-panel">
-                <Card className="border-purple-200 bg-purple-50">
+                <Card className="border-amber-200 bg-amber-50">
                   <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center gap-2 text-purple-800">
+                    <CardTitle className="flex items-center gap-2 text-amber-800">
                       <Building className="w-5 h-5" /> Account Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
                         <User className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-purple-900" data-testid="text-account-name">{MAURICE_INFO.name}</p>
-                        <p className="text-sm text-purple-700" data-testid="text-account-title">{MAURICE_INFO.title}</p>
+                        <p className="font-bold text-amber-900" data-testid="text-account-name">{MAURICE_INFO.name}</p>
+                        <p className="text-sm text-amber-700" data-testid="text-account-title">{MAURICE_INFO.title}</p>
                       </div>
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2 text-gray-700">
-                        <Mail className="w-4 h-4 text-purple-600" />
+                        <Mail className="w-4 h-4 text-amber-600" />
                         <span data-testid="text-account-email">{MAURICE_INFO.email}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-700">
-                        <Phone className="w-4 h-4 text-purple-600" />
+                        <Phone className="w-4 h-4 text-amber-600" />
                         <span data-testid="text-account-phone1">{MAURICE_INFO.phone1}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-700">
-                        <Phone className="w-4 h-4 text-purple-600" />
+                        <Phone className="w-4 h-4 text-amber-600" />
                         <span data-testid="text-account-phone2">{MAURICE_INFO.phone2}</span>
                       </div>
                     </div>
-                    <div className="pt-2 border-t border-purple-200">
-                      <p className="text-xs text-purple-700 font-medium">Portal Link:</p>
-                      <p className="text-xs text-purple-600 break-all" data-testid="text-account-portal-link">{MAURICE_INFO.portalLink}</p>
+                    <div className="pt-2 border-t border-amber-200">
+                      <p className="text-xs text-amber-700 font-medium">Portal Link:</p>
+                      <p className="text-xs text-amber-600 break-all" data-testid="text-account-portal-link">{MAURICE_INFO.portalLink}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1240,10 +1299,10 @@ export default function CsuPortal() {
   if (authLoading) {
     return (
       <Layout>
-        <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
+        <section className="bg-gradient-to-br from-amber-950 via-amber-900 to-orange-950 text-white py-12">
           <div className="container mx-auto px-4">
             <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
-            <p className="text-lg text-purple-200">Loading...</p>
+            <p className="text-lg text-amber-200">Loading...</p>
           </div>
         </section>
       </Layout>
@@ -1256,30 +1315,35 @@ export default function CsuPortal() {
 
   return (
     <Layout>
-      <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white py-12">
+      <section className="bg-gradient-to-br from-amber-950 via-amber-900 to-orange-950 text-white py-12">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl sm:text-5xl font-display mb-4">Payzium</h1>
-          <p className="text-lg text-purple-200">Contract Management Portal</p>
+          <div className="flex items-center gap-4">
+            <img src="/payzium-lightning-logo.png" alt="Payzium" className="h-16 w-auto" />
+            <div>
+              <h1 className="text-3xl sm:text-5xl font-display mb-1">Payzium</h1>
+              <p className="text-lg text-amber-200">Contract Management Portal</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="py-8 bg-gray-100 min-h-screen">
+      <section className="py-8 bg-stone-100 min-h-screen">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-4 mb-8">
-                  <TabsTrigger value="send" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-send">
+                  <TabsTrigger value="send" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-send">
                     <Send className="w-4 h-4 mr-2" /> Send Contract
                   </TabsTrigger>
-                  <TabsTrigger value="pending" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-pending">
+                  <TabsTrigger value="pending" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-pending">
                     <Clock className="w-4 h-4 mr-2" /> Pending ({contractSends.filter(s => s.status === "pending").length})
                   </TabsTrigger>
-                  <TabsTrigger value="signed" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-signed">
+                  <TabsTrigger value="signed" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-signed">
                     <CheckCircle className="w-4 h-4 mr-2" /> Signed ({signedAgreements.length})
                   </TabsTrigger>
-                  <TabsTrigger value="analytics" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white" data-testid="tab-analytics">
+                  <TabsTrigger value="analytics" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-analytics">
                     <BarChart3 className="w-4 h-4 mr-2" /> Analytics
                   </TabsTrigger>
                 </TabsList>
@@ -1353,7 +1417,7 @@ export default function CsuPortal() {
                         <div className="flex flex-col sm:flex-row gap-4">
                           <Button
                             type="submit"
-                            className="flex-1 bg-purple-600 hover:bg-purple-700"
+                            className="flex-1 bg-amber-600 hover:bg-amber-700"
                             disabled={sendContractMutation.isPending}
                             data-testid="button-send-contract"
                           >
@@ -1362,7 +1426,7 @@ export default function CsuPortal() {
                           <Button
                             type="button"
                             variant="outline"
-                            className="flex-1 border-purple-600 text-purple-600 hover:bg-purple-50"
+                            className="flex-1 border-amber-600 text-amber-600 hover:bg-amber-50"
                             onClick={handleSignItMyself}
                             data-testid="button-sign-myself"
                           >
@@ -1504,46 +1568,46 @@ export default function CsuPortal() {
 
             {/* Right Sidebar - Account Info */}
             <div className="space-y-6" data-testid="main-account-info-panel">
-              <Card className="border-purple-200 bg-purple-50">
+              <Card className="border-amber-200 bg-amber-50">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-purple-800">
+                  <CardTitle className="flex items-center gap-2 text-amber-800">
                     <Building className="w-5 h-5" /> Account Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                    <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
                       <User className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <p className="font-bold text-purple-900" data-testid="text-main-account-name">{MAURICE_INFO.name}</p>
-                      <p className="text-sm text-purple-700" data-testid="text-main-account-title">{MAURICE_INFO.title}</p>
+                      <p className="font-bold text-amber-900" data-testid="text-main-account-name">{MAURICE_INFO.name}</p>
+                      <p className="text-sm text-amber-700" data-testid="text-main-account-title">{MAURICE_INFO.title}</p>
                     </div>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2 text-gray-700">
-                      <Mail className="w-4 h-4 text-purple-600" />
+                      <Mail className="w-4 h-4 text-amber-600" />
                       <span data-testid="text-main-account-email">{MAURICE_INFO.email}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
-                      <Phone className="w-4 h-4 text-purple-600" />
+                      <Phone className="w-4 h-4 text-amber-600" />
                       <span data-testid="text-main-account-phone1">{MAURICE_INFO.phone1}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
-                      <Phone className="w-4 h-4 text-purple-600" />
+                      <Phone className="w-4 h-4 text-amber-600" />
                       <span data-testid="text-main-account-phone2">{MAURICE_INFO.phone2}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
-                      <ExternalLink className="w-4 h-4 text-purple-600" />
-                      <a href={`https://${MAURICE_INFO.website}`} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline" data-testid="link-main-account-website">
+                      <ExternalLink className="w-4 h-4 text-amber-600" />
+                      <a href={`https://${MAURICE_INFO.website}`} target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline" data-testid="link-main-account-website">
                         {MAURICE_INFO.website}
                       </a>
                     </div>
                   </div>
-                  <div className="pt-2 border-t border-purple-200">
-                    <p className="text-xs text-purple-700 font-medium mb-1">Your Portal Link:</p>
+                  <div className="pt-2 border-t border-amber-200">
+                    <p className="text-xs text-amber-700 font-medium mb-1">Your Portal Link:</p>
                     <div className="flex items-center gap-1">
-                      <p className="text-xs text-purple-600 break-all flex-1" data-testid="text-main-account-portal-link">{MAURICE_INFO.portalLink}</p>
+                      <p className="text-xs text-amber-600 break-all flex-1" data-testid="text-main-account-portal-link">{MAURICE_INFO.portalLink}</p>
                       <Button
                         variant="ghost"
                         size="icon"
