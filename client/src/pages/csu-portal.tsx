@@ -146,77 +146,108 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Floating orbs */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-violet-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        
-        {/* Animated grid lines */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `
-              linear-gradient(to right, rgba(139, 92, 246, 0.1) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(139, 92, 246, 0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '60px 60px',
-            animation: 'gridMove 20s linear infinite'
-          }} />
-        </div>
-        
-        {/* Floating particles */}
-        {[...Array(20)].map((_, i) => (
+    <div className="min-h-screen relative overflow-hidden bg-[#0a0e17]">
+      {/* Deep space background with subtle gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0e17] via-[#0d1525] to-[#0a0e17]" />
+      
+      {/* Matrix-style falling digital rain */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(40)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-purple-400/40 rounded-full"
+            className="absolute w-px bg-gradient-to-b from-transparent via-cyan-500/20 to-transparent"
+            style={{
+              left: `${(i * 2.5) + Math.random() * 2}%`,
+              height: `${100 + Math.random() * 200}px`,
+              animation: `matrixFall ${8 + Math.random() * 12}s linear infinite`,
+              animationDelay: `${Math.random() * 8}s`,
+              opacity: 0.3 + Math.random() * 0.4
+            }}
+          />
+        ))}
+        
+        {/* Scattered digital dots */}
+        {[...Array(60)].map((_, i) => (
+          <div
+            key={`dot-${i}`}
+            className="absolute w-[2px] h-[2px] rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 5}s`
+              backgroundColor: Math.random() > 0.5 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(59, 130, 246, 0.4)',
+              animation: `digitPulse ${2 + Math.random() * 3}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 2}s`
             }}
           />
         ))}
       </div>
 
+      {/* Ambient light glow behind logo area */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-radial from-blue-900/20 via-transparent to-transparent blur-3xl" />
+      
+      {/* Horizon light band */}
+      <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+
       {/* Main content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          {/* Logo and branding */}
-          <div className="text-center mb-8 animate-fadeInDown">
-            <div className="inline-flex items-center justify-center w-full mb-6">
-              <img 
-                src="/payzium-logo.png" 
-                alt="Payzium Logo" 
-                className="w-64 h-auto drop-shadow-[0_0_30px_rgba(139,92,246,0.3)] animate-float"
-              />
+          
+          {/* Logo Stage - sophisticated presentation */}
+          <div className="text-center mb-10 animate-fadeInDown">
+            {/* Logo container with glow and blend effects */}
+            <div className="relative inline-block">
+              {/* Outer glow ring */}
+              <div className="absolute -inset-8 bg-gradient-radial from-cyan-500/10 via-blue-600/5 to-transparent rounded-full blur-2xl" />
+              
+              {/* Logo with sophisticated styling */}
+              <div className="relative">
+                <img 
+                  src="/payzium-logo.png" 
+                  alt="Payzium" 
+                  className="w-72 h-auto relative z-10"
+                  style={{
+                    filter: 'drop-shadow(0 0 40px rgba(34, 211, 238, 0.15)) drop-shadow(0 0 80px rgba(59, 130, 246, 0.1))',
+                  }}
+                />
+                {/* Subtle reflection effect */}
+                <div 
+                  className="absolute -bottom-4 left-0 right-0 h-16 bg-gradient-to-b from-cyan-500/5 to-transparent blur-sm"
+                  style={{ transform: 'scaleY(-0.3)', opacity: 0.5 }}
+                />
+              </div>
             </div>
-            <p className="text-purple-300/80 text-lg">Contract Management Portal</p>
+            
+            <p className="text-cyan-300/60 text-lg mt-6 tracking-wide font-light">
+              Contract Management Portal
+            </p>
           </div>
 
-          {/* Glassmorphism login card */}
-          <div className="relative animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
-            {/* Card glow effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 rounded-3xl blur-lg opacity-30 animate-pulse" />
+          {/* Premium login card */}
+          <div className="relative animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+            {/* Card border glow */}
+            <div className="absolute -inset-[1px] bg-gradient-to-b from-cyan-500/30 via-blue-600/20 to-cyan-500/30 rounded-2xl blur-sm" />
             
-            <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 shadow-2xl">
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-semibold text-white flex items-center justify-center gap-2">
-                  <LogIn className="w-5 h-5 text-purple-400" />
-                  Welcome Back
+            <div className="relative bg-[#0d1525]/90 backdrop-blur-xl border border-cyan-500/10 rounded-2xl p-8 shadow-2xl shadow-black/50">
+              {/* Subtle inner glow at top */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
+              
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-semibold text-white flex items-center justify-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center">
+                    <LogIn className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  Secure Access
                 </h2>
-                <p className="text-purple-300/60 text-sm mt-1">Sign in to your account</p>
+                <p className="text-slate-400 text-sm mt-2">Enter your credentials to continue</p>
               </div>
 
-              <form onSubmit={handleLogin} className="space-y-5">
+              <form onSubmit={handleLogin} className="space-y-6">
                 <div className="space-y-2 group">
-                  <Label htmlFor="email" className="text-purple-200 text-sm font-medium">
+                  <Label htmlFor="email" className="text-slate-300 text-sm font-medium">
                     Email Address
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400/50 transition-colors group-focus-within:text-purple-400" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 transition-colors group-focus-within:text-cyan-400" />
                     <Input
                       id="email"
                       type="email"
@@ -225,17 +256,17 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                       placeholder="Enter your email"
                       required
                       data-testid="input-payzium-email"
-                      className="pl-11 h-12 bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 focus:border-purple-500 focus:ring-purple-500/20 focus:bg-white/10 transition-all duration-300 rounded-xl"
+                      className="pl-12 h-12 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-900/70 transition-all duration-300 rounded-xl"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2 group">
-                  <Label htmlFor="password" className="text-purple-200 text-sm font-medium">
+                  <Label htmlFor="password" className="text-slate-300 text-sm font-medium">
                     Password
                   </Label>
                   <div className="relative">
-                    <LogIn className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400/50 transition-colors group-focus-within:text-purple-400" />
+                    <LogIn className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 transition-colors group-focus-within:text-cyan-400" />
                     <Input
                       id="password"
                       type="password"
@@ -244,20 +275,20 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                       placeholder="Enter your password"
                       required
                       data-testid="input-payzium-password"
-                      className="pl-11 h-12 bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 focus:border-purple-500 focus:ring-purple-500/20 focus:bg-white/10 transition-all duration-300 rounded-xl"
+                      className="pl-12 h-12 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-900/70 transition-all duration-300 rounded-xl"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <Checkbox 
                     id="remember-me"
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
                     data-testid="checkbox-payzium-remember"
-                    className="border-purple-400/50 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                    className="border-slate-600 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                   />
-                  <Label htmlFor="remember-me" className="text-sm text-purple-300/80 cursor-pointer">
+                  <Label htmlFor="remember-me" className="text-sm text-slate-400 cursor-pointer">
                     Remember my email
                   </Label>
                 </div>
@@ -266,13 +297,13 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                   type="submit"
                   disabled={isLoading}
                   data-testid="button-payzium-login"
-                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group"
+                  className="w-full h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-900/30 hover:shadow-cyan-800/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group border border-cyan-500/20"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     {isLoading ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Signing in...
+                        Authenticating...
                       </>
                     ) : (
                       <>
@@ -281,23 +312,26 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
                       </>
                     )}
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 </Button>
               </form>
 
-              {/* Decorative bottom line */}
-              <div className="mt-8 pt-6 border-t border-white/10">
-                <p className="text-center text-purple-300/50 text-xs">
-                  Secure portal access for authorized users only
-                </p>
+              {/* Security badge */}
+              <div className="mt-8 pt-6 border-t border-slate-700/50">
+                <div className="flex items-center justify-center gap-2 text-slate-500 text-xs">
+                  <div className="w-4 h-4 rounded-full border border-cyan-500/30 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                  </div>
+                  <span>256-bit encrypted connection</span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="mt-8 text-center animate-fadeIn" style={{ animationDelay: '0.5s' }}>
-            <p className="text-purple-300/40 text-sm">
-              Powered by <span className="text-purple-400">Payzium</span>
+          <div className="mt-10 text-center animate-fadeIn" style={{ animationDelay: '0.6s' }}>
+            <p className="text-slate-600 text-xs tracking-wider">
+              PAYZIUM SECURE PORTAL
             </p>
           </div>
         </div>
@@ -305,20 +339,22 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
 
       {/* CSS Animations */}
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.4; }
-          50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+        @keyframes matrixFall {
+          0% { transform: translateY(-200px); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(100vh); opacity: 0; }
         }
-        @keyframes gridMove {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(60px, 60px); }
+        @keyframes digitPulse {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.5); }
         }
         @keyframes fadeInDown {
-          from { opacity: 0; transform: translateY(-30px); }
+          from { opacity: 0; transform: translateY(-40px); }
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(30px); }
+          from { opacity: 0; transform: translateY(40px); }
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeIn {
@@ -326,16 +362,16 @@ function PayziumLoginForm({ onSuccess }: { onSuccess: () => Promise<void> | void
           to { opacity: 1; }
         }
         .animate-fadeInDown {
-          animation: fadeInDown 0.8s ease-out forwards;
+          animation: fadeInDown 1s ease-out forwards;
         }
         .animate-fadeInUp {
-          animation: fadeInUp 0.8s ease-out forwards;
+          animation: fadeInUp 1s ease-out forwards;
         }
         .animate-fadeIn {
-          animation: fadeIn 0.8s ease-out forwards;
+          animation: fadeIn 1s ease-out forwards;
         }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
+        .bg-gradient-radial {
+          background: radial-gradient(circle, var(--tw-gradient-stops));
         }
       `}</style>
     </div>
