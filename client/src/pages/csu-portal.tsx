@@ -1063,7 +1063,7 @@ interface IpGeoData {
   asn: string;
 }
 
-type AnalyticsView = "activity" | "unique_visitors" | "contracts_sent" | "contracts_signed" | "today_visits";
+type AnalyticsView = "activity" | "unique_visitors" | "contracts_sent" | "contracts_signed" | "today_visits" | "page_views";
 
 function AnalyticsPanel() {
   const [selectedIp, setSelectedIp] = useState<string | null>(null);
@@ -1139,9 +1139,17 @@ function AnalyticsPanel() {
     return activity.filter(a => new Date(a.createdAt).toDateString() === today);
   };
 
+  const getPageViews = () => {
+    return activity.filter(a => a.eventType === "page_view" && a.pagePath);
+  };
+
+  const getPageViewCount = () => {
+    return getPageViews().length;
+  };
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card 
           className={`cursor-pointer transition-all hover:shadow-lg ${activeView === "activity" ? "ring-2 ring-purple-500" : ""}`}
           onClick={() => setActiveView("activity")}
@@ -1214,6 +1222,21 @@ function AnalyticsPanel() {
             </div>
             <p className="text-2xl font-bold text-amber-900" data-testid="stat-today-visits">
               {stats?.todayVisits ?? 0}
+            </p>
+          </CardContent>
+        </Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${activeView === "page_views" ? "ring-2 ring-purple-500" : ""}`}
+          onClick={() => setActiveView("page_views")}
+          data-testid="card-page-views"
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-5 h-5 text-amber-600" />
+              <span className="text-sm text-gray-600">Page Views</span>
+            </div>
+            <p className="text-2xl font-bold text-amber-900" data-testid="stat-page-views">
+              {getPageViewCount()}
             </p>
           </CardContent>
         </Card>
@@ -1414,6 +1437,72 @@ function AnalyticsPanel() {
                             )}
                             Download PDF
                           </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Page Views Log */}
+      {activeView === "page_views" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" /> Page View History ({getPageViews().length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {getPageViews().length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No page views recorded yet</p>
+            ) : (
+              <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-white">
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-3">Time</th>
+                      <th className="text-left py-2 px-3">Page</th>
+                      <th className="text-left py-2 px-3">Visitor IP</th>
+                      <th className="text-left py-2 px-3">Session</th>
+                      <th className="text-left py-2 px-3">Referrer</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getPageViews().map((view) => (
+                      <tr key={view.id} className="border-b hover:bg-gray-50" data-testid={`page-view-${view.id}`}>
+                        <td className="py-2 px-3 whitespace-nowrap text-xs">
+                          {new Date(view.createdAt).toLocaleString()}
+                        </td>
+                        <td className="py-2 px-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium">
+                            <FileText className="w-3 h-3" />
+                            {view.pagePath || "/"}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3">
+                          {view.ipAddress ? (
+                            <button
+                              onClick={() => handleIpClick(view.ipAddress!)}
+                              className="text-blue-600 hover:underline cursor-pointer font-mono text-xs"
+                              data-testid={`ip-link-${view.id}`}
+                            >
+                              {view.ipAddress}
+                            </button>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="py-2 px-3">
+                          <span className="font-mono text-xs text-gray-500">
+                            {view.sessionId ? view.sessionId.substring(0, 8) + "..." : "-"}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-xs text-gray-600 max-w-[200px] truncate" title={view.referrer || ""}>
+                          {view.referrer || "-"}
                         </td>
                       </tr>
                     ))}
