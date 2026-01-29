@@ -887,7 +887,7 @@ export default function CsuSign() {
                     data-testid="checkbox-agree"
                   />
                   <Label htmlFor="agreedToTerms" className="text-sm leading-relaxed">
-                    I have read, understood, and agree to all terms of this FICA Tips Tax Credit Services Agreement. I acknowledge that this is a legally binding contract. *
+                    I have read, understood, and agree to all terms of this {contractData.template.name}. I acknowledge that this is a legally binding contract. *
                   </Label>
                 </div>
 
