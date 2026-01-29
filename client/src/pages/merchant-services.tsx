@@ -10,6 +10,7 @@ export default function MerchantServices() {
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [videoThumbnail, setVideoThumbnail] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -21,6 +22,22 @@ export default function MerchantServices() {
       const storedRef = localStorage.getItem('finops_referral');
       if (storedRef) setReferralCode(storedRef);
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchVimeoThumbnail = async () => {
+      try {
+        const response = await fetch('https://vimeo.com/api/oembed.json?url=https://vimeo.com/1159350744');
+        const data = await response.json();
+        if (data.thumbnail_url) {
+          const largeThumbnail = data.thumbnail_url.replace(/_\d+x\d+/, '_1280x720');
+          setVideoThumbnail(largeThumbnail);
+        }
+      } catch (error) {
+        console.error('Error fetching Vimeo thumbnail:', error);
+      }
+    };
+    fetchVimeoThumbnail();
   }, []);
 
   const handlePartnerClick = async () => {
@@ -118,18 +135,32 @@ export default function MerchantServices() {
                     className="w-full h-full"
                     allow="autoplay; fullscreen"
                     allowFullScreen
+                    title="Merchant Services Overview"
+                    loading="lazy"
                   />
                 ) : (
-                  <div className="text-center p-8">
-                    <Play className="w-16 h-16 text-brand-navy mx-auto mb-4" />
-                    <h3 className="text-xl font-display text-brand-navy mb-2">9-Minute Overview Video</h3>
-                    <p className="text-gray-600 mb-4">Learn how this compliance solution helps businesses and veterans</p>
-                    <Button 
-                      onClick={() => setShowVideo(true)}
-                      className="bg-brand-navy hover:bg-brand-navy/90"
-                    >
-                      Watch Video <Play className="ml-2 h-4 w-4" />
-                    </Button>
+                  <div 
+                    className="w-full h-full relative cursor-pointer group"
+                    onClick={() => setShowVideo(true)}
+                  >
+                    {videoThumbnail ? (
+                      <img 
+                        src={videoThumbnail} 
+                        alt="Video thumbnail" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-brand-navy/20 to-brand-navy/40" />
+                    )}
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg">
+                          <Play className="w-10 h-10 text-brand-navy ml-1" />
+                        </div>
+                        <h3 className="text-xl font-display text-white mb-2 drop-shadow-lg">Overview Video</h3>
+                        <p className="text-white/90 text-sm drop-shadow">Click to play</p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
