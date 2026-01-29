@@ -20,6 +20,8 @@ interface CsuContractData {
   userAgent?: string | null;
   clientCompany?: string | null;
   primaryTitle?: string | null;
+  esignConsent?: boolean;
+  termsConsent?: boolean;
 }
 
 // Helper to strip HTML tags and decode entities
@@ -202,7 +204,8 @@ export async function generateCsuContractPdf(data: CsuContractData): Promise<Buf
         ['IP Address:', data.signedIpAddress || 'N/A'],
         ['User Agent:', (data.userAgent || 'N/A').substring(0, 60) + (data.userAgent && data.userAgent.length > 60 ? '...' : '')],
         ['Signature Method:', 'Drawn electronic signature via touch/mouse input'],
-        ['Consent Given:', 'Yes - E-SIGN Act consent provided'],
+        ['E-SIGN Consent:', data.esignConsent ? 'Yes - Consented to electronic signatures' : 'No'],
+        ['Terms Accepted:', data.termsConsent ? 'Yes - Agreed to agreement terms' : 'No'],
       ];
 
       for (const [label, value] of certDetails) {

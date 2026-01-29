@@ -3930,7 +3930,7 @@ export async function registerRoutes(
     try {
       const { token } = req.params;
       
-      // Validate request body with Zod
+      // Validate request body with Zod - require BOTH consent checkboxes
       const csuSignSchema = z.object({
         signerName: z.string().min(1, "Name is required"),
         signerEmail: z.string().email("Valid email is required"),
@@ -3939,9 +3939,16 @@ export async function registerRoutes(
         initials: z.string().min(1, "Initials are required"),
         effectiveDate: z.string().min(1, "Effective date is required"),
         signatureData: z.string().min(1, "Signature is required"),
+        agreedToEsign: z.union([z.boolean(), z.string()]).refine(val => val === true || val === "true", {
+          message: "You must consent to electronic signatures"
+        }),
         agreedToTerms: z.union([z.boolean(), z.string()]).refine(val => val === true || val === "true", {
           message: "You must agree to the terms"
         }),
+        clientCompany: z.string().optional().nullable(),
+        primaryOwner: z.string().optional().nullable(),
+        primaryTitle: z.string().optional().nullable(),
+        secondaryOwner: z.string().optional().nullable(),
       });
 
       const validationResult = csuSignSchema.safeParse(req.body);
@@ -3951,7 +3958,7 @@ export async function registerRoutes(
         });
       }
 
-      const { signerName, signerEmail, signerPhone, address, initials, effectiveDate, signatureData, agreedToTerms } = validationResult.data;
+      const { signerName, signerEmail, signerPhone, address, initials, effectiveDate, signatureData, agreedToEsign, agreedToTerms, clientCompany, primaryTitle } = validationResult.data;
 
       const contractSend = await storage.getCsuContractSendByToken(token);
       
@@ -3967,12 +3974,16 @@ export async function registerRoutes(
         return res.status(410).json({ message: "This contract has already been signed" });
       }
 
-      // Get client IP
+      // Get client IP and user agent at signing time
       const signedIpAddress = req.headers["x-forwarded-for"]?.toString().split(",")[0] || 
                               req.socket.remoteAddress || 
                               "unknown";
+      const signingUserAgent = req.headers["user-agent"] || "Unknown";
 
-      // Create the signed agreement with validated agreedToTerms
+      // Build consent string for audit trail (includes both consents)
+      const consentRecord = `esign:${agreedToEsign === true || agreedToEsign === "true" ? "yes" : "no"},terms:${agreedToTerms === true || agreedToTerms === "true" ? "yes" : "no"},ua:${signingUserAgent.substring(0, 200)},company:${clientCompany || ""},title:${primaryTitle || ""}`;
+
+      // Create the signed agreement with validated consent
       const signedAgreement = await storage.createCsuSignedAgreement({
         contractSendId: contractSend.id,
         templateId: contractSend.templateId,
@@ -3984,7 +3995,7 @@ export async function registerRoutes(
         effectiveDate: effectiveDate || null,
         signatureData,
         signedIpAddress,
-        agreedToTerms: agreedToTerms === true || agreedToTerms === "true" ? "true" : "false",
+        agreedToTerms: consentRecord,
       });
 
       // Update the contract send status
@@ -4012,13 +4023,23 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Template not found" });
       }
 
-      // Get user agent from request
-      const userAgent = req.headers["user-agent"] || "Unknown";
+      // Parse consent record from agreedToTerms field (stores full audit data)
+      const consentRecord = agreement.agreedToTerms || "";
+      const parseConsentField = (field: string): string => {
+        const match = consentRecord.match(new RegExp(`${field}:([^,]*)`));
+        return match ? match[1] : "";
+      };
+      
+      const esignConsent = parseConsentField("esign") === "yes";
+      const termsConsent = parseConsentField("terms") === "yes";
+      const storedUserAgent = parseConsentField("ua") || "Unknown";
+      const clientCompany = parseConsentField("company") || "";
+      const primaryTitle = parseConsentField("title") || "";
 
       // Import PDF generator
       const { generateCsuContractPdf } = await import("./pdfGenerator");
 
-      // Generate PDF with full audit data
+      // Generate PDF with full audit data from signing time
       const pdfBuffer = await generateCsuContractPdf({
         templateName: template.name,
         templateContent: template.content,
@@ -4032,7 +4053,11 @@ export async function registerRoutes(
         signedIpAddress: agreement.signedIpAddress,
         signatureData: agreement.signatureData,
         agreementId: agreement.id,
-        userAgent,
+        userAgent: storedUserAgent,
+        clientCompany,
+        primaryTitle,
+        esignConsent,
+        termsConsent,
       });
 
       res.setHeader("Content-Type", "application/pdf");
@@ -4059,13 +4084,23 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Template not found" });
       }
 
-      // Get user agent from request
-      const userAgent = req.headers["user-agent"] || "Unknown";
+      // Parse consent record from agreedToTerms field (stores full audit data)
+      const consentRecord = agreement.agreedToTerms || "";
+      const parseConsentField = (field: string): string => {
+        const match = consentRecord.match(new RegExp(`${field}:([^,]*)`));
+        return match ? match[1] : "";
+      };
+      
+      const esignConsent = parseConsentField("esign") === "yes";
+      const termsConsent = parseConsentField("terms") === "yes";
+      const storedUserAgent = parseConsentField("ua") || "Unknown";
+      const clientCompany = parseConsentField("company") || "";
+      const primaryTitle = parseConsentField("title") || "";
 
       // Import PDF generator
       const { generateCsuContractPdf } = await import("./pdfGenerator");
 
-      // Generate PDF with full audit data
+      // Generate PDF with full audit data from signing time
       const pdfBuffer = await generateCsuContractPdf({
         templateName: template.name,
         templateContent: template.content,
@@ -4079,7 +4114,11 @@ export async function registerRoutes(
         signedIpAddress: agreement.signedIpAddress,
         signatureData: agreement.signatureData,
         agreementId: agreement.id,
-        userAgent,
+        userAgent: storedUserAgent,
+        clientCompany,
+        primaryTitle,
+        esignConsent,
+        termsConsent,
       });
 
       res.setHeader("Content-Type", "application/pdf");
