@@ -1,183 +1,204 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
-const montageVideos = [
-  "/videos/montage-clip.mp4",           // Soldiers shooting - first
-  "/videos/soldiers-marching-new.mp4",
-  "/videos/montage-rain.mp4",           // Rain video 1
-  "/videos/montage-embrace-1.mp4",
-  "/videos/montage-salute.mp4",
-  "/videos/montage-gear.mp4",
-  "/videos/montage-embrace-2.mp4",
-  "/videos/montage-helicopter.mp4",
-  "/videos/montage-iwojima.mp4",        // Iwo Jima - last
+interface MontageSegment {
+  src: string;
+  startTime: number;
+  endTime: number;
+}
+
+const montageTimeline: MontageSegment[] = [
+  { src: "/videos/soldiers-marching-new.mp4", startTime: 0, endTime: 8 },
+  { src: "/videos/montage-rain.mp4", startTime: 8, endTime: 14 },
+  { src: "/videos/montage-embrace-1.mp4", startTime: 14, endTime: 20 },
+  { src: "/videos/montage-clip.mp4", startTime: 20, endTime: 28 },
+  { src: "/videos/montage-salute.mp4", startTime: 28, endTime: 34 },
+  { src: "/videos/soldiers-marching-new.mp4", startTime: 34, endTime: 42 },
+  { src: "/videos/montage-gear.mp4", startTime: 42, endTime: 48 },
+  { src: "/videos/montage-embrace-2.mp4", startTime: 48, endTime: 54 },
+  { src: "/videos/montage-helicopter.mp4", startTime: 54, endTime: 62 },
+  { src: "/videos/montage-rain.mp4", startTime: 62, endTime: 68 },
+  { src: "/videos/montage-clip.mp4", startTime: 68, endTime: 76 },
+  { src: "/videos/montage-salute.mp4", startTime: 76, endTime: 82 },
+  { src: "/videos/montage-embrace-1.mp4", startTime: 82, endTime: 90 },
+  { src: "/videos/soldiers-marching-new.mp4", startTime: 90, endTime: 98 },
+  { src: "/videos/montage-helicopter.mp4", startTime: 98, endTime: 106 },
+  { src: "/videos/montage-iwojima.mp4", startTime: 106, endTime: 118 },
 ];
 
-export function HeroMontage() {
+const uniqueVideos = Array.from(new Set(montageTimeline.map(s => s.src)));
+
+interface HeroMontageProps {
+  isActive?: boolean;
+  onMontageEnd?: () => void;
+}
+
+export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [needsInteraction, setNeedsInteraction] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-  const advancingRef = useRef(false);
-  const durationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const userInteractedRef = useRef(false);
 
-  // Single timer management - clear any existing timer
-  const clearDurationTimer = useCallback(() => {
-    if (durationTimerRef.current) {
-      clearTimeout(durationTimerRef.current);
-      durationTimerRef.current = null;
+  const getCurrentSegmentIndex = useCallback((time: number) => {
+    for (let i = 0; i < montageTimeline.length; i++) {
+      if (time >= montageTimeline[i].startTime && time < montageTimeline[i].endTime) {
+        return i;
+      }
     }
+    return montageTimeline.length - 1;
   }, []);
 
-  // Advance to next video - single entry point with debounce
-  const advanceToNext = useCallback(() => {
-    if (advancingRef.current) return;
-    advancingRef.current = true;
-    
-    clearDurationTimer();
-    setActiveIndex(prev => (prev + 1) % montageVideos.length);
-    
-    // Prevent double-advance for 800ms (longer than transition)
-    setTimeout(() => {
-      advancingRef.current = false;
-    }, 800);
-  }, [clearDurationTimer]);
-
-  // Schedule advance based on actual video duration (only after canplay)
-  const scheduleAdvance = useCallback((video: HTMLVideoElement) => {
-    clearDurationTimer();
-    const duration = video.duration;
-    if (duration && duration > 0 && isFinite(duration)) {
-      // Advance slightly before end to smooth transition
-      const timeout = Math.max((duration - 0.5) * 1000, 1000);
-      durationTimerRef.current = setTimeout(advanceToNext, timeout);
+  const stopMontage = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
-  }, [advanceToNext, clearDurationTimer]);
-
-  // Attempt to play video - handles mobile autoplay restrictions
-  const attemptPlay = useCallback((video: HTMLVideoElement) => {
-    video.currentTime = 0;
-    const playPromise = video.play();
-    
-    if (playPromise) {
-      playPromise.then(() => {
-        userInteractedRef.current = true;
-        setNeedsInteraction(false);
-        setIsPlaying(true);
-        
-        // Only schedule timer after successful play AND we have duration
-        if (video.duration && video.duration > 0) {
-          scheduleAdvance(video);
-        }
-        // If no duration yet, loadedmetadata handler will schedule
-      }).catch(() => {
-        // Mobile autoplay blocked - DO NOT advance automatically
-        // Wait for user interaction instead of cycling through videos
-        setIsPlaying(false);
-        if (!userInteractedRef.current) {
-          setNeedsInteraction(true);
-        }
-        // Clear timer - don't advance on blocked autoplay
-        clearDurationTimer();
-      });
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
-  }, [scheduleAdvance, clearDurationTimer]);
+    videoRefs.current.forEach(video => {
+      video.pause();
+      video.currentTime = 0;
+    });
+    setIsPlaying(false);
+    startTimeRef.current = null;
+    setElapsedTime(0);
+    setActiveIndex(0);
+  }, []);
 
-  // User taps to enable video playback on mobile
-  const handleTapToPlay = useCallback(() => {
-    setNeedsInteraction(false);
+  const updateMontage = useCallback(() => {
+    if (!startTimeRef.current || !isPlaying) return;
+
+    const now = performance.now();
+    const elapsed = (now - startTimeRef.current) / 1000;
+    setElapsedTime(elapsed);
+
+    if (elapsed >= 118) {
+      stopMontage();
+      onMontageEnd?.();
+      return;
+    }
+
+    const newIndex = getCurrentSegmentIndex(elapsed);
+    if (newIndex !== activeIndex) {
+      setActiveIndex(newIndex);
+    }
+
+    animationFrameRef.current = requestAnimationFrame(updateMontage);
+  }, [activeIndex, getCurrentSegmentIndex, isPlaying, onMontageEnd, stopMontage]);
+
+  const startMontage = useCallback(() => {
     userInteractedRef.current = true;
-    
-    const currentVideo = videoRefs.current[activeIndex];
-    if (currentVideo) {
-      attemptPlay(currentVideo);
-    }
-  }, [activeIndex, attemptPlay]);
+    setNeedsInteraction(false);
+    setIsPlaying(true);
+    startTimeRef.current = performance.now();
+    setActiveIndex(0);
+    setElapsedTime(0);
 
-  // Effect: Handle video switching
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
+    }
+
+    const firstVideo = videoRefs.current.get(montageTimeline[0].src);
+    if (firstVideo) {
+      firstVideo.currentTime = 0;
+      firstVideo.play().catch(() => {});
+    }
+
+    animationFrameRef.current = requestAnimationFrame(updateMontage);
+  }, [updateMontage]);
+
+  const handleTapToPlay = useCallback(() => {
+    startMontage();
+  }, [startMontage]);
+
   useEffect(() => {
-    clearDurationTimer();
-    
-    videoRefs.current.forEach((video, index) => {
-      if (video) {
-        if (index === activeIndex) {
-          // Only auto-play if user has interacted or autoplay works
-          if (userInteractedRef.current || !needsInteraction) {
-            attemptPlay(video);
-          }
-        } else {
-          video.pause();
-          video.currentTime = 0;
+    if (isActive && !isPlaying && !needsInteraction) {
+      const firstVideo = videoRefs.current.get(montageTimeline[0].src);
+      if (firstVideo) {
+        firstVideo.currentTime = 0;
+        const playPromise = firstVideo.play();
+        if (playPromise) {
+          playPromise.then(() => {
+            userInteractedRef.current = true;
+            startMontage();
+          }).catch(() => {
+            setNeedsInteraction(true);
+          });
         }
+      }
+
+      if (audioRef.current) {
+        audioRef.current.play().catch(() => {});
+      }
+    }
+  }, [isActive, isPlaying, needsInteraction, startMontage]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const currentSegment = montageTimeline[activeIndex];
+    const currentVideo = videoRefs.current.get(currentSegment.src);
+
+    videoRefs.current.forEach((video, src) => {
+      if (src === currentSegment.src) {
+        if (video.paused) {
+          video.currentTime = 0;
+          video.play().catch(() => {});
+        }
+      } else {
+        video.pause();
       }
     });
 
-    return () => {
-      clearDurationTimer();
-    };
-  }, [activeIndex, attemptPlay, clearDurationTimer, needsInteraction]);
+    if (currentVideo) {
+      const segmentDuration = currentSegment.endTime - currentSegment.startTime;
+      const videoDuration = currentVideo.duration || 4;
+      
+      if (videoDuration < segmentDuration) {
+        currentVideo.loop = true;
+      } else {
+        currentVideo.loop = false;
+      }
+    }
+  }, [activeIndex, isPlaying]);
 
-  // Effect: Video event listeners for current video
   useEffect(() => {
-    const currentVideo = videoRefs.current[activeIndex];
-    if (!currentVideo) return;
-    
-    // Primary advance trigger - video ended naturally
-    const handleEnded = () => {
-      advanceToNext();
-    };
-    
-    // Backup trigger - advance just before end (handles edge cases)
-    const handleTimeUpdate = () => {
-      if (isPlaying && currentVideo.duration > 0 && 
-          currentVideo.currentTime >= currentVideo.duration - 0.2) {
-        advanceToNext();
-      }
-    };
-
-    // When metadata loads, schedule timer if playing
-    const handleLoadedMetadata = () => {
-      if (isPlaying && currentVideo.duration > 0) {
-        scheduleAdvance(currentVideo);
-      }
-    };
-    
-    // When video can play through, start if user has interacted
-    const handleCanPlayThrough = () => {
-      if (userInteractedRef.current && currentVideo.paused) {
-        attemptPlay(currentVideo);
-      }
-    };
-
-    currentVideo.addEventListener("ended", handleEnded);
-    currentVideo.addEventListener("timeupdate", handleTimeUpdate);
-    currentVideo.addEventListener("loadedmetadata", handleLoadedMetadata);
-    currentVideo.addEventListener("canplaythrough", handleCanPlayThrough);
-
     return () => {
-      currentVideo.removeEventListener("ended", handleEnded);
-      currentVideo.removeEventListener("timeupdate", handleTimeUpdate);
-      currentVideo.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      currentVideo.removeEventListener("canplaythrough", handleCanPlayThrough);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
-  }, [activeIndex, advanceToNext, isPlaying, scheduleAdvance, attemptPlay]);
+  }, []);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-brand-navy">
-      {montageVideos.map((src, index) => (
+      <audio
+        ref={audioRef}
+        src="/audio/montage-music.mp3"
+        preload="auto"
+      />
+
+      {uniqueVideos.map((src) => (
         <video
           key={src}
-          ref={el => { videoRefs.current[index] = el; }}
+          ref={el => { if (el) videoRefs.current.set(src, el); }}
           src={src}
           muted
           playsInline
           preload="auto"
           className={cn(
-            "absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out",
-            index === activeIndex ? "opacity-100" : "opacity-0"
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out",
+            montageTimeline[activeIndex]?.src === src ? "opacity-100" : "opacity-0"
           )}
-          style={{ zIndex: index === activeIndex ? 1 : 0 }}
+          style={{ zIndex: montageTimeline[activeIndex]?.src === src ? 1 : 0 }}
         />
       ))}
       
@@ -196,18 +217,26 @@ export function HeroMontage() {
       )}
       
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 sm:gap-2">
-        {montageVideos.map((_, index) => (
+        {montageTimeline.map((_, index) => (
           <div
             key={index}
             className={cn(
               "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-500",
               index === activeIndex 
                 ? "bg-brand-gold w-4 sm:w-6" 
-                : "bg-white/40"
+                : index < activeIndex
+                  ? "bg-white/60"
+                  : "bg-white/30"
             )}
           />
         ))}
       </div>
+
+      {isPlaying && (
+        <div className="absolute top-4 right-4 z-20 bg-black/50 text-white px-3 py-1 rounded text-sm font-mono">
+          {Math.floor(elapsedTime)}s / 118s
+        </div>
+      )}
     </div>
   );
 }
