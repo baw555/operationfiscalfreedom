@@ -5618,5 +5618,143 @@ export async function registerRoutes(
     }
   });
 
+  // ===== HIPAA COMPLIANCE ENDPOINTS =====
+
+  // HIPAA Audit Log - get logs (admin only)
+  app.get("/api/hipaa/audit-logs", requireAdmin, async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 1000;
+      const logs = await storage.getHipaaAuditLogs(limit);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching HIPAA audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
+  });
+
+  // HIPAA Audit Log - get logs by user
+  app.get("/api/hipaa/audit-logs/user/:userId", requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const logs = await storage.getHipaaAuditLogsByUser(userId);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching user audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch user audit logs" });
+    }
+  });
+
+  // HIPAA Audit Log - get PHI access logs
+  app.get("/api/hipaa/audit-logs/phi", requireAdmin, async (req, res) => {
+    try {
+      const logs = await storage.getHipaaPhiAccessLogs();
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching PHI access logs:", error);
+      res.status(500).json({ message: "Failed to fetch PHI access logs" });
+    }
+  });
+
+  // Business Associate Agreements - get all
+  app.get("/api/hipaa/baa", requireAdmin, async (req, res) => {
+    try {
+      const baas = await storage.getAllBusinessAssociateAgreements();
+      res.json(baas);
+    } catch (error) {
+      console.error("Error fetching BAAs:", error);
+      res.status(500).json({ message: "Failed to fetch BAA records" });
+    }
+  });
+
+  // Business Associate Agreements - create
+  app.post("/api/hipaa/baa", requireAdmin, async (req, res) => {
+    try {
+      const baa = await storage.createBusinessAssociateAgreement(req.body);
+      res.status(201).json(baa);
+    } catch (error) {
+      console.error("Error creating BAA:", error);
+      res.status(500).json({ message: "Failed to create BAA record" });
+    }
+  });
+
+  // Business Associate Agreements - update
+  app.patch("/api/hipaa/baa/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const baa = await storage.updateBusinessAssociateAgreement(id, req.body);
+      if (!baa) {
+        return res.status(404).json({ message: "BAA not found" });
+      }
+      res.json(baa);
+    } catch (error) {
+      console.error("Error updating BAA:", error);
+      res.status(500).json({ message: "Failed to update BAA record" });
+    }
+  });
+
+  // HIPAA Training Records - get all
+  app.get("/api/hipaa/training", requireAdmin, async (req, res) => {
+    try {
+      const records = await storage.getAllHipaaTrainingRecords();
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching training records:", error);
+      res.status(500).json({ message: "Failed to fetch training records" });
+    }
+  });
+
+  // HIPAA Training Records - create
+  app.post("/api/hipaa/training", requireAdmin, async (req, res) => {
+    try {
+      const record = await storage.createHipaaTrainingRecord(req.body);
+      res.status(201).json(record);
+    } catch (error) {
+      console.error("Error creating training record:", error);
+      res.status(500).json({ message: "Failed to create training record" });
+    }
+  });
+
+  // HIPAA Training Records - get by user
+  app.get("/api/hipaa/training/user/:userId", requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const records = await storage.getHipaaTrainingRecordsByUser(userId);
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching user training records:", error);
+      res.status(500).json({ message: "Failed to fetch user training records" });
+    }
+  });
+
+  // HIPAA Training Records - get expired
+  app.get("/api/hipaa/training/expired", requireAdmin, async (req, res) => {
+    try {
+      const records = await storage.getExpiredTrainingRecords();
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching expired training records:", error);
+      res.status(500).json({ message: "Failed to fetch expired training records" });
+    }
+  });
+
+  // MFA Configuration - get user config
+  app.get("/api/hipaa/mfa/user/:userId", requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const config = await storage.getUserMfaConfig(userId);
+      if (!config) {
+        return res.json({ mfaEnabled: false });
+      }
+      res.json({
+        mfaEnabled: config.mfaEnabled,
+        mfaSetupCompletedAt: config.mfaSetupCompletedAt,
+        lastMfaUsedAt: config.lastMfaUsedAt,
+      });
+    } catch (error) {
+      console.error("Error fetching MFA config:", error);
+      res.status(500).json({ message: "Failed to fetch MFA configuration" });
+    }
+  });
+
   return httpServer;
 }

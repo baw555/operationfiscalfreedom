@@ -43,10 +43,14 @@ import {
   partnerSharingLog, type PartnerSharingLog, type InsertPartnerSharingLog,
   consentRecords, type ConsentRecord, type InsertConsentRecord,
   affiliatedPartners, type AffiliatedPartner, type InsertAffiliatedPartner,
-  rangerTabApplications, type RangerTabApplication, type InsertRangerTabApplication
+  rangerTabApplications, type RangerTabApplication, type InsertRangerTabApplication,
+  hipaaAuditLog, type HipaaAuditLog, type InsertHipaaAuditLog,
+  hipaaTrainingRecords, type HipaaTrainingRecord, type InsertHipaaTrainingRecord,
+  businessAssociateAgreements, type BusinessAssociateAgreement, type InsertBusinessAssociateAgreement,
+  userMfaConfig, type UserMfaConfig, type InsertUserMfaConfig
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull, or, ilike, gt } from "drizzle-orm";
+import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -315,6 +319,30 @@ export interface IStorage {
   createCsuAuditTrail(entry: InsertCsuAuditTrail): Promise<CsuAuditTrail>;
   getAuditTrailForEnvelope(envelopeId: number): Promise<CsuAuditTrail[]>;
   getAuditTrailForContractSend(contractSendId: number): Promise<CsuAuditTrail[]>;
+
+  // HIPAA Audit Log - §164.312(b)
+  createHipaaAuditLog(entry: InsertHipaaAuditLog): Promise<HipaaAuditLog>;
+  getHipaaAuditLogs(limit?: number): Promise<HipaaAuditLog[]>;
+  getHipaaAuditLogsByUser(userId: number): Promise<HipaaAuditLog[]>;
+  getHipaaAuditLogsByResource(resourceType: string, resourceId?: string): Promise<HipaaAuditLog[]>;
+  getHipaaPhiAccessLogs(): Promise<HipaaAuditLog[]>;
+
+  // HIPAA Training Records - §164.308(a)(5)
+  createHipaaTrainingRecord(record: InsertHipaaTrainingRecord): Promise<HipaaTrainingRecord>;
+  getHipaaTrainingRecordsByUser(userId: number): Promise<HipaaTrainingRecord[]>;
+  getAllHipaaTrainingRecords(): Promise<HipaaTrainingRecord[]>;
+  getExpiredTrainingRecords(): Promise<HipaaTrainingRecord[]>;
+
+  // Business Associate Agreements - §164.504(e)
+  createBusinessAssociateAgreement(baa: InsertBusinessAssociateAgreement): Promise<BusinessAssociateAgreement>;
+  getBusinessAssociateAgreement(id: number): Promise<BusinessAssociateAgreement | undefined>;
+  getAllBusinessAssociateAgreements(): Promise<BusinessAssociateAgreement[]>;
+  updateBusinessAssociateAgreement(id: number, updates: Partial<BusinessAssociateAgreement>): Promise<BusinessAssociateAgreement | undefined>;
+
+  // User MFA Configuration - §164.312(d)
+  createUserMfaConfig(config: InsertUserMfaConfig): Promise<UserMfaConfig>;
+  getUserMfaConfig(userId: number): Promise<UserMfaConfig | undefined>;
+  updateUserMfaConfig(userId: number, updates: Partial<UserMfaConfig>): Promise<UserMfaConfig | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1600,6 +1628,113 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(csuAuditTrail)
       .where(eq(csuAuditTrail.contractSendId, contractSendId))
       .orderBy(desc(csuAuditTrail.createdAt));
+  }
+
+  // ===== HIPAA COMPLIANCE METHODS =====
+
+  // HIPAA Audit Log - §164.312(b)
+  async createHipaaAuditLog(entry: InsertHipaaAuditLog): Promise<HipaaAuditLog> {
+    const [created] = await db.insert(hipaaAuditLog).values(entry).returning();
+    return created;
+  }
+
+  async getHipaaAuditLogs(limit: number = 1000): Promise<HipaaAuditLog[]> {
+    return db.select().from(hipaaAuditLog)
+      .orderBy(desc(hipaaAuditLog.timestamp))
+      .limit(limit);
+  }
+
+  async getHipaaAuditLogsByUser(userId: number): Promise<HipaaAuditLog[]> {
+    return db.select().from(hipaaAuditLog)
+      .where(eq(hipaaAuditLog.userId, userId))
+      .orderBy(desc(hipaaAuditLog.timestamp));
+  }
+
+  async getHipaaAuditLogsByResource(resourceType: string, resourceId?: string): Promise<HipaaAuditLog[]> {
+    if (resourceId) {
+      return db.select().from(hipaaAuditLog)
+        .where(and(eq(hipaaAuditLog.resourceType, resourceType), eq(hipaaAuditLog.resourceId, resourceId)))
+        .orderBy(desc(hipaaAuditLog.timestamp));
+    }
+    return db.select().from(hipaaAuditLog)
+      .where(eq(hipaaAuditLog.resourceType, resourceType))
+      .orderBy(desc(hipaaAuditLog.timestamp));
+  }
+
+  async getHipaaPhiAccessLogs(): Promise<HipaaAuditLog[]> {
+    return db.select().from(hipaaAuditLog)
+      .where(eq(hipaaAuditLog.phiAccessed, true))
+      .orderBy(desc(hipaaAuditLog.timestamp));
+  }
+
+  // HIPAA Training Records - §164.308(a)(5)
+  async createHipaaTrainingRecord(record: InsertHipaaTrainingRecord): Promise<HipaaTrainingRecord> {
+    const [created] = await db.insert(hipaaTrainingRecords).values(record).returning();
+    return created;
+  }
+
+  async getHipaaTrainingRecordsByUser(userId: number): Promise<HipaaTrainingRecord[]> {
+    return db.select().from(hipaaTrainingRecords)
+      .where(eq(hipaaTrainingRecords.userId, userId))
+      .orderBy(desc(hipaaTrainingRecords.completedAt));
+  }
+
+  async getAllHipaaTrainingRecords(): Promise<HipaaTrainingRecord[]> {
+    return db.select().from(hipaaTrainingRecords)
+      .orderBy(desc(hipaaTrainingRecords.completedAt));
+  }
+
+  async getExpiredTrainingRecords(): Promise<HipaaTrainingRecord[]> {
+    const now = new Date();
+    return db.select().from(hipaaTrainingRecords)
+      .where(and(
+        eq(hipaaTrainingRecords.passed, true),
+        lt(hipaaTrainingRecords.expiresAt, now)
+      ))
+      .orderBy(desc(hipaaTrainingRecords.expiresAt));
+  }
+
+  // Business Associate Agreements - §164.504(e)
+  async createBusinessAssociateAgreement(baa: InsertBusinessAssociateAgreement): Promise<BusinessAssociateAgreement> {
+    const [created] = await db.insert(businessAssociateAgreements).values(baa).returning();
+    return created;
+  }
+
+  async getBusinessAssociateAgreement(id: number): Promise<BusinessAssociateAgreement | undefined> {
+    const [baa] = await db.select().from(businessAssociateAgreements).where(eq(businessAssociateAgreements.id, id));
+    return baa || undefined;
+  }
+
+  async getAllBusinessAssociateAgreements(): Promise<BusinessAssociateAgreement[]> {
+    return db.select().from(businessAssociateAgreements)
+      .orderBy(desc(businessAssociateAgreements.updatedAt));
+  }
+
+  async updateBusinessAssociateAgreement(id: number, updates: Partial<BusinessAssociateAgreement>): Promise<BusinessAssociateAgreement | undefined> {
+    const [updated] = await db.update(businessAssociateAgreements)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(businessAssociateAgreements.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // User MFA Configuration - §164.312(d)
+  async createUserMfaConfig(config: InsertUserMfaConfig): Promise<UserMfaConfig> {
+    const [created] = await db.insert(userMfaConfig).values(config).returning();
+    return created;
+  }
+
+  async getUserMfaConfig(userId: number): Promise<UserMfaConfig | undefined> {
+    const [config] = await db.select().from(userMfaConfig).where(eq(userMfaConfig.userId, userId));
+    return config || undefined;
+  }
+
+  async updateUserMfaConfig(userId: number, updates: Partial<UserMfaConfig>): Promise<UserMfaConfig | undefined> {
+    const [updated] = await db.update(userMfaConfig)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userMfaConfig.userId, userId))
+      .returning();
+    return updated || undefined;
   }
 }
 
