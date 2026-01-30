@@ -21,50 +21,69 @@ const totp = new TOTP({
   period: 30, // Standard 30-second time step
 });
 
-// HIPAA §164.312(d) - MFA Rate Limiting to prevent brute-force attacks
-// Tracks failed MFA attempts per user with lockout after threshold
-const mfaRateLimiter = new Map<number, { attempts: number; lockedUntil: number | null }>();
-const MFA_MAX_ATTEMPTS = 5;
-const MFA_LOCKOUT_MINUTES = 15;
+// HIPAA §164.312(d) - Persistent Rate Limiting to prevent brute-force attacks
+// Uses PostgreSQL for persistent, distributed lockout enforcement
+const AUTH_MAX_ATTEMPTS = 5;
+const AUTH_LOCKOUT_MINUTES = 15;
 
-function checkMfaRateLimit(userId: number): { allowed: boolean; remainingAttempts: number; lockedUntil: Date | null } {
-  const now = Date.now();
-  const userLimit = mfaRateLimiter.get(userId) || { attempts: 0, lockedUntil: null };
+async function checkAuthRateLimit(
+  identifier: string, 
+  identifierType: "user" | "email" | "ip", 
+  attemptType: "login" | "mfa"
+): Promise<{ allowed: boolean; remainingAttempts: number; lockedUntil: Date | null }> {
+  const record = await storage.getAuthRateLimit(identifier, identifierType, attemptType);
+  
+  if (!record) {
+    return { allowed: true, remainingAttempts: AUTH_MAX_ATTEMPTS, lockedUntil: null };
+  }
+  
+  const now = new Date();
   
   // Check if user is locked out
-  if (userLimit.lockedUntil && now < userLimit.lockedUntil) {
-    return { allowed: false, remainingAttempts: 0, lockedUntil: new Date(userLimit.lockedUntil) };
+  if (record.lockedUntil && now < record.lockedUntil) {
+    return { allowed: false, remainingAttempts: 0, lockedUntil: record.lockedUntil };
   }
   
   // Reset if lockout expired
-  if (userLimit.lockedUntil && now >= userLimit.lockedUntil) {
-    mfaRateLimiter.set(userId, { attempts: 0, lockedUntil: null });
-    return { allowed: true, remainingAttempts: MFA_MAX_ATTEMPTS, lockedUntil: null };
+  if (record.lockedUntil && now >= record.lockedUntil) {
+    await storage.resetAuthRateLimit(identifier, identifierType, attemptType);
+    return { allowed: true, remainingAttempts: AUTH_MAX_ATTEMPTS, lockedUntil: null };
   }
   
   return { 
-    allowed: userLimit.attempts < MFA_MAX_ATTEMPTS, 
-    remainingAttempts: MFA_MAX_ATTEMPTS - userLimit.attempts,
+    allowed: record.failedAttempts < AUTH_MAX_ATTEMPTS, 
+    remainingAttempts: AUTH_MAX_ATTEMPTS - record.failedAttempts,
     lockedUntil: null 
   };
 }
 
-function recordMfaAttempt(userId: number, success: boolean): void {
+async function recordAuthAttempt(
+  identifier: string, 
+  identifierType: "user" | "email" | "ip", 
+  attemptType: "login" | "mfa",
+  success: boolean
+): Promise<void> {
   if (success) {
     // Reset on successful verification
-    mfaRateLimiter.delete(userId);
+    await storage.resetAuthRateLimit(identifier, identifierType, attemptType);
     return;
   }
   
-  const userLimit = mfaRateLimiter.get(userId) || { attempts: 0, lockedUntil: null };
-  userLimit.attempts += 1;
+  const record = await storage.getAuthRateLimit(identifier, identifierType, attemptType);
+  const newAttempts = (record?.failedAttempts || 0) + 1;
   
   // Lock out after max attempts
-  if (userLimit.attempts >= MFA_MAX_ATTEMPTS) {
-    userLimit.lockedUntil = Date.now() + (MFA_LOCKOUT_MINUTES * 60 * 1000);
-  }
+  const lockedUntil = newAttempts >= AUTH_MAX_ATTEMPTS 
+    ? new Date(Date.now() + (AUTH_LOCKOUT_MINUTES * 60 * 1000)) 
+    : null;
   
-  mfaRateLimiter.set(userId, userLimit);
+  await storage.createOrUpdateAuthRateLimit({
+    identifier,
+    identifierType,
+    attemptType,
+    failedAttempts: newAttempts,
+    lockedUntil,
+  });
 }
 import { 
   insertAffiliateApplicationSchema, 
@@ -1475,8 +1494,36 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Email and password are required" });
       }
 
+      // HIPAA §164.312(d) - Check login rate limiting (persistent)
+      const loginRateLimit = await checkAuthRateLimit(email.toLowerCase(), "email", "login");
+      if (!loginRateLimit.allowed) {
+        await storage.createHipaaAuditLog({
+          userId: null,
+          userName: email,
+          userRole: null,
+          action: "LOGIN_LOCKED_OUT",
+          resourceType: "authentication",
+          resourceId: null,
+          resourceDescription: `Account locked due to ${AUTH_MAX_ATTEMPTS} failed login attempts`,
+          ipAddress: req.ip || null,
+          userAgent: req.headers["user-agent"] || null,
+          sessionId: req.sessionID || null,
+          success: false,
+          errorMessage: `Locked until ${loginRateLimit.lockedUntil?.toISOString()}`,
+          phiAccessed: false,
+        });
+        
+        return res.status(429).json({ 
+          message: `Too many failed attempts. Account locked until ${loginRateLimit.lockedUntil?.toLocaleTimeString()}`,
+          lockedUntil: loginRateLimit.lockedUntil?.toISOString()
+        });
+      }
+
       const user = await authenticateUser(email, password);
       if (!user) {
+        // Record failed login attempt for rate limiting
+        await recordAuthAttempt(email.toLowerCase(), "email", "login", false);
+        
         // Log failed login attempt for HIPAA audit
         await storage.createHipaaAuditLog({
           userId: null,
@@ -1495,6 +1542,9 @@ export async function registerRoutes(
         });
         return res.status(401).json({ message: "Invalid email or password" });
       }
+      
+      // Reset login rate limiter on successful auth
+      await recordAuthAttempt(email.toLowerCase(), "email", "login", true);
 
       // HIPAA Security: Check portal restrictions with normalized error messages
       // All portal-related auth failures return the same generic message to prevent enumeration
@@ -6090,8 +6140,8 @@ export async function registerRoutes(
         return res.status(400).json({ message: "User ID and code are required" });
       }
 
-      // HIPAA §164.312(d) - Check MFA rate limiting before processing
-      const rateLimit = checkMfaRateLimit(userId);
+      // HIPAA §164.312(d) - Check MFA rate limiting before processing (persistent)
+      const rateLimit = await checkAuthRateLimit(String(userId), "user", "mfa");
       if (!rateLimit.allowed) {
         // Log lockout event
         await storage.createHipaaAuditLog({
@@ -6101,7 +6151,7 @@ export async function registerRoutes(
           action: "MFA_LOCKED_OUT",
           resourceType: "user_mfa",
           resourceId: String(userId),
-          resourceDescription: `Account locked due to ${MFA_MAX_ATTEMPTS} failed MFA attempts`,
+          resourceDescription: `Account locked due to ${AUTH_MAX_ATTEMPTS} failed MFA attempts`,
           ipAddress: req.ip || null,
           userAgent: req.headers["user-agent"] || null,
           sessionId: req.sessionID || null,
@@ -6152,9 +6202,9 @@ export async function registerRoutes(
       const isValidTotp = !isBackupCode && totp.verify({ token: code, secret: config.mfaSecret });
 
       if (!isValidTotp && !isBackupCode) {
-        // Record failed attempt for rate limiting
-        recordMfaAttempt(userId, false);
-        const currentLimit = checkMfaRateLimit(userId);
+        // Record failed attempt for rate limiting (persistent)
+        await recordAuthAttempt(String(userId), "user", "mfa", false);
+        const currentLimit = await checkAuthRateLimit(String(userId), "user", "mfa");
         
         // Log failed MFA attempt
         await storage.createHipaaAuditLog({
@@ -6178,8 +6228,8 @@ export async function registerRoutes(
         });
       }
 
-      // Record successful attempt (resets rate limiter)
-      recordMfaAttempt(userId, true);
+      // Record successful attempt (resets rate limiter - persistent)
+      await recordAuthAttempt(String(userId), "user", "mfa", true);
 
       // Update last MFA used
       await storage.updateUserMfaConfig(userId, {

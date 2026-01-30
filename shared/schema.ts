@@ -1570,3 +1570,26 @@ export const insertUserMfaConfigSchema = createInsertSchema(userMfaConfig).omit(
 
 export type InsertUserMfaConfig = z.infer<typeof insertUserMfaConfigSchema>;
 export type UserMfaConfig = typeof userMfaConfig.$inferSelect;
+
+// HIPAA §164.312(d) - Persistent Rate Limiting for Auth
+// Tracks failed auth attempts with lockout for brute-force prevention
+export const authRateLimits = pgTable("auth_rate_limits", {
+  id: serial("id").primaryKey(),
+  identifier: text("identifier").notNull(), // userId, email, or IP
+  identifierType: text("identifier_type").notNull(), // "user", "email", "ip"
+  attemptType: text("attempt_type").notNull(), // "login", "mfa"
+  failedAttempts: integer("failed_attempts").notNull().default(0),
+  lastAttemptAt: timestamp("last_attempt_at").defaultNow().notNull(),
+  lockedUntil: timestamp("locked_until"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertAuthRateLimitSchema = createInsertSchema(authRateLimits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAuthRateLimit = z.infer<typeof insertAuthRateLimitSchema>;
+export type AuthRateLimit = typeof authRateLimits.$inferSelect;

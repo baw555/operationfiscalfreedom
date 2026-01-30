@@ -47,7 +47,8 @@ import {
   hipaaAuditLog, type HipaaAuditLog, type InsertHipaaAuditLog,
   hipaaTrainingRecords, type HipaaTrainingRecord, type InsertHipaaTrainingRecord,
   businessAssociateAgreements, type BusinessAssociateAgreement, type InsertBusinessAssociateAgreement,
-  userMfaConfig, type UserMfaConfig, type InsertUserMfaConfig
+  userMfaConfig, type UserMfaConfig, type InsertUserMfaConfig,
+  authRateLimits, type AuthRateLimit, type InsertAuthRateLimit
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -1735,6 +1736,52 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userMfaConfig.userId, userId))
       .returning();
     return updated || undefined;
+  }
+
+  // HIPAA §164.312(d) - Persistent Rate Limiting for Auth
+  async getAuthRateLimit(identifier: string, identifierType: string, attemptType: string): Promise<AuthRateLimit | undefined> {
+    const [record] = await db.select().from(authRateLimits)
+      .where(
+        and(
+          eq(authRateLimits.identifier, identifier),
+          eq(authRateLimits.identifierType, identifierType),
+          eq(authRateLimits.attemptType, attemptType)
+        )
+      );
+    return record || undefined;
+  }
+
+  async createOrUpdateAuthRateLimit(data: InsertAuthRateLimit): Promise<AuthRateLimit> {
+    const existing = await this.getAuthRateLimit(data.identifier, data.identifierType, data.attemptType);
+    
+    if (existing) {
+      const [updated] = await db.update(authRateLimits)
+        .set({
+          failedAttempts: data.failedAttempts,
+          lastAttemptAt: new Date(),
+          lockedUntil: data.lockedUntil,
+          updatedAt: new Date(),
+        })
+        .where(eq(authRateLimits.id, existing.id))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db.insert(authRateLimits)
+      .values({ ...data, lastAttemptAt: new Date() })
+      .returning();
+    return created;
+  }
+
+  async resetAuthRateLimit(identifier: string, identifierType: string, attemptType: string): Promise<void> {
+    await db.delete(authRateLimits)
+      .where(
+        and(
+          eq(authRateLimits.identifier, identifier),
+          eq(authRateLimits.identifierType, identifierType),
+          eq(authRateLimits.attemptType, attemptType)
+        )
+      );
   }
 }
 
