@@ -26,6 +26,7 @@ export default function Home() {
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const introVideoRef = useRef<HTMLVideoElement | null>(null);
   const montageAudioRef = useRef<HTMLAudioElement | null>(null);
+  const animationStartedRef = useRef(false);
   const [animationImages, setAnimationImages] = useState<{
     heroBg?: string;
     somethingImg?: string;
@@ -55,6 +56,10 @@ export default function Home() {
   };
 
   const runAnimation = () => {
+    // Prevent multiple starts from fallback timers
+    if (animationStartedRef.current) return;
+    animationStartedRef.current = true;
+    
     clearAllTimeouts();
     setAnimationPhase(0);
     setShowContent(false);
@@ -88,10 +93,8 @@ export default function Home() {
 
   const toggleAnimation = () => {
     if (animationPaused) {
+      animationStartedRef.current = false; // Reset to allow restart
       runAnimation();
-      loopIntervalRef.current = setInterval(() => {
-        runAnimation();
-      }, 57000);
     } else {
       clearAllTimeouts();
       if (loopIntervalRef.current) {
