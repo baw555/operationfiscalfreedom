@@ -73,6 +73,11 @@ export default function Home() {
         setAnimationPhase(phase);
         if (phase === 7) {
           setTimeout(() => setShowContent(true), 500);
+          // Start the montage audio when phase 7 begins
+          if (montageAudioRef.current) {
+            montageAudioRef.current.currentTime = 0;
+            montageAudioRef.current.play().catch(() => {});
+          }
         }
       }, delay);
       timeoutsRef.current.push(timeout);
@@ -98,9 +103,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Animation loop disabled - montage now plays for full 128s audio duration
-    // Once intro ends, animationPhase is set to 7 in handleIntroEnded/skipIntro
-    // and stays there for the entire song
+    // Text sequence plays once (phases 1-6), then montage starts at phase 7
+    // Audio begins when phase 7 is reached and plays for full 128s duration
     return () => {
       clearAllTimeouts();
       if (loopIntervalRef.current) {
@@ -111,13 +115,8 @@ export default function Home() {
 
   const handleIntroEnded = () => {
     setIntroPlayed(true);
-    setAnimationPhase(7);
-    setShowContent(true);
-    // Auto-start the montage audio when intro ends
-    if (montageAudioRef.current) {
-      montageAudioRef.current.currentTime = 0;
-      montageAudioRef.current.play().catch(() => {});
-    }
+    // Run the text sequence ("something is coming"), audio starts when phase 7 begins
+    runAnimation();
   };
 
   const skipIntro = () => {
@@ -125,13 +124,8 @@ export default function Home() {
       introVideoRef.current.pause();
     }
     setIntroPlayed(true);
-    setAnimationPhase(7);
-    setShowContent(true);
-    // Auto-start the montage audio when skipping intro
-    if (montageAudioRef.current) {
-      montageAudioRef.current.currentTime = 0;
-      montageAudioRef.current.play().catch(() => {});
-    }
+    // Run the text sequence ("something is coming"), audio starts when phase 7 begins
+    runAnimation();
   };
 
   const playMontageAudio = () => {
@@ -146,8 +140,11 @@ export default function Home() {
     if (introVideoRef.current) {
       const video = introVideoRef.current;
       video.play().catch(() => {
-        // If video fails to play, skip to animation after 1 second
-        setTimeout(() => setIntroPlayed(true), 1000);
+        // If video fails to play, run the text sequence after 1 second
+        setTimeout(() => {
+          setIntroPlayed(true);
+          runAnimation();
+        }, 1000);
       });
       
       // Fallback: if video doesn't trigger ended event, move on after video duration + buffer
@@ -156,6 +153,7 @@ export default function Home() {
         setTimeout(() => {
           if (!introPlayed) {
             setIntroPlayed(true);
+            runAnimation();
           }
         }, fallbackTime);
       });
@@ -164,6 +162,7 @@ export default function Home() {
       setTimeout(() => {
         if (!introPlayed) {
           setIntroPlayed(true);
+          runAnimation();
         }
       }, 15000);
     }
