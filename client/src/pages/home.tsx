@@ -100,15 +100,23 @@ export default function Home() {
     }
   }, []);
 
-  const toggleAnimation = () => {
+  const toggleAllPlayback = () => {
     if (animationPaused) {
-      animationStartedRef.current = false; // Reset to allow restart
+      // Resume everything
+      animationStartedRef.current = false;
       runAnimation();
+      if (montageAudioRef.current) {
+        montageAudioRef.current.play().catch(() => {});
+      }
     } else {
+      // Pause everything - music, video, and animation
       clearAllTimeouts();
       if (loopIntervalRef.current) {
         clearInterval(loopIntervalRef.current);
         loopIntervalRef.current = null;
+      }
+      if (montageAudioRef.current) {
+        montageAudioRef.current.pause();
       }
       setAnimationPhase(7);
       setShowContent(true);
@@ -221,14 +229,14 @@ export default function Home() {
         onEnded={handleAudioEnded}
       />
 
-      {/* Floating Music Control - visible during text sequence and montage */}
+      {/* Floating Pause/Play Control - visible during text sequence and montage */}
       {introPlayed && (
         <button
-          onClick={toggleMusic}
+          onClick={toggleAllPlayback}
           data-testid="button-floating-music"
-          className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-lg tracking-wider rounded-full shadow-lg shadow-brand-gold/40 transition-all hover:scale-105 uppercase"
+          className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-base tracking-wider rounded-full shadow-lg shadow-brand-gold/40 transition-all hover:scale-105 uppercase"
         >
-          {isMusicPlaying ? (
+          {isMusicPlaying && !animationPaused ? (
             <>
               <Pause className="w-5 h-5 fill-current" />
               Pause
@@ -424,7 +432,7 @@ export default function Home() {
           {/* Skip Animation Button - Positioned at bottom of animation section */}
           <div className="absolute bottom-4 sm:bottom-8 left-0 right-0 flex justify-center z-[100] px-4">
             <Button 
-              onClick={toggleAnimation}
+              onClick={toggleAllPlayback}
               variant="outline"
               className="border-2 border-white/60 text-white hover:bg-white/20 text-sm sm:text-base px-6 py-3 backdrop-blur-sm bg-black/40 shadow-lg"
             >
@@ -468,26 +476,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Play Audio Button */}
-            <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150">
-              <button
-                onClick={toggleMusic}
-                data-testid="button-toggle-music"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-xl tracking-wider rounded-full shadow-lg shadow-brand-gold/40 transition-all hover:scale-105 uppercase"
-              >
-                {isMusicPlaying ? (
-                  <>
-                    <Pause className="w-6 h-6 fill-current" />
-                    Pause Music
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-6 h-6 fill-current" />
-                    Play Music
-                  </>
-                )}
-              </button>
-            </div>
 
             <div className="flex flex-col items-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
               <div className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-brand-red text-white shadow-lg shadow-brand-red/30">
@@ -503,50 +491,99 @@ export default function Home() {
               <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase shimmer-text">Navy SEAL Owned and Operated</p>
             </div>
             
-            {/* Four Pillars */}
-            <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-              <div className="flex flex-col items-center">
-                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-red flex items-center justify-center mb-2 shadow-lg shadow-brand-red/30">
-                  <DollarSign className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
+            {/* Four Pillars with General Stars */}
+            <div className="flex flex-wrap justify-center gap-6 sm:gap-10 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+              {/* Financial Pillar */}
+              <div className="flex flex-col items-center group">
+                <div className="relative">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-brand-red via-brand-red to-red-800 flex items-center justify-center mb-2 shadow-xl shadow-brand-red/40 border-2 border-brand-gold/50 group-hover:scale-110 transition-transform">
+                    <DollarSign className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-lg" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 flex">
+                    <Star className="w-5 h-5 text-brand-gold fill-brand-gold drop-shadow-md" />
+                  </div>
                 </div>
-                <span className="text-brand-red font-display text-lg sm:text-2xl md:text-3xl">Financial</span>
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+                </div>
+                <span className="text-brand-red font-display text-lg sm:text-2xl md:text-3xl mt-1 drop-shadow-lg">Financial</span>
               </div>
-              <div className="flex flex-col items-center">
-                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-white flex items-center justify-center mb-2 shadow-lg shadow-white/30">
-                  <Shield className="w-7 h-7 sm:w-9 sm:h-9 text-brand-navy" />
+              
+              {/* Mental Pillar */}
+              <div className="flex flex-col items-center group">
+                <div className="relative">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-white via-gray-100 to-gray-200 flex items-center justify-center mb-2 shadow-xl shadow-white/40 border-2 border-brand-gold/50 group-hover:scale-110 transition-transform">
+                    <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-brand-navy drop-shadow-lg" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 flex">
+                    <Star className="w-5 h-5 text-brand-gold fill-brand-gold drop-shadow-md" />
+                  </div>
                 </div>
-                <span className="text-white font-display text-lg sm:text-2xl md:text-3xl">Mental</span>
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+                </div>
+                <span className="text-white font-display text-lg sm:text-2xl md:text-3xl mt-1 drop-shadow-lg">Mental</span>
               </div>
-              <div className="flex flex-col items-center">
-                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-blue flex items-center justify-center mb-2 shadow-lg shadow-brand-blue/30">
-                  <Heart className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
+              
+              {/* Physical Pillar */}
+              <div className="flex flex-col items-center group">
+                <div className="relative">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-brand-blue via-brand-blue to-blue-800 flex items-center justify-center mb-2 shadow-xl shadow-brand-blue/40 border-2 border-brand-gold/50 group-hover:scale-110 transition-transform">
+                    <Heart className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-lg" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 flex">
+                    <Star className="w-5 h-5 text-brand-gold fill-brand-gold drop-shadow-md" />
+                  </div>
                 </div>
-                <span className="text-brand-blue font-display text-lg sm:text-2xl md:text-3xl">Physical</span>
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+                </div>
+                <span className="text-brand-blue font-display text-lg sm:text-2xl md:text-3xl mt-1 drop-shadow-lg">Physical</span>
               </div>
-              <div className="flex flex-col items-center">
-                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-brand-gold flex items-center justify-center mb-2 shadow-lg shadow-brand-gold/30">
-                  <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-brand-navy" />
+              
+              {/* Faith Pillar */}
+              <div className="flex flex-col items-center group">
+                <div className="relative">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-brand-gold via-yellow-500 to-amber-600 flex items-center justify-center mb-2 shadow-xl shadow-brand-gold/40 border-2 border-white/50 group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-brand-navy drop-shadow-lg" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 flex">
+                    <Star className="w-5 h-5 text-white fill-white drop-shadow-md" />
+                  </div>
                 </div>
-                <span className="text-brand-gold font-display text-lg sm:text-2xl md:text-3xl">Faith</span>
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="w-3 h-3 text-white fill-white" />
+                  <Star className="w-3 h-3 text-white fill-white" />
+                  <Star className="w-3 h-3 text-white fill-white" />
+                  <Star className="w-3 h-3 text-white fill-white" />
+                  <Star className="w-3 h-3 text-white fill-white" />
+                </div>
+                <span className="text-brand-gold font-display text-lg sm:text-2xl md:text-3xl mt-1 drop-shadow-lg">Faith</span>
               </div>
             </div>
 
-            {/* Animation Toggle Button */}
+            {/* Pause/Play All Button - controls music and video */}
             <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-350">
               <Button 
-                onClick={toggleAnimation}
+                onClick={toggleAllPlayback}
                 variant="outline"
-                className="border-2 border-white/40 text-white hover:bg-white/10 text-sm px-4 py-2"
+                className="border-2 border-white/40 text-white hover:bg-white/10 text-sm px-6 py-3"
               >
                 {animationPaused ? (
                   <>
-                    <Play className="w-4 h-4 mr-2" />
-                    Play Animation
+                    <Play className="w-5 h-5 mr-2" />
+                    Play Music & Video
                   </>
                 ) : (
                   <>
-                    <Pause className="w-4 h-4 mr-2" />
-                    Stop Animation
+                    <Pause className="w-5 h-5 mr-2" />
+                    Pause Music & Video
                   </>
                 )}
               </Button>
