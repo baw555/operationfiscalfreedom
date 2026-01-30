@@ -163,10 +163,9 @@ export default function Home() {
             preload="auto"
             onEnded={handleIntroEnded}
             className={cn(
-              "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
+              "max-w-[480px] max-h-[640px] w-auto h-auto object-contain transition-opacity duration-500 z-5",
               introStarted ? "opacity-100" : "opacity-0"
             )}
-            style={{ objectPosition: 'center 30%' }}
           />
           
           {!introStarted && (
