@@ -500,7 +500,7 @@ export default function Home() {
                   Master Hub
                 </button>
               </Link>
-              <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase shimmer-text">Navy SEAL Operated</p>
+              <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase shimmer-text">Navy SEAL Owned and Operated</p>
             </div>
             
             {/* Four Pillars */}
