@@ -141,6 +141,72 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 // Middleware to check if user is admin or master
+// HIPAA §164.312(a)(1) - Access Control with Minimum Necessary Principle
+// Define role permissions for granular access control
+type Permission = 
+  | "view_phi"           // Access to PHI data
+  | "modify_phi"         // Modify PHI records
+  | "manage_users"       // Create/edit user accounts
+  | "manage_contracts"   // Contract management
+  | "view_audit_logs"    // Access audit trail
+  | "manage_baa"         // Business Associate Agreements
+  | "manage_training"    // Training records management
+  | "hipaa_admin"        // Full HIPAA compliance access
+  | "manage_leads"       // Lead management
+  | "manage_affiliates"; // Affiliate management
+
+const rolePermissions: Record<string, Permission[]> = {
+  master: [
+    "view_phi", "modify_phi", "manage_users", "manage_contracts",
+    "view_audit_logs", "manage_baa", "manage_training", "hipaa_admin",
+    "manage_leads", "manage_affiliates"
+  ],
+  admin: [
+    "view_phi", "modify_phi", "manage_contracts", "view_audit_logs",
+    "manage_leads", "manage_affiliates"
+  ],
+  affiliate: [
+    "manage_leads" // Limited to their own leads only
+  ],
+};
+
+// Permission check middleware factory - HIPAA minimum necessary access
+function requirePermission(permission: Permission) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized - Authentication required" });
+    }
+    
+    const userRole = req.session.userRole || "";
+    const userPermissions = rolePermissions[userRole] || [];
+    
+    if (!userPermissions.includes(permission)) {
+      // Log access denial for HIPAA audit
+      storage.createHipaaAuditLog({
+        userId: req.session.userId,
+        userName: null,
+        userRole: userRole,
+        action: "ACCESS_DENIED",
+        resourceType: permission,
+        resourceId: req.path,
+        resourceDescription: `Permission denied: ${permission}`,
+        ipAddress: req.ip || null,
+        userAgent: req.headers["user-agent"] || null,
+        sessionId: req.sessionID || null,
+        success: false,
+        errorMessage: `Role ${userRole} lacks permission: ${permission}`,
+        phiAccessed: false,
+      }).catch(console.error);
+      
+      return res.status(403).json({ 
+        message: "Forbidden - Insufficient permissions",
+        requiredPermission: permission 
+      });
+    }
+    next();
+  };
+}
+
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
     return res.status(403).json({ message: "Forbidden - Admin access required" });
