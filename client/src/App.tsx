@@ -163,6 +163,9 @@ const DoNotSell = lazy(() => import("@/pages/do-not-sell"));
 // Ranger Tab Signup
 const RangerTabSignup = lazy(() => import("@/pages/ranger-tab-signup"));
 
+// Navigator USA Elite
+const NavigatorElite = lazy(() => import("@/pages/navigator-elite"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -326,6 +329,9 @@ function Router() {
         
         {/* Ranger Tab Signup */}
         <Route path="/ranger-tab-signup" component={RangerTabSignup} />
+        
+        {/* Navigator USA Elite Command Center */}
+        <Route path="/elite" component={NavigatorElite} />
         
         <Route component={NotFound} />
       </Switch>
