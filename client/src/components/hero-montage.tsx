@@ -10,28 +10,27 @@ interface MontageSegment {
 
 // Timeline aligned to music beats:
 // 0-25s: Text sequence plays (montage not visible yet)
-// 25s+: Montage starts - times are relative to song start
+// 25s+: Montage becomes visible - GEAR video should be first seen
 const montageTimeline: MontageSegment[] = [
-  // Opening - marching soldiers, building anticipation
+  // Not visible during text sequence (0-25s)
   { src: "/videos/soldiers-marching-new.mp4", startTime: 0, endTime: 12, description: "march" },
-  { src: "/videos/montage-rain.mp4", startTime: 12, endTime: 20, description: "rain" },
+  { src: "/videos/montage-rain.mp4", startTime: 12, endTime: 24, description: "rain" },
   
-  // Percussion hits - action/shooting footage
-  { src: "/videos/montage-clip.mp4", startTime: 20, endTime: 32, description: "shooting/action" },
-  { src: "/videos/montage-gear.mp4", startTime: 32, endTime: 40, description: "gear up" },
+  // FIRST VISIBLE: Soldiers loading gear when montage appears (~25s)
+  { src: "/videos/montage-gear.mp4", startTime: 24, endTime: 36, description: "gear up - first visible" },
   
-  // Building intensity
-  { src: "/videos/montage-helicopter.mp4", startTime: 40, endTime: 50, description: "helicopter" },
-  { src: "/videos/montage-salute.mp4", startTime: 50, endTime: 58, description: "salute" },
+  // Percussion hits - action/shooting footage  
+  { src: "/videos/montage-clip.mp4", startTime: 36, endTime: 48, description: "shooting/action" },
+  { src: "/videos/montage-helicopter.mp4", startTime: 48, endTime: 56, description: "helicopter" },
   
   // Serious/emotional section - embrace and crying
-  { src: "/videos/montage-embrace-1.mp4", startTime: 58, endTime: 68, description: "embrace" },
-  { src: "/videos/montage-embrace-2.mp4", startTime: 68, endTime: 78, description: "crying/emotion" },
+  { src: "/videos/montage-embrace-1.mp4", startTime: 56, endTime: 68, description: "embrace" },
+  { src: "/videos/montage-embrace-2.mp4", startTime: 68, endTime: 80, description: "crying/emotion" },
   
   // Building to climax
-  { src: "/videos/soldiers-marching-new.mp4", startTime: 78, endTime: 88, description: "march again" },
-  { src: "/videos/montage-helicopter.mp4", startTime: 88, endTime: 98, description: "helicopter" },
-  { src: "/videos/montage-salute.mp4", startTime: 98, endTime: 108, description: "salute" },
+  { src: "/videos/soldiers-marching-new.mp4", startTime: 80, endTime: 90, description: "march again" },
+  { src: "/videos/montage-salute.mp4", startTime: 90, endTime: 100, description: "salute" },
+  { src: "/videos/montage-helicopter.mp4", startTime: 100, endTime: 108, description: "helicopter" },
   
   // Finale - Iwo Jima flag raising
   { src: "/videos/montage-iwojima.mp4", startTime: 108, endTime: 128, description: "iwo jima - finale" },
