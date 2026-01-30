@@ -1459,3 +1459,114 @@ export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+// ===== HIPAA COMPLIANCE TABLES =====
+
+// HIPAA Audit Log - System-wide PHI access logging
+// §164.312(b) - Audit Controls
+// Tracks all access to Protected Health Information (PHI)
+export const hipaaAuditLog = pgTable("hipaa_audit_log", {
+  id: serial("id").primaryKey(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  userId: integer("user_id").references(() => users.id), // Null for unauthenticated access
+  userName: text("user_name"), // Captured at time of access for historical record
+  userRole: text("user_role"), // admin, affiliate, etc.
+  action: text("action").notNull(), // CREATE, READ, UPDATE, DELETE, LOGIN, LOGOUT, FAILED_LOGIN
+  resourceType: text("resource_type").notNull(), // veteran_intake, help_request, medical_record, etc.
+  resourceId: text("resource_id"), // ID of the accessed resource
+  resourceDescription: text("resource_description"), // Brief description of what was accessed
+  ipAddress: text("ip_address"), // Client IP address
+  userAgent: text("user_agent"), // Browser/client user agent
+  sessionId: text("session_id"), // Session identifier for tracking
+  success: boolean("success").notNull().default(true), // Whether the action succeeded
+  errorMessage: text("error_message"), // Error details if action failed
+  phiAccessed: boolean("phi_accessed").notNull().default(false), // Flag for PHI access
+  metadata: text("metadata"), // JSON string for additional context
+});
+
+export const insertHipaaAuditLogSchema = createInsertSchema(hipaaAuditLog).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertHipaaAuditLog = z.infer<typeof insertHipaaAuditLogSchema>;
+export type HipaaAuditLog = typeof hipaaAuditLog.$inferSelect;
+
+// HIPAA Training Records - Track workforce training completion
+// §164.308(a)(5) - Security Awareness and Training
+export const hipaaTrainingRecords = pgTable("hipaa_training_records", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  trainingType: text("training_type").notNull(), // initial, annual, security_reminder, policy_update
+  trainingName: text("training_name").notNull(),
+  completedAt: timestamp("completed_at").notNull(),
+  expiresAt: timestamp("expires_at"), // When recertification is needed
+  score: integer("score"), // Assessment score if applicable
+  passed: boolean("passed").notNull().default(true),
+  certificateUrl: text("certificate_url"), // Link to certificate if available
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertHipaaTrainingRecordSchema = createInsertSchema(hipaaTrainingRecords).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertHipaaTrainingRecord = z.infer<typeof insertHipaaTrainingRecordSchema>;
+export type HipaaTrainingRecord = typeof hipaaTrainingRecords.$inferSelect;
+
+// Business Associate Agreements (BAA) Tracking
+// §164.504(e) - Business Associate Contracts
+export const businessAssociateAgreements = pgTable("business_associate_agreements", {
+  id: serial("id").primaryKey(),
+  vendorName: text("vendor_name").notNull(),
+  vendorType: text("vendor_type").notNull(), // hosting, email, ai, database, etc.
+  vendorContact: text("vendor_contact"),
+  vendorEmail: text("vendor_email"),
+  baaStatus: text("baa_status").notNull(), // not_started, requested, in_review, executed, expired, not_applicable
+  baaDocumentUrl: text("baa_document_url"), // Link to signed agreement
+  executedDate: timestamp("executed_date"),
+  expirationDate: timestamp("expiration_date"),
+  renewalReminderDays: integer("renewal_reminder_days").default(90),
+  description: text("description"),
+  phiShared: text("phi_shared"), // Description of what PHI is shared
+  securityMeasures: text("security_measures"), // Vendor's security measures
+  notes: text("notes"),
+  lastReviewedAt: timestamp("last_reviewed_at"),
+  lastReviewedBy: integer("last_reviewed_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBusinessAssociateAgreementSchema = createInsertSchema(businessAssociateAgreements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertBusinessAssociateAgreement = z.infer<typeof insertBusinessAssociateAgreementSchema>;
+export type BusinessAssociateAgreement = typeof businessAssociateAgreements.$inferSelect;
+
+// MFA Configuration for users
+// §164.312(d) - Person or Entity Authentication
+export const userMfaConfig = pgTable("user_mfa_config", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  mfaEnabled: boolean("mfa_enabled").notNull().default(false),
+  mfaSecret: text("mfa_secret"), // Encrypted TOTP secret
+  backupCodes: text("backup_codes"), // Encrypted JSON array of backup codes
+  lastMfaUsedAt: timestamp("last_mfa_used_at"),
+  mfaSetupCompletedAt: timestamp("mfa_setup_completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserMfaConfigSchema = createInsertSchema(userMfaConfig).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUserMfaConfig = z.infer<typeof insertUserMfaConfigSchema>;
+export type UserMfaConfig = typeof userMfaConfig.$inferSelect;

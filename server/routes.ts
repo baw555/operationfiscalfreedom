@@ -197,21 +197,29 @@ export async function registerRoutes(
     console.error('Session store error:', err);
   });
 
-  // Session middleware with PostgreSQL store
+  // HIPAA Security: Session configuration with secure cookies
+  // §164.312(d) - Person or Entity Authentication
+  // §164.312(a)(2)(iii) - Automatic Logoff
+  const isProduction = process.env.NODE_ENV === "production";
+  const SESSION_TIMEOUT_MINUTES = 15; // HIPAA requires reasonable inactivity timeout
+  
   app.use(
     session({
       store: sessionStore,
       secret: process.env.SESSION_SECRET || "operation-fiscal-freedom-secret-key-2024",
       resave: false,
       saveUninitialized: false,
+      rolling: true, // Reset session expiry on each request (for activity-based timeout)
       cookie: {
-        secure: false, // Allow non-HTTPS for broader compatibility
-        httpOnly: true,
-        sameSite: 'lax', // More compatible than 'none'
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        secure: isProduction, // HTTPS only in production (§164.312(e)(1))
+        httpOnly: true, // Prevent XSS access to cookies (§164.312(c)(1))
+        sameSite: 'strict', // CSRF protection - strict for maximum security
+        maxAge: SESSION_TIMEOUT_MINUTES * 60 * 1000, // 15 minutes for HIPAA auto-logoff
       },
     })
   );
+  
+  console.log(`[session] Session timeout configured: ${SESSION_TIMEOUT_MINUTES} minutes, secure cookies: ${isProduction}`);
 
   // ===== PUBLIC ROUTES =====
 

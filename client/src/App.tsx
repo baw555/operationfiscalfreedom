@@ -159,6 +159,7 @@ const PrivacyPolicy = lazy(() => import("@/pages/privacy-policy"));
 const TermsOfUse = lazy(() => import("@/pages/terms-of-use"));
 const AffiliatedPartners = lazy(() => import("@/pages/affiliated-partners"));
 const DoNotSell = lazy(() => import("@/pages/do-not-sell"));
+const BreachProcedures = lazy(() => import("@/pages/breach-procedures"));
 
 // Ranger Tab Signup
 const RangerTabSignup = lazy(() => import("@/pages/ranger-tab-signup"));
@@ -197,6 +198,7 @@ function Router() {
         <Route path="/terms-of-use" component={TermsOfUse} />
         <Route path="/affiliated-partners" component={AffiliatedPartners} />
         <Route path="/do-not-sell" component={DoNotSell} />
+        <Route path="/breach-procedures" component={BreachProcedures} />
         {/* Legacy Fin-Ops routes - redirect to hub with query params preserved */}
         <Route path="/merchant-services">{() => <Redirect to={`/fin-ops/merchant-services${window.location.search}`} />}</Route>
         <Route path="/my-locker">{() => <Redirect to={`/fin-ops/my-locker${window.location.search}`} />}</Route>

@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import helmet from "helmet";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { seedPayziumData } from "./seeds/payziumSeed";
@@ -13,6 +14,40 @@ declare module "http" {
     rawBody: unknown;
   }
 }
+
+// HIPAA Security: Helmet.js for security headers including HSTS
+app.use(
+  helmet({
+    // HSTS - Force HTTPS connections (HIPAA §164.312(e)(1))
+    hsts: {
+      maxAge: 31536000, // 1 year in seconds
+      includeSubDomains: true,
+      preload: true,
+    },
+    // Content Security Policy for XSS protection
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        connectSrc: ["'self'", "wss:", "ws:"],
+        frameSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    // X-Frame-Options to prevent clickjacking
+    frameguard: { action: "deny" },
+    // X-Content-Type-Options to prevent MIME sniffing
+    noSniff: true,
+    // Referrer Policy for privacy
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    // X-XSS-Protection (legacy but still useful)
+    xssFilter: true,
+  })
+);
 
 app.use(
   express.json({
