@@ -7,8 +7,6 @@ interface MontageSegment {
   endTime: number;
 }
 
-const AUDIO_DURATION = 128;
-
 const montageTimeline: MontageSegment[] = [
   { src: "/videos/soldiers-marching-new.mp4", startTime: 0, endTime: 8 },
   { src: "/videos/montage-rain.mp4", startTime: 8, endTime: 14 },
@@ -40,9 +38,10 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [displayTime, setDisplayTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(128);
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasStartedRef = useRef(false);
+  const lastSegmentIndexRef = useRef(0);
 
   const getCurrentSegmentIndex = useCallback((time: number) => {
     for (let i = 0; i < montageTimeline.length; i++) {
@@ -54,10 +53,6 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
   }, []);
 
   const stopMontage = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
     videoRefs.current.forEach(video => {
       video.pause();
       video.currentTime = 0;
@@ -66,79 +61,150 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     setDisplayTime(0);
     setActiveIndex(0);
     hasStartedRef.current = false;
+    lastSegmentIndexRef.current = 0;
   }, []);
 
+  // Handle audio timeupdate - this is the source of truth for sync
+  const handleTimeUpdate = useCallback(() => {
+    if (!audioRef?.current || !isPlaying) return;
+    
+    const audio = audioRef.current;
+    const currentTime = audio.currentTime;
+    
+    setDisplayTime(Math.floor(currentTime));
+    
+    const newIndex = getCurrentSegmentIndex(currentTime);
+    const currentSegment = montageTimeline[newIndex];
+    const currentVideo = videoRefs.current.get(currentSegment.src);
+    
+    // Continuous sync: always keep video aligned to audio time within segment
+    if (currentVideo && !audio.paused) {
+      const segmentElapsed = currentTime - currentSegment.startTime;
+      const videoDuration = currentVideo.duration || 10;
+      const expectedVideoTime = segmentElapsed % videoDuration;
+      
+      // Only resync if drift is noticeable (> 0.3s) to avoid constant seeking
+      if (Math.abs(currentVideo.currentTime - expectedVideoTime) > 0.3) {
+        currentVideo.currentTime = expectedVideoTime;
+      }
+    }
+    
+    // Handle segment change
+    if (newIndex !== lastSegmentIndexRef.current) {
+      lastSegmentIndexRef.current = newIndex;
+      setActiveIndex(newIndex);
+      
+      // Switch videos: pause all, play new one
+      videoRefs.current.forEach((video, src) => {
+        if (src === currentSegment.src) {
+          const segmentElapsed = currentTime - currentSegment.startTime;
+          const videoDuration = video.duration || 10;
+          video.currentTime = segmentElapsed % videoDuration;
+          video.loop = true;
+          if (video.paused && !audio.paused) {
+            video.play().catch(() => {});
+          }
+        } else {
+          video.pause();
+        }
+      });
+    }
+  }, [audioRef, isPlaying, getCurrentSegmentIndex]);
+
+  // Handle audio pause/play for video sync
+  const handleAudioPause = useCallback(() => {
+    videoRefs.current.forEach(video => {
+      if (!video.paused) video.pause();
+    });
+  }, []);
+
+  const handleAudioPlay = useCallback(() => {
+    if (!isPlaying) return;
+    const currentSegment = montageTimeline[activeIndex];
+    const currentVideo = videoRefs.current.get(currentSegment.src);
+    if (currentVideo?.paused) {
+      currentVideo.loop = true;
+      currentVideo.play().catch(() => {});
+    }
+  }, [isPlaying, activeIndex]);
+
+  // Start montage when audio starts
   const startMontage = useCallback(() => {
     if (hasStartedRef.current) return;
     if (!audioRef?.current) return;
     
     hasStartedRef.current = true;
-    setActiveIndex(0);
-    setDisplayTime(0);
+    const audio = audioRef.current;
+    const currentTime = audio.currentTime;
+    
+    // Get actual audio duration from metadata
+    if (audio.duration && !isNaN(audio.duration)) {
+      setAudioDuration(Math.floor(audio.duration));
+    }
+    
+    // Find the correct segment based on current audio time (not always 0)
+    const initialIndex = getCurrentSegmentIndex(currentTime);
+    lastSegmentIndexRef.current = initialIndex;
+    setActiveIndex(initialIndex);
+    setDisplayTime(Math.floor(currentTime));
     setIsPlaying(true);
 
-    const firstVideo = videoRefs.current.get(montageTimeline[0].src);
-    if (firstVideo) {
-      firstVideo.currentTime = 0;
-      firstVideo.loop = true;
-      firstVideo.play().catch(() => {});
+    // Start the correct video at the right time within its segment
+    const initialSegment = montageTimeline[initialIndex];
+    const initialVideo = videoRefs.current.get(initialSegment.src);
+    if (initialVideo) {
+      const segmentElapsed = currentTime - initialSegment.startTime;
+      const videoDuration = initialVideo.duration || 10;
+      initialVideo.currentTime = segmentElapsed % videoDuration;
+      initialVideo.loop = true;
+      initialVideo.play().catch(() => {});
     }
-
-    intervalRef.current = setInterval(() => {
-      if (!audioRef?.current) return;
-      
-      // Don't advance montage while audio is paused
-      if (audioRef.current.paused) return;
-      
-      const currentTime = audioRef.current.currentTime;
-      setDisplayTime(Math.floor(currentTime));
-      
-      const newIndex = getCurrentSegmentIndex(currentTime);
-      setActiveIndex(prev => {
-        if (prev !== newIndex) {
-          return newIndex;
-        }
-        return prev;
-      });
-
-      if (currentTime >= AUDIO_DURATION) {
-        stopMontage();
-        onMontageEnd?.();
+    
+    // Pause all other videos
+    videoRefs.current.forEach((video, src) => {
+      if (src !== initialSegment.src) {
+        video.pause();
       }
-    }, 100);
-  }, [audioRef, getCurrentSegmentIndex, onMontageEnd, stopMontage]);
+    });
+  }, [audioRef, getCurrentSegmentIndex]);
 
+  // Effect to set up audio event listeners
+  useEffect(() => {
+    if (!audioRef?.current) return;
+    
+    const audio = audioRef.current;
+    
+    // Add event listeners
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('pause', handleAudioPause);
+    audio.addEventListener('play', handleAudioPlay);
+    
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('pause', handleAudioPause);
+      audio.removeEventListener('play', handleAudioPlay);
+    };
+  }, [audioRef, handleTimeUpdate, handleAudioPause, handleAudioPlay]);
+
+  // Effect to start montage when component becomes active
   useEffect(() => {
     if (isActive && !isPlaying && !hasStartedRef.current && audioRef?.current) {
       const audio = audioRef.current;
       
-      // Start immediately if audio is already playing (even if currentTime is 0)
+      // Start immediately if audio is already playing
       if (!audio.paused) {
         startMontage();
         return;
       }
       
-      // Otherwise, listen for play event AND timeupdate as fallback
+      // Otherwise, listen for play event
       const handlePlay = () => {
         startMontage();
-        cleanup();
-      };
-      
-      const handleTimeUpdate = () => {
-        if (!audio.paused && !hasStartedRef.current) {
-          startMontage();
-          cleanup();
-        }
-      };
-      
-      const cleanup = () => {
         audio.removeEventListener('play', handlePlay);
-        audio.removeEventListener('timeupdate', handleTimeUpdate);
       };
       
       audio.addEventListener('play', handlePlay);
-      audio.addEventListener('timeupdate', handleTimeUpdate);
-      return cleanup;
+      return () => audio.removeEventListener('play', handlePlay);
     }
     
     if (!isActive && isPlaying) {
@@ -146,45 +212,16 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     }
   }, [isActive, isPlaying, startMontage, stopMontage, audioRef]);
 
-  // Sync videos with audio pause/resume state
+  // Effect to handle video switching based on activeIndex
   useEffect(() => {
     if (!isPlaying || !audioRef?.current) return;
 
-    const audio = audioRef.current;
-    
-    const handleAudioPause = () => {
-      videoRefs.current.forEach(video => {
-        if (!video.paused) video.pause();
-      });
-    };
-
-    const handleAudioPlay = () => {
-      const currentSegment = montageTimeline[activeIndex];
-      const currentVideo = videoRefs.current.get(currentSegment.src);
-      if (currentVideo?.paused) {
-        currentVideo.loop = true;
-        currentVideo.play().catch(() => {});
-      }
-    };
-
-    audio.addEventListener('pause', handleAudioPause);
-    audio.addEventListener('play', handleAudioPlay);
-
-    return () => {
-      audio.removeEventListener('pause', handleAudioPause);
-      audio.removeEventListener('play', handleAudioPlay);
-    };
-  }, [isPlaying, activeIndex, audioRef]);
-
-  useEffect(() => {
-    if (!isPlaying) return;
-
     const currentSegment = montageTimeline[activeIndex];
+    const audio = audioRef.current;
 
     videoRefs.current.forEach((video, src) => {
       if (src === currentSegment.src) {
-        // Don't reset currentTime - let the video loop naturally to avoid glitches
-        if (video.paused) {
+        if (video.paused && !audio.paused) {
           video.loop = true;
           video.play().catch(() => {});
         }
@@ -192,15 +229,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
         video.pause();
       }
     });
-  }, [activeIndex, isPlaying]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
+  }, [activeIndex, isPlaying, audioRef]);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-brand-navy">
@@ -213,7 +242,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
           playsInline
           preload="auto"
           className={cn(
-            "absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out",
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out",
             montageTimeline[activeIndex]?.src === src ? "opacity-100" : "opacity-0"
           )}
           style={{ zIndex: montageTimeline[activeIndex]?.src === src ? 1 : 0 }}
@@ -227,7 +256,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
           <div
             key={index}
             className={cn(
-              "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-500",
+              "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-300",
               index === activeIndex 
                 ? "bg-brand-gold w-4 sm:w-6" 
                 : index < activeIndex
@@ -240,7 +269,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
 
       {isPlaying && (
         <div className="absolute top-4 right-4 z-20 bg-black/50 text-white px-3 py-1 rounded text-sm font-mono">
-          {displayTime}s / {AUDIO_DURATION}s
+          {displayTime}s / {audioDuration}s
         </div>
       )}
     </div>

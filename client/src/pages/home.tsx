@@ -10,7 +10,7 @@ import {
 import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, ChevronDown, Pause, Play } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 import { HeroMontage } from "@/components/hero-montage";
 import { RangerTabSVG } from "@/components/ranger-tab-svg";
@@ -61,18 +61,18 @@ export default function Home() {
     animationStartedRef.current = true;
     
     clearAllTimeouts();
-    setAnimationPhase(0);
     setShowContent(false);
     
-    // Start the montage audio immediately (right after Uncle Sam intro)
+    // Start BOTH audio AND phase 1 text immediately - no phase 0 delay
+    setAnimationPhase(1);
+    
     if (montageAudioRef.current) {
       montageAudioRef.current.currentTime = 0;
       montageAudioRef.current.play().catch(() => {});
     }
     
-    // Start text sequence immediately after Uncle Sam intro
+    // Text sequence starts at phase 1 (already set), then progresses
     const sequence = [
-      { phase: 1, delay: 100 },    // "We can feel it" - starts immediately
       { phase: 2, delay: 4000 },   // "Something..."
       { phase: 3, delay: 8000 },   // "Someone..."
       { phase: 4, delay: 12000 },  // "Will answer the call"
@@ -91,6 +91,12 @@ export default function Home() {
       timeoutsRef.current.push(timeout);
     });
   };
+  
+  // Handle audio ended - restart the experience
+  const handleAudioEnded = useCallback(() => {
+    animationStartedRef.current = false;
+    runAnimation();
+  }, []);
 
   const toggleAnimation = () => {
     if (animationPaused) {
@@ -211,6 +217,7 @@ export default function Home() {
         ref={montageAudioRef}
         src="/audio/montage-music.mp3"
         preload="auto"
+        onEnded={handleAudioEnded}
       />
 
       {/* Floating Music Control - visible during text sequence and montage */}
@@ -276,30 +283,24 @@ export default function Home() {
       )}
 
       {/* Animated Hero Intro */}
-      {introPlayed && animationPhase < 7 && (
+      {introPlayed && animationPhase >= 1 && animationPhase < 7 && (
         <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden bg-black">
-          {/* Phase 0: Initial black */}
+          {/* Phase 1: We can feel it - INSTANT visibility, no slow transitions */}
           <div className={cn(
-            "absolute inset-0 bg-black transition-opacity duration-1000",
-            animationPhase === 0 ? "opacity-100" : "opacity-0"
-          )} />
-
-          {/* Phase 1: We can feel it */}
-          <div className={cn(
-            "absolute inset-0 flex items-center justify-center transition-all duration-1500",
+            "absolute inset-0 flex items-center justify-center transition-opacity duration-300",
             animationPhase === 1 ? "opacity-100" : "opacity-0"
           )}>
             <div className="text-center px-4">
               <h1 className={cn(
-                "text-5xl sm:text-7xl md:text-9xl text-white tracking-widest transition-all duration-1000 uppercase",
-                animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
+                "text-5xl sm:text-7xl md:text-9xl text-white tracking-widest uppercase",
+                animationPhase === 1 ? "opacity-100" : "opacity-0"
               )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 40px rgba(226, 28, 61, 0.6), 0 4px 20px rgba(0,0,0,0.8)' }}>
                 We can feel it
               </h1>
               <h2 className={cn(
-                "text-4xl sm:text-6xl md:text-8xl text-brand-red tracking-widest mt-6 transition-all duration-1000 delay-[1500ms] uppercase",
-                animationPhase === 1 ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 30px rgba(226, 28, 61, 0.8), 0 4px 15px rgba(0,0,0,0.6)' }}>
+                "text-4xl sm:text-6xl md:text-8xl text-brand-red tracking-widest mt-6 uppercase animate-pulse",
+                animationPhase === 1 ? "opacity-100" : "opacity-0"
+              )} style={{ fontFamily: 'var(--font-stencil)', textShadow: '0 0 30px rgba(226, 28, 61, 0.8), 0 4px 15px rgba(0,0,0,0.6)', animationDelay: '1s' }}>
                 It's coming.
               </h2>
             </div>
