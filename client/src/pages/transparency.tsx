@@ -372,11 +372,11 @@ export default function Transparency() {
                     and Privacy Rule requirements for the protection of electronic Protected Health Information (ePHI).
                   </p>
                   <a 
-                    href="/hipaa-admin" 
+                    href="/hipaa-compliance" 
                     className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full font-semibold transition-colors"
                   >
                     <Shield className="w-5 h-5" />
-                    View Full Compliance Dashboard
+                    View Full HIPAA Compliance Report
                   </a>
                 </div>
               </CardContent>

@@ -171,6 +171,7 @@ const NavigatorElite = lazy(() => import("@/pages/navigator-elite"));
 
 // HIPAA Admin Dashboard
 const HipaaAdmin = lazy(() => import("@/pages/hipaa-admin"));
+const HipaaCompliance = lazy(() => import("@/pages/hipaa-compliance"));
 
 function Router() {
   return (
@@ -343,6 +344,7 @@ function Router() {
         
         {/* HIPAA Compliance Admin Dashboard */}
         <Route path="/hipaa-admin" component={HipaaAdmin} />
+        <Route path="/hipaa-compliance" component={HipaaCompliance} />
         
         <Route component={NotFound} />
       </Switch>
