@@ -1,0 +1,71 @@
+I have a montage page in Replit where video + music playback is glitchy (repeats, stutters, sometimes desyncs, and fails intermittently 1%–30% of the time). I need you to do a full root-cause investigation and deliver a hardened, production-ready fix.
+
+Context / Symptoms
+- Video sometimes restarts or loops unexpectedly.
+- Audio sometimes starts twice (echo/overlap) or restarts.
+- Sometimes video plays but audio doesn’t, or audio plays but video stalls.
+- Sometimes it works perfectly; sometimes it fails randomly (intermittent).
+- This happens across browsers/devices, but more often on mobile or slower connections.
+
+My Requirements (non-negotiable)
+1) One single source of truth for playback state (play/pause/seek/ended).
+2) Absolutely prevent double-play / duplicate event handlers / repeated initialization (common with React re-renders / StrictMode).
+3) Lock A/V sync to within 150–250ms and auto-correct drift.
+4) Playback must be resilient: handle stalls, buffering, network hiccups, autoplay restrictions, and user-gesture requirements.
+5) Provide a full code patch (component + usage) plus an explanation of WHY the bug was happening.
+6) Give me an instrumentation plan: logging, metrics, and how to reproduce the issue reliably.
+7) Tell me what to change in hosting/encoding/CDN if my asset delivery is causing it.
+
+Please Diagnose These Areas
+A) Frontend React lifecycle / event listeners:
+- Are we attaching listeners multiple times?
+- Are we calling play() more than once from re-renders?
+- Is React StrictMode double-invoking effects in dev?
+- Are we starting audio and video in the wrong order?
+
+B) Media element configuration:
+- Correct use of playsInline, preload, muted, controls, loop flags.
+- Whether we should use a single <video> with embedded audio vs separate <audio>.
+- Whether MediaSource Extensions (MSE) or HLS is needed for better streaming.
+
+C) Asset delivery + encoding:
+- Confirm the video is encoded as H.264 + AAC in MP4.
+- Confirm audio is AAC/MP3 with standard sample rate and not variable weirdness.
+- Confirm server supports byte-range requests (Accept-Ranges).
+- Confirm proper caching headers, content-type, and no compression issues.
+- Confirm CORS headers if assets are on a different domain.
+- Confirm if Replit static hosting is causing intermittent stalls and recommend a CDN (Cloudflare R2/S3/Bunny/Vimeo) and the exact setup.
+
+D) Browser playback policy issues:
+- Autoplay restrictions: how we detect and gracefully require a click.
+- Mobile Safari quirks (playsInline required, user gesture needed, audio unlocking).
+- How to handle Promise rejection from media.play() properly.
+
+E) Performance issues:
+- CPU spikes from large DOM / animations during playback.
+- Layout thrashing or re-renders causing frame drops.
+- Use requestAnimationFrame vs setInterval for sync correction.
+- Preloading strategy and poster behavior.
+
+Deliverables I want from you
+1) A minimal reproduction checklist: how to reproduce on my Replit project.
+2) A step-by-step debug plan: what to check first, second, third (with commands/tools).
+3) A hardened MontagePlayer component:
+   - Single init effect with cleanup
+   - Guard against duplicate play calls
+   - Drift correction logic
+   - Stall recovery
+   - End-state handling (no accidental restart)
+4) A clear “fix list” with exact code diffs and exact files/paths to change.
+5) A deployment checklist (prod vs dev behavior, caching, CDN, headers).
+6) If applicable: recommendation to embed the audio into the MP4 instead of separate audio, plus how to do it.
+
+Here is what I need you to ask me for (if you need it):
+- The exact page/component code where I render the montage
+- The video/audio URLs
+- My Replit framework (Next.js/React/Vite)
+- Whether StrictMode is enabled
+- File sizes/bitrates and how they’re hosted
+
+Goal
+After your changes, the montage should play cleanly every time, never double-play, never randomly loop, and stay in sync. If something fails (autoplay policy or network), it should show a clear “Tap to Play” and recover gracefully.
