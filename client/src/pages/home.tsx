@@ -616,6 +616,53 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Compliance & Trust Badges */}
+      <section className="py-12 sm:py-16 bg-gradient-to-b from-white to-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-3">Verified & Compliant</h2>
+            <p className="text-gray-600 max-w-xl mx-auto text-sm sm:text-base">
+              Navigator USA Corp operates with full transparency and compliance.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 max-w-3xl mx-auto">
+            <Link href="/irs-verification">
+              <div className="flex items-center gap-3 bg-white border-2 border-green-500 rounded-xl p-4 sm:p-5 hover:shadow-lg transition-all cursor-pointer">
+                <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-green-500" />
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-brand-navy text-sm sm:text-base">IRS 501(c)(3) Verified</p>
+                  <p className="text-gray-500 text-xs sm:text-sm">Tax-Deductible Nonprofit</p>
+                </div>
+              </div>
+            </Link>
+            <Link href="/hipaa-compliance">
+              <div className="flex items-center gap-3 bg-white border-2 border-blue-500 rounded-xl p-4 sm:p-5 hover:shadow-lg transition-all cursor-pointer">
+                <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-blue-500" />
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-brand-navy text-sm sm:text-base">HIPAA Compliant</p>
+                  <p className="text-gray-500 text-xs sm:text-sm">45 CFR §164 Security Standards</p>
+                </div>
+              </div>
+            </Link>
+            <Link href="/transparency">
+              <div className="flex items-center gap-3 bg-white border-2 border-brand-navy rounded-xl p-4 sm:p-5 hover:shadow-lg transition-all cursor-pointer">
+                <div className="w-12 h-12 bg-brand-navy/10 rounded-full flex items-center justify-center">
+                  <Award className="w-6 h-6 text-brand-navy" />
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-brand-navy text-sm sm:text-base">Full Transparency</p>
+                  <p className="text-gray-500 text-xs sm:text-sm">View All Disclosures</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section - INTENSE */}
       <section className="py-12 sm:py-24 bg-brand-red text-white text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-brand-red via-brand-red to-brand-navy/30" />
