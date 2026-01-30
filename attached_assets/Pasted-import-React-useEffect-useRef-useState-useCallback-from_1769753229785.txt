@@ -1,0 +1,77 @@
+import React, { useEffect, useRef, useState, useCallback } from "react";
+
+/**
+ * MontagePlayer
+ * - Fixes repeating / glitchy playback caused by re-renders, strict mode, or multiple play() calls
+ * - Syncs separate audio track to video time
+ * - Handles autoplay restrictions (requires user click if blocked)
+ * - Auto-recovers from stalls and ended/desync
+ *
+ * Usage:
+ * <MontagePlayer
+ *   videoSrc="https://your-cdn.com/montage.mp4"
+ *   audioSrc="https://your-cdn.com/music.mp3"
+ *   poster="https://your-cdn.com/poster.jpg"
+ * />
+ */
+export default function MontagePlayer({
+  videoSrc,
+  audioSrc,
+  poster,
+  startAt = 0,
+  maxDesyncSeconds = 0.18,
+  className = "",
+}) {
+  const videoRef = useRef(null);
+  const audioRef = useRef(null);
+
+  const [ready, setReady] = useState(false);
+  const [needsUserGesture, setNeedsUserGesture] = useState(false);
+  const [status, setStatus] = useState("idle"); // idle | ready | playing | paused | ended | error
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // Guard to prevent duplicate play() calls (common cause of repeating/glitchiness)
+  const isStartingRef = useRef(false);
+  const lastSyncRef = useRef(0);
+  const rafRef = useRef(null);
+
+  const cleanupRAF = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+  };
+
+  const hardPause = useCallback(() => {
+    cleanupRAF();
+    const v = videoRef.current;
+    const a = audioRef.current;
+    try { v?.pause(); } catch {}
+    try { a?.pause(); } catch {}
+    setStatus("paused");
+  }, []);
+
+  const syncAudioToVideo = useCallback(() => {
+    const v = videoRef.current;
+    const a = audioRef.current;
+    if (!v || !a) return;
+
+    // Only sync while video is playing
+    if (v.paused || v.ended) return;
+
+    const vt = v.currentTime || 0;
+    const at = a.currentTime || 0;
+    const desync = Math.abs(vt - at);
+
+    // Nudge sync if drift occurs
+    if (desync > maxDesyncSeconds) {
+      a.currentTime = vt;
+      lastSyncRef.current = vt;
+    }
+
+    // Keep audio volume stable (optional: set from props)
+    if (a.muted !== v.muted) a.muted = v.muted;
+
+    rafRef.current = requestAnimationFrame(syncAudioToVideo);
+  }, [maxDesyncSeconds]);
+
+  const startPlayback = useCallback(async () => {
+    cons
