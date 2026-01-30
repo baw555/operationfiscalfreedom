@@ -12,25 +12,46 @@ import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
-import { HeroMontage } from "@/components/hero-montage";
+import { HeroMontage, montageTimeline } from "@/components/hero-montage";
 import { RangerTabSVG } from "@/components/ranger-tab-svg";
+import { useMontagePlayback } from "@/hooks/use-montage-playback";
 
 export default function Home() {
   const [introStarted, setIntroStarted] = useState(false);
   const [introPlayed, setIntroPlayed] = useState(false);
-  const [animationPhase, setAnimationPhase] = useState(0);
-  const [showContent, setShowContent] = useState(false);
   const [animationPaused, setAnimationPaused] = useState(false);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const introVideoRef = useRef<HTMLVideoElement | null>(null);
-  const montageAudioRef = useRef<HTMLAudioElement | null>(null);
-  const animationStartedRef = useRef(false);
   const [animationImages, setAnimationImages] = useState<{
     heroBg?: string;
     somethingImg?: string;
     someoneImg?: string;
     answerCallImg?: string;
   }>({});
+
+  const phaseTimeline = useMemo(() => [
+    { phase: 1, startTime: 0 },
+    { phase: 2, startTime: 4 },
+    { phase: 3, startTime: 8 },
+    { phase: 4, startTime: 12 },
+    { phase: 5, startTime: 16 },
+    { phase: 6, startTime: 18 },
+    { phase: 7, startTime: 25 },
+  ], []);
+
+  const { 
+    state: playbackState, 
+    registerAudio, 
+    registerVideo, 
+    startPlayback, 
+    stopPlayback 
+  } = useMontagePlayback({
+    timeline: montageTimeline,
+    phaseTimeline,
+    montageStartPhase: 7,
+    debug: false,
+  });
+
+  const { isPlaying: isMusicPlaying, phase: animationPhase, showMontage: showContent, activeSegmentIndex, currentTime, autoplayBlocked } = playbackState;
 
   useEffect(() => {
     Promise.all([
@@ -48,123 +69,22 @@ export default function Home() {
     });
   }, []);
 
-  // Audio-driven phase timeline - phases sync to audio.currentTime
-  const phaseTimeline = useMemo(() => [
-    { phase: 1, startTime: 0 },     // "We can feel it" - immediate
-    { phase: 2, startTime: 4 },     // "Something..."
-    { phase: 3, startTime: 8 },     // "Someone..."
-    { phase: 4, startTime: 12 },    // "Will answer the call"
-    { phase: 5, startTime: 16 },    // "NAVIGATOR"
-    { phase: 6, startTime: 18 },    // "USA"
-    { phase: 7, startTime: 25 },    // Montage starts
-  ], []);
-
-  const rafRef = useRef<number | null>(null);
-  const lastPhaseRef = useRef(0);
-
-  // Get phase from audio time
-  const getPhaseFromTime = useCallback((time: number) => {
-    for (let i = phaseTimeline.length - 1; i >= 0; i--) {
-      if (time >= phaseTimeline[i].startTime) {
-        return phaseTimeline[i].phase;
-      }
-    }
-    return 1;
-  }, [phaseTimeline]);
-
-  // RAF loop for smooth audio-driven phase sync - only runs while audio plays
-  const syncLoop = useCallback(() => {
-    if (!montageAudioRef.current) return;
-    
-    // Stop RAF loop when audio is paused - will restart via play event
-    if (montageAudioRef.current.paused) {
-      rafRef.current = null;
-      return;
-    }
-
-    const currentTime = montageAudioRef.current.currentTime;
-    const newPhase = getPhaseFromTime(currentTime);
-    
-    if (newPhase !== lastPhaseRef.current) {
-      lastPhaseRef.current = newPhase;
-      setAnimationPhase(newPhase);
-      if (newPhase === 7) {
-        setShowContent(true);
-      }
-    }
-
-    rafRef.current = requestAnimationFrame(syncLoop);
-  }, [getPhaseFromTime]);
-
   const startAnimation = useCallback(() => {
-    if (animationStartedRef.current) return;
-    animationStartedRef.current = true;
-    
-    setShowContent(false);
-    setAnimationPhase(1);
-    lastPhaseRef.current = 1;
-    
-    if (montageAudioRef.current) {
-      montageAudioRef.current.currentTime = 0;
-      montageAudioRef.current.play().catch(() => {});
-    }
-    
-    // Start RAF sync loop
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(syncLoop);
-  }, [syncLoop]);
-  
-  // Handle audio ended - restart the experience
+    startPlayback();
+  }, [startPlayback]);
+
   const handleAudioEnded = useCallback(() => {
-    animationStartedRef.current = false;
-    startAnimation();
-  }, [startAnimation]);
+    startPlayback();
+  }, [startPlayback]);
 
   const toggleAnimation = useCallback(() => {
     if (animationPaused) {
-      animationStartedRef.current = false;
-      startAnimation();
+      startPlayback();
     } else {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-      setAnimationPhase(7);
-      setShowContent(true);
+      stopPlayback();
     }
     setAnimationPaused(!animationPaused);
-  }, [animationPaused, startAnimation]);
-
-  // Keep RAF running while animation is in progress
-  useEffect(() => {
-    if (animationStartedRef.current && !rafRef.current && montageAudioRef.current && !montageAudioRef.current.paused) {
-      rafRef.current = requestAnimationFrame(syncLoop);
-    }
-  }, [animationPhase, syncLoop]);
-
-  // Restart RAF when audio plays
-  useEffect(() => {
-    const audio = montageAudioRef.current;
-    if (!audio) return;
-    
-    const handlePlay = () => {
-      if (animationStartedRef.current && !rafRef.current) {
-        rafRef.current = requestAnimationFrame(syncLoop);
-      }
-    };
-    
-    audio.addEventListener('play', handlePlay);
-    return () => audio.removeEventListener('play', handlePlay);
-  }, [syncLoop]);
-
-  // Cleanup RAF on unmount
-  useEffect(() => {
-    return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, []);
+  }, [animationPaused, startPlayback, stopPlayback]);
 
   const handleIntroEnded = () => {
     setIntroPlayed(true);
@@ -181,48 +101,13 @@ export default function Home() {
     startAnimation();
   };
 
-  const playMontageAudio = () => {
-    if (montageAudioRef.current) {
-      montageAudioRef.current.currentTime = 0;
-      montageAudioRef.current.play().catch(() => {});
+  const toggleMusic = useCallback(() => {
+    if (isMusicPlaying) {
+      stopPlayback();
+    } else {
+      startPlayback();
     }
-  };
-
-  const toggleMusic = () => {
-    if (montageAudioRef.current) {
-      if (montageAudioRef.current.paused) {
-        montageAudioRef.current.play().catch(() => {});
-      } else {
-        montageAudioRef.current.pause();
-      }
-    }
-  };
-
-  // Track audio state and restart RAF on play
-  useEffect(() => {
-    const audio = montageAudioRef.current;
-    if (!audio) return;
-
-    const handlePlay = () => {
-      setIsMusicPlaying(true);
-      // Restart RAF loop when audio resumes
-      if (!rafRef.current && animationStartedRef.current) {
-        rafRef.current = requestAnimationFrame(syncLoop);
-      }
-    };
-    const handlePause = () => setIsMusicPlaying(false);
-    const handleEnded = () => setIsMusicPlaying(false);
-
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('pause', handlePause);
-    audio.addEventListener('ended', handleEnded);
-
-    return () => {
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, []);
+  }, [isMusicPlaying, startPlayback, stopPlayback]);
 
   const startIntro = () => {
     setIntroStarted(true);
@@ -261,10 +146,9 @@ export default function Home() {
     <Layout>
       {/* Montage Audio - preloaded, starts when intro ends */}
       <audio
-        ref={montageAudioRef}
+        ref={registerAudio}
         src="/audio/montage-music.mp3"
         preload="auto"
-        onEnded={handleAudioEnded}
       />
 
       {/* Floating Music Control - visible during text sequence and montage */}
@@ -487,7 +371,13 @@ export default function Home() {
           "relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-navy transition-opacity duration-1000",
           showContent ? "opacity-100" : "opacity-0"
         )}>
-          <HeroMontage isActive={showContent} audioRef={montageAudioRef} />
+          <HeroMontage 
+            isActive={showContent} 
+            activeSegmentIndex={activeSegmentIndex}
+            currentTime={currentTime}
+            audioDuration={128}
+            registerVideo={registerVideo}
+          />
 
           <div className="container relative z-10 px-3 sm:px-4 py-10 sm:py-20 text-center max-w-5xl mx-auto">
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-white mb-1 sm:mb-2 leading-none animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
