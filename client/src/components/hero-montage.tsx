@@ -87,6 +87,9 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     intervalRef.current = setInterval(() => {
       if (!audioRef?.current) return;
       
+      // Don't advance montage while audio is paused
+      if (audioRef.current.paused) return;
+      
       const currentTime = audioRef.current.currentTime;
       setDisplayTime(Math.floor(currentTime));
       
@@ -142,6 +145,36 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
       stopMontage();
     }
   }, [isActive, isPlaying, startMontage, stopMontage, audioRef]);
+
+  // Sync videos with audio pause/resume state
+  useEffect(() => {
+    if (!isPlaying || !audioRef?.current) return;
+
+    const audio = audioRef.current;
+    
+    const handleAudioPause = () => {
+      videoRefs.current.forEach(video => {
+        if (!video.paused) video.pause();
+      });
+    };
+
+    const handleAudioPlay = () => {
+      const currentSegment = montageTimeline[activeIndex];
+      const currentVideo = videoRefs.current.get(currentSegment.src);
+      if (currentVideo?.paused) {
+        currentVideo.loop = true;
+        currentVideo.play().catch(() => {});
+      }
+    };
+
+    audio.addEventListener('pause', handleAudioPause);
+    audio.addEventListener('play', handleAudioPlay);
+
+    return () => {
+      audio.removeEventListener('pause', handleAudioPause);
+      audio.removeEventListener('play', handleAudioPlay);
+    };
+  }, [isPlaying, activeIndex, audioRef]);
 
   useEffect(() => {
     if (!isPlaying) return;

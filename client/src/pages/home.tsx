@@ -21,6 +21,7 @@ export default function Home() {
   const [animationPhase, setAnimationPhase] = useState(0);
   const [showContent, setShowContent] = useState(false);
   const [animationPaused, setAnimationPaused] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const loopIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const introVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -136,6 +137,36 @@ export default function Home() {
     }
   };
 
+  const toggleMusic = () => {
+    if (montageAudioRef.current) {
+      if (montageAudioRef.current.paused) {
+        montageAudioRef.current.play().catch(() => {});
+      } else {
+        montageAudioRef.current.pause();
+      }
+    }
+  };
+
+  // Track audio state
+  useEffect(() => {
+    const audio = montageAudioRef.current;
+    if (!audio) return;
+
+    const handlePlay = () => setIsMusicPlaying(true);
+    const handlePause = () => setIsMusicPlaying(false);
+    const handleEnded = () => setIsMusicPlaying(false);
+
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
   const startIntro = () => {
     setIntroStarted(true);
     if (introVideoRef.current) {
@@ -177,6 +208,27 @@ export default function Home() {
         src="/audio/montage-music.mp3"
         preload="auto"
       />
+
+      {/* Floating Music Control - visible during text sequence and montage */}
+      {introPlayed && (
+        <button
+          onClick={toggleMusic}
+          data-testid="button-floating-music"
+          className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-lg tracking-wider rounded-full shadow-lg shadow-brand-gold/40 transition-all hover:scale-105 uppercase"
+        >
+          {isMusicPlaying ? (
+            <>
+              <Pause className="w-5 h-5 fill-current" />
+              Pause
+            </>
+          ) : (
+            <>
+              <Play className="w-5 h-5 fill-current" />
+              Play
+            </>
+          )}
+        </button>
+      )}
       
       {/* Intro Video with Audio */}
       {!introPlayed && (
@@ -413,11 +465,21 @@ export default function Home() {
             {/* Play Audio Button */}
             <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150">
               <button
-                onClick={playMontageAudio}
+                onClick={toggleMusic}
+                data-testid="button-toggle-music"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-xl tracking-wider rounded-full shadow-lg shadow-brand-gold/40 transition-all hover:scale-105 uppercase"
               >
-                <Play className="w-6 h-6 fill-current" />
-                Play Music
+                {isMusicPlaying ? (
+                  <>
+                    <Pause className="w-6 h-6 fill-current" />
+                    Pause Music
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-6 h-6 fill-current" />
+                    Play Music
+                  </>
+                )}
               </button>
             </div>
 
