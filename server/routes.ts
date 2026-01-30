@@ -10,12 +10,16 @@ import { getResendClient } from "./resendClient";
 import twilio from "twilio";
 import Stripe from "stripe";
 import { extractDocumentText, analyzeContractDocument } from "./contractDocumentAnalyzer";
-import * as otplib from "otplib";
+import { TOTP } from "otplib";
 import * as QRCode from "qrcode";
 import crypto from "crypto";
 
-// Initialize TOTP authenticator
-const authenticator = otplib.authenticator;
+// HIPAA Security: Configure TOTP with strict timing window to prevent replay attacks
+// Window of 1 means only current and 1 adjacent time step accepted (30 seconds each side)
+const totp = new TOTP({
+  window: 1,  // Only accept codes from current and 1 adjacent time step
+  period: 30, // Standard 30-second time step
+});
 import { 
   insertAffiliateApplicationSchema, 
   insertHelpRequestSchema, 
@@ -1468,22 +1472,23 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      // Check portal restrictions
+      // HIPAA Security: Check portal restrictions with normalized error messages
+      // All portal-related auth failures return the same generic message to prevent enumeration
+      const genericAuthError = "Invalid email or password";
+      
       // If user has a portal restriction, they can only login via that portal's login
-      // If no portal param provided (general admin login), reject users with portal restrictions
       if (user.portal && !portal) {
-        return res.status(403).json({ message: "This account is restricted to a specific portal" });
+        return res.status(401).json({ message: genericAuthError });
       }
       
       // If portal param provided, user's portal must match
       if (portal && user.portal && user.portal !== portal) {
-        return res.status(403).json({ message: "Invalid credentials for this portal" });
+        return res.status(401).json({ message: genericAuthError });
       }
       
       // If portal param provided but user has no portal restriction, reject
-      // (general admins shouldn't login via portal-specific logins)
       if (portal && !user.portal) {
-        return res.status(403).json({ message: "Invalid credentials for this portal" });
+        return res.status(401).json({ message: genericAuthError });
       }
 
       // HIPAA §164.312(d) - Check if user has MFA enabled
@@ -5908,12 +5913,34 @@ export async function registerRoutes(
   // HIPAA §164.312(d) - Person or Entity Authentication
 
   // Helper function to generate backup codes
-  const generateBackupCodes = (): string[] => {
-    const codes: string[] = [];
+  // HIPAA Security: Generate and hash backup codes for MFA recovery
+  // Returns both plain codes (shown to user once) and hashed versions (stored)
+  const generateBackupCodes = async (): Promise<{ plain: string[], hashed: string[] }> => {
+    const bcrypt = await import("bcrypt");
+    const plain: string[] = [];
+    const hashed: string[] = [];
+    
     for (let i = 0; i < 10; i++) {
-      codes.push(crypto.randomBytes(4).toString("hex").toUpperCase());
+      const code = crypto.randomBytes(4).toString("hex").toUpperCase();
+      plain.push(code);
+      // Use lower cost factor (8) for backup codes since they're single-use
+      const hashedCode = await bcrypt.hash(code, 8);
+      hashed.push(hashedCode);
     }
-    return codes;
+    
+    return { plain, hashed };
+  };
+  
+  // Verify a backup code against stored hashes
+  const verifyBackupCode = async (code: string, hashedCodes: string[]): Promise<{ valid: boolean, index: number }> => {
+    const bcrypt = await import("bcrypt");
+    for (let i = 0; i < hashedCodes.length; i++) {
+      const isMatch = await bcrypt.compare(code.toUpperCase(), hashedCodes[i]);
+      if (isMatch) {
+        return { valid: true, index: i };
+      }
+    }
+    return { valid: false, index: -1 };
   };
 
   // Get current user's MFA status
@@ -5939,23 +5966,24 @@ export async function registerRoutes(
       }
 
       // Generate new secret
-      const secret = authenticator.generateSecret();
+      const secret = totp.generateSecret();
       
       // Create TOTP URI for QR code
-      const otpauth = authenticator.keyuri(user.email, "NavigatorUSA", secret);
+      const otpauth = totp.keyuri(user.email, "NavigatorUSA", secret);
       
       // Generate QR code as data URL
       const qrCodeDataUrl = await QRCode.toDataURL(otpauth);
       
-      // Generate backup codes
-      const backupCodes = generateBackupCodes();
+      // Generate backup codes (hashed for storage, plain for user display)
+      const { plain: backupCodesPlain, hashed: backupCodesHashed } = await generateBackupCodes();
       
       // Store the secret temporarily (not enabled yet)
+      // Store HASHED backup codes - plain codes are only shown once to user
       let config = await storage.getUserMfaConfig(user.id);
       if (config) {
         await storage.updateUserMfaConfig(user.id, {
           mfaSecret: secret,
-          backupCodes: JSON.stringify(backupCodes),
+          backupCodes: JSON.stringify(backupCodesHashed),
           mfaEnabled: false,
         });
       } else {
@@ -5963,14 +5991,15 @@ export async function registerRoutes(
           userId: user.id,
           mfaEnabled: false,
           mfaSecret: secret,
-          backupCodes: JSON.stringify(backupCodes),
+          backupCodes: JSON.stringify(backupCodesHashed),
         });
       }
 
+      // Return plain backup codes to user (shown only once)
       res.json({
         secret,
         qrCode: qrCodeDataUrl,
-        backupCodes,
+        backupCodes: backupCodesPlain,
       });
     } catch (error) {
       console.error("Error setting up MFA:", error);
@@ -5992,7 +6021,7 @@ export async function registerRoutes(
       }
 
       // Verify the TOTP code
-      const isValid = authenticator.verify({ token: code, secret: config.mfaSecret });
+      const isValid = totp.verify({ token: code, secret: config.mfaSecret });
       
       if (!isValid) {
         return res.status(400).json({ message: "Invalid verification code" });
@@ -6042,18 +6071,25 @@ export async function registerRoutes(
         return res.status(400).json({ message: "MFA is not enabled for this user" });
       }
 
-      // Check if code is a backup code
+      // Check if code is a backup code (hashed comparison)
       let isBackupCode = false;
-      let backupCodes: string[] = [];
+      let hashedBackupCodes: string[] = [];
+      let remainingBackupCodesCount = 0;
+      
       if (config.backupCodes) {
         try {
-          backupCodes = JSON.parse(config.backupCodes);
-          if (backupCodes.includes(code.toUpperCase())) {
+          hashedBackupCodes = JSON.parse(config.backupCodes);
+          remainingBackupCodesCount = hashedBackupCodes.length;
+          
+          // Use secure hash comparison for backup codes
+          const backupResult = await verifyBackupCode(code, hashedBackupCodes);
+          if (backupResult.valid) {
             isBackupCode = true;
-            // Remove used backup code
-            backupCodes = backupCodes.filter(c => c !== code.toUpperCase());
+            // Remove used backup code (by index)
+            hashedBackupCodes.splice(backupResult.index, 1);
+            remainingBackupCodesCount = hashedBackupCodes.length;
             await storage.updateUserMfaConfig(userId, {
-              backupCodes: JSON.stringify(backupCodes),
+              backupCodes: JSON.stringify(hashedBackupCodes),
             });
           }
         } catch {
@@ -6061,8 +6097,8 @@ export async function registerRoutes(
         }
       }
 
-      // Verify TOTP code
-      const isValidTotp = authenticator.verify({ token: code, secret: config.mfaSecret });
+      // Verify TOTP code (only if not a backup code for efficiency)
+      const isValidTotp = !isBackupCode && totp.verify({ token: code, secret: config.mfaSecret });
 
       if (!isValidTotp && !isBackupCode) {
         // Log failed MFA attempt
@@ -6129,7 +6165,7 @@ export async function registerRoutes(
             role: user.role,
           },
           backupCodeUsed: isBackupCode,
-          remainingBackupCodes: backupCodes.length,
+          remainingBackupCodes: remainingBackupCodesCount,
         });
       });
     } catch (error) {
@@ -6197,10 +6233,10 @@ export async function registerRoutes(
         return res.status(400).json({ message: "MFA is not enabled" });
       }
 
-      const newBackupCodes = generateBackupCodes();
+      const { plain: newBackupCodesPlain, hashed: newBackupCodesHashed } = await generateBackupCodes();
       
       await storage.updateUserMfaConfig(req.session.userId!, {
-        backupCodes: JSON.stringify(newBackupCodes),
+        backupCodes: JSON.stringify(newBackupCodesHashed),
       });
 
       // Log backup code regeneration
@@ -6219,7 +6255,7 @@ export async function registerRoutes(
         phiAccessed: false,
       });
 
-      res.json({ success: true, backupCodes: newBackupCodes });
+      res.json({ success: true, backupCodes: newBackupCodesPlain });
     } catch (error) {
       console.error("Error regenerating backup codes:", error);
       res.status(500).json({ message: "Failed to regenerate backup codes" });
