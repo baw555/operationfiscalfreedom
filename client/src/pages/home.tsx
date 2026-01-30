@@ -98,13 +98,9 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (introPlayed) {
-      runAnimation();
-      loopIntervalRef.current = setInterval(() => {
-        runAnimation();
-      }, 57000);
-    }
-
+    // Animation loop disabled - montage now plays for full 128s audio duration
+    // Once intro ends, animationPhase is set to 7 in handleIntroEnded/skipIntro
+    // and stays there for the entire song
     return () => {
       clearAllTimeouts();
       if (loopIntervalRef.current) {

@@ -7,6 +7,8 @@ interface MontageSegment {
   endTime: number;
 }
 
+const AUDIO_DURATION = 128;
+
 const montageTimeline: MontageSegment[] = [
   { src: "/videos/soldiers-marching-new.mp4", startTime: 0, endTime: 8 },
   { src: "/videos/montage-rain.mp4", startTime: 8, endTime: 14 },
@@ -21,9 +23,9 @@ const montageTimeline: MontageSegment[] = [
   { src: "/videos/montage-clip.mp4", startTime: 68, endTime: 76 },
   { src: "/videos/montage-salute.mp4", startTime: 76, endTime: 82 },
   { src: "/videos/montage-embrace-1.mp4", startTime: 82, endTime: 90 },
-  { src: "/videos/soldiers-marching-new.mp4", startTime: 90, endTime: 98 },
-  { src: "/videos/montage-helicopter.mp4", startTime: 98, endTime: 106 },
-  { src: "/videos/montage-iwojima.mp4", startTime: 106, endTime: 118 },
+  { src: "/videos/soldiers-marching-new.mp4", startTime: 90, endTime: 100 },
+  { src: "/videos/montage-helicopter.mp4", startTime: 100, endTime: 110 },
+  { src: "/videos/montage-iwojima.mp4", startTime: 110, endTime: 128 },
 ];
 
 const uniqueVideos = Array.from(new Set(montageTimeline.map(s => s.src)));
@@ -96,7 +98,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
         return prev;
       });
 
-      if (currentTime >= 118) {
+      if (currentTime >= AUDIO_DURATION) {
         stopMontage();
         onMontageEnd?.();
       }
@@ -188,7 +190,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
 
       {isPlaying && (
         <div className="absolute top-4 right-4 z-20 bg-black/50 text-white px-3 py-1 rounded text-sm font-mono">
-          {displayTime}s / 118s
+          {displayTime}s / {AUDIO_DURATION}s
         </div>
       )}
     </div>
