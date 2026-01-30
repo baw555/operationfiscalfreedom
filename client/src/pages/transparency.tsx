@@ -213,6 +213,13 @@ export default function Transparency() {
                         <ExternalLink className="w-4 h-4" />
                         IRS Tax Exempt Organization Search
                       </a>
+                      <a 
+                        href="/irs-verification" 
+                        className="inline-flex items-center gap-2 mt-3 ml-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        View Full 501(c)(3) Report
+                      </a>
                     </div>
                   </div>
                 </div>
