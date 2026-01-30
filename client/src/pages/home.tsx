@@ -114,16 +114,15 @@ export default function Home() {
     setAnimationPaused(!animationPaused);
   };
 
+  // Cleanup only on unmount - don't clear timeouts when introPlayed changes
   useEffect(() => {
-    // Music starts immediately after Uncle Sam intro, text sequence plays (phases 1-6)
-    // Then montage videos start at phase 7 and sync with the already-playing audio
     return () => {
       clearAllTimeouts();
       if (loopIntervalRef.current) {
         clearInterval(loopIntervalRef.current);
       }
     };
-  }, [introPlayed]);
+  }, []);
 
   const handleIntroEnded = () => {
     setIntroPlayed(true);
