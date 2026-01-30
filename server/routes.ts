@@ -41,6 +41,81 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
+// Zod validation schemas for envelope system
+const envelopeRecipientSchema = z.object({
+  name: z.string().min(1, "Recipient name is required"),
+  email: z.string().email("Valid email is required"),
+  phone: z.string().optional().nullable(),
+  role: z.enum(["signer", "cc", "approver"]).default("signer"),
+  routingOrder: z.number().int().min(1, "Routing order must be at least 1").default(1),
+});
+
+const createEnvelopeSchema = z.object({
+  templateId: z.number().int().positive("Template ID is required"),
+  name: z.string().min(1, "Envelope name is required").max(255),
+  routingType: z.enum(["sequential", "parallel", "mixed"]).default("sequential"),
+  recipients: z.array(envelopeRecipientSchema).min(1, "At least one recipient is required"),
+  reminderEnabled: z.boolean().default(false),
+  reminderDaysAfterSend: z.number().int().min(1).max(30).default(3),
+  reminderFrequencyDays: z.number().int().min(1).max(14).default(3),
+  expiresInDays: z.number().int().min(1).max(365).optional().nullable(),
+});
+
+// Valid envelope status transitions (state machine)
+const VALID_ENVELOPE_TRANSITIONS: Record<string, string[]> = {
+  draft: ["sent", "voided"],
+  sent: ["completed", "voided", "declined"],
+  completed: [], // Terminal state - no further transitions
+  voided: [], // Terminal state
+  declined: ["voided"], // Can only void a declined envelope
+};
+
+// Valid recipient status transitions
+const VALID_RECIPIENT_TRANSITIONS: Record<string, string[]> = {
+  pending: ["sent", "voided"],
+  sent: ["viewed", "signed", "declined", "voided"],
+  viewed: ["signed", "declined", "voided"],
+  signed: [], // Terminal state
+  declined: ["voided"],
+  voided: [], // Terminal state
+};
+
+// Helper to validate state transition
+function isValidTransition(currentStatus: string, newStatus: string, transitions: Record<string, string[]>): boolean {
+  const allowed = transitions[currentStatus] || [];
+  return allowed.includes(newStatus);
+}
+
+// Email retry helper with exponential backoff
+async function sendEmailWithRetry(
+  resend: any,
+  emailParams: any,
+  maxRetries: number = 3
+): Promise<{ success: boolean; error?: string }> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await resend.emails.send(emailParams);
+      return { success: true };
+    } catch (error: any) {
+      console.error(`[Email] Attempt ${attempt}/${maxRetries} failed:`, error.message);
+      
+      // Don't retry on permanent failures (invalid email, etc)
+      if (error.statusCode === 400 || error.statusCode === 422) {
+        return { success: false, error: `Invalid request: ${error.message}` };
+      }
+      
+      if (attempt < maxRetries) {
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = Math.pow(2, attempt - 1) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        return { success: false, error: `Failed after ${maxRetries} attempts: ${error.message}` };
+      }
+    }
+  }
+  return { success: false, error: "Unknown error" };
+}
+
 declare module "express-session" {
   interface SessionData {
     userId: number;
@@ -4269,6 +4344,16 @@ export async function registerRoutes(
   // Create envelope with ordered recipients
   app.post("/api/csu/envelopes", requireAdmin, async (req, res) => {
     try {
+      // Validate request body with Zod schema
+      const validationResult = createEnvelopeSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`);
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors 
+        });
+      }
+
       const { 
         templateId, 
         name, 
@@ -4278,10 +4363,12 @@ export async function registerRoutes(
         reminderDaysAfterSend,
         reminderFrequencyDays,
         expiresInDays 
-      } = req.body;
+      } = validationResult.data;
 
-      if (!templateId || !name || !recipients || recipients.length === 0) {
-        return res.status(400).json({ message: "Template ID, name, and at least one recipient are required" });
+      // Verify template exists
+      const template = await storage.getCsuContractTemplate(templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
       }
 
       // Calculate expiration date
@@ -4390,10 +4477,13 @@ export async function registerRoutes(
 
       const { client: resend, fromEmail } = await getResendClient();
 
+      const emailFailures: string[] = [];
+      
       for (const recipient of recipientsToSend) {
         const signingUrl = `${baseUrl}/csu-sign?token=${recipient.signToken}`;
         
-        await resend.emails.send({
+        // Send email with retry logic
+        const emailResult = await sendEmailWithRetry(resend, {
           from: fromEmail,
           to: recipient.email,
           subject: `Please Sign: ${template.name}`,
@@ -4420,47 +4510,72 @@ export async function registerRoutes(
           `,
         });
 
-        // Update recipient status
-        await storage.updateCsuEnvelopeRecipient(recipient.id, {
+        if (emailResult.success) {
+          // Update recipient status
+          await storage.updateCsuEnvelopeRecipient(recipient.id, {
+            status: "sent",
+            sentAt: new Date(),
+          });
+
+          // Log audit event
+          await storage.createCsuAuditTrail({
+            envelopeId,
+            recipientId: recipient.id,
+            eventType: "recipient_sent",
+            eventDescription: `Signing request sent to ${recipient.name} (${recipient.email})`,
+            actorType: "system",
+            ipAddress: req.ip,
+            userAgent: req.get("user-agent"),
+          });
+        } else {
+          // Log email failure in audit trail
+          emailFailures.push(`${recipient.email}: ${emailResult.error}`);
+          await storage.createCsuAuditTrail({
+            envelopeId,
+            recipientId: recipient.id,
+            eventType: "email_failed",
+            eventDescription: `Failed to send email to ${recipient.name} (${recipient.email}): ${emailResult.error}`,
+            actorType: "system",
+            ipAddress: req.ip,
+            userAgent: req.get("user-agent"),
+          });
+        }
+      }
+
+      const successCount = recipientsToSend.length - emailFailures.length;
+      
+      // Only update envelope status if at least one email was sent successfully
+      if (successCount > 0) {
+        await storage.updateCsuEnvelope(envelopeId, {
           status: "sent",
           sentAt: new Date(),
         });
 
-        // Log audit event
+        // Log envelope sent event
         await storage.createCsuAuditTrail({
           envelopeId,
-          recipientId: recipient.id,
-          eventType: "recipient_sent",
-          eventDescription: `Signing request sent to ${recipient.name} (${recipient.email})`,
-          actorType: "system",
+          eventType: "envelope_sent",
+          eventDescription: `Envelope sent to ${successCount} of ${recipientsToSend.length} recipient(s)${emailFailures.length > 0 ? ` (${emailFailures.length} failed)` : ''}`,
+          actorType: "admin",
+          actorEmail: (req as any).user?.email,
+          actorUserId: (req as any).user?.id,
           ipAddress: req.ip,
           userAgent: req.get("user-agent"),
         });
+
+        res.json({ 
+          success: true, 
+          message: `Envelope sent to ${successCount} recipient(s)${emailFailures.length > 0 ? `. ${emailFailures.length} email(s) failed.` : ''}`,
+          recipientsSent: successCount,
+          emailFailures: emailFailures.length > 0 ? emailFailures : undefined,
+        });
+      } else {
+        // All emails failed
+        res.status(500).json({ 
+          message: "Failed to send envelope - all emails failed",
+          emailFailures 
+        });
       }
-
-      // Update envelope status
-      await storage.updateCsuEnvelope(envelopeId, {
-        status: "sent",
-        sentAt: new Date(),
-      });
-
-      // Log envelope sent event
-      await storage.createCsuAuditTrail({
-        envelopeId,
-        eventType: "envelope_sent",
-        eventDescription: `Envelope sent to ${recipientsToSend.length} recipient(s)`,
-        actorType: "admin",
-        actorEmail: (req as any).user?.email,
-        actorUserId: (req as any).user?.id,
-        ipAddress: req.ip,
-        userAgent: req.get("user-agent"),
-      });
-
-      res.json({ 
-        success: true, 
-        message: `Envelope sent to ${recipientsToSend.length} recipient(s)`,
-        recipientsSent: recipientsToSend.length
-      });
     } catch (error) {
       console.error("Error sending envelope:", error);
       res.status(500).json({ message: "Failed to send envelope" });
@@ -4599,6 +4714,10 @@ export async function registerRoutes(
   app.post("/api/csu/envelopes/:id/void", requireAdmin, async (req, res) => {
     try {
       const envelopeId = parseInt(req.params.id);
+      if (isNaN(envelopeId)) {
+        return res.status(400).json({ message: "Invalid envelope ID" });
+      }
+      
       const { reason } = req.body;
 
       const envelope = await storage.getCsuEnvelope(envelopeId);
@@ -4606,12 +4725,13 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Envelope not found" });
       }
 
-      if (envelope.status === "completed") {
-        return res.status(400).json({ message: "Cannot void a completed envelope" });
-      }
-
-      if (envelope.status === "voided") {
-        return res.status(400).json({ message: "Envelope is already voided" });
+      // Use state machine validation
+      if (!isValidTransition(envelope.status, "voided", VALID_ENVELOPE_TRANSITIONS)) {
+        return res.status(400).json({ 
+          message: `Cannot void envelope with status "${envelope.status}"`,
+          currentStatus: envelope.status,
+          allowedTransitions: VALID_ENVELOPE_TRANSITIONS[envelope.status] || []
+        });
       }
 
       await storage.updateCsuEnvelope(envelopeId, {

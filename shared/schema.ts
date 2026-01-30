@@ -1250,7 +1250,8 @@ export const auditEventTypeEnum = pgEnum("audit_event_type", [
   "recipient_declined",
   "reminder_sent",
   "link_resent",
-  "document_downloaded"
+  "document_downloaded",
+  "email_failed"
 ]);
 
 // CSU Audit Trail - Immutable log of all contract events
