@@ -49,12 +49,33 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [displayTime, setDisplayTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(128);
   
   // Single video element approach - only one video plays at a time
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const hasStartedRef = useRef(false);
   const lastIndexRef = useRef(-1);
   const preloadedRef = useRef<Set<string>>(new Set());
+
+  // Get audio duration from metadata
+  useEffect(() => {
+    const audio = audioRef?.current;
+    if (!audio) return;
+    
+    const onLoadedMetadata = () => {
+      if (audio.duration && !isNaN(audio.duration)) {
+        setAudioDuration(Math.floor(audio.duration));
+      }
+    };
+    
+    // Check if already loaded
+    if (audio.duration && !isNaN(audio.duration)) {
+      setAudioDuration(Math.floor(audio.duration));
+    }
+    
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    return () => audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+  }, [audioRef]);
 
   // Find segment for current time
   const getSegmentIndex = useCallback((time: number) => {
@@ -65,6 +86,28 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     }
     return montageTimeline.length - 1;
   }, []);
+
+  // Sync video to correct position within current segment
+  const syncCurrentVideo = useCallback((forceSync = false) => {
+    const audio = audioRef?.current;
+    if (!audio) return;
+    
+    const time = audio.currentTime;
+    const segmentIndex = getSegmentIndex(time);
+    const segment = montageTimeline[segmentIndex];
+    const video = videoRefs.current.get(segment.src);
+    
+    if (video) {
+      const segmentElapsed = time - segment.startTime;
+      const expectedTime = Math.min(segmentElapsed, video.duration || 999);
+      const drift = Math.abs(video.currentTime - expectedTime);
+      
+      // Resync if drift > 0.5s or forced (seek event)
+      if (drift > 0.5 || forceSync) {
+        video.currentTime = expectedTime;
+      }
+    }
+  }, [audioRef, getSegmentIndex]);
 
   // Main sync handler - called on audio timeupdate
   const syncToAudio = useCallback(() => {
@@ -77,7 +120,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     const segmentIndex = getSegmentIndex(time);
     const segment = montageTimeline[segmentIndex];
     
-    // Only switch video when segment changes
+    // Handle segment change
     if (segmentIndex !== lastIndexRef.current) {
       lastIndexRef.current = segmentIndex;
       setActiveIndex(segmentIndex);
@@ -85,7 +128,6 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
       // Pause all videos, play the new one
       videoRefs.current.forEach((video, src) => {
         if (src === segment.src) {
-          // Calculate where in the video we should be
           const segmentElapsed = time - segment.startTime;
           video.currentTime = Math.min(segmentElapsed, video.duration || 999);
           video.play().catch(() => {});
@@ -104,8 +146,11 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
           preloadedRef.current.add(nextSrc);
         }
       }
+    } else {
+      // Within same segment - check for drift and resync if needed
+      syncCurrentVideo(false);
     }
-  }, [audioRef, getSegmentIndex]);
+  }, [audioRef, getSegmentIndex, syncCurrentVideo]);
 
   // Start montage
   const startMontage = useCallback(() => {
@@ -154,17 +199,40 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     const onPause = () => {
       videoRefs.current.forEach(v => { if (!v.paused) v.pause(); });
     };
+    const onSeeked = () => {
+      // Force resync when user seeks in audio
+      const time = audio.currentTime;
+      const segmentIndex = getSegmentIndex(time);
+      const segment = montageTimeline[segmentIndex];
+      
+      // Update state
+      lastIndexRef.current = segmentIndex;
+      setActiveIndex(segmentIndex);
+      
+      // Switch to correct video and sync position
+      videoRefs.current.forEach((video, src) => {
+        if (src === segment.src) {
+          const segmentElapsed = time - segment.startTime;
+          video.currentTime = Math.min(segmentElapsed, video.duration || 999);
+          if (!audio.paused) video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    };
 
     audio.addEventListener('timeupdate', onTimeUpdate);
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
+    audio.addEventListener('seeked', onSeeked);
 
     return () => {
       audio.removeEventListener('timeupdate', onTimeUpdate);
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('seeked', onSeeked);
     };
-  }, [audioRef, syncToAudio, startMontage, isActive, activeIndex]);
+  }, [audioRef, syncToAudio, startMontage, isActive, activeIndex, getSegmentIndex]);
 
   // Handle isActive changes
   useEffect(() => {
@@ -218,7 +286,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
       {/* Time display */}
       {isPlaying && (
         <div className="absolute top-4 right-4 z-20 bg-black/50 text-white px-3 py-1 rounded text-sm font-mono">
-          {displayTime}s / 128s
+          {displayTime}s / {audioDuration}s
         </div>
       )}
     </div>
