@@ -239,6 +239,13 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     }
   }, [isActive, isPlaying, startMontage, stopMontage, audioRef]);
 
+  // Keep RAF running while montage is playing
+  useEffect(() => {
+    if (isPlaying && !rafRef.current && audioRef?.current && !audioRef.current.paused) {
+      rafRef.current = requestAnimationFrame(syncLoop);
+    }
+  }, [isPlaying, syncLoop, audioRef]);
+
   // Cleanup RAF on unmount
   useEffect(() => {
     return () => {
