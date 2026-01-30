@@ -115,10 +115,8 @@ export default function Home() {
 
   const handleIntroEnded = () => {
     setIntroPlayed(true);
-    if (montageAudioRef.current) {
-      montageAudioRef.current.currentTime = 0;
-      montageAudioRef.current.play().catch(() => {});
-    }
+    setAnimationPhase(7);
+    setShowContent(true);
   };
 
   const skipIntro = () => {
@@ -126,6 +124,11 @@ export default function Home() {
       introVideoRef.current.pause();
     }
     setIntroPlayed(true);
+    setAnimationPhase(7);
+    setShowContent(true);
+  };
+
+  const playMontageAudio = () => {
     if (montageAudioRef.current) {
       montageAudioRef.current.currentTime = 0;
       montageAudioRef.current.play().catch(() => {});
@@ -399,6 +402,17 @@ export default function Home() {
                   </a>
                 </div>
               </div>
+            </div>
+
+            {/* Play Audio Button */}
+            <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150">
+              <button
+                onClick={playMontageAudio}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-xl tracking-wider rounded-full shadow-lg shadow-brand-gold/40 transition-all hover:scale-105 uppercase"
+              >
+                <Play className="w-6 h-6 fill-current" />
+                Play Music
+              </button>
             </div>
 
             <div className="flex flex-col items-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
