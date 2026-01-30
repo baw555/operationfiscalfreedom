@@ -37,12 +37,11 @@ export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps)
   const [activeIndex, setActiveIndex] = useState(0);
   const [needsInteraction, setNeedsInteraction] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const [displayTime, setDisplayTime] = useState(0);
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const startTimeRef = useRef<number | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  const userInteractedRef = useRef(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasStartedRef = useRef(false);
 
   const getCurrentSegmentIndex = useCallback((time: number) => {
     for (let i = 0; i < montageTimeline.length; i++) {
@@ -54,9 +53,9 @@ export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps)
   }, []);
 
   const stopMontage = useCallback(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
     if (audioRef.current) {
       audioRef.current.pause();
@@ -67,79 +66,75 @@ export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps)
       video.currentTime = 0;
     });
     setIsPlaying(false);
-    startTimeRef.current = null;
-    setElapsedTime(0);
+    setDisplayTime(0);
     setActiveIndex(0);
+    hasStartedRef.current = false;
   }, []);
 
-  const updateMontage = useCallback(() => {
-    if (!startTimeRef.current || !isPlaying) return;
-
-    const now = performance.now();
-    const elapsed = (now - startTimeRef.current) / 1000;
-    setElapsedTime(elapsed);
-
-    if (elapsed >= 118) {
-      stopMontage();
-      onMontageEnd?.();
-      return;
-    }
-
-    const newIndex = getCurrentSegmentIndex(elapsed);
-    if (newIndex !== activeIndex) {
-      setActiveIndex(newIndex);
-    }
-
-    animationFrameRef.current = requestAnimationFrame(updateMontage);
-  }, [activeIndex, getCurrentSegmentIndex, isPlaying, onMontageEnd, stopMontage]);
-
   const startMontage = useCallback(() => {
-    userInteractedRef.current = true;
+    if (hasStartedRef.current) return;
+    hasStartedRef.current = true;
+    
     setNeedsInteraction(false);
-    setIsPlaying(true);
-    startTimeRef.current = performance.now();
     setActiveIndex(0);
-    setElapsedTime(0);
+    setDisplayTime(0);
 
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.currentTime = 0;
+    
+    const playAudio = audio.play();
+    if (playAudio) {
+      playAudio.then(() => {
+        setIsPlaying(true);
+        
+        const firstVideo = videoRefs.current.get(montageTimeline[0].src);
+        if (firstVideo) {
+          firstVideo.currentTime = 0;
+          firstVideo.loop = true;
+          firstVideo.play().catch(() => {});
+        }
+
+        intervalRef.current = setInterval(() => {
+          if (!audioRef.current) return;
+          
+          const currentTime = audioRef.current.currentTime;
+          setDisplayTime(Math.floor(currentTime));
+          
+          const newIndex = getCurrentSegmentIndex(currentTime);
+          setActiveIndex(prev => {
+            if (prev !== newIndex) {
+              return newIndex;
+            }
+            return prev;
+          });
+
+          if (currentTime >= 118) {
+            stopMontage();
+            onMontageEnd?.();
+          }
+        }, 100);
+      }).catch(() => {
+        setNeedsInteraction(true);
+        hasStartedRef.current = false;
+      });
     }
-
-    const firstVideo = videoRefs.current.get(montageTimeline[0].src);
-    if (firstVideo) {
-      firstVideo.currentTime = 0;
-      firstVideo.play().catch(() => {});
-    }
-
-    animationFrameRef.current = requestAnimationFrame(updateMontage);
-  }, [updateMontage]);
+  }, [getCurrentSegmentIndex, onMontageEnd, stopMontage]);
 
   const handleTapToPlay = useCallback(() => {
     startMontage();
   }, [startMontage]);
 
   useEffect(() => {
-    if (isActive && !isPlaying && !needsInteraction) {
-      const firstVideo = videoRefs.current.get(montageTimeline[0].src);
-      if (firstVideo) {
-        firstVideo.currentTime = 0;
-        const playPromise = firstVideo.play();
-        if (playPromise) {
-          playPromise.then(() => {
-            userInteractedRef.current = true;
-            startMontage();
-          }).catch(() => {
-            setNeedsInteraction(true);
-          });
-        }
-      }
-
-      if (audioRef.current) {
-        audioRef.current.play().catch(() => {});
-      }
+    if (isActive && !isPlaying && !needsInteraction && !hasStartedRef.current) {
+      startMontage();
     }
-  }, [isActive, isPlaying, needsInteraction, startMontage]);
+    
+    if (!isActive && isPlaying) {
+      stopMontage();
+    }
+  }, [isActive, isPlaying, needsInteraction, startMontage, stopMontage]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -151,29 +146,22 @@ export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps)
       if (src === currentSegment.src) {
         if (video.paused) {
           video.currentTime = 0;
+          video.loop = true;
           video.play().catch(() => {});
         }
       } else {
         video.pause();
       }
     });
-
-    if (currentVideo) {
-      const segmentDuration = currentSegment.endTime - currentSegment.startTime;
-      const videoDuration = currentVideo.duration || 4;
-      
-      if (videoDuration < segmentDuration) {
-        currentVideo.loop = true;
-      } else {
-        currentVideo.loop = false;
-      }
-    }
   }, [activeIndex, isPlaying]);
 
   useEffect(() => {
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
       }
     };
   }, []);
@@ -234,7 +222,7 @@ export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps)
 
       {isPlaying && (
         <div className="absolute top-4 right-4 z-20 bg-black/50 text-white px-3 py-1 rounded text-sm font-mono">
-          {Math.floor(elapsedTime)}s / 118s
+          {displayTime}s / 118s
         </div>
       )}
     </div>
