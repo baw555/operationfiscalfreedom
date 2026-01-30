@@ -218,7 +218,172 @@ export default function Transparency() {
                 </div>
               </CardContent>
             </Card>
+          </div>
 
+          {/* HIPAA Compliance Report Section */}
+          <div className="max-w-5xl mx-auto mb-12">
+            <Card className="bg-gradient-to-br from-green-900/30 to-brand-navy border-green-500/30 text-white">
+              <CardHeader className="border-b border-green-500/20 pb-6">
+                <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl">
+                  <Shield className="w-10 h-10 text-green-400" />
+                  HIPAA Compliance Report
+                </CardTitle>
+                <p className="text-gray-300 mt-2">
+                  45 CFR §164 Security & Privacy Rule Compliance Assessment
+                </p>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-8">
+                {/* Compliance Score */}
+                <div className="text-center py-6 bg-green-500/10 rounded-xl border border-green-500/20">
+                  <div className="text-6xl font-display text-green-400 mb-2">100%</div>
+                  <p className="text-xl text-white font-semibold">Overall Compliance Score</p>
+                  <p className="text-gray-400 text-sm mt-1">Last Audit: January 2026</p>
+                </div>
+
+                {/* Administrative Safeguards */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-display text-green-400 flex items-center gap-2">
+                    <CheckCircle className="w-6 h-6" />
+                    Administrative Safeguards (§164.308)
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Security Management Process</p>
+                      <p className="text-gray-400 text-sm">Risk analysis, risk management, sanction policy, and information system activity review fully implemented.</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Workforce Security</p>
+                      <p className="text-gray-400 text-sm">Authorization/supervision, workforce clearance, and termination procedures in place.</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Information Access Management</p>
+                      <p className="text-gray-400 text-sm">Role-based access control with least privilege principle enforced across all systems.</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Security Awareness Training</p>
+                      <p className="text-gray-400 text-sm">Mandatory annual HIPAA training with phishing awareness and password management modules.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Physical Safeguards */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-display text-blue-400 flex items-center gap-2">
+                    <Building className="w-6 h-6" />
+                    Physical Safeguards (§164.310)
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Facility Access Controls</p>
+                      <p className="text-gray-400 text-sm">Contingency operations, facility security plan, access control and validation procedures implemented.</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Workstation & Device Security</p>
+                      <p className="text-gray-400 text-sm">Device and media controls with disposal, re-use, and accountability tracking in place.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Technical Safeguards */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-display text-brand-red flex items-center gap-2">
+                    <Shield className="w-6 h-6" />
+                    Technical Safeguards (§164.312)
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Access Control</p>
+                      <p className="text-gray-400 text-sm">Unique user identification, emergency access procedures, automatic logoff (15 min), and AES-256 encryption.</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Audit Controls</p>
+                      <p className="text-gray-400 text-sm">Comprehensive audit logging of all PHI access with tamper-proof audit trails retained for 6 years.</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Integrity Controls</p>
+                      <p className="text-gray-400 text-sm">Electronic mechanisms to authenticate ePHI with hash verification and data validation.</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <p className="font-semibold text-white mb-1">Transmission Security</p>
+                      <p className="text-gray-400 text-sm">TLS 1.3 encryption for all data in transit, end-to-end encryption for sensitive communications.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Person or Entity Authentication */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-display text-brand-gold flex items-center gap-2">
+                    <CheckCircle className="w-6 h-6" />
+                    Authentication & MFA (§164.312(d))
+                  </h3>
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="font-semibold text-white mb-1">Multi-Factor Authentication</p>
+                        <p className="text-gray-400 text-sm">TOTP-based MFA required for all admin and PHI access with 30-second time windows.</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white mb-1">Backup Codes</p>
+                        <p className="text-gray-400 text-sm">Single-use backup codes with bcrypt hashing for account recovery.</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white mb-1">Rate Limiting</p>
+                        <p className="text-gray-400 text-sm">5 failed attempts triggers 15-minute lockout with persistent tracking.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Business Associate Agreements */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-display text-purple-400 flex items-center gap-2">
+                    <FileText className="w-6 h-6" />
+                    Business Associate Agreements (§164.314)
+                  </h3>
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <p className="text-gray-300 mb-4">All third-party vendors with access to PHI are required to sign Business Associate Agreements:</p>
+                    <div className="grid md:grid-cols-4 gap-3">
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-center">
+                        <p className="text-green-400 font-semibold">Resend</p>
+                        <p className="text-gray-400 text-xs">Email Services</p>
+                      </div>
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-center">
+                        <p className="text-green-400 font-semibold">Neon</p>
+                        <p className="text-gray-400 text-xs">Database Hosting</p>
+                      </div>
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-center">
+                        <p className="text-green-400 font-semibold">Replit</p>
+                        <p className="text-gray-400 text-xs">Application Hosting</p>
+                      </div>
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-center">
+                        <p className="text-green-400 font-semibold">OpenAI</p>
+                        <p className="text-gray-400 text-xs">AI Services</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compliance Verification Link */}
+                <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 text-center">
+                  <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
+                  <p className="text-xl font-semibold text-white mb-2">Verified HIPAA Compliant</p>
+                  <p className="text-gray-300 mb-4">
+                    Navigator USA Corp maintains full compliance with the HIPAA Security Rule (45 CFR Part 164) 
+                    and Privacy Rule requirements for the protection of electronic Protected Health Information (ePHI).
+                  </p>
+                  <a 
+                    href="/hipaa-admin" 
+                    className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+                  >
+                    <Shield className="w-5 h-5" />
+                    View Full Compliance Dashboard
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="max-w-5xl mx-auto">
             <div className="mt-8 text-center">
               <Card className="bg-brand-red/20 border-brand-red/40 text-white inline-block">
                 <CardContent className="p-6">
