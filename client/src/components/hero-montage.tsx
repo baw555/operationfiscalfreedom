@@ -147,12 +147,11 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     if (!isPlaying) return;
 
     const currentSegment = montageTimeline[activeIndex];
-    const currentVideo = videoRefs.current.get(currentSegment.src);
 
     videoRefs.current.forEach((video, src) => {
       if (src === currentSegment.src) {
+        // Don't reset currentTime - let the video loop naturally to avoid glitches
         if (video.paused) {
-          video.currentTime = 0;
           video.loop = true;
           video.play().catch(() => {});
         }
