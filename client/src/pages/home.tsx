@@ -12,46 +12,27 @@ import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
-import { HeroMontage, montageTimeline } from "@/components/hero-montage";
+import { HeroMontage } from "@/components/hero-montage";
 import { RangerTabSVG } from "@/components/ranger-tab-svg";
-import { useMontagePlayback } from "@/hooks/use-montage-playback";
 
 export default function Home() {
   const [introStarted, setIntroStarted] = useState(false);
   const [introPlayed, setIntroPlayed] = useState(false);
+  const [animationPhase, setAnimationPhase] = useState(0);
+  const [showContent, setShowContent] = useState(false);
   const [animationPaused, setAnimationPaused] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const loopIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const introVideoRef = useRef<HTMLVideoElement | null>(null);
+  const montageAudioRef = useRef<HTMLAudioElement | null>(null);
+  const animationStartedRef = useRef(false);
   const [animationImages, setAnimationImages] = useState<{
     heroBg?: string;
     somethingImg?: string;
     someoneImg?: string;
     answerCallImg?: string;
   }>({});
-
-  const phaseTimeline = useMemo(() => [
-    { phase: 1, startTime: 0 },
-    { phase: 2, startTime: 4 },
-    { phase: 3, startTime: 8 },
-    { phase: 4, startTime: 12 },
-    { phase: 5, startTime: 16 },
-    { phase: 6, startTime: 18 },
-    { phase: 7, startTime: 25 },
-  ], []);
-
-  const { 
-    state: playbackState, 
-    registerAudio, 
-    registerVideo, 
-    startPlayback, 
-    stopPlayback 
-  } = useMontagePlayback({
-    timeline: montageTimeline,
-    phaseTimeline,
-    montageStartPhase: 7,
-    debug: false,
-  });
-
-  const { isPlaying: isMusicPlaying, phase: animationPhase, showMontage: showContent, activeSegmentIndex, currentTime, autoplayBlocked } = playbackState;
 
   useEffect(() => {
     Promise.all([
@@ -69,27 +50,86 @@ export default function Home() {
     });
   }, []);
 
-  const startAnimation = useCallback(() => {
-    startPlayback();
-  }, [startPlayback]);
+  const clearAllTimeouts = () => {
+    timeoutsRef.current.forEach(t => clearTimeout(t));
+    timeoutsRef.current = [];
+  };
 
+  const runAnimation = () => {
+    // Prevent multiple starts from fallback timers
+    if (animationStartedRef.current) return;
+    animationStartedRef.current = true;
+    
+    clearAllTimeouts();
+    setShowContent(false);
+    
+    // Start BOTH audio AND phase 1 text immediately - no phase 0 delay
+    setAnimationPhase(1);
+    
+    if (montageAudioRef.current) {
+      montageAudioRef.current.currentTime = 0;
+      montageAudioRef.current.play().catch(() => {});
+    }
+    
+    // Text sequence starts at phase 1 (already set), then progresses
+    const sequence = [
+      { phase: 2, delay: 4000 },   // "Something..."
+      { phase: 3, delay: 8000 },   // "Someone..."
+      { phase: 4, delay: 12000 },  // "Will answer the call"
+      { phase: 5, delay: 16000 },  // "NAVIGATOR"
+      { phase: 6, delay: 18000 },  // "USA"
+      { phase: 7, delay: 25000 },  // Montage starts
+    ];
+
+    sequence.forEach(({ phase, delay }) => {
+      const timeout = setTimeout(() => {
+        setAnimationPhase(phase);
+        if (phase === 7) {
+          setTimeout(() => setShowContent(true), 500);
+        }
+      }, delay);
+      timeoutsRef.current.push(timeout);
+    });
+  };
+  
+  // Handle audio ended - just loop the audio, don't restart text sequence
   const handleAudioEnded = useCallback(() => {
-    startPlayback();
-  }, [startPlayback]);
+    if (montageAudioRef.current) {
+      montageAudioRef.current.currentTime = 0;
+      montageAudioRef.current.play().catch(() => {});
+    }
+  }, []);
 
-  const toggleAnimation = useCallback(() => {
+  const toggleAnimation = () => {
     if (animationPaused) {
-      startPlayback();
+      animationStartedRef.current = false; // Reset to allow restart
+      runAnimation();
     } else {
-      stopPlayback();
+      clearAllTimeouts();
+      if (loopIntervalRef.current) {
+        clearInterval(loopIntervalRef.current);
+        loopIntervalRef.current = null;
+      }
+      setAnimationPhase(7);
+      setShowContent(true);
     }
     setAnimationPaused(!animationPaused);
-  }, [animationPaused, startPlayback, stopPlayback]);
+  };
+
+  // Cleanup only on unmount - don't clear timeouts when introPlayed changes
+  useEffect(() => {
+    return () => {
+      clearAllTimeouts();
+      if (loopIntervalRef.current) {
+        clearInterval(loopIntervalRef.current);
+      }
+    };
+  }, []);
 
   const handleIntroEnded = () => {
     setIntroPlayed(true);
     // Run the text sequence ("something is coming"), music starts immediately
-    startAnimation();
+    runAnimation();
   };
 
   const skipIntro = () => {
@@ -98,16 +138,45 @@ export default function Home() {
     }
     setIntroPlayed(true);
     // Run the text sequence ("something is coming"), music starts immediately
-    startAnimation();
+    runAnimation();
   };
 
-  const toggleMusic = useCallback(() => {
-    if (isMusicPlaying) {
-      stopPlayback();
-    } else {
-      startPlayback();
+  const playMontageAudio = () => {
+    if (montageAudioRef.current) {
+      montageAudioRef.current.currentTime = 0;
+      montageAudioRef.current.play().catch(() => {});
     }
-  }, [isMusicPlaying, startPlayback, stopPlayback]);
+  };
+
+  const toggleMusic = () => {
+    if (montageAudioRef.current) {
+      if (montageAudioRef.current.paused) {
+        montageAudioRef.current.play().catch(() => {});
+      } else {
+        montageAudioRef.current.pause();
+      }
+    }
+  };
+
+  // Track audio state
+  useEffect(() => {
+    const audio = montageAudioRef.current;
+    if (!audio) return;
+
+    const handlePlay = () => setIsMusicPlaying(true);
+    const handlePause = () => setIsMusicPlaying(false);
+    const handleEnded = () => setIsMusicPlaying(false);
+
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
 
   const startIntro = () => {
     setIntroStarted(true);
@@ -117,7 +186,7 @@ export default function Home() {
         // If video fails to play, run the text sequence after 1 second
         setTimeout(() => {
           setIntroPlayed(true);
-          startAnimation();
+          runAnimation();
         }, 1000);
       });
       
@@ -127,7 +196,7 @@ export default function Home() {
         setTimeout(() => {
           if (!introPlayed) {
             setIntroPlayed(true);
-            startAnimation();
+            runAnimation();
           }
         }, fallbackTime);
       });
@@ -136,7 +205,7 @@ export default function Home() {
       setTimeout(() => {
         if (!introPlayed) {
           setIntroPlayed(true);
-          startAnimation();
+          runAnimation();
         }
       }, 15000);
     }
@@ -146,9 +215,10 @@ export default function Home() {
     <Layout>
       {/* Montage Audio - preloaded, starts when intro ends */}
       <audio
-        ref={registerAudio}
+        ref={montageAudioRef}
         src="/audio/montage-music.mp3"
         preload="auto"
+        onEnded={handleAudioEnded}
       />
 
       {/* Floating Music Control - visible during text sequence and montage */}
@@ -371,13 +441,7 @@ export default function Home() {
           "relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-navy transition-opacity duration-1000",
           showContent ? "opacity-100" : "opacity-0"
         )}>
-          <HeroMontage 
-            isActive={showContent} 
-            activeSegmentIndex={activeSegmentIndex}
-            currentTime={currentTime}
-            audioDuration={128}
-            registerVideo={registerVideo}
-          />
+          <HeroMontage isActive={showContent} audioRef={montageAudioRef} />
 
           <div className="container relative z-10 px-3 sm:px-4 py-10 sm:py-20 text-center max-w-5xl mx-auto">
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-white mb-1 sm:mb-2 leading-none animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
