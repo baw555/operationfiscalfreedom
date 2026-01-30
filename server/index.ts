@@ -60,6 +60,14 @@ app.use(
 
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
+// Request timeout middleware - prevents hung requests (2 minutes for most, 5 minutes for file uploads)
+app.use((req, res, next) => {
+  const timeout = req.path.includes('/upload') || req.path.includes('/sign') ? 300000 : 120000;
+  req.setTimeout(timeout);
+  res.setTimeout(timeout);
+  next();
+});
+
 // Serve attached_assets folder for uploaded images/files
 app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
 
