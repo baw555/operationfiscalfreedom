@@ -108,16 +108,34 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
   useEffect(() => {
     if (isActive && !isPlaying && !hasStartedRef.current && audioRef?.current) {
       const audio = audioRef.current;
-      if (!audio.paused && audio.currentTime > 0) {
+      
+      // Start immediately if audio is already playing (even if currentTime is 0)
+      if (!audio.paused) {
         startMontage();
-      } else {
-        const handlePlay = () => {
-          startMontage();
-          audio.removeEventListener('play', handlePlay);
-        };
-        audio.addEventListener('play', handlePlay);
-        return () => audio.removeEventListener('play', handlePlay);
+        return;
       }
+      
+      // Otherwise, listen for play event AND timeupdate as fallback
+      const handlePlay = () => {
+        startMontage();
+        cleanup();
+      };
+      
+      const handleTimeUpdate = () => {
+        if (!audio.paused && !hasStartedRef.current) {
+          startMontage();
+          cleanup();
+        }
+      };
+      
+      const cleanup = () => {
+        audio.removeEventListener('play', handlePlay);
+        audio.removeEventListener('timeupdate', handleTimeUpdate);
+      };
+      
+      audio.addEventListener('play', handlePlay);
+      audio.addEventListener('timeupdate', handleTimeUpdate);
+      return cleanup;
     }
     
     if (!isActive && isPlaying) {
