@@ -10,6 +10,12 @@ import { getResendClient } from "./resendClient";
 import twilio from "twilio";
 import Stripe from "stripe";
 import { extractDocumentText, analyzeContractDocument } from "./contractDocumentAnalyzer";
+import * as otplib from "otplib";
+import * as QRCode from "qrcode";
+import crypto from "crypto";
+
+// Initialize TOTP authenticator
+const authenticator = otplib.authenticator;
 import { 
   insertAffiliateApplicationSchema, 
   insertHelpRequestSchema, 
@@ -121,6 +127,8 @@ declare module "express-session" {
     userId: number;
     userRole: string;
     vltAffiliateId: number;
+    mfaVerified?: boolean; // HIPAA §164.312(d) - MFA verification status
+    mfaPending?: boolean; // Indicates user needs to complete MFA
   }
 }
 
@@ -5753,6 +5761,328 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching MFA config:", error);
       res.status(500).json({ message: "Failed to fetch MFA configuration" });
+    }
+  });
+
+  // ===== MFA AUTHENTICATION ENDPOINTS =====
+  // HIPAA §164.312(d) - Person or Entity Authentication
+
+  // Helper function to generate backup codes
+  const generateBackupCodes = (): string[] => {
+    const codes: string[] = [];
+    for (let i = 0; i < 10; i++) {
+      codes.push(crypto.randomBytes(4).toString("hex").toUpperCase());
+    }
+    return codes;
+  };
+
+  // Get current user's MFA status
+  app.get("/api/mfa/status", requireAuth, async (req, res) => {
+    try {
+      const config = await storage.getUserMfaConfig(req.session.userId!);
+      res.json({
+        mfaEnabled: config?.mfaEnabled || false,
+        mfaSetupCompletedAt: config?.mfaSetupCompletedAt || null,
+      });
+    } catch (error) {
+      console.error("Error fetching MFA status:", error);
+      res.status(500).json({ message: "Failed to fetch MFA status" });
+    }
+  });
+
+  // Start MFA setup - generate secret and QR code
+  app.post("/api/mfa/setup", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Generate new secret
+      const secret = authenticator.generateSecret();
+      
+      // Create TOTP URI for QR code
+      const otpauth = authenticator.keyuri(user.email, "NavigatorUSA", secret);
+      
+      // Generate QR code as data URL
+      const qrCodeDataUrl = await QRCode.toDataURL(otpauth);
+      
+      // Generate backup codes
+      const backupCodes = generateBackupCodes();
+      
+      // Store the secret temporarily (not enabled yet)
+      let config = await storage.getUserMfaConfig(user.id);
+      if (config) {
+        await storage.updateUserMfaConfig(user.id, {
+          mfaSecret: secret,
+          backupCodes: JSON.stringify(backupCodes),
+          mfaEnabled: false,
+        });
+      } else {
+        await storage.createUserMfaConfig({
+          userId: user.id,
+          mfaEnabled: false,
+          mfaSecret: secret,
+          backupCodes: JSON.stringify(backupCodes),
+        });
+      }
+
+      res.json({
+        secret,
+        qrCode: qrCodeDataUrl,
+        backupCodes,
+      });
+    } catch (error) {
+      console.error("Error setting up MFA:", error);
+      res.status(500).json({ message: "Failed to setup MFA" });
+    }
+  });
+
+  // Verify MFA setup with TOTP code
+  app.post("/api/mfa/verify-setup", requireAuth, async (req, res) => {
+    try {
+      const { code } = req.body;
+      if (!code) {
+        return res.status(400).json({ message: "Verification code is required" });
+      }
+
+      const config = await storage.getUserMfaConfig(req.session.userId!);
+      if (!config || !config.mfaSecret) {
+        return res.status(400).json({ message: "MFA setup not initiated" });
+      }
+
+      // Verify the TOTP code
+      const isValid = authenticator.verify({ token: code, secret: config.mfaSecret });
+      
+      if (!isValid) {
+        return res.status(400).json({ message: "Invalid verification code" });
+      }
+
+      // Enable MFA
+      await storage.updateUserMfaConfig(req.session.userId!, {
+        mfaEnabled: true,
+        mfaSetupCompletedAt: new Date(),
+        lastMfaUsedAt: new Date(),
+      });
+
+      // Log the MFA setup
+      await storage.createHipaaAuditLog({
+        userId: req.session.userId!,
+        userName: (await storage.getUser(req.session.userId!))?.name || null,
+        userRole: req.session.userRole || null,
+        action: "MFA_ENABLED",
+        resourceType: "user_mfa",
+        resourceId: String(req.session.userId),
+        resourceDescription: "User enabled multi-factor authentication",
+        ipAddress: req.ip || null,
+        userAgent: req.headers["user-agent"] || null,
+        sessionId: req.sessionID || null,
+        success: true,
+        phiAccessed: false,
+      });
+
+      res.json({ success: true, message: "MFA enabled successfully" });
+    } catch (error) {
+      console.error("Error verifying MFA setup:", error);
+      res.status(500).json({ message: "Failed to verify MFA setup" });
+    }
+  });
+
+  // Verify MFA code during login
+  app.post("/api/mfa/verify", async (req, res) => {
+    try {
+      const { userId, code } = req.body;
+      
+      if (!userId || !code) {
+        return res.status(400).json({ message: "User ID and code are required" });
+      }
+
+      const config = await storage.getUserMfaConfig(userId);
+      if (!config || !config.mfaEnabled || !config.mfaSecret) {
+        return res.status(400).json({ message: "MFA is not enabled for this user" });
+      }
+
+      // Check if code is a backup code
+      let isBackupCode = false;
+      let backupCodes: string[] = [];
+      if (config.backupCodes) {
+        try {
+          backupCodes = JSON.parse(config.backupCodes);
+          if (backupCodes.includes(code.toUpperCase())) {
+            isBackupCode = true;
+            // Remove used backup code
+            backupCodes = backupCodes.filter(c => c !== code.toUpperCase());
+            await storage.updateUserMfaConfig(userId, {
+              backupCodes: JSON.stringify(backupCodes),
+            });
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
+
+      // Verify TOTP code
+      const isValidTotp = authenticator.verify({ token: code, secret: config.mfaSecret });
+
+      if (!isValidTotp && !isBackupCode) {
+        // Log failed MFA attempt
+        await storage.createHipaaAuditLog({
+          userId,
+          userName: null,
+          userRole: null,
+          action: "MFA_FAILED",
+          resourceType: "user_mfa",
+          resourceId: String(userId),
+          resourceDescription: "Failed MFA verification attempt",
+          ipAddress: req.ip || null,
+          userAgent: req.headers["user-agent"] || null,
+          sessionId: req.sessionID || null,
+          success: false,
+          errorMessage: "Invalid MFA code",
+          phiAccessed: false,
+        });
+        return res.status(400).json({ message: "Invalid verification code" });
+      }
+
+      // Update last MFA used
+      await storage.updateUserMfaConfig(userId, {
+        lastMfaUsedAt: new Date(),
+      });
+
+      // Complete login by setting session
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      req.session.userId = user.id;
+      req.session.userRole = user.role;
+      req.session.mfaVerified = true;
+
+      // Log successful MFA
+      await storage.createHipaaAuditLog({
+        userId,
+        userName: user.name,
+        userRole: user.role,
+        action: isBackupCode ? "MFA_BACKUP_CODE_USED" : "MFA_VERIFIED",
+        resourceType: "user_mfa",
+        resourceId: String(userId),
+        resourceDescription: isBackupCode ? "User logged in with backup code" : "User completed MFA verification",
+        ipAddress: req.ip || null,
+        userAgent: req.headers["user-agent"] || null,
+        sessionId: req.sessionID || null,
+        success: true,
+        phiAccessed: false,
+      });
+
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Failed to save session" });
+        }
+        res.json({
+          success: true,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          },
+          backupCodeUsed: isBackupCode,
+          remainingBackupCodes: backupCodes.length,
+        });
+      });
+    } catch (error) {
+      console.error("Error verifying MFA:", error);
+      res.status(500).json({ message: "Failed to verify MFA" });
+    }
+  });
+
+  // Disable MFA (requires current password)
+  app.post("/api/mfa/disable", requireAuth, async (req, res) => {
+    try {
+      const { password } = req.body;
+      if (!password) {
+        return res.status(400).json({ message: "Password is required to disable MFA" });
+      }
+
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Verify password
+      const bcrypt = await import("bcrypt");
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isPasswordValid) {
+        return res.status(400).json({ message: "Invalid password" });
+      }
+
+      // Disable MFA
+      await storage.updateUserMfaConfig(req.session.userId!, {
+        mfaEnabled: false,
+        mfaSecret: null,
+        backupCodes: null,
+        mfaSetupCompletedAt: null,
+      });
+
+      // Log MFA disabled
+      await storage.createHipaaAuditLog({
+        userId: req.session.userId!,
+        userName: user.name,
+        userRole: user.role,
+        action: "MFA_DISABLED",
+        resourceType: "user_mfa",
+        resourceId: String(req.session.userId),
+        resourceDescription: "User disabled multi-factor authentication",
+        ipAddress: req.ip || null,
+        userAgent: req.headers["user-agent"] || null,
+        sessionId: req.sessionID || null,
+        success: true,
+        phiAccessed: false,
+      });
+
+      res.json({ success: true, message: "MFA disabled successfully" });
+    } catch (error) {
+      console.error("Error disabling MFA:", error);
+      res.status(500).json({ message: "Failed to disable MFA" });
+    }
+  });
+
+  // Regenerate backup codes
+  app.post("/api/mfa/regenerate-backup-codes", requireAuth, async (req, res) => {
+    try {
+      const config = await storage.getUserMfaConfig(req.session.userId!);
+      if (!config || !config.mfaEnabled) {
+        return res.status(400).json({ message: "MFA is not enabled" });
+      }
+
+      const newBackupCodes = generateBackupCodes();
+      
+      await storage.updateUserMfaConfig(req.session.userId!, {
+        backupCodes: JSON.stringify(newBackupCodes),
+      });
+
+      // Log backup code regeneration
+      await storage.createHipaaAuditLog({
+        userId: req.session.userId!,
+        userName: (await storage.getUser(req.session.userId!))?.name || null,
+        userRole: req.session.userRole || null,
+        action: "MFA_BACKUP_CODES_REGENERATED",
+        resourceType: "user_mfa",
+        resourceId: String(req.session.userId),
+        resourceDescription: "User regenerated MFA backup codes",
+        ipAddress: req.ip || null,
+        userAgent: req.headers["user-agent"] || null,
+        sessionId: req.sessionID || null,
+        success: true,
+        phiAccessed: false,
+      });
+
+      res.json({ success: true, backupCodes: newBackupCodes });
+    } catch (error) {
+      console.error("Error regenerating backup codes:", error);
+      res.status(500).json({ message: "Failed to regenerate backup codes" });
     }
   });
 
