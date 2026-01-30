@@ -250,7 +250,47 @@ function requireAffiliate(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId || req.session.userRole !== "affiliate") {
     return res.status(403).json({ message: "Forbidden" });
   }
+  
+  // HIPAA §164.312(d) - Enforce MFA for affiliate access if enabled
+  if (req.session.mfaPending === true && req.session.mfaVerified !== true) {
+    return res.status(403).json({ 
+      message: "MFA verification required",
+      mfaPending: true 
+    });
+  }
   next();
+}
+
+// HIPAA §164.312(b) - PHI Access Audit Logging Middleware
+// Automatically logs access to PHI-containing resources
+function logPhiAccess(resourceType: string) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.session.userId || null;
+    const resourceId = req.params.id || null;
+    
+    // Log the access attempt
+    try {
+      await storage.createHipaaAuditLog({
+        userId,
+        userName: null, // Will be populated if user is loaded
+        userRole: req.session.userRole || null,
+        action: req.method === "GET" ? "PHI_READ" : req.method === "POST" ? "PHI_CREATE" : req.method === "PATCH" || req.method === "PUT" ? "PHI_UPDATE" : "PHI_DELETE",
+        resourceType,
+        resourceId,
+        resourceDescription: `${req.method} ${req.path}`,
+        ipAddress: req.ip || null,
+        userAgent: req.headers["user-agent"] || null,
+        sessionId: req.sessionID || null,
+        success: true,
+        phiAccessed: true, // This middleware is specifically for PHI access
+      });
+    } catch (error) {
+      console.error("Error logging PHI access:", error);
+      // Don't block the request if logging fails, but log the error
+    }
+    
+    next();
+  };
 }
 
 export async function registerRoutes(
@@ -827,11 +867,7 @@ export async function registerRoutes(
   });
 
   // Get all disability referrals (admin/master only)
-  app.get("/api/admin/disability-referrals", async (req, res) => {
-    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-      return res.status(403).json({ message: "Forbidden - Admin access required" });
-    }
-    
+  app.get("/api/admin/disability-referrals", requireAdmin, logPhiAccess("disability_referrals"), async (req, res) => {
     try {
       const referrals = await storage.getAllDisabilityReferrals();
       res.json(referrals);
@@ -2712,7 +2748,7 @@ export async function registerRoutes(
   });
 
   // Get all veteran intakes (admin)
-  app.get("/api/admin/veteran-intakes", requireAdmin, async (req, res) => {
+  app.get("/api/admin/veteran-intakes", requireAdmin, logPhiAccess("veteran_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getAllVeteranIntakes();
       res.json(intakes);
