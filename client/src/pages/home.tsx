@@ -70,14 +70,15 @@ export default function Home() {
       montageAudioRef.current.play().catch(() => {});
     }
     
+    // Start text sequence immediately after Uncle Sam intro
     const sequence = [
-      { phase: 1, delay: 1000 },
-      { phase: 2, delay: 5000 },
-      { phase: 3, delay: 9000 },
-      { phase: 4, delay: 13000 },
-      { phase: 5, delay: 17000 },
-      { phase: 6, delay: 19000 },
-      { phase: 7, delay: 25000 },
+      { phase: 1, delay: 100 },    // "We can feel it" - starts immediately
+      { phase: 2, delay: 4000 },   // "Something..."
+      { phase: 3, delay: 8000 },   // "Someone..."
+      { phase: 4, delay: 12000 },  // "Will answer the call"
+      { phase: 5, delay: 16000 },  // "NAVIGATOR"
+      { phase: 6, delay: 18000 },  // "USA"
+      { phase: 7, delay: 25000 },  // Montage starts
     ];
 
     sequence.forEach(({ phase, delay }) => {
