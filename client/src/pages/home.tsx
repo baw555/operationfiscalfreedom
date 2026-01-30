@@ -22,8 +22,6 @@ export default function Home() {
   const [showContent, setShowContent] = useState(false);
   const [animationPaused, setAnimationPaused] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const loopIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const introVideoRef = useRef<HTMLVideoElement | null>(null);
   const montageAudioRef = useRef<HTMLAudioElement | null>(null);
   const animationStartedRef = useRef(false);
@@ -50,76 +48,98 @@ export default function Home() {
     });
   }, []);
 
-  const clearAllTimeouts = () => {
-    timeoutsRef.current.forEach(t => clearTimeout(t));
-    timeoutsRef.current = [];
-  };
+  // Audio-driven phase timeline - phases sync to audio.currentTime
+  const phaseTimeline = useMemo(() => [
+    { phase: 1, startTime: 0 },     // "We can feel it" - immediate
+    { phase: 2, startTime: 4 },     // "Something..."
+    { phase: 3, startTime: 8 },     // "Someone..."
+    { phase: 4, startTime: 12 },    // "Will answer the call"
+    { phase: 5, startTime: 16 },    // "NAVIGATOR"
+    { phase: 6, startTime: 18 },    // "USA"
+    { phase: 7, startTime: 25 },    // Montage starts
+  ], []);
 
-  const runAnimation = () => {
-    // Prevent multiple starts from fallback timers
+  const rafRef = useRef<number | null>(null);
+  const lastPhaseRef = useRef(0);
+
+  // Get phase from audio time
+  const getPhaseFromTime = useCallback((time: number) => {
+    for (let i = phaseTimeline.length - 1; i >= 0; i--) {
+      if (time >= phaseTimeline[i].startTime) {
+        return phaseTimeline[i].phase;
+      }
+    }
+    return 1;
+  }, [phaseTimeline]);
+
+  // RAF loop for smooth audio-driven phase sync - only runs while audio plays
+  const syncLoop = useCallback(() => {
+    if (!montageAudioRef.current) return;
+    
+    // Stop RAF loop when audio is paused - will restart via play event
+    if (montageAudioRef.current.paused) {
+      rafRef.current = null;
+      return;
+    }
+
+    const currentTime = montageAudioRef.current.currentTime;
+    const newPhase = getPhaseFromTime(currentTime);
+    
+    if (newPhase !== lastPhaseRef.current) {
+      lastPhaseRef.current = newPhase;
+      setAnimationPhase(newPhase);
+      if (newPhase === 7) {
+        setShowContent(true);
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(syncLoop);
+  }, [getPhaseFromTime]);
+
+  const startAnimation = useCallback(() => {
     if (animationStartedRef.current) return;
     animationStartedRef.current = true;
     
-    clearAllTimeouts();
     setShowContent(false);
-    
-    // Start BOTH audio AND phase 1 text immediately - no phase 0 delay
     setAnimationPhase(1);
+    lastPhaseRef.current = 1;
     
     if (montageAudioRef.current) {
       montageAudioRef.current.currentTime = 0;
       montageAudioRef.current.play().catch(() => {});
     }
     
-    // Text sequence starts at phase 1 (already set), then progresses
-    const sequence = [
-      { phase: 2, delay: 4000 },   // "Something..."
-      { phase: 3, delay: 8000 },   // "Someone..."
-      { phase: 4, delay: 12000 },  // "Will answer the call"
-      { phase: 5, delay: 16000 },  // "NAVIGATOR"
-      { phase: 6, delay: 18000 },  // "USA"
-      { phase: 7, delay: 25000 },  // Montage starts
-    ];
-
-    sequence.forEach(({ phase, delay }) => {
-      const timeout = setTimeout(() => {
-        setAnimationPhase(phase);
-        if (phase === 7) {
-          setTimeout(() => setShowContent(true), 500);
-        }
-      }, delay);
-      timeoutsRef.current.push(timeout);
-    });
-  };
+    // Start RAF sync loop
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(syncLoop);
+  }, [syncLoop]);
   
   // Handle audio ended - restart the experience
   const handleAudioEnded = useCallback(() => {
     animationStartedRef.current = false;
-    runAnimation();
-  }, []);
+    startAnimation();
+  }, [startAnimation]);
 
-  const toggleAnimation = () => {
+  const toggleAnimation = useCallback(() => {
     if (animationPaused) {
-      animationStartedRef.current = false; // Reset to allow restart
-      runAnimation();
+      animationStartedRef.current = false;
+      startAnimation();
     } else {
-      clearAllTimeouts();
-      if (loopIntervalRef.current) {
-        clearInterval(loopIntervalRef.current);
-        loopIntervalRef.current = null;
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
       setAnimationPhase(7);
       setShowContent(true);
     }
     setAnimationPaused(!animationPaused);
-  };
+  }, [animationPaused, startAnimation]);
 
-  // Cleanup only on unmount - don't clear timeouts when introPlayed changes
+  // Cleanup RAF on unmount
   useEffect(() => {
     return () => {
-      clearAllTimeouts();
-      if (loopIntervalRef.current) {
-        clearInterval(loopIntervalRef.current);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
       }
     };
   }, []);
@@ -127,7 +147,7 @@ export default function Home() {
   const handleIntroEnded = () => {
     setIntroPlayed(true);
     // Run the text sequence ("something is coming"), music starts immediately
-    runAnimation();
+    startAnimation();
   };
 
   const skipIntro = () => {
@@ -136,7 +156,7 @@ export default function Home() {
     }
     setIntroPlayed(true);
     // Run the text sequence ("something is coming"), music starts immediately
-    runAnimation();
+    startAnimation();
   };
 
   const playMontageAudio = () => {
@@ -156,12 +176,18 @@ export default function Home() {
     }
   };
 
-  // Track audio state
+  // Track audio state and restart RAF on play
   useEffect(() => {
     const audio = montageAudioRef.current;
     if (!audio) return;
 
-    const handlePlay = () => setIsMusicPlaying(true);
+    const handlePlay = () => {
+      setIsMusicPlaying(true);
+      // Restart RAF loop when audio resumes
+      if (!rafRef.current && animationStartedRef.current) {
+        rafRef.current = requestAnimationFrame(syncLoop);
+      }
+    };
     const handlePause = () => setIsMusicPlaying(false);
     const handleEnded = () => setIsMusicPlaying(false);
 
@@ -184,7 +210,7 @@ export default function Home() {
         // If video fails to play, run the text sequence after 1 second
         setTimeout(() => {
           setIntroPlayed(true);
-          runAnimation();
+          startAnimation();
         }, 1000);
       });
       
@@ -194,7 +220,7 @@ export default function Home() {
         setTimeout(() => {
           if (!introPlayed) {
             setIntroPlayed(true);
-            runAnimation();
+            startAnimation();
           }
         }, fallbackTime);
       });
@@ -203,7 +229,7 @@ export default function Home() {
       setTimeout(() => {
         if (!introPlayed) {
           setIntroPlayed(true);
-          runAnimation();
+          startAnimation();
         }
       }, 15000);
     }

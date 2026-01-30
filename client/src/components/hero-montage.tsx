@@ -42,6 +42,8 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const hasStartedRef = useRef(false);
   const lastSegmentIndexRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const preloadedVideosRef = useRef<Set<string>>(new Set());
 
   const getCurrentSegmentIndex = useCallback((time: number) => {
     for (let i = 0; i < montageTimeline.length; i++) {
@@ -53,6 +55,10 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
   }, []);
 
   const stopMontage = useCallback(() => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
     videoRefs.current.forEach(video => {
       video.pause();
       video.currentTime = 0;
@@ -64,27 +70,35 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     lastSegmentIndexRef.current = 0;
   }, []);
 
-  // Handle audio timeupdate - this is the source of truth for sync
-  const handleTimeUpdate = useCallback(() => {
-    if (!audioRef?.current || !isPlaying) return;
+  // RAF-based sync loop for smooth audio-video synchronization - idles when paused
+  const syncLoop = useCallback(() => {
+    if (!audioRef?.current || !isPlaying) {
+      rafRef.current = null;
+      return;
+    }
     
     const audio = audioRef.current;
-    const currentTime = audio.currentTime;
     
+    // Stop RAF when paused - will restart via play event handler
+    if (audio.paused) {
+      rafRef.current = null;
+      return;
+    }
+    
+    const currentTime = audio.currentTime;
     setDisplayTime(Math.floor(currentTime));
     
     const newIndex = getCurrentSegmentIndex(currentTime);
     const currentSegment = montageTimeline[newIndex];
     const currentVideo = videoRefs.current.get(currentSegment.src);
     
-    // Continuous sync: always keep video aligned to audio time within segment
+    // Continuous sync: keep video aligned to audio time
     if (currentVideo && !audio.paused) {
       const segmentElapsed = currentTime - currentSegment.startTime;
       const videoDuration = currentVideo.duration || 10;
       const expectedVideoTime = segmentElapsed % videoDuration;
       
-      // Only resync if drift is noticeable (> 0.3s) to avoid constant seeking
-      if (Math.abs(currentVideo.currentTime - expectedVideoTime) > 0.3) {
+      if (Math.abs(currentVideo.currentTime - expectedVideoTime) > 0.2) {
         currentVideo.currentTime = expectedVideoTime;
       }
     }
@@ -94,7 +108,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
       lastSegmentIndexRef.current = newIndex;
       setActiveIndex(newIndex);
       
-      // Switch videos: pause all, play new one
+      // Switch videos
       videoRefs.current.forEach((video, src) => {
         if (src === currentSegment.src) {
           const segmentElapsed = currentTime - currentSegment.startTime;
@@ -108,7 +122,20 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
           video.pause();
         }
       });
+      
+      // Preload next segment video
+      const nextIndex = Math.min(newIndex + 1, montageTimeline.length - 1);
+      const nextSrc = montageTimeline[nextIndex].src;
+      if (!preloadedVideosRef.current.has(nextSrc)) {
+        const nextVideo = videoRefs.current.get(nextSrc);
+        if (nextVideo) {
+          nextVideo.preload = "auto";
+          preloadedVideosRef.current.add(nextSrc);
+        }
+      }
     }
+
+    rafRef.current = requestAnimationFrame(syncLoop);
   }, [audioRef, isPlaying, getCurrentSegmentIndex]);
 
   // Handle audio pause/play for video sync
@@ -126,9 +153,13 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
       currentVideo.loop = true;
       currentVideo.play().catch(() => {});
     }
-  }, [isPlaying, activeIndex]);
+    // Restart RAF loop when audio resumes
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(syncLoop);
+    }
+  }, [isPlaying, activeIndex, syncLoop]);
 
-  // Start montage when audio starts
+  // Start montage
   const startMontage = useCallback(() => {
     if (hasStartedRef.current) return;
     if (!audioRef?.current) return;
@@ -137,19 +168,17 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     const audio = audioRef.current;
     const currentTime = audio.currentTime;
     
-    // Get actual audio duration from metadata
     if (audio.duration && !isNaN(audio.duration)) {
       setAudioDuration(Math.floor(audio.duration));
     }
     
-    // Find the correct segment based on current audio time (not always 0)
     const initialIndex = getCurrentSegmentIndex(currentTime);
     lastSegmentIndexRef.current = initialIndex;
     setActiveIndex(initialIndex);
     setDisplayTime(Math.floor(currentTime));
     setIsPlaying(true);
 
-    // Start the correct video at the right time within its segment
+    // Start correct video at right time
     const initialSegment = montageTimeline[initialIndex];
     const initialVideo = videoRefs.current.get(initialSegment.src);
     if (initialVideo) {
@@ -160,44 +189,42 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
       initialVideo.play().catch(() => {});
     }
     
-    // Pause all other videos
+    // Pause other videos
     videoRefs.current.forEach((video, src) => {
       if (src !== initialSegment.src) {
         video.pause();
       }
     });
-  }, [audioRef, getCurrentSegmentIndex]);
 
-  // Effect to set up audio event listeners
+    // Start RAF sync loop
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(syncLoop);
+  }, [audioRef, getCurrentSegmentIndex, syncLoop]);
+
+  // Set up audio event listeners
   useEffect(() => {
     if (!audioRef?.current) return;
     
     const audio = audioRef.current;
-    
-    // Add event listeners
-    audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('pause', handleAudioPause);
     audio.addEventListener('play', handleAudioPlay);
     
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('pause', handleAudioPause);
       audio.removeEventListener('play', handleAudioPlay);
     };
-  }, [audioRef, handleTimeUpdate, handleAudioPause, handleAudioPlay]);
+  }, [audioRef, handleAudioPause, handleAudioPlay]);
 
-  // Effect to start montage when component becomes active
+  // Start montage when active
   useEffect(() => {
     if (isActive && !isPlaying && !hasStartedRef.current && audioRef?.current) {
       const audio = audioRef.current;
       
-      // Start immediately if audio is already playing
       if (!audio.paused) {
         startMontage();
         return;
       }
       
-      // Otherwise, listen for play event
       const handlePlay = () => {
         startMontage();
         audio.removeEventListener('play', handlePlay);
@@ -212,35 +239,25 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     }
   }, [isActive, isPlaying, startMontage, stopMontage, audioRef]);
 
-  // Effect to handle video switching based on activeIndex
+  // Cleanup RAF on unmount
   useEffect(() => {
-    if (!isPlaying || !audioRef?.current) return;
-
-    const currentSegment = montageTimeline[activeIndex];
-    const audio = audioRef.current;
-
-    videoRefs.current.forEach((video, src) => {
-      if (src === currentSegment.src) {
-        if (video.paused && !audio.paused) {
-          video.loop = true;
-          video.play().catch(() => {});
-        }
-      } else {
-        video.pause();
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
       }
-    });
-  }, [activeIndex, isPlaying, audioRef]);
+    };
+  }, []);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-brand-navy">
-      {uniqueVideos.map((src) => (
+      {uniqueVideos.map((src, i) => (
         <video
           key={src}
           ref={el => { if (el) videoRefs.current.set(src, el); }}
           src={src}
           muted
           playsInline
-          preload="auto"
+          preload={i < 2 ? "auto" : "metadata"}
           className={cn(
             "absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out",
             montageTimeline[activeIndex]?.src === src ? "opacity-100" : "opacity-0"
