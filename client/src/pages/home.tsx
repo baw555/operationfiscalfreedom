@@ -113,6 +113,11 @@ export default function Home() {
     setIntroPlayed(true);
     setAnimationPhase(7);
     setShowContent(true);
+    // Auto-start the montage audio when intro ends
+    if (montageAudioRef.current) {
+      montageAudioRef.current.currentTime = 0;
+      montageAudioRef.current.play().catch(() => {});
+    }
   };
 
   const skipIntro = () => {
@@ -122,6 +127,11 @@ export default function Home() {
     setIntroPlayed(true);
     setAnimationPhase(7);
     setShowContent(true);
+    // Auto-start the montage audio when skipping intro
+    if (montageAudioRef.current) {
+      montageAudioRef.current.currentTime = 0;
+      montageAudioRef.current.play().catch(() => {});
+    }
   };
 
   const playMontageAudio = () => {
