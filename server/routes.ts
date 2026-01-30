@@ -177,35 +177,8 @@ function isValidTransition(currentStatus: string, newStatus: string, transitions
   return allowed.includes(newStatus);
 }
 
-// Email retry helper with exponential backoff
-async function sendEmailWithRetry(
-  resend: any,
-  emailParams: any,
-  maxRetries: number = 3
-): Promise<{ success: boolean; error?: string }> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      await resend.emails.send(emailParams);
-      return { success: true };
-    } catch (error: any) {
-      console.error(`[Email] Attempt ${attempt}/${maxRetries} failed:`, error.message);
-      
-      // Don't retry on permanent failures (invalid email, etc)
-      if (error.statusCode === 400 || error.statusCode === 422) {
-        return { success: false, error: `Invalid request: ${error.message}` };
-      }
-      
-      if (attempt < maxRetries) {
-        // Exponential backoff: 1s, 2s, 4s
-        const delay = Math.pow(2, attempt - 1) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-      } else {
-        return { success: false, error: `Failed after ${maxRetries} attempts: ${error.message}` };
-      }
-    }
-  }
-  return { success: false, error: "Unknown error" };
-}
+// Email retry with exponential backoff - imported from centralized module
+import { sendEmailWithRetryClient } from "./emailWithRetry";
 
 declare module "express-session" {
   interface SessionData {
@@ -4726,8 +4699,8 @@ export async function registerRoutes(
       for (const recipient of recipientsToSend) {
         const signingUrl = `${baseUrl}/csu-sign?token=${recipient.signToken}`;
         
-        // Send email with retry logic
-        const emailResult = await sendEmailWithRetry(resend, {
+        // Send email with retry logic using centralized module
+        const emailResult = await sendEmailWithRetryClient(resend, {
           from: fromEmail,
           to: recipient.email,
           subject: `Please Sign: ${template.name}`,

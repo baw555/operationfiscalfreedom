@@ -1,10 +1,12 @@
 import { getResendClient } from "./resendClient";
+import { Resend } from "resend";
 
 interface EmailOptions {
   to: string | string[];
   subject: string;
   html: string;
   text?: string;
+  from?: string;
 }
 
 interface RetryOptions {
@@ -27,6 +29,39 @@ function calculateBackoff(
   return delay + jitter;
 }
 
+function isPermanentError(error: any): boolean {
+  return error.statusCode === 400 || error.statusCode === 422;
+}
+
+export async function sendEmailWithRetryClient(
+  resend: Resend,
+  emailParams: { from: string; to: string | string[]; subject: string; html: string; text?: string },
+  maxRetries: number = 3
+): Promise<{ success: boolean; error?: string }> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await resend.emails.send(emailParams);
+      console.log(`[Email] Successfully sent email on attempt ${attempt}`);
+      return { success: true };
+    } catch (error: any) {
+      console.error(`[Email] Attempt ${attempt}/${maxRetries} failed:`, error.message);
+      
+      if (isPermanentError(error)) {
+        return { success: false, error: `Invalid request: ${error.message}` };
+      }
+      
+      if (attempt < maxRetries) {
+        const delay = calculateBackoff(attempt - 1, 1000, 10000);
+        console.log(`[Email] Retrying in ${Math.round(delay)}ms...`);
+        await sleep(delay);
+      } else {
+        return { success: false, error: `Failed after ${maxRetries} attempts: ${error.message}` };
+      }
+    }
+  }
+  return { success: false, error: "Unknown error" };
+}
+
 export async function sendEmailWithRetry(
   emailOptions: EmailOptions,
   retryOptions: RetryOptions = {}
@@ -40,7 +75,7 @@ export async function sendEmailWithRetry(
       const { client, fromEmail } = await getResendClient();
 
       const result = await client.emails.send({
-        from: fromEmail,
+        from: emailOptions.from || fromEmail,
         to: emailOptions.to,
         subject: emailOptions.subject,
         html: emailOptions.html,
@@ -53,12 +88,16 @@ export async function sendEmailWithRetry(
 
       console.log(`[Email] Successfully sent email on attempt ${attempt + 1}`);
       return { success: true, messageId: result.data?.id };
-    } catch (error) {
+    } catch (error: any) {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.error(
         `[Email] Attempt ${attempt + 1}/${maxRetries + 1} failed:`,
         lastError.message
       );
+
+      if (isPermanentError(error)) {
+        return { success: false, error: `Invalid request: ${error.message}` };
+      }
 
       if (attempt < maxRetries) {
         const delay = calculateBackoff(attempt, baseDelayMs, maxDelayMs);
