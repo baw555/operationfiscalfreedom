@@ -391,6 +391,11 @@ export default function Home() {
                 <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-wider">NAVIGATOR USA ELITE</span>
                 <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
               </div>
+              <Link href="/master-portal">
+                <button className="mt-3 px-6 py-2 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-sm sm:text-base tracking-wider rounded-full shadow-lg shadow-brand-gold/30 transition-all hover:scale-105 uppercase">
+                  Master Hub
+                </button>
+              </Link>
               <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase shimmer-text">Navy SEAL Operated</p>
             </div>
             
