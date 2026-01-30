@@ -140,6 +140,24 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+// HIPAA §164.312(d) - MFA-enforced authentication middleware
+// Blocks access to protected resources until MFA is verified
+function requireMfaAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  // If MFA is pending (user has MFA enabled but hasn't verified yet), block access
+  if (req.session.mfaPending === true && req.session.mfaVerified !== true) {
+    return res.status(403).json({ 
+      message: "MFA verification required",
+      mfaPending: true 
+    });
+  }
+  
+  next();
+}
+
 // Middleware to check if user is admin or master
 // HIPAA §164.312(a)(1) - Access Control with Minimum Necessary Principle
 // Define role permissions for granular access control
@@ -211,6 +229,15 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
     return res.status(403).json({ message: "Forbidden - Admin access required" });
   }
+  
+  // HIPAA §164.312(d) - Enforce MFA for admin access to PHI
+  if (req.session.mfaPending === true && req.session.mfaVerified !== true) {
+    return res.status(403).json({ 
+      message: "MFA verification required for admin access",
+      mfaPending: true 
+    });
+  }
+  
   next();
 }
 
@@ -1422,6 +1449,22 @@ export async function registerRoutes(
 
       const user = await authenticateUser(email, password);
       if (!user) {
+        // Log failed login attempt for HIPAA audit
+        await storage.createHipaaAuditLog({
+          userId: null,
+          userName: email,
+          userRole: null,
+          action: "LOGIN_FAILED",
+          resourceType: "authentication",
+          resourceId: null,
+          resourceDescription: "Failed login attempt",
+          ipAddress: req.ip || null,
+          userAgent: req.headers["user-agent"] || null,
+          sessionId: req.sessionID || null,
+          success: false,
+          errorMessage: "Invalid email or password",
+          phiAccessed: false,
+        });
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
@@ -1443,6 +1486,10 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Invalid credentials for this portal" });
       }
 
+      // HIPAA §164.312(d) - Check if user has MFA enabled
+      const mfaConfig = await storage.getUserMfaConfig(user.id);
+      const mfaRequired = mfaConfig?.mfaEnabled === true;
+
       // Regenerate session to prevent session fixation attacks and ensure clean session
       req.session.regenerate((regenerateErr) => {
         if (regenerateErr) {
@@ -1452,17 +1499,44 @@ export async function registerRoutes(
         
         req.session.userId = user.id;
         req.session.userRole = user.role;
+        
+        // If MFA is required, set pending state - user cannot access protected resources
+        if (mfaRequired) {
+          req.session.mfaPending = true;
+          req.session.mfaVerified = false;
+        } else {
+          req.session.mfaPending = false;
+          req.session.mfaVerified = true; // No MFA required, consider verified
+        }
 
         // Ensure session is saved before responding
-        req.session.save((saveErr) => {
+        req.session.save(async (saveErr) => {
           if (saveErr) {
             console.error("Session save error:", saveErr);
             return res.status(500).json({ message: "Login failed - session error" });
           }
-          console.log(`[auth] Login successful for user ${user.id}, session saved`);
+          
+          // Log successful login for HIPAA audit
+          await storage.createHipaaAuditLog({
+            userId: user.id,
+            userName: user.name,
+            userRole: user.role,
+            action: mfaRequired ? "LOGIN_MFA_PENDING" : "LOGIN_SUCCESS",
+            resourceType: "authentication",
+            resourceId: String(user.id),
+            resourceDescription: mfaRequired ? "Login successful, awaiting MFA verification" : "Login successful",
+            ipAddress: req.ip || null,
+            userAgent: req.headers["user-agent"] || null,
+            sessionId: req.sessionID || null,
+            success: true,
+            phiAccessed: false,
+          });
+          
+          console.log(`[auth] Login successful for user ${user.id}, session saved, MFA required: ${mfaRequired}`);
           res.json({ 
             success: true, 
-            user: { id: user.id, name: user.name, email: user.email, role: user.role, portal: user.portal }
+            user: { id: user.id, name: user.name, email: user.email, role: user.role, portal: user.portal },
+            mfaRequired,
           });
         });
       });
