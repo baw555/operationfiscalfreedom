@@ -114,7 +114,7 @@ export default function MissionActHealth() {
                   </div>
                   <h3 className="text-2xl font-display text-brand-navy mb-2">Direct Support</h3>
                   <p className="text-gray-600">Every dollar makes a difference</p>
-                  <Link href="/become-investor" className={cn(buttonVariants(), "bg-brand-red hover:bg-brand-red/90 text-white font-bold mt-6")}>
+                  <Link href="/contact" className={cn(buttonVariants(), "bg-brand-red hover:bg-brand-red/90 text-white font-bold mt-6")}>
                     Support the Fund
                   </Link>
                 </div>

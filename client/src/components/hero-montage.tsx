@@ -16,55 +16,78 @@ const montageVideos = [
 export function HeroMontage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [needsInteraction, setNeedsInteraction] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const advancingRef = useRef(false);
-  const fallbackTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const hasPlayedRef = useRef(false);
+  const durationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const userInteractedRef = useRef(false);
 
-  const clearFallbackTimer = useCallback(() => {
-    if (fallbackTimerRef.current) {
-      clearTimeout(fallbackTimerRef.current);
-      fallbackTimerRef.current = null;
+  // Single timer management - clear any existing timer
+  const clearDurationTimer = useCallback(() => {
+    if (durationTimerRef.current) {
+      clearTimeout(durationTimerRef.current);
+      durationTimerRef.current = null;
     }
   }, []);
 
+  // Advance to next video - single entry point with debounce
   const advanceToNext = useCallback(() => {
     if (advancingRef.current) return;
     advancingRef.current = true;
     
-    clearFallbackTimer();
+    clearDurationTimer();
     setActiveIndex(prev => (prev + 1) % montageVideos.length);
     
+    // Prevent double-advance for 800ms (longer than transition)
     setTimeout(() => {
       advancingRef.current = false;
-    }, 500);
-  }, [clearFallbackTimer]);
+    }, 800);
+  }, [clearDurationTimer]);
 
+  // Schedule advance based on actual video duration (only after canplay)
+  const scheduleAdvance = useCallback((video: HTMLVideoElement) => {
+    clearDurationTimer();
+    const duration = video.duration;
+    if (duration && duration > 0 && isFinite(duration)) {
+      // Advance slightly before end to smooth transition
+      const timeout = Math.max((duration - 0.5) * 1000, 1000);
+      durationTimerRef.current = setTimeout(advanceToNext, timeout);
+    }
+  }, [advanceToNext, clearDurationTimer]);
+
+  // Attempt to play video - handles mobile autoplay restrictions
   const attemptPlay = useCallback((video: HTMLVideoElement) => {
     video.currentTime = 0;
     const playPromise = video.play();
     
     if (playPromise) {
       playPromise.then(() => {
-        hasPlayedRef.current = true;
+        userInteractedRef.current = true;
         setNeedsInteraction(false);
+        setIsPlaying(true);
         
-        clearFallbackTimer();
-        const duration = video.duration || 10;
-        fallbackTimerRef.current = setTimeout(advanceToNext, (duration + 1) * 1000);
+        // Only schedule timer after successful play AND we have duration
+        if (video.duration && video.duration > 0) {
+          scheduleAdvance(video);
+        }
+        // If no duration yet, loadedmetadata handler will schedule
       }).catch(() => {
-        if (!hasPlayedRef.current) {
+        // Mobile autoplay blocked - DO NOT advance automatically
+        // Wait for user interaction instead of cycling through videos
+        setIsPlaying(false);
+        if (!userInteractedRef.current) {
           setNeedsInteraction(true);
         }
-        clearFallbackTimer();
-        fallbackTimerRef.current = setTimeout(advanceToNext, 8000);
+        // Clear timer - don't advance on blocked autoplay
+        clearDurationTimer();
       });
     }
-  }, [advanceToNext, clearFallbackTimer]);
+  }, [scheduleAdvance, clearDurationTimer]);
 
+  // User taps to enable video playback on mobile
   const handleTapToPlay = useCallback(() => {
     setNeedsInteraction(false);
-    hasPlayedRef.current = true;
+    userInteractedRef.current = true;
     
     const currentVideo = videoRefs.current[activeIndex];
     if (currentVideo) {
@@ -72,51 +95,73 @@ export function HeroMontage() {
     }
   }, [activeIndex, attemptPlay]);
 
+  // Effect: Handle video switching
   useEffect(() => {
+    clearDurationTimer();
+    
     videoRefs.current.forEach((video, index) => {
       if (video) {
         if (index === activeIndex) {
-          attemptPlay(video);
+          // Only auto-play if user has interacted or autoplay works
+          if (userInteractedRef.current || !needsInteraction) {
+            attemptPlay(video);
+          }
         } else {
           video.pause();
+          video.currentTime = 0;
         }
       }
     });
 
     return () => {
-      clearFallbackTimer();
+      clearDurationTimer();
     };
-  }, [activeIndex, attemptPlay, clearFallbackTimer]);
+  }, [activeIndex, attemptPlay, clearDurationTimer, needsInteraction]);
 
+  // Effect: Video event listeners for current video
   useEffect(() => {
     const currentVideo = videoRefs.current[activeIndex];
     if (!currentVideo) return;
     
-    const handleEnded = () => advanceToNext();
+    // Primary advance trigger - video ended naturally
+    const handleEnded = () => {
+      advanceToNext();
+    };
     
+    // Backup trigger - advance just before end (handles edge cases)
     const handleTimeUpdate = () => {
-      if (currentVideo.duration > 0 && currentVideo.currentTime >= currentVideo.duration - 0.3) {
+      if (isPlaying && currentVideo.duration > 0 && 
+          currentVideo.currentTime >= currentVideo.duration - 0.2) {
         advanceToNext();
       }
     };
 
+    // When metadata loads, schedule timer if playing
     const handleLoadedMetadata = () => {
-      if (currentVideo.duration > 0) {
-        clearFallbackTimer();
-        fallbackTimerRef.current = setTimeout(advanceToNext, (currentVideo.duration + 1) * 1000);
+      if (isPlaying && currentVideo.duration > 0) {
+        scheduleAdvance(currentVideo);
+      }
+    };
+    
+    // When video can play through, start if user has interacted
+    const handleCanPlayThrough = () => {
+      if (userInteractedRef.current && currentVideo.paused) {
+        attemptPlay(currentVideo);
       }
     };
 
     currentVideo.addEventListener("ended", handleEnded);
     currentVideo.addEventListener("timeupdate", handleTimeUpdate);
     currentVideo.addEventListener("loadedmetadata", handleLoadedMetadata);
+    currentVideo.addEventListener("canplaythrough", handleCanPlayThrough);
 
     return () => {
       currentVideo.removeEventListener("ended", handleEnded);
       currentVideo.removeEventListener("timeupdate", handleTimeUpdate);
       currentVideo.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      currentVideo.removeEventListener("canplaythrough", handleCanPlayThrough);
     };
-  }, [activeIndex, advanceToNext, clearFallbackTimer]);
+  }, [activeIndex, advanceToNext, isPlaying, scheduleAdvance, attemptPlay]);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-brand-navy">
