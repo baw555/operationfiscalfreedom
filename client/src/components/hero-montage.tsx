@@ -234,15 +234,35 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
     };
   }, [audioRef, syncToAudio, startMontage, isActive, activeIndex, getSegmentIndex]);
 
-  // Handle isActive changes
+  // Handle isActive changes - also start if mounting while audio is already playing
   useEffect(() => {
     if (isActive && !isPlaying && audioRef?.current && !audioRef.current.paused) {
-      startMontage();
+      // Small delay to ensure video refs are populated
+      const timer = setTimeout(() => {
+        if (!hasStartedRef.current) {
+          startMontage();
+        }
+      }, 100);
+      return () => clearTimeout(timer);
     }
     if (!isActive && isPlaying) {
       stopMontage();
     }
   }, [isActive, isPlaying, startMontage, stopMontage, audioRef]);
+
+  // Also check on initial mount if audio is already playing
+  useEffect(() => {
+    const audio = audioRef?.current;
+    if (audio && !audio.paused && isActive && !hasStartedRef.current) {
+      // Audio already playing when component mounts - start immediately
+      const timer = setTimeout(() => {
+        if (!hasStartedRef.current && videoRefs.current.size > 0) {
+          startMontage();
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [audioRef, isActive, startMontage]);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-brand-navy">
