@@ -58,6 +58,12 @@ export default function Home() {
     setAnimationPhase(0);
     setShowContent(false);
     
+    // Start the montage audio immediately (right after Uncle Sam intro)
+    if (montageAudioRef.current) {
+      montageAudioRef.current.currentTime = 0;
+      montageAudioRef.current.play().catch(() => {});
+    }
+    
     const sequence = [
       { phase: 1, delay: 1000 },
       { phase: 2, delay: 5000 },
@@ -73,11 +79,6 @@ export default function Home() {
         setAnimationPhase(phase);
         if (phase === 7) {
           setTimeout(() => setShowContent(true), 500);
-          // Start the montage audio when phase 7 begins
-          if (montageAudioRef.current) {
-            montageAudioRef.current.currentTime = 0;
-            montageAudioRef.current.play().catch(() => {});
-          }
         }
       }, delay);
       timeoutsRef.current.push(timeout);
@@ -103,8 +104,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Text sequence plays once (phases 1-6), then montage starts at phase 7
-    // Audio begins when phase 7 is reached and plays for full 128s duration
+    // Music starts immediately after Uncle Sam intro, text sequence plays (phases 1-6)
+    // Then montage videos start at phase 7 and sync with the already-playing audio
     return () => {
       clearAllTimeouts();
       if (loopIntervalRef.current) {
@@ -115,7 +116,7 @@ export default function Home() {
 
   const handleIntroEnded = () => {
     setIntroPlayed(true);
-    // Run the text sequence ("something is coming"), audio starts when phase 7 begins
+    // Run the text sequence ("something is coming"), music starts immediately
     runAnimation();
   };
 
@@ -124,7 +125,7 @@ export default function Home() {
       introVideoRef.current.pause();
     }
     setIntroPlayed(true);
-    // Run the text sequence ("something is coming"), audio starts when phase 7 begins
+    // Run the text sequence ("something is coming"), music starts immediately
     runAnimation();
   };
 
