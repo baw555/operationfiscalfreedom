@@ -160,12 +160,16 @@ const TermsOfUse = lazy(() => import("@/pages/terms-of-use"));
 const AffiliatedPartners = lazy(() => import("@/pages/affiliated-partners"));
 const DoNotSell = lazy(() => import("@/pages/do-not-sell"));
 const BreachProcedures = lazy(() => import("@/pages/breach-procedures"));
+const EmergencyAccess = lazy(() => import("@/pages/emergency-access"));
 
 // Ranger Tab Signup
 const RangerTabSignup = lazy(() => import("@/pages/ranger-tab-signup"));
 
 // Navigator USA Elite
 const NavigatorElite = lazy(() => import("@/pages/navigator-elite"));
+
+// HIPAA Admin Dashboard
+const HipaaAdmin = lazy(() => import("@/pages/hipaa-admin"));
 
 function Router() {
   return (
@@ -199,6 +203,7 @@ function Router() {
         <Route path="/affiliated-partners" component={AffiliatedPartners} />
         <Route path="/do-not-sell" component={DoNotSell} />
         <Route path="/breach-procedures" component={BreachProcedures} />
+        <Route path="/emergency-access" component={EmergencyAccess} />
         {/* Legacy Fin-Ops routes - redirect to hub with query params preserved */}
         <Route path="/merchant-services">{() => <Redirect to={`/fin-ops/merchant-services${window.location.search}`} />}</Route>
         <Route path="/my-locker">{() => <Redirect to={`/fin-ops/my-locker${window.location.search}`} />}</Route>
@@ -334,6 +339,9 @@ function Router() {
         
         {/* Navigator USA Elite Command Center */}
         <Route path="/elite" component={NavigatorElite} />
+        
+        {/* HIPAA Compliance Admin Dashboard */}
+        <Route path="/hipaa-admin" component={HipaaAdmin} />
         
         <Route component={NotFound} />
       </Switch>
