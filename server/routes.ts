@@ -10,16 +10,32 @@ import { getResendClient } from "./resendClient";
 import twilio from "twilio";
 import Stripe from "stripe";
 import { extractDocumentText, analyzeContractDocument } from "./contractDocumentAnalyzer";
-import { TOTP } from "otplib";
+import { TOTP, generateSecret, verifySync, NobleCryptoPlugin, ScureBase32Plugin } from "otplib";
 import * as QRCode from "qrcode";
 import crypto from "crypto";
 
 // HIPAA Security: Configure TOTP with strict timing window to prevent replay attacks
-// Window of 1 means only current and 1 adjacent time step accepted (30 seconds each side)
-const totp = new TOTP({
-  window: 1,  // Only accept codes from current and 1 adjacent time step
-  period: 30, // Standard 30-second time step
+const totpInstance = new TOTP({
+  period: 30,   // Standard 30-second time step
+  crypto: new NobleCryptoPlugin(),
+  base32: new ScureBase32Plugin(),
 });
+
+// Helper function for TOTP verification with security window
+function verifyTotp(token: string, secret: string): boolean {
+  try {
+    const result = verifySync({
+      token,
+      secret,
+      epochTolerance: 30, // Allow 30 second tolerance (1 period each direction)
+      crypto: new NobleCryptoPlugin(),
+      base32: new ScureBase32Plugin(),
+    });
+    return result.valid;
+  } catch {
+    return false;
+  }
+}
 
 // HIPAA §164.312(d) - Persistent Rate Limiting to prevent brute-force attacks
 // Uses PostgreSQL for persistent, distributed lockout enforcement
@@ -2188,11 +2204,9 @@ export async function registerRoutes(
     try {
       // Get ALL signed NDAs directly from the affiliate_nda table
       const allNdas = await storage.getAllAffiliateNdas();
-      console.log("[DEBUG] affiliate-files: Found", allNdas.length, "signed NDAs");
       
       // Get all affiliates for contracts and W9
       const affiliates = await storage.getAllAffiliates();
-      console.log("[DEBUG] affiliate-files: Found", affiliates.length, "affiliates");
       
       // Create a combined result map keyed by user ID
       const resultMap = new Map<number, {
@@ -2282,11 +2296,6 @@ export async function registerRoutes(
       const filesWithDocs = Array.from(resultMap.values()).filter(
         (a) => a.nda || (a.contracts && a.contracts.length > 0) || a.w9
       );
-      
-      console.log("[DEBUG] affiliate-files: Returning", filesWithDocs.length, "entries with documents");
-      if (filesWithDocs.length > 0) {
-        console.log("[DEBUG] First entry with docs:", JSON.stringify({ id: filesWithDocs[0].id, name: filesWithDocs[0].name, hasNda: !!filesWithDocs[0].nda, hasContracts: !!filesWithDocs[0].contracts }));
-      }
       
       res.json(filesWithDocs);
     } catch (error) {
@@ -3453,7 +3462,7 @@ export async function registerRoutes(
         for (const comm of comms) {
           allCommissions.push({
             ...comm,
-            affiliateName: `${affiliate.firstName} ${affiliate.lastName}`,
+            affiliateName: affiliate.name,
             affiliateEmail: affiliate.email
           });
         }
@@ -6040,10 +6049,10 @@ export async function registerRoutes(
       }
 
       // Generate new secret
-      const secret = totp.generateSecret();
+      const secret = generateSecret();
       
       // Create TOTP URI for QR code
-      const otpauth = totp.keyuri(user.email, "NavigatorUSA", secret);
+      const otpauth = totpInstance.toURI({ secret, issuer: "NavigatorUSA", label: user.email });
       
       // Generate QR code as data URL
       const qrCodeDataUrl = await QRCode.toDataURL(otpauth);
@@ -6095,7 +6104,7 @@ export async function registerRoutes(
       }
 
       // Verify the TOTP code
-      const isValid = totp.verify({ token: code, secret: config.mfaSecret });
+      const isValid = verifyTotp(code, config.mfaSecret);
       
       if (!isValid) {
         return res.status(400).json({ message: "Invalid verification code" });
@@ -6199,7 +6208,7 @@ export async function registerRoutes(
       }
 
       // Verify TOTP code (only if not a backup code for efficiency)
-      const isValidTotp = !isBackupCode && totp.verify({ token: code, secret: config.mfaSecret });
+      const isValidTotp = !isBackupCode && verifyTotp(code, config.mfaSecret);
 
       if (!isValidTotp && !isBackupCode) {
         // Record failed attempt for rate limiting (persistent)
