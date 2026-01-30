@@ -135,6 +135,28 @@ export default function Home() {
     setAnimationPaused(!animationPaused);
   }, [animationPaused, startAnimation]);
 
+  // Keep RAF running while animation is in progress
+  useEffect(() => {
+    if (animationStartedRef.current && !rafRef.current && montageAudioRef.current && !montageAudioRef.current.paused) {
+      rafRef.current = requestAnimationFrame(syncLoop);
+    }
+  }, [animationPhase, syncLoop]);
+
+  // Restart RAF when audio plays
+  useEffect(() => {
+    const audio = montageAudioRef.current;
+    if (!audio) return;
+    
+    const handlePlay = () => {
+      if (animationStartedRef.current && !rafRef.current) {
+        rafRef.current = requestAnimationFrame(syncLoop);
+      }
+    };
+    
+    audio.addEventListener('play', handlePlay);
+    return () => audio.removeEventListener('play', handlePlay);
+  }, [syncLoop]);
+
   // Cleanup RAF on unmount
   useEffect(() => {
     return () => {
