@@ -12,8 +12,15 @@ import {
   ChevronRight, Lock, CheckCircle, AlertCircle, 
   Building2, DollarSign, Heart, Stethoscope, Truck,
   FileSignature, Send, Clock, TrendingUp, BarChart3,
-  Anchor, Star, Zap, Globe, Eye, Activity
+  Anchor, Star, Zap, Globe, Eye, Activity, ShieldCheck,
+  Key, Database, Server, FileWarning, AlertTriangle,
+  Info, ExternalLink, ScrollText, UserCheck, Network,
+  HardDrive, Mail, Bot, X
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 const MotionCard = motion(Card);
 
@@ -182,6 +189,98 @@ export default function NavigatorElite() {
       default: return "from-gray-600/20 to-gray-900/40 border-gray-500/30";
     }
   };
+
+  const [securitySheetOpen, setSecuritySheetOpen] = useState(false);
+
+  const hipaaCompliance = {
+    overallScore: 52,
+    lastAssessment: "January 30, 2026",
+    categories: [
+      { name: "Technical Safeguards", score: 55, color: "from-blue-500 to-blue-700" },
+      { name: "Administrative Safeguards", score: 35, color: "from-purple-500 to-purple-700" },
+      { name: "Physical Safeguards", score: 70, color: "from-green-500 to-green-700" },
+      { name: "Audit Controls", score: 50, color: "from-amber-500 to-amber-700" },
+      { name: "Transmission Security", score: 65, color: "from-cyan-500 to-cyan-700" }
+    ],
+    controls: [
+      { id: 1, name: "Password Hashing (bcrypt)", category: "Technical", status: "compliant", description: "All passwords encrypted with bcrypt algorithm - verified in codebase", regulation: "45 CFR §164.312(a)(1)" },
+      { id: 2, name: "HTTPS/TLS Encryption", category: "Transmission", status: "partial", description: "Platform provides TLS but explicit enforcement not configured in code", regulation: "45 CFR §164.312(e)(1)" },
+      { id: 3, name: "Role-Based Access Control", category: "Technical", status: "partial", description: "Basic role checks (admin/affiliate) exist but minimum-necessary access not enforced", regulation: "45 CFR §164.312(a)(1)" },
+      { id: 4, name: "Input Validation (Zod)", category: "Technical", status: "compliant", description: "All API inputs validated with Zod schemas - verified in codebase", regulation: "45 CFR §164.312(c)(1)" },
+      { id: 5, name: "Session Authentication", category: "Technical", status: "partial", description: "PostgreSQL session storage present, secure cookie flags need verification", regulation: "45 CFR §164.312(d)" },
+      { id: 6, name: "CSU Audit Trail", category: "Audit", status: "partial", description: "Audit logging exists for CSU contracts only, not system-wide PHI access", regulation: "45 CFR §164.312(b)" },
+      { id: 7, name: "Database Encryption (PostgreSQL)", category: "Technical", status: "partial", description: "Relies on Neon hosting provider - no explicit encryption config in code", regulation: "45 CFR §164.312(a)(2)(iv)" },
+      { id: 8, name: "Unique User Identification", category: "Technical", status: "compliant", description: "Each user has unique database ID for activity tracking", regulation: "45 CFR §164.312(a)(2)(i)" },
+      { id: 9, name: "Session Timeout", category: "Technical", status: "missing", description: "No auto-logoff configured for inactive sessions", regulation: "45 CFR §164.312(a)(2)(iii)" },
+      { id: 10, name: "Multi-Factor Authentication", category: "Technical", status: "missing", description: "MFA not implemented - critical security gap", regulation: "45 CFR §164.312(d)" },
+      { id: 11, name: "System-Wide Audit Logging", category: "Audit", status: "missing", description: "No comprehensive PHI access logging outside CSU workflows", regulation: "45 CFR §164.312(b)" },
+      { id: 12, name: "HSTS Headers", category: "Transmission", status: "missing", description: "No HSTS headers configured in application code", regulation: "45 CFR §164.312(e)(2)" },
+      { id: 13, name: "Privacy Policy Notice", category: "Administrative", status: "missing", description: "No public-facing privacy policy page implemented", regulation: "45 CFR §164.520" },
+      { id: 14, name: "Breach Notification Procedures", category: "Administrative", status: "missing", description: "60-day breach notification process not documented", regulation: "45 CFR §164.404" },
+      { id: 15, name: "Business Associate Agreements", category: "Administrative", status: "missing", description: "No BAAs executed with Resend, OpenAI, or hosting providers", regulation: "45 CFR §164.504(e)" },
+      { id: 16, name: "Risk Assessment Documentation", category: "Administrative", status: "partial", description: "Initial self-assessment complete, formal annual review required", regulation: "45 CFR §164.308(a)(1)(ii)(A)" },
+      { id: 17, name: "Workforce Training Records", category: "Administrative", status: "missing", description: "HIPAA training program not documented", regulation: "45 CFR §164.308(a)(5)" },
+      { id: 18, name: "Emergency Access Procedures", category: "Technical", status: "partial", description: "Database backup access via hosting, formal procedures needed", regulation: "45 CFR §164.312(a)(2)(ii)" }
+    ],
+    vendors: [
+      { id: "resend", name: "Resend (Email)", type: "Email Service", baaStatus: "not_executed", description: "Transactional email for contract signing links", action: "Request BAA from Resend - REQUIRED for PHI in emails" },
+      { id: "openai", name: "OpenAI", type: "AI Integration", baaStatus: "not_executed", description: "Document analysis and AI features", action: "Contact OpenAI for HIPAA BAA - available for Enterprise tier" },
+      { id: "neon", name: "Neon (PostgreSQL)", type: "Database", baaStatus: "not_executed", description: "Managed PostgreSQL database hosting", action: "Execute Neon BAA - available on Scale/Enterprise plans" },
+      { id: "replit", name: "Replit", type: "Hosting Platform", baaStatus: "not_executed", description: "Application hosting and deployment", action: "Review Replit HIPAA-eligible options - contact sales" }
+    ],
+    recommendations: [
+      { id: "rec-mfa", priority: "critical", title: "Implement Multi-Factor Authentication", description: "Add MFA for all admin and affiliate accounts using TOTP or SMS verification", timeline: "2-3 weeks" },
+      { id: "rec-baa", priority: "critical", title: "Execute Vendor BAAs", description: "Obtain and sign Business Associate Agreements with Resend, OpenAI, Neon, and Replit", timeline: "1-2 weeks" },
+      { id: "rec-privacy", priority: "high", title: "Create Privacy Policy Page", description: "Publish Notice of Privacy Practices on public-facing pages", timeline: "1 week" },
+      { id: "rec-audit", priority: "high", title: "Expand Audit Logging", description: "Implement system-wide audit trail for all PHI access events with 6-year retention", timeline: "2-3 weeks" },
+      { id: "rec-breach", priority: "medium", title: "Document Breach Procedures", description: "Create and document 60-day breach notification workflow", timeline: "1 week" },
+      { id: "rec-session", priority: "medium", title: "Configure Session Auto-Logoff", description: "Enforce automatic logout after 15-30 minutes of inactivity", timeline: "3-5 days" },
+      { id: "rec-training", priority: "low", title: "Staff Training Program", description: "Implement and document annual HIPAA awareness training", timeline: "Ongoing" }
+    ]
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "compliant": return <CheckCircle className="w-5 h-5 text-green-400" />;
+      case "partial": return <AlertTriangle className="w-5 h-5 text-amber-400" />;
+      case "missing": return <X className="w-5 h-5 text-red-400" />;
+      default: return <Info className="w-5 h-5 text-gray-400" />;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "compliant": return "bg-green-500/20 text-green-400 border-green-500/30";
+      case "partial": return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      case "missing": return "bg-red-500/20 text-red-400 border-red-500/30";
+      default: return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "critical": return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "high": return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      case "medium": return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+      case "low": return "bg-green-500/20 text-green-400 border-green-500/30";
+      default: return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    }
+  };
+
+  const getBaaStatusColor = (status: string) => {
+    switch (status) {
+      case "executed": return "bg-green-500/20 text-green-400 border-green-500/30";
+      case "available": return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+      case "required": return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      case "not_executed": return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "not_available": return "bg-red-500/20 text-red-400 border-red-500/30";
+      default: return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    }
+  };
+
+  const compliantCount = hipaaCompliance.controls.filter(c => c.status === "compliant").length;
+  const partialCount = hipaaCompliance.controls.filter(c => c.status === "partial").length;
+  const missingCount = hipaaCompliance.controls.filter(c => c.status === "missing").length;
 
   return (
     <Layout>
@@ -760,6 +859,246 @@ export default function NavigatorElite() {
           </motion.div>
         </div>
       </div>
+
+      <Sheet open={securitySheetOpen} onOpenChange={setSecuritySheetOpen}>
+        <SheetTrigger asChild>
+          <motion.button
+            className="fixed bottom-6 left-6 z-50 flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 text-white font-bold rounded-xl shadow-2xl shadow-emerald-500/30 border border-emerald-400/30"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 1.5, duration: 0.5 }}
+            data-testid="btn-security-hipaa-report"
+          >
+            <ShieldCheck className="w-6 h-6" />
+            <div className="text-left">
+              <div className="text-sm font-display tracking-wide">Security & HIPAA</div>
+              <div className="text-xs opacity-80">Compliance Report</div>
+            </div>
+            <div className="ml-2 px-2 py-1 bg-white/20 rounded-lg text-sm font-bold">
+              {hipaaCompliance.overallScore}%
+            </div>
+          </motion.button>
+        </SheetTrigger>
+        
+        <SheetContent side="left" className="w-full sm:w-[600px] lg:w-[800px] bg-gradient-to-b from-[#0a1628] via-[#0f1f3a] to-[#1a365d] border-r border-emerald-500/30 p-0 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="p-6 space-y-6">
+              <SheetHeader className="text-left">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg">
+                    <ShieldCheck className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <SheetTitle className="text-2xl font-display text-white tracking-wide">
+                      Security & HIPAA Compliance Report
+                    </SheetTitle>
+                    <p className="text-sm text-gray-400">Last Assessment: {hipaaCompliance.lastAssessment}</p>
+                  </div>
+                </div>
+              </SheetHeader>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" data-testid="compliance-score-dashboard">
+                <Card className="lg:col-span-1 bg-gradient-to-br from-emerald-900/40 to-emerald-950/60 border-emerald-500/30">
+                  <CardContent className="p-6 text-center">
+                    <div className="relative inline-flex items-center justify-center">
+                      <svg className="w-32 h-32 transform -rotate-90">
+                        <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="none" className="text-gray-700" />
+                        <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="none" 
+                          className="text-emerald-500" 
+                          strokeDasharray={`${hipaaCompliance.overallScore * 3.52} 352`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span className="absolute text-4xl font-bold text-emerald-400">{hipaaCompliance.overallScore}%</span>
+                    </div>
+                    <p className="mt-4 text-lg font-display text-white">Overall Compliance</p>
+                    <p className="text-sm text-gray-400">HIPAA Security Rule</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="lg:col-span-2 bg-gradient-to-br from-slate-900/40 to-slate-950/60 border-slate-500/30">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-white text-lg flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-emerald-400" />
+                      Safeguard Categories
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {hipaaCompliance.categories.map((cat, idx) => (
+                      <div key={idx} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-300">{cat.name}</span>
+                          <span className="text-white font-bold">{cat.score}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                          <motion.div 
+                            className={`h-full bg-gradient-to-r ${cat.color} rounded-full`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${cat.score}%` }}
+                            transition={{ delay: 0.3 + idx * 0.1, duration: 0.8 }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4" data-testid="compliance-summary-stats">
+                <Card className="bg-gradient-to-br from-green-900/40 to-green-950/60 border-green-500/30">
+                  <CardContent className="p-4 text-center">
+                    <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-green-400">{compliantCount}</div>
+                    <div className="text-xs text-gray-400">Compliant</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-amber-900/40 to-amber-950/60 border-amber-500/30">
+                  <CardContent className="p-4 text-center">
+                    <AlertTriangle className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-amber-400">{partialCount}</div>
+                    <div className="text-xs text-gray-400">Partial</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-red-900/40 to-red-950/60 border-red-500/30">
+                  <CardContent className="p-4 text-center">
+                    <X className="w-8 h-8 text-red-400 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-red-400">{missingCount}</div>
+                    <div className="text-xs text-gray-400">Missing</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Separator className="bg-emerald-500/20" />
+
+              <div data-testid="compliance-control-matrix">
+                <h3 className="text-lg font-display text-emerald-400 mb-4 flex items-center gap-2">
+                  <ScrollText className="w-5 h-5" />
+                  Detailed Control Assessment ({hipaaCompliance.controls.length} Controls)
+                </h3>
+                <div className="space-y-2">
+                  {hipaaCompliance.controls.map((control) => (
+                    <Card key={control.id} className="bg-slate-900/40 border-slate-700/30 hover:border-emerald-500/30 transition-colors" data-testid={`card-control-${control.id}`}>
+                      <CardContent className="p-3">
+                        <div className="flex items-start gap-3">
+                          <div className="mt-1">{getStatusIcon(control.status)}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-white" data-testid={`text-control-name-${control.id}`}>{control.name}</span>
+                              <Badge className={`${getStatusBadge(control.status)} text-xs`} data-testid={`badge-control-status-${control.id}`}>
+                                {control.status}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs text-gray-400 border-gray-600">
+                                {control.category}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-400 mt-1">{control.description}</p>
+                            <p className="text-xs text-emerald-400/70 mt-1 font-mono">{control.regulation}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <Separator className="bg-emerald-500/20" />
+
+              <div data-testid="vendor-baa-section">
+                <h3 className="text-lg font-display text-purple-400 mb-4 flex items-center gap-2">
+                  <Network className="w-5 h-5" />
+                  Vendor BAA Status (Business Associate Agreements)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {hipaaCompliance.vendors.map((vendor) => (
+                    <Card key={vendor.id} className="bg-slate-900/40 border-slate-700/30" data-testid={`card-vendor-${vendor.id}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            {vendor.type === "Email Service" && <Mail className="w-5 h-5 text-blue-400" />}
+                            {vendor.type === "AI Integration" && <Bot className="w-5 h-5 text-purple-400" />}
+                            {vendor.type === "Database" && <Database className="w-5 h-5 text-green-400" />}
+                            {vendor.type === "Hosting Platform" && <Server className="w-5 h-5 text-amber-400" />}
+                            <span className="font-medium text-white">{vendor.name}</span>
+                          </div>
+                          <Badge className={`${getBaaStatusColor(vendor.baaStatus)} text-xs`}>
+                            {vendor.baaStatus === "not_executed" ? "Not Executed" : vendor.baaStatus === "required" ? "BAA Required" : vendor.baaStatus === "available" ? "BAA Available" : vendor.baaStatus}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-400 mb-2">{vendor.description}</p>
+                        <div className="flex items-center gap-2 text-xs text-emerald-400">
+                          <ExternalLink className="w-3 h-3" />
+                          <span>{vendor.action}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <Separator className="bg-emerald-500/20" />
+
+              <div data-testid="recommendations-section">
+                <h3 className="text-lg font-display text-amber-400 mb-4 flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Prioritized Recommendations
+                </h3>
+                <div className="space-y-3">
+                  {hipaaCompliance.recommendations.map((rec) => (
+                    <Card key={rec.id} className="bg-slate-900/40 border-slate-700/30" data-testid={`card-recommendation-${rec.id}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <Badge className={`${getPriorityColor(rec.priority)} text-xs uppercase`}>
+                            {rec.priority}
+                          </Badge>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-white">{rec.title}</h4>
+                            <p className="text-sm text-gray-400 mt-1">{rec.description}</p>
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                              <Clock className="w-3 h-3" />
+                              <span>Estimated: {rec.timeline}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <Separator className="bg-emerald-500/20" />
+
+              <Card className="bg-gradient-to-br from-slate-900/60 to-slate-950/80 border-amber-500/30" data-testid="compliance-disclaimer">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-display text-amber-400 mb-2">Important Disclaimer</h4>
+                      <p className="text-sm text-gray-400 leading-relaxed">
+                        This Security & HIPAA Compliance Report is a <strong className="text-white">self-assessment tool</strong> and does not constitute a certified HIPAA audit or official compliance certification. 
+                        Full HIPAA compliance requires organizational policies, workforce training, physical safeguards, and Business Associate Agreements that extend beyond the technical controls assessed here.
+                      </p>
+                      <p className="text-sm text-gray-400 mt-2 leading-relaxed">
+                        Organizations handling Protected Health Information (PHI) should engage qualified HIPAA compliance professionals and conduct formal risk assessments per 45 CFR §164.308(a)(1)(ii)(A).
+                      </p>
+                      <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
+                        <span>Report Version: 1.0</span>
+                        <span>•</span>
+                        <span>Generated: {new Date().toLocaleDateString()}</span>
+                        <span>•</span>
+                        <span>Navigator USA Elite</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="pb-6" />
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
     </Layout>
   );
 }
