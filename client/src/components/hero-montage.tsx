@@ -31,15 +31,14 @@ const uniqueVideos = Array.from(new Set(montageTimeline.map(s => s.src)));
 interface HeroMontageProps {
   isActive?: boolean;
   onMontageEnd?: () => void;
+  audioRef?: React.RefObject<HTMLAudioElement | null>;
 }
 
-export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps) {
+export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMontageProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [needsInteraction, setNeedsInteraction] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [displayTime, setDisplayTime] = useState(0);
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasStartedRef = useRef(false);
 
@@ -57,10 +56,6 @@ export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps)
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
     videoRefs.current.forEach(video => {
       video.pause();
       video.currentTime = 0;
@@ -73,68 +68,60 @@ export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps)
 
   const startMontage = useCallback(() => {
     if (hasStartedRef.current) return;
-    hasStartedRef.current = true;
+    if (!audioRef?.current) return;
     
-    setNeedsInteraction(false);
+    hasStartedRef.current = true;
     setActiveIndex(0);
     setDisplayTime(0);
+    setIsPlaying(true);
 
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.currentTime = 0;
-    
-    const playAudio = audio.play();
-    if (playAudio) {
-      playAudio.then(() => {
-        setIsPlaying(true);
-        
-        const firstVideo = videoRefs.current.get(montageTimeline[0].src);
-        if (firstVideo) {
-          firstVideo.currentTime = 0;
-          firstVideo.loop = true;
-          firstVideo.play().catch(() => {});
-        }
-
-        intervalRef.current = setInterval(() => {
-          if (!audioRef.current) return;
-          
-          const currentTime = audioRef.current.currentTime;
-          setDisplayTime(Math.floor(currentTime));
-          
-          const newIndex = getCurrentSegmentIndex(currentTime);
-          setActiveIndex(prev => {
-            if (prev !== newIndex) {
-              return newIndex;
-            }
-            return prev;
-          });
-
-          if (currentTime >= 118) {
-            stopMontage();
-            onMontageEnd?.();
-          }
-        }, 100);
-      }).catch(() => {
-        setNeedsInteraction(true);
-        hasStartedRef.current = false;
-      });
+    const firstVideo = videoRefs.current.get(montageTimeline[0].src);
+    if (firstVideo) {
+      firstVideo.currentTime = 0;
+      firstVideo.loop = true;
+      firstVideo.play().catch(() => {});
     }
-  }, [getCurrentSegmentIndex, onMontageEnd, stopMontage]);
 
-  const handleTapToPlay = useCallback(() => {
-    startMontage();
-  }, [startMontage]);
+    intervalRef.current = setInterval(() => {
+      if (!audioRef?.current) return;
+      
+      const currentTime = audioRef.current.currentTime;
+      setDisplayTime(Math.floor(currentTime));
+      
+      const newIndex = getCurrentSegmentIndex(currentTime);
+      setActiveIndex(prev => {
+        if (prev !== newIndex) {
+          return newIndex;
+        }
+        return prev;
+      });
+
+      if (currentTime >= 118) {
+        stopMontage();
+        onMontageEnd?.();
+      }
+    }, 100);
+  }, [audioRef, getCurrentSegmentIndex, onMontageEnd, stopMontage]);
 
   useEffect(() => {
-    if (isActive && !isPlaying && !needsInteraction && !hasStartedRef.current) {
-      startMontage();
+    if (isActive && !isPlaying && !hasStartedRef.current && audioRef?.current) {
+      const audio = audioRef.current;
+      if (!audio.paused && audio.currentTime > 0) {
+        startMontage();
+      } else {
+        const handlePlay = () => {
+          startMontage();
+          audio.removeEventListener('play', handlePlay);
+        };
+        audio.addEventListener('play', handlePlay);
+        return () => audio.removeEventListener('play', handlePlay);
+      }
     }
     
     if (!isActive && isPlaying) {
       stopMontage();
     }
-  }, [isActive, isPlaying, needsInteraction, startMontage, stopMontage]);
+  }, [isActive, isPlaying, startMontage, stopMontage, audioRef]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -160,20 +147,11 @@ export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps)
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
     };
   }, []);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden bg-brand-navy">
-      <audio
-        ref={audioRef}
-        src="/audio/montage-music.mp3"
-        preload="auto"
-      />
-
       {uniqueVideos.map((src) => (
         <video
           key={src}
@@ -191,18 +169,6 @@ export function HeroMontage({ isActive = true, onMontageEnd }: HeroMontageProps)
       ))}
       
       <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/50 to-brand-navy/30 z-10" />
-      
-      {needsInteraction && (
-        <button
-          onClick={handleTapToPlay}
-          className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 cursor-pointer"
-          data-testid="montage-tap-to-play"
-        >
-          <div className="bg-brand-navy/80 text-white px-6 py-3 rounded-lg border-2 border-brand-gold font-semibold">
-            Tap to Start Video
-          </div>
-        </button>
-      )}
       
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 sm:gap-2">
         {montageTimeline.map((_, index) => (
