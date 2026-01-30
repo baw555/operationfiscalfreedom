@@ -20,6 +20,52 @@ const totp = new TOTP({
   window: 1,  // Only accept codes from current and 1 adjacent time step
   period: 30, // Standard 30-second time step
 });
+
+// HIPAA §164.312(d) - MFA Rate Limiting to prevent brute-force attacks
+// Tracks failed MFA attempts per user with lockout after threshold
+const mfaRateLimiter = new Map<number, { attempts: number; lockedUntil: number | null }>();
+const MFA_MAX_ATTEMPTS = 5;
+const MFA_LOCKOUT_MINUTES = 15;
+
+function checkMfaRateLimit(userId: number): { allowed: boolean; remainingAttempts: number; lockedUntil: Date | null } {
+  const now = Date.now();
+  const userLimit = mfaRateLimiter.get(userId) || { attempts: 0, lockedUntil: null };
+  
+  // Check if user is locked out
+  if (userLimit.lockedUntil && now < userLimit.lockedUntil) {
+    return { allowed: false, remainingAttempts: 0, lockedUntil: new Date(userLimit.lockedUntil) };
+  }
+  
+  // Reset if lockout expired
+  if (userLimit.lockedUntil && now >= userLimit.lockedUntil) {
+    mfaRateLimiter.set(userId, { attempts: 0, lockedUntil: null });
+    return { allowed: true, remainingAttempts: MFA_MAX_ATTEMPTS, lockedUntil: null };
+  }
+  
+  return { 
+    allowed: userLimit.attempts < MFA_MAX_ATTEMPTS, 
+    remainingAttempts: MFA_MAX_ATTEMPTS - userLimit.attempts,
+    lockedUntil: null 
+  };
+}
+
+function recordMfaAttempt(userId: number, success: boolean): void {
+  if (success) {
+    // Reset on successful verification
+    mfaRateLimiter.delete(userId);
+    return;
+  }
+  
+  const userLimit = mfaRateLimiter.get(userId) || { attempts: 0, lockedUntil: null };
+  userLimit.attempts += 1;
+  
+  // Lock out after max attempts
+  if (userLimit.attempts >= MFA_MAX_ATTEMPTS) {
+    userLimit.lockedUntil = Date.now() + (MFA_LOCKOUT_MINUTES * 60 * 1000);
+  }
+  
+  mfaRateLimiter.set(userId, userLimit);
+}
 import { 
   insertAffiliateApplicationSchema, 
   insertHelpRequestSchema, 
@@ -613,16 +659,7 @@ export async function registerRoutes(
   });
 
   // Get all finops referrals (admin/master only)
-  app.get("/api/admin/finops-referrals", async (req, res) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    
-    const user = await storage.getUser(req.session.userId);
-    if (!user || (user.role !== "admin" && user.role !== "master")) {
-      return res.status(403).json({ message: "Admin access required" });
-    }
-    
+  app.get("/api/admin/finops-referrals", requireAdmin, logPhiAccess("finops_referrals"), async (req, res) => {
     try {
       const referrals = await storage.getAllFinopsReferrals();
       
@@ -644,16 +681,7 @@ export async function registerRoutes(
   });
 
   // Update finops referral status (admin/master only)
-  app.patch("/api/admin/finops-referrals/:id", async (req, res) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    
-    const user = await storage.getUser(req.session.userId);
-    if (!user || (user.role !== "admin" && user.role !== "master")) {
-      return res.status(403).json({ message: "Admin access required" });
-    }
-    
+  app.patch("/api/admin/finops-referrals/:id", requireAdmin, logPhiAccess("finops_referrals"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updated = await storage.updateFinopsReferral(id, req.body);
@@ -746,11 +774,7 @@ export async function registerRoutes(
   });
 
   // Get all job placement intakes (admin/master only)
-  app.get("/api/admin/job-placement-intakes", async (req, res) => {
-    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-      return res.status(403).json({ message: "Forbidden - Admin access required" });
-    }
-    
+  app.get("/api/admin/job-placement-intakes", requireAdmin, logPhiAccess("job_placement_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getAllJobPlacementIntakes();
       res.json(intakes);
@@ -761,11 +785,7 @@ export async function registerRoutes(
   });
 
   // Update job placement intake (admin/master only)
-  app.patch("/api/admin/job-placement-intakes/:id", async (req, res) => {
-    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-      return res.status(403).json({ message: "Forbidden - Admin access required" });
-    }
-    
+  app.patch("/api/admin/job-placement-intakes/:id", requireAdmin, logPhiAccess("job_placement_intakes"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updated = await storage.updateJobPlacementIntake(id, req.body);
@@ -790,11 +810,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/vet-professional-intakes", async (req, res) => {
-    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-      return res.status(403).json({ message: "Forbidden - Admin access required" });
-    }
-    
+  app.get("/api/admin/vet-professional-intakes", requireAdmin, logPhiAccess("vet_professional_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getAllVetProfessionalIntakes();
       res.json(intakes);
@@ -804,11 +820,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/vet-professional-intakes/:id", async (req, res) => {
-    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-      return res.status(403).json({ message: "Forbidden - Admin access required" });
-    }
-    
+  app.patch("/api/admin/vet-professional-intakes/:id", requireAdmin, logPhiAccess("vet_professional_intakes"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updated = await storage.updateVetProfessionalIntake(id, req.body);
@@ -834,11 +846,7 @@ export async function registerRoutes(
   });
 
   // Healthcare Intakes - master portal only
-  app.get("/api/admin/healthcare-intakes", async (req, res) => {
-    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-      return res.status(403).json({ message: "Forbidden - Master access required" });
-    }
-    
+  app.get("/api/admin/healthcare-intakes", requireAdmin, logPhiAccess("healthcare_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getAllHealthcareIntakes();
       res.json(intakes);
@@ -848,11 +856,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/healthcare-intakes/:id", async (req, res) => {
-    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-      return res.status(403).json({ message: "Forbidden - Master access required" });
-    }
-    
+  app.patch("/api/admin/healthcare-intakes/:id", requireAdmin, logPhiAccess("healthcare_intakes"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updated = await storage.updateHealthcareIntake(id, req.body);
@@ -878,13 +882,9 @@ export async function registerRoutes(
   });
 
   // Get disability referrals for a specific affiliate
-  app.get("/api/affiliate/disability-referrals", async (req, res) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    
+  app.get("/api/affiliate/disability-referrals", requireAffiliate, logPhiAccess("disability_referrals"), async (req, res) => {
     try {
-      const referrals = await storage.getDisabilityReferralsByAffiliate(req.session.userId);
+      const referrals = await storage.getDisabilityReferralsByAffiliate(req.session.userId!);
       res.json(referrals);
     } catch (error) {
       console.error("Error fetching affiliate disability referrals:", error);
@@ -893,13 +893,9 @@ export async function registerRoutes(
   });
 
   // Get vet professional intakes for affiliate
-  app.get("/api/affiliate/vet-professional-intakes", async (req, res) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    
+  app.get("/api/affiliate/vet-professional-intakes", requireAffiliate, logPhiAccess("vet_professional_intakes"), async (req, res) => {
     try {
-      const intakes = await storage.getVetProfessionalIntakesByAffiliate(req.session.userId);
+      const intakes = await storage.getVetProfessionalIntakesByAffiliate(req.session.userId!);
       res.json(intakes);
     } catch (error) {
       console.error("Error fetching affiliate vet professional intakes:", error);
@@ -908,11 +904,7 @@ export async function registerRoutes(
   });
 
   // Update disability referral status (admin/master only)
-  app.patch("/api/admin/disability-referrals/:id", async (req, res) => {
-    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-      return res.status(403).json({ message: "Forbidden - Admin access required" });
-    }
-    
+  app.patch("/api/admin/disability-referrals/:id", requireAdmin, logPhiAccess("disability_referrals"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updated = await storage.updateDisabilityReferral(id, req.body);
@@ -927,11 +919,7 @@ export async function registerRoutes(
   });
 
   // Get disability referral stats (admin/master only)
-  app.get("/api/admin/disability-referrals/stats", async (req, res) => {
-    if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-      return res.status(403).json({ message: "Forbidden - Admin access required" });
-    }
-    
+  app.get("/api/admin/disability-referrals/stats", requireAdmin, async (req, res) => {
     try {
       const stats = await storage.getDisabilityReferralStats();
       res.json(stats);
@@ -1862,7 +1850,7 @@ export async function registerRoutes(
   });
 
   // Get all help requests
-  app.get("/api/admin/help-requests", requireAdmin, async (req, res) => {
+  app.get("/api/admin/help-requests", requireAdmin, logPhiAccess("help_requests"), async (req, res) => {
     try {
       const requests = await storage.getAllHelpRequests();
       res.json(requests);
@@ -1889,7 +1877,7 @@ export async function registerRoutes(
   });
 
   // Update help request
-  app.patch("/api/admin/help-requests/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/help-requests/:id", requireAdmin, logPhiAccess("help_requests"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
@@ -2063,7 +2051,7 @@ export async function registerRoutes(
   });
 
   // Get all private doctor requests
-  app.get("/api/admin/private-doctor-requests", requireAdmin, async (req, res) => {
+  app.get("/api/admin/private-doctor-requests", requireAdmin, logPhiAccess("private_doctor_requests"), async (req, res) => {
     try {
       const requests = await storage.getAllPrivateDoctorRequests();
       res.json(requests);
@@ -2073,7 +2061,7 @@ export async function registerRoutes(
   });
 
   // Update private doctor request
-  app.patch("/api/admin/private-doctor-requests/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/private-doctor-requests/:id", requireAdmin, logPhiAccess("private_doctor_requests"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
@@ -2270,7 +2258,7 @@ export async function registerRoutes(
   });
 
   // Get assigned help requests
-  app.get("/api/affiliate/help-requests", requireAffiliate, async (req, res) => {
+  app.get("/api/affiliate/help-requests", requireAffiliate, logPhiAccess("help_requests"), async (req, res) => {
     try {
       const requests = await storage.getHelpRequestsByAssignee(req.session.userId!);
       res.json(requests);
@@ -2299,7 +2287,7 @@ export async function registerRoutes(
   });
 
   // Update help request status (affiliate)
-  app.patch("/api/affiliate/help-requests/:id", requireAffiliate, async (req, res) => {
+  app.patch("/api/affiliate/help-requests/:id", requireAffiliate, logPhiAccess("help_requests"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status, notes } = req.body;
@@ -2758,7 +2746,7 @@ export async function registerRoutes(
   });
 
   // Update veteran intake
-  app.patch("/api/admin/veteran-intakes/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/veteran-intakes/:id", requireAdmin, logPhiAccess("veteran_intakes"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updated = await storage.updateVeteranIntake(id, req.body);
@@ -2798,7 +2786,7 @@ export async function registerRoutes(
   });
 
   // Get all business intakes (admin)
-  app.get("/api/admin/business-intakes", requireAdmin, async (req, res) => {
+  app.get("/api/admin/business-intakes", requireAdmin, logPhiAccess("business_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getAllBusinessIntakes();
       res.json(intakes);
@@ -2808,7 +2796,7 @@ export async function registerRoutes(
   });
 
   // Update business intake
-  app.patch("/api/admin/business-intakes/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/business-intakes/:id", requireAdmin, logPhiAccess("business_intakes"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updated = await storage.updateBusinessIntake(id, req.body);
@@ -4025,7 +4013,7 @@ export async function registerRoutes(
   });
 
   // Admin: Get all insurance intakes
-  app.get("/api/admin/insurance-intakes", requireAdmin, async (req, res) => {
+  app.get("/api/admin/insurance-intakes", requireAdmin, logPhiAccess("insurance_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getAllInsuranceIntakes();
       res.json(intakes);
@@ -4036,7 +4024,7 @@ export async function registerRoutes(
   });
 
   // Admin: Update insurance intake
-  app.patch("/api/admin/insurance-intakes/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/insurance-intakes/:id", requireAdmin, logPhiAccess("insurance_intakes"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
@@ -4060,7 +4048,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/medical-sales-intakes", requireAdmin, async (req, res) => {
+  app.get("/api/admin/medical-sales-intakes", requireAdmin, logPhiAccess("medical_sales_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getAllMedicalSalesIntakes();
       res.json(intakes);
@@ -4070,7 +4058,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/medical-sales-intakes/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/medical-sales-intakes/:id", requireAdmin, logPhiAccess("medical_sales_intakes"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
@@ -4082,7 +4070,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/affiliate/medical-sales-intakes", requireAffiliate, async (req, res) => {
+  app.get("/api/affiliate/medical-sales-intakes", requireAffiliate, logPhiAccess("medical_sales_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getMedicalSalesIntakesByAffiliate(req.session.userId!);
       res.json(intakes);
@@ -4104,7 +4092,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/business-dev-intakes", requireAdmin, async (req, res) => {
+  app.get("/api/admin/business-dev-intakes", requireAdmin, logPhiAccess("business_dev_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getAllBusinessDevIntakes();
       res.json(intakes);
@@ -4114,7 +4102,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/business-dev-intakes/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/business-dev-intakes/:id", requireAdmin, logPhiAccess("business_dev_intakes"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
@@ -4126,7 +4114,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/affiliate/business-dev-intakes", requireAffiliate, async (req, res) => {
+  app.get("/api/affiliate/business-dev-intakes", requireAffiliate, logPhiAccess("business_dev_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getBusinessDevIntakesByAffiliate(req.session.userId!);
       res.json(intakes);
@@ -6102,6 +6090,33 @@ export async function registerRoutes(
         return res.status(400).json({ message: "User ID and code are required" });
       }
 
+      // HIPAA §164.312(d) - Check MFA rate limiting before processing
+      const rateLimit = checkMfaRateLimit(userId);
+      if (!rateLimit.allowed) {
+        // Log lockout event
+        await storage.createHipaaAuditLog({
+          userId,
+          userName: null,
+          userRole: null,
+          action: "MFA_LOCKED_OUT",
+          resourceType: "user_mfa",
+          resourceId: String(userId),
+          resourceDescription: `Account locked due to ${MFA_MAX_ATTEMPTS} failed MFA attempts`,
+          ipAddress: req.ip || null,
+          userAgent: req.headers["user-agent"] || null,
+          sessionId: req.sessionID || null,
+          success: false,
+          phiAccessed: false,
+          errorMessage: `Locked until ${rateLimit.lockedUntil?.toISOString()}`,
+        });
+        
+        return res.status(429).json({ 
+          message: `Too many failed attempts. Account locked until ${rateLimit.lockedUntil?.toLocaleTimeString()}`,
+          lockedUntil: rateLimit.lockedUntil?.toISOString(),
+          remainingAttempts: 0
+        });
+      }
+
       const config = await storage.getUserMfaConfig(userId);
       if (!config || !config.mfaEnabled || !config.mfaSecret) {
         return res.status(400).json({ message: "MFA is not enabled for this user" });
@@ -6137,6 +6152,10 @@ export async function registerRoutes(
       const isValidTotp = !isBackupCode && totp.verify({ token: code, secret: config.mfaSecret });
 
       if (!isValidTotp && !isBackupCode) {
+        // Record failed attempt for rate limiting
+        recordMfaAttempt(userId, false);
+        const currentLimit = checkMfaRateLimit(userId);
+        
         // Log failed MFA attempt
         await storage.createHipaaAuditLog({
           userId,
@@ -6145,7 +6164,7 @@ export async function registerRoutes(
           action: "MFA_FAILED",
           resourceType: "user_mfa",
           resourceId: String(userId),
-          resourceDescription: "Failed MFA verification attempt",
+          resourceDescription: `Failed MFA verification attempt (${currentLimit.remainingAttempts} attempts remaining)`,
           ipAddress: req.ip || null,
           userAgent: req.headers["user-agent"] || null,
           sessionId: req.sessionID || null,
@@ -6153,8 +6172,14 @@ export async function registerRoutes(
           errorMessage: "Invalid MFA code",
           phiAccessed: false,
         });
-        return res.status(400).json({ message: "Invalid verification code" });
+        return res.status(400).json({ 
+          message: "Invalid verification code",
+          remainingAttempts: currentLimit.remainingAttempts
+        });
       }
+
+      // Record successful attempt (resets rate limiter)
+      recordMfaAttempt(userId, true);
 
       // Update last MFA used
       await storage.updateUserMfaConfig(userId, {
