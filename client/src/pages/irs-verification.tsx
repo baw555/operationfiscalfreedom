@@ -315,7 +315,7 @@ export default function IrsVerification() {
                   Organization Search tool. Search for "Navigator USA Corp" to view our determination letter 
                   and organization details.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
                   <a 
                     href="https://apps.irs.gov/app/eos/" 
                     target="_blank" 
@@ -334,6 +334,12 @@ export default function IrsVerification() {
                     <ExternalLink className="w-5 h-5" />
                     GuideStar/Candid Profile
                   </a>
+                  <Link href="/hipaa-compliance">
+                    <span className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full font-semibold transition-colors cursor-pointer">
+                      <Shield className="w-5 h-5" />
+                      View HIPAA Compliance Report
+                    </span>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
