@@ -156,16 +156,6 @@ export default function Home() {
     }
   };
 
-  const toggleMusic = () => {
-    if (montageAudioRef.current) {
-      if (montageAudioRef.current.paused) {
-        montageAudioRef.current.play().catch(() => {});
-      } else {
-        montageAudioRef.current.pause();
-      }
-    }
-  };
-
   // Track audio state
   useEffect(() => {
     const audio = montageAudioRef.current;
