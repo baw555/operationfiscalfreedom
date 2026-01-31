@@ -25,8 +25,10 @@ export async function getResendClient(): Promise<{ client: Resend; fromEmail: st
   }
 
   console.log("[Resend] Fetching connection settings from connector...");
+  // Hostname may already include https:// prefix
+  const baseUrl = hostname.startsWith('http') ? hostname : 'https://' + hostname;
   const response = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
+    baseUrl + '/api/v2/connection?include_secrets=true&connector_names=resend',
     {
       headers: {
         'Accept': 'application/json',
