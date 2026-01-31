@@ -2471,6 +2471,11 @@ export default function CsuPortal() {
 
   const { data: templates = [] } = useQuery<CsuContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
+    queryFn: async () => {
+      const res = await fetch("/api/csu/templates", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch templates");
+      return res.json();
+    },
     enabled: !!user,
   });
 
