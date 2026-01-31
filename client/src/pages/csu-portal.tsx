@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoLogout } from "@/hooks/use-auto-logout";
-import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin, Plus, Trash2, Edit, FileEdit, GripVertical, Save, Upload, Loader2, Sparkles, X, AlertCircle, LayoutDashboard } from "lucide-react";
+import { Send, FileText, CheckCircle, Clock, Download, Copy, ExternalLink, User, Phone, Mail, Pen, RotateCcw, Building, LogIn, LogOut, BarChart3, Eye, EyeOff, Users, Globe, MapPin, Plus, Trash2, Edit, FileEdit, GripVertical, Save, Upload, Loader2, Sparkles, X, AlertCircle, LayoutDashboard, ScanLine } from "lucide-react";
 
 // Maurice's account info
 const MAURICE_INFO = {
@@ -2224,6 +2224,74 @@ export default function CsuPortal() {
     error: null,
   });
 
+  // AI Document Scanner state
+  const [scannerState, setScannerState] = useState<{
+    isScanning: boolean;
+    fileName: string | null;
+    result: null | {
+      rawText: string;
+      formattedText: string;
+      fileType: string;
+      characterCount: number;
+    };
+    error: string | null;
+  }>({
+    isScanning: false,
+    fileName: null,
+    result: null,
+    error: null,
+  });
+  const scannerInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle document scanning
+  const handleDocumentScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setScannerState({ isScanning: true, fileName: file.name, result: null, error: null });
+
+    try {
+      const formData = new FormData();
+      formData.append("document", file);
+
+      const res = await fetch("/api/csu/scan-document", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to scan document");
+      }
+
+      setScannerState({
+        isScanning: false,
+        fileName: file.name,
+        result: data,
+        error: null,
+      });
+    } catch (error) {
+      setScannerState({
+        isScanning: false,
+        fileName: file.name,
+        result: null,
+        error: error instanceof Error ? error.message : "An error occurred",
+      });
+    }
+
+    // Reset the input so the same file can be selected again
+    e.target.value = "";
+  };
+
+  // Copy formatted text to clipboard
+  const copyFormattedText = () => {
+    if (scannerState.result?.formattedText) {
+      navigator.clipboard.writeText(scannerState.result.formattedText);
+    }
+  };
+
   // Handle document upload for AI analysis
   const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -3236,7 +3304,7 @@ export default function CsuPortal() {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-7 mb-8">
+                <TabsList className="grid w-full grid-cols-9 mb-8">
                   <TabsTrigger value="dashboard" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-dashboard">
                     <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
                   </TabsTrigger>
@@ -3251,6 +3319,9 @@ export default function CsuPortal() {
                   </TabsTrigger>
                   <TabsTrigger value="templates" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-templates">
                     <FileEdit className="w-4 h-4 mr-2" /> Templates
+                  </TabsTrigger>
+                  <TabsTrigger value="scanner" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-scanner">
+                    <ScanLine className="w-4 h-4 mr-2" /> AI Scanner
                   </TabsTrigger>
                   <TabsTrigger value="upload" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-upload">
                     <Sparkles className="w-4 h-4 mr-2" /> AI Upload
@@ -3886,6 +3957,102 @@ export default function CsuPortal() {
                               </div>
                             </div>
                           ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="scanner">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <ScanLine className="w-5 h-5 text-blue-600" /> AI Document Scanner
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
+                        Upload a scanned document or image and our AI will extract the text and reformat it into clean, professional content.
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div 
+                        className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer bg-blue-50/50"
+                        onClick={() => scannerInputRef.current?.click()}
+                      >
+                        <input
+                          ref={scannerInputRef}
+                          type="file"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
+                          onChange={handleDocumentScan}
+                          className="hidden"
+                          data-testid="input-document-scanner"
+                        />
+                        {scannerState.isScanning ? (
+                          <div className="space-y-3">
+                            <Loader2 className="w-12 h-12 mx-auto text-blue-600 animate-spin" />
+                            <p className="text-blue-700 font-medium">Scanning {scannerState.fileName}...</p>
+                            <p className="text-sm text-gray-500">AI is extracting and formatting text</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <ScanLine className="w-12 h-12 mx-auto text-blue-600" />
+                            <p className="text-blue-700 font-medium">Click to scan a document</p>
+                            <p className="text-sm text-gray-500">Supports PDF, Word, JPG, PNG, GIF, WebP (max 10MB)</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {scannerState.error && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+                          <p className="font-medium">Error</p>
+                          <p className="text-sm">{scannerState.error}</p>
+                        </div>
+                      )}
+
+                      {scannerState.result && (
+                        <div className="space-y-6">
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div className="flex items-center gap-2 text-green-700 font-medium mb-2">
+                              <CheckCircle className="w-5 h-5" />
+                              Scan Complete
+                            </div>
+                            <div className="flex gap-4 text-sm text-gray-600">
+                              <span>File: {scannerState.fileName}</span>
+                              <span>Type: {scannerState.result.fileType}</span>
+                              <span>Characters: {scannerState.result.characterCount.toLocaleString()}</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-blue-600" />
+                                Reformatted Document
+                              </h3>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={copyFormattedText}
+                                data-testid="button-copy-formatted"
+                              >
+                                <Copy className="w-4 h-4 mr-2" />
+                                Copy Text
+                              </Button>
+                            </div>
+                            <div className="bg-white border rounded-lg p-4 max-h-96 overflow-y-auto text-sm font-mono whitespace-pre-wrap">
+                              {scannerState.result.formattedText}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-3">
+                            <Button
+                              variant="outline"
+                              onClick={() => setScannerState({ isScanning: false, fileName: null, result: null, error: null })}
+                              data-testid="button-scan-another"
+                            >
+                              <RotateCcw className="w-4 h-4 mr-2" />
+                              Scan Another
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </CardContent>

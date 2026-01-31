@@ -43,6 +43,40 @@ export async function extractTextFromDoc(buffer: Buffer): Promise<string> {
   }
 }
 
+export async function extractTextFromImage(buffer: Buffer, mimeType: string): Promise<string> {
+  try {
+    const base64Image = buffer.toString("base64");
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-5.2",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `You are an expert document reader. Extract ALL text from this scanned document image exactly as it appears. Preserve the structure, formatting, line breaks, and sections. If there are tables, preserve the table structure. If there are headers or titles, keep them clearly separated. Extract every word visible in the document - do not summarize or skip any content.`
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:${mimeType};base64,${base64Image}`,
+                detail: "high"
+              }
+            }
+          ]
+        }
+      ],
+      max_completion_tokens: 8192,
+    });
+
+    return response.choices[0]?.message?.content || "";
+  } catch (error) {
+    console.error("Image OCR extraction error:", error);
+    throw new Error("Failed to extract text from image. Please ensure the image is clear and readable.");
+  }
+}
+
 export async function extractDocumentText(buffer: Buffer, filename: string): Promise<string> {
   const extension = filename.toLowerCase().split(".").pop();
   
@@ -50,9 +84,51 @@ export async function extractDocumentText(buffer: Buffer, filename: string): Pro
     return extractTextFromPDF(buffer);
   } else if (extension === "doc" || extension === "docx") {
     return extractTextFromDoc(buffer);
+  } else if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension || "")) {
+    const mimeTypes: Record<string, string> = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      gif: "image/gif",
+      webp: "image/webp",
+    };
+    return extractTextFromImage(buffer, mimeTypes[extension || ""] || "image/jpeg");
   } else {
-    throw new Error(`Unsupported file type: ${extension}. Please upload a PDF or Word document.`);
+    throw new Error(`Unsupported file type: ${extension}. Please upload a PDF, Word document, or image (JPG, PNG, GIF, WebP).`);
   }
+}
+
+export async function reformatDocumentText(rawText: string): Promise<string> {
+  const response = await openai.chat.completions.create({
+    model: "gpt-5.2",
+    messages: [
+      {
+        role: "system",
+        content: `You are a document formatting expert. Your job is to take raw extracted text from scanned documents and reformat it into clean, professional, properly structured text.
+
+FORMATTING RULES:
+1. Fix any OCR errors or typos that are obviously wrong
+2. Restore proper paragraph breaks and spacing
+3. Format headers and section titles appropriately
+4. Align tables if present
+5. Fix capitalization and punctuation issues
+6. Preserve all original content - do not remove or summarize anything
+7. Add appropriate line breaks between sections
+8. Use consistent formatting throughout
+9. If this appears to be a contract or legal document, use professional legal formatting
+
+OUTPUT:
+Return ONLY the reformatted text. Do not add any commentary or explanations.`
+      },
+      {
+        role: "user",
+        content: `Reformat this raw extracted document text into clean, professional format:\n\n${rawText}`
+      }
+    ],
+    max_completion_tokens: 8192,
+  });
+
+  return response.choices[0]?.message?.content || rawText;
 }
 
 export async function analyzeContractDocument(documentText: string): Promise<AnalysisResult> {

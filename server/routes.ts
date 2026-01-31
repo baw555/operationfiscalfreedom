@@ -9,7 +9,7 @@ import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } 
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
 import Stripe from "stripe";
-import { extractDocumentText, analyzeContractDocument } from "./contractDocumentAnalyzer";
+import { extractDocumentText, analyzeContractDocument, reformatDocumentText } from "./contractDocumentAnalyzer";
 import { TOTP, generateSecret, verifySync, NobleCryptoPlugin, ScureBase32Plugin } from "otplib";
 import * as QRCode from "qrcode";
 import crypto from "crypto";
@@ -4216,13 +4216,66 @@ export async function registerRoutes(
       const allowedTypes = [
         'application/pdf',
         'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp'
       ];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Only PDF and Word documents are allowed'));
+        cb(new Error('Only PDF, Word documents, and images (JPG, PNG, GIF, WebP) are allowed'));
       }
+    }
+  });
+
+  // AI Document Scanner - Upload, extract text, and reformat documents
+  app.post("/api/csu/scan-document", requireAdmin, (req, res, next) => {
+    contractUpload.single('document')(req, res, (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+        }
+        return res.status(400).json({ message: err.message || "File upload failed. Please try again." });
+      }
+      next();
+    });
+  }, async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No document uploaded" });
+      }
+
+      const { buffer, originalname, mimetype } = req.file;
+      const isImage = mimetype.startsWith('image/');
+      
+      // Extract text from the document (using vision AI for images)
+      console.log(`[Scanner] Extracting text from ${originalname} (${mimetype})`);
+      const rawText = await extractDocumentText(buffer, originalname);
+      
+      if (!rawText || rawText.trim().length < 10) {
+        return res.status(400).json({ 
+          message: "Could not extract enough text from the document. Please ensure the document has readable text." 
+        });
+      }
+
+      // Reformat the extracted text using AI
+      console.log(`[Scanner] Reformatting extracted text (${rawText.length} chars)`);
+      const formattedText = await reformatDocumentText(rawText);
+
+      res.json({
+        success: true,
+        filename: originalname,
+        fileType: isImage ? "image" : "document",
+        rawText: rawText.substring(0, 500) + (rawText.length > 500 ? '...' : ''),
+        formattedText,
+        characterCount: formattedText.length,
+      });
+    } catch (error) {
+      console.error("Error scanning document:", error);
+      const message = error instanceof Error ? error.message : "Failed to scan document";
+      res.status(500).json({ message });
     }
   });
 
@@ -4233,10 +4286,7 @@ export async function registerRoutes(
         if (err.code === 'LIMIT_FILE_SIZE') {
           return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
         }
-        if (err.message?.includes('Only PDF and Word documents')) {
-          return res.status(400).json({ message: err.message });
-        }
-        return res.status(400).json({ message: "File upload failed. Please try again." });
+        return res.status(400).json({ message: err.message || "File upload failed. Please try again." });
       }
       next();
     });
