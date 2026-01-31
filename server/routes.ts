@@ -4412,6 +4412,7 @@ export async function registerRoutes(
         recipientName: z.string().min(1, "Recipient name is required"),
         recipientEmail: z.string().email("Valid email is required"),
         recipientPhone: z.string().optional().nullable(),
+        subject: z.string().optional().nullable(),
       });
 
       const validationResult = csuSendSchema.safeParse(req.body);
@@ -4421,7 +4422,7 @@ export async function registerRoutes(
         });
       }
 
-      const { templateId, recipientName, recipientEmail, recipientPhone } = validationResult.data;
+      const { templateId, recipientName, recipientEmail, recipientPhone, subject } = validationResult.data;
 
       // Verify template exists
       const template = await storage.getCsuContractTemplate(templateId);
@@ -4468,7 +4469,7 @@ export async function registerRoutes(
           from: `Operation Fiscal Freedom <${fromEmail}>`,
           replyTo: fromEmail,
           to: recipientEmail,
-          subject: "Contract Ready for Signature - Operation Fiscal Freedom",
+          subject: subject || "Contract Ready for Signature - Operation Fiscal Freedom",
           html: `
             <!DOCTYPE html>
             <html>

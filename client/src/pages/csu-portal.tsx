@@ -2151,6 +2151,7 @@ export default function CsuPortal() {
     recipientName: "",
     recipientEmail: "",
     recipientPhone: "",
+    subject: "",
   });
   const [recipients, setRecipients] = useState<Array<{name: string; email: string; phone: string}>>([
     { name: "", email: "", phone: "" }
@@ -2653,7 +2654,7 @@ export default function CsuPortal() {
       }
       setLastSigningUrl(data.signingUrl);
       trackActivity("contract_sent", { recipientEmail: formData.recipientEmail, emailSent: data.emailSent });
-      setFormData({ templateId: "", recipientName: "", recipientEmail: "", recipientPhone: "" });
+      setFormData({ templateId: "", recipientName: "", recipientEmail: "", recipientPhone: "", subject: "" });
       queryClient.invalidateQueries({ queryKey: ["/api/csu/contract-sends"] });
     },
     onError: (error: Error) => {
@@ -3577,6 +3578,18 @@ export default function CsuPortal() {
                                 placeholder="(555) 123-4567"
                                 className="text-brand-navy"
                                 data-testid="input-recipient-phone"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="subject">Email Subject Line (Optional)</Label>
+                              <Input
+                                id="subject"
+                                value={formData.subject}
+                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                placeholder="Contract Ready for Signature"
+                                className="text-brand-navy"
+                                data-testid="input-subject"
                               />
                             </div>
 
