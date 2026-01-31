@@ -4039,16 +4039,31 @@ export default function CsuPortal() {
                           </div>
 
                           {fixerState.selectedTemplateId && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                              <h4 className="font-medium text-blue-800 mb-2">What AI Fix Does:</h4>
-                              <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
-                                <li>Fixes broken HTML tags and malformed markup</li>
-                                <li>Corrects typos and grammatical errors</li>
-                                <li>Improves formatting and structure</li>
-                                <li>Cleans up excessive whitespace</li>
-                                <li>Preserves all [PLACEHOLDERS] intact</li>
-                              </ul>
-                            </div>
+                            <>
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h4 className="font-medium text-blue-800 mb-2">What AI Fix Does:</h4>
+                                <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                                  <li>Fixes broken HTML tags and malformed markup</li>
+                                  <li>Corrects typos and grammatical errors</li>
+                                  <li>Improves formatting and structure</li>
+                                  <li>Cleans up excessive whitespace</li>
+                                  <li>Preserves all [PLACEHOLDERS] intact</li>
+                                </ul>
+                              </div>
+
+                              <div>
+                                <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                                  <Eye className="w-5 h-5 text-gray-600" />
+                                  Current Template Preview
+                                </h3>
+                                <div 
+                                  className="bg-white border rounded-lg p-4 max-h-80 overflow-y-auto text-sm prose prose-sm max-w-none"
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: templates.find(t => t.id === fixerState.selectedTemplateId)?.content || "" 
+                                  }}
+                                />
+                              </div>
+                            </>
                           )}
 
                           <Button
