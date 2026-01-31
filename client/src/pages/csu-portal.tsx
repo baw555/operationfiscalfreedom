@@ -2158,7 +2158,7 @@ export default function CsuPortal() {
   ]);
   const [batchMode, setBatchMode] = useState(false);
   const [batchSending, setBatchSending] = useState(false);
-  const [batchResults, setBatchResults] = useState<{totalSent: number; totalFailed: number; results: Array<{recipient: string; success: boolean; error?: string}>} | null>(null);
+  const [batchResults, setBatchResults] = useState<{totalSent: number; totalFailed: number; results: Array<{recipient: string; success: boolean; error?: string; signingUrl?: string}>} | null>(null);
   const [lastSigningUrl, setLastSigningUrl] = useState<string | null>(null);
   const [showSelfSign, setShowSelfSign] = useState(false);
   const [selfSignData, setSelfSignData] = useState({
@@ -3715,12 +3715,25 @@ export default function CsuPortal() {
                                     : `Sent ${batchResults.totalSent} of ${batchResults.totalSent + batchResults.totalFailed} contracts`
                                   }
                                 </p>
-                                <div className="space-y-1 text-sm">
+                                <div className="space-y-2 text-sm">
                                   {batchResults.results.map((result, i) => (
-                                    <div key={i} className={`flex items-center gap-2 ${result.success ? 'text-green-700' : 'text-red-600'}`} data-testid={`batch-result-${i}`}>
-                                      {result.success ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                                      <span>{result.recipient}</span>
-                                      {result.error && <span className="text-xs">({result.error})</span>}
+                                    <div key={i} className={`flex items-center justify-between gap-2 p-2 rounded ${result.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`} data-testid={`batch-result-${i}`}>
+                                      <div className="flex items-center gap-2">
+                                        {result.success ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                        <span>{result.recipient}</span>
+                                        {result.error && <span className="text-xs">({result.error})</span>}
+                                      </div>
+                                      {result.success && result.signingUrl && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => copyToClipboard(result.signingUrl!)}
+                                          className="text-green-700 border-green-300 hover:bg-green-200"
+                                          data-testid={`button-copy-batch-link-${i}`}
+                                        >
+                                          <Copy className="w-3 h-3 mr-1" /> Copy Link
+                                        </Button>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
