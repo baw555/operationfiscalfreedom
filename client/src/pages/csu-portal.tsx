@@ -2576,7 +2576,7 @@ export default function CsuPortal() {
   });
   const user = authData?.user;
 
-  const { data: templates = [] } = useQuery<CsuContractTemplate[]>({
+  const { data: templates = [], refetch: refetchTemplates } = useQuery<CsuContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
     queryFn: async () => {
       const res = await fetch("/api/csu/templates", { credentials: "include" });
