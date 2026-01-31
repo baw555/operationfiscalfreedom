@@ -4547,6 +4547,7 @@ export async function registerRoutes(
           email: z.string().email("Valid email is required"),
           phone: z.string().optional().nullable(),
         })).min(1, "At least one recipient is required"),
+        subject: z.string().optional().nullable(),
       });
 
       const validationResult = batchSchema.safeParse(req.body);
@@ -4556,7 +4557,7 @@ export async function registerRoutes(
         });
       }
 
-      const { templateId, recipients } = validationResult.data;
+      const { templateId, recipients, subject } = validationResult.data;
 
       // Verify template exists
       const template = await storage.getCsuContractTemplate(templateId);
@@ -4609,7 +4610,7 @@ export async function registerRoutes(
             from: `Operation Fiscal Freedom <${fromEmail}>`,
             replyTo: fromEmail,
             to: recipient.email,
-            subject: "Contract Ready for Signature - Operation Fiscal Freedom",
+            subject: subject || "Contract Ready for Signature - Operation Fiscal Freedom",
             html: `
               <!DOCTYPE html>
               <html>

@@ -2799,6 +2799,7 @@ export default function CsuPortal() {
         body: JSON.stringify({
           templateId: parseInt(formData.templateId),
           recipients: validRecipients,
+          subject: formData.subject || null,
         }),
       });
 
@@ -3615,6 +3616,18 @@ export default function CsuPortal() {
                           </form>
                         ) : (
                           <div className="space-y-4" data-testid="batch-send-section">
+                            <div className="space-y-2">
+                              <Label htmlFor="batchSubject">Email Subject Line (Optional)</Label>
+                              <Input
+                                id="batchSubject"
+                                value={formData.subject}
+                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                placeholder="Contract Ready for Signature"
+                                className="text-brand-navy"
+                                data-testid="input-batch-subject"
+                              />
+                            </div>
+
                             <div className="flex items-center justify-between">
                               <h3 className="font-semibold text-purple-800">Recipients List</h3>
                               <Button
