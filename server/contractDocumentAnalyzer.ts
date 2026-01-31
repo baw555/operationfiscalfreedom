@@ -131,6 +131,41 @@ Return ONLY the reformatted text. Do not add any commentary or explanations.`
   return response.choices[0]?.message?.content || rawText;
 }
 
+export async function fixTemplateContent(htmlContent: string): Promise<string> {
+  const response = await openai.chat.completions.create({
+    model: "gpt-5.2",
+    messages: [
+      {
+        role: "system",
+        content: `You are an expert at fixing and cleaning up HTML contract templates. Your job is to take messy or poorly formatted HTML and fix it while preserving ALL content and placeholders.
+
+CRITICAL RULES:
+1. PRESERVE all placeholder brackets like [NAME], [EMAIL], [DATE], [INITIALS], [SIGNATURE], [COMPANY], [ADDRESS], [TITLE], etc. - these are essential
+2. Fix broken HTML tags, unclosed elements, and malformed markup
+3. Improve formatting and readability - proper indentation, consistent spacing
+4. Fix obvious typos and grammatical errors in the text content
+5. Ensure proper paragraph structure with <p> tags or <div> tags
+6. Make headers consistent (use <h1>, <h2>, <h3> appropriately)
+7. Clean up excessive whitespace and empty tags
+8. Ensure the document has professional legal formatting
+9. DO NOT remove any content - only fix and improve it
+10. DO NOT add new placeholders that weren't there before
+11. Keep all legal language intact
+
+OUTPUT FORMAT:
+Return ONLY the fixed HTML. Do not wrap in code blocks or add explanations.`
+      },
+      {
+        role: "user",
+        content: `Fix and clean up this HTML contract template:\n\n${htmlContent}`
+      }
+    ],
+    max_completion_tokens: 16384,
+  });
+
+  return response.choices[0]?.message?.content || htmlContent;
+}
+
 export async function analyzeContractDocument(documentText: string): Promise<AnalysisResult> {
   const systemPrompt = `You are a contract analysis expert. Analyze contract documents and identify places where form fields should be inserted for the signer to fill in.
 

@@ -4279,6 +4279,81 @@ export async function registerRoutes(
     }
   });
 
+  // Fix an existing template using AI
+  app.post("/api/csu/fix-template/:id", requireAdmin, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+
+      const template = await db
+        .select()
+        .from(csuContractTemplates)
+        .where(eq(csuContractTemplates.id, templateId))
+        .limit(1);
+
+      if (!template.length) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      const originalContent = template[0].content;
+      console.log(`[AI Fix] Fixing template ${templateId}: ${template[0].name} (${originalContent.length} chars)`);
+
+      const { fixTemplateContent } = await import("./contractDocumentAnalyzer");
+      const fixedContent = await fixTemplateContent(originalContent);
+
+      res.json({
+        success: true,
+        templateId,
+        templateName: template[0].name,
+        originalLength: originalContent.length,
+        fixedLength: fixedContent.length,
+        fixedContent,
+      });
+    } catch (error) {
+      console.error("Error fixing template:", error);
+      const message = error instanceof Error ? error.message : "Failed to fix template";
+      res.status(500).json({ message });
+    }
+  });
+
+  // Save fixed template content
+  app.put("/api/csu/save-fixed-template/:id", requireAdmin, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+
+      const { content } = req.body;
+      if (!content || typeof content !== "string") {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      const updated = await db
+        .update(csuContractTemplates)
+        .set({ content, updatedAt: new Date() })
+        .where(eq(csuContractTemplates.id, templateId))
+        .returning();
+
+      if (!updated.length) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      console.log(`[AI Fix] Saved fixed content for template ${templateId}`);
+
+      res.json({
+        success: true,
+        template: updated[0],
+      });
+    } catch (error) {
+      console.error("Error saving fixed template:", error);
+      const message = error instanceof Error ? error.message : "Failed to save template";
+      res.status(500).json({ message });
+    }
+  });
+
   // Upload and analyze a contract document to extract form fields
   app.post("/api/csu/analyze-document", requireAdmin, (req, res, next) => {
     contractUpload.single('document')(req, res, (err) => {

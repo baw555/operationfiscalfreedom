@@ -2224,71 +2224,110 @@ export default function CsuPortal() {
     error: null,
   });
 
-  // AI Document Scanner state
-  const [scannerState, setScannerState] = useState<{
-    isScanning: boolean;
-    fileName: string | null;
+  // AI Template Fixer state
+  const [fixerState, setFixerState] = useState<{
+    selectedTemplateId: number | null;
+    isFixing: boolean;
+    isSaving: boolean;
     result: null | {
-      rawText: string;
-      formattedText: string;
-      fileType: string;
-      characterCount: number;
+      templateId: number;
+      templateName: string;
+      originalLength: number;
+      fixedLength: number;
+      fixedContent: string;
     };
     error: string | null;
   }>({
-    isScanning: false,
-    fileName: null,
+    selectedTemplateId: null,
+    isFixing: false,
+    isSaving: false,
     result: null,
     error: null,
   });
-  const scannerInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle document scanning
-  const handleDocumentScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle template fix
+  const handleFixTemplate = async () => {
+    if (!fixerState.selectedTemplateId) return;
 
-    setScannerState({ isScanning: true, fileName: file.name, result: null, error: null });
+    setFixerState(prev => ({ ...prev, isFixing: true, result: null, error: null }));
 
     try {
-      const formData = new FormData();
-      formData.append("document", file);
-
-      const res = await fetch("/api/csu/scan-document", {
+      const res = await fetch(`/api/csu/fix-template/${fixerState.selectedTemplateId}`, {
         method: "POST",
-        body: formData,
         credentials: "include",
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to scan document");
+        throw new Error(data.message || "Failed to fix template");
       }
 
-      setScannerState({
-        isScanning: false,
-        fileName: file.name,
+      setFixerState(prev => ({
+        ...prev,
+        isFixing: false,
         result: data,
+        error: null,
+      }));
+    } catch (error) {
+      setFixerState(prev => ({
+        ...prev,
+        isFixing: false,
+        result: null,
+        error: error instanceof Error ? error.message : "An error occurred",
+      }));
+    }
+  };
+
+  // Save the fixed template
+  const handleSaveFixedTemplate = async () => {
+    if (!fixerState.result) return;
+
+    setFixerState(prev => ({ ...prev, isSaving: true }));
+
+    try {
+      const res = await fetch(`/api/csu/save-fixed-template/${fixerState.result.templateId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: fixerState.result.fixedContent }),
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to save template");
+      }
+
+      toast({
+        title: "Template Saved",
+        description: `${fixerState.result.templateName} has been updated with the fixed content.`,
+      });
+
+      // Refresh templates list
+      refetchTemplates();
+
+      setFixerState({
+        selectedTemplateId: null,
+        isFixing: false,
+        isSaving: false,
+        result: null,
         error: null,
       });
     } catch (error) {
-      setScannerState({
-        isScanning: false,
-        fileName: file.name,
-        result: null,
-        error: error instanceof Error ? error.message : "An error occurred",
-      });
+      setFixerState(prev => ({
+        ...prev,
+        isSaving: false,
+        error: error instanceof Error ? error.message : "Failed to save",
+      }));
     }
-
-    // Reset the input so the same file can be selected again
-    e.target.value = "";
   };
 
-  // Copy formatted text to clipboard
-  const copyFormattedText = () => {
-    if (scannerState.result?.formattedText) {
-      navigator.clipboard.writeText(scannerState.result.formattedText);
+  // Copy fixed content to clipboard
+  const copyFixedContent = () => {
+    if (fixerState.result?.fixedContent) {
+      navigator.clipboard.writeText(fixerState.result.fixedContent);
+      toast({ title: "Copied", description: "Fixed content copied to clipboard" });
     }
   };
 
@@ -3967,58 +4006,88 @@ export default function CsuPortal() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <ScanLine className="w-5 h-5 text-blue-600" /> AI Document Scanner
+                        <ScanLine className="w-5 h-5 text-blue-600" /> AI Template Fixer
                       </CardTitle>
                       <p className="text-sm text-gray-600">
-                        Upload a scanned document or image and our AI will extract the text and reformat it into clean, professional content.
+                        Select an existing template and AI will scan it, fix formatting issues, correct typos, and clean up the HTML while preserving all placeholders.
                       </p>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div 
-                        className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer bg-blue-50/50"
-                        onClick={() => scannerInputRef.current?.click()}
-                      >
-                        <input
-                          ref={scannerInputRef}
-                          type="file"
-                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
-                          onChange={handleDocumentScan}
-                          className="hidden"
-                          data-testid="input-document-scanner"
-                        />
-                        {scannerState.isScanning ? (
-                          <div className="space-y-3">
-                            <Loader2 className="w-12 h-12 mx-auto text-blue-600 animate-spin" />
-                            <p className="text-blue-700 font-medium">Scanning {scannerState.fileName}...</p>
-                            <p className="text-sm text-gray-500">AI is extracting and formatting text</p>
+                      {!fixerState.result ? (
+                        <>
+                          <div className="space-y-4">
+                            <Label>Select Template to Fix</Label>
+                            <Select
+                              value={fixerState.selectedTemplateId?.toString() || ""}
+                              onValueChange={(value) => setFixerState(prev => ({ 
+                                ...prev, 
+                                selectedTemplateId: parseInt(value),
+                                error: null 
+                              }))}
+                            >
+                              <SelectTrigger className="w-full" data-testid="select-template-to-fix">
+                                <SelectValue placeholder="Choose a template..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {templates.map((template) => (
+                                  <SelectItem key={template.id} value={template.id.toString()}>
+                                    {template.name} ({template.content.length.toLocaleString()} chars)
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
-                        ) : (
-                          <div className="space-y-3">
-                            <ScanLine className="w-12 h-12 mx-auto text-blue-600" />
-                            <p className="text-blue-700 font-medium">Click to scan a document</p>
-                            <p className="text-sm text-gray-500">Supports PDF, Word, JPG, PNG, GIF, WebP (max 10MB)</p>
-                          </div>
-                        )}
-                      </div>
 
-                      {scannerState.error && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-                          <p className="font-medium">Error</p>
-                          <p className="text-sm">{scannerState.error}</p>
-                        </div>
-                      )}
+                          {fixerState.selectedTemplateId && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                              <h4 className="font-medium text-blue-800 mb-2">What AI Fix Does:</h4>
+                              <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                                <li>Fixes broken HTML tags and malformed markup</li>
+                                <li>Corrects typos and grammatical errors</li>
+                                <li>Improves formatting and structure</li>
+                                <li>Cleans up excessive whitespace</li>
+                                <li>Preserves all [PLACEHOLDERS] intact</li>
+                              </ul>
+                            </div>
+                          )}
 
-                      {scannerState.result && (
+                          <Button
+                            onClick={handleFixTemplate}
+                            disabled={!fixerState.selectedTemplateId || fixerState.isFixing}
+                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            data-testid="button-fix-template"
+                          >
+                            {fixerState.isFixing ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                AI is Fixing Template...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                Fix Template with AI
+                              </>
+                            )}
+                          </Button>
+
+                          {fixerState.error && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+                              <p className="font-medium">Error</p>
+                              <p className="text-sm">{fixerState.error}</p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
                         <div className="space-y-6">
                           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                             <div className="flex items-center gap-2 text-green-700 font-medium mb-2">
                               <CheckCircle className="w-5 h-5" />
-                              Scan Complete
+                              Template Fixed Successfully
                             </div>
                             <div className="flex gap-4 text-sm text-gray-600">
-                              <span>File: {scannerState.fileName}</span>
-                              <span>Type: {scannerState.result.fileType}</span>
-                              <span>Characters: {scannerState.result.characterCount.toLocaleString()}</span>
+                              <span>Template: {fixerState.result.templateName}</span>
+                              <span>Before: {fixerState.result.originalLength.toLocaleString()} chars</span>
+                              <span>After: {fixerState.result.fixedLength.toLocaleString()} chars</span>
                             </div>
                           </div>
 
@@ -4026,33 +4095,65 @@ export default function CsuPortal() {
                             <div className="flex items-center justify-between mb-3">
                               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-blue-600" />
-                                Reformatted Document
+                                Fixed Template Preview
                               </h3>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={copyFormattedText}
-                                data-testid="button-copy-formatted"
+                                onClick={copyFixedContent}
+                                data-testid="button-copy-fixed"
                               >
                                 <Copy className="w-4 h-4 mr-2" />
-                                Copy Text
+                                Copy HTML
                               </Button>
                             </div>
-                            <div className="bg-white border rounded-lg p-4 max-h-96 overflow-y-auto text-sm font-mono whitespace-pre-wrap">
-                              {scannerState.result.formattedText}
-                            </div>
+                            <div 
+                              className="bg-white border rounded-lg p-4 max-h-96 overflow-y-auto text-sm prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: fixerState.result.fixedContent }}
+                            />
                           </div>
 
                           <div className="flex gap-3">
                             <Button
+                              onClick={handleSaveFixedTemplate}
+                              disabled={fixerState.isSaving}
+                              className="bg-green-600 hover:bg-green-700"
+                              data-testid="button-save-fixed"
+                            >
+                              {fixerState.isSaving ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="w-4 h-4 mr-2" />
+                                  Save Fixed Template
+                                </>
+                              )}
+                            </Button>
+                            <Button
                               variant="outline"
-                              onClick={() => setScannerState({ isScanning: false, fileName: null, result: null, error: null })}
-                              data-testid="button-scan-another"
+                              onClick={() => setFixerState({
+                                selectedTemplateId: null,
+                                isFixing: false,
+                                isSaving: false,
+                                result: null,
+                                error: null,
+                              })}
+                              data-testid="button-fix-another"
                             >
                               <RotateCcw className="w-4 h-4 mr-2" />
-                              Scan Another
+                              Fix Another
                             </Button>
                           </div>
+
+                          {fixerState.error && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+                              <p className="font-medium">Error</p>
+                              <p className="text-sm">{fixerState.error}</p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </CardContent>
