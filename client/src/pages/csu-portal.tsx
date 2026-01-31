@@ -3360,7 +3360,7 @@ export default function CsuPortal() {
                     <FileEdit className="w-4 h-4 mr-2" /> Templates
                   </TabsTrigger>
                   <TabsTrigger value="scanner" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-scanner">
-                    <ScanLine className="w-4 h-4 mr-2" /> AI Scanner
+                    <ScanLine className="w-4 h-4 mr-2" /> AI Fixer
                   </TabsTrigger>
                   <TabsTrigger value="upload" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white" data-testid="tab-upload">
                     <Sparkles className="w-4 h-4 mr-2" /> AI Upload
