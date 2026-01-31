@@ -4287,18 +4287,14 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid template ID" });
       }
 
-      const template = await db
-        .select()
-        .from(csuContractTemplates)
-        .where(eq(csuContractTemplates.id, templateId))
-        .limit(1);
+      const template = await storage.getCsuContractTemplate(templateId);
 
-      if (!template.length) {
+      if (!template) {
         return res.status(404).json({ message: "Template not found" });
       }
 
-      const originalContent = template[0].content;
-      console.log(`[AI Fix] Fixing template ${templateId}: ${template[0].name} (${originalContent.length} chars)`);
+      const originalContent = template.content;
+      console.log(`[AI Fix] Fixing template ${templateId}: ${template.name} (${originalContent.length} chars)`);
 
       const { fixTemplateContent } = await import("./contractDocumentAnalyzer");
       const fixedContent = await fixTemplateContent(originalContent);
@@ -4306,7 +4302,7 @@ export async function registerRoutes(
       res.json({
         success: true,
         templateId,
-        templateName: template[0].name,
+        templateName: template.name,
         originalLength: originalContent.length,
         fixedLength: fixedContent.length,
         fixedContent,
@@ -4331,13 +4327,9 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Content is required" });
       }
 
-      const updated = await db
-        .update(csuContractTemplates)
-        .set({ content, updatedAt: new Date() })
-        .where(eq(csuContractTemplates.id, templateId))
-        .returning();
+      const updated = await storage.updateCsuContractTemplate(templateId, { content });
 
-      if (!updated.length) {
+      if (!updated) {
         return res.status(404).json({ message: "Template not found" });
       }
 
@@ -4345,7 +4337,7 @@ export async function registerRoutes(
 
       res.json({
         success: true,
-        template: updated[0],
+        template: updated,
       });
     } catch (error) {
       console.error("Error saving fixed template:", error);
