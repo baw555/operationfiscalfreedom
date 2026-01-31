@@ -4457,7 +4457,17 @@ export async function registerRoutes(
 
       const results: { recipient: string; success: boolean; error?: string; signingUrl?: string }[] = [];
 
-      for (const recipient of recipients) {
+      // Helper to delay between emails (Resend rate limit: 2 requests/second)
+      const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+      for (let i = 0; i < recipients.length; i++) {
+        const recipient = recipients[i];
+        
+        // Add delay between emails to avoid rate limiting (600ms = ~1.6 req/sec, safely under 2/sec limit)
+        if (i > 0) {
+          await delay(600);
+        }
+        
         try {
           const signToken = crypto.randomBytes(32).toString("hex");
           const tokenExpiresAt = new Date();
