@@ -578,74 +578,108 @@ export default function AboutNavPerks() {
       {/* Comparison Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-semibold text-slate-800 mb-4">
-                Why Pay When You've Already Served?
+                RANGER vs DocuSign: The Real Cost
               </h2>
               <p className="text-slate-500 text-lg">
-                Compare Nav Perks to leading paid alternatives
+                Why pay per envelope when you can sign unlimited contracts for free?
               </p>
             </div>
 
-            <div className="bg-slate-50 rounded-2xl p-8 overflow-hidden">
-              <div className="grid grid-cols-4 gap-4 mb-6 pb-4 border-b border-slate-200">
-                <div className="font-semibold text-slate-800">Feature</div>
-                <div className="text-center font-semibold text-amber-600">Nav Perks</div>
-                <div className="text-center font-semibold text-slate-500">ChatGPT Plus</div>
-                <div className="text-center font-semibold text-slate-500">DocuSign</div>
+            {/* DocuSign Pricing Table */}
+            <div className="bg-slate-50 rounded-2xl p-8 mb-8">
+              <h3 className="text-xl font-semibold text-slate-800 mb-6 text-center">DocuSign Pricing Breakdown</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Plan</th>
+                      <th className="text-center py-3 px-4 font-semibold text-slate-700">Annual Cost</th>
+                      <th className="text-center py-3 px-4 font-semibold text-slate-700">Envelopes/Year</th>
+                      <th className="text-center py-3 px-4 font-semibold text-slate-700">Cost Per Contract</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    <tr>
+                      <td className="py-3 px-4 text-slate-600">Personal</td>
+                      <td className="py-3 px-4 text-center text-slate-600">~$120/year</td>
+                      <td className="py-3 px-4 text-center text-slate-600">~60</td>
+                      <td className="py-3 px-4 text-center text-red-600 font-semibold">$2.00/contract</td>
+                    </tr>
+                    <tr className="bg-white">
+                      <td className="py-3 px-4 text-slate-600">Standard</td>
+                      <td className="py-3 px-4 text-center text-slate-600">~$300/year</td>
+                      <td className="py-3 px-4 text-center text-slate-600">~100</td>
+                      <td className="py-3 px-4 text-center text-red-600 font-semibold">$3.00/contract</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4 text-slate-600">Business Pro</td>
+                      <td className="py-3 px-4 text-center text-slate-600">~$480/year</td>
+                      <td className="py-3 px-4 text-center text-slate-600">~100</td>
+                      <td className="py-3 px-4 text-center text-red-600 font-semibold">$4.80/contract</td>
+                    </tr>
+                    <tr className="bg-white">
+                      <td className="py-3 px-4 text-slate-600">Enterprise</td>
+                      <td className="py-3 px-4 text-center text-slate-600">Custom</td>
+                      <td className="py-3 px-4 text-center text-slate-600">Custom</td>
+                      <td className="py-3 px-4 text-center text-slate-500">Negotiated</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              
-              <div className="space-y-4">
-                <div className="grid grid-cols-4 gap-4 items-center py-3">
-                  <div className="text-slate-600">Monthly Cost</div>
-                  <div className="text-center font-bold text-green-600">Free - Low</div>
-                  <div className="text-center text-slate-500">$20/mo</div>
-                  <div className="text-center text-slate-500">$25/mo</div>
-                </div>
-                <div className="grid grid-cols-4 gap-4 items-center py-3 bg-white rounded-lg">
-                  <div className="text-slate-600">AI Assistant</div>
-                  <div className="text-center"><CheckCircle className="w-5 h-5 text-green-500 mx-auto" /></div>
-                  <div className="text-center"><CheckCircle className="w-5 h-5 text-green-500 mx-auto" /></div>
-                  <div className="text-center text-slate-400">—</div>
-                </div>
-                <div className="grid grid-cols-4 gap-4 items-center py-3">
-                  <div className="text-slate-600">E-Signatures</div>
-                  <div className="text-center"><CheckCircle className="w-5 h-5 text-green-500 mx-auto" /></div>
-                  <div className="text-center text-slate-400">—</div>
-                  <div className="text-center"><CheckCircle className="w-5 h-5 text-green-500 mx-auto" /></div>
-                </div>
-                <div className="grid grid-cols-4 gap-4 items-center py-3 bg-white rounded-lg">
-                  <div className="text-slate-600">Video/Audio Gen</div>
-                  <div className="text-center"><CheckCircle className="w-5 h-5 text-green-500 mx-auto" /></div>
-                  <div className="text-center text-slate-400">—</div>
-                  <div className="text-center text-slate-400">—</div>
-                </div>
-                <div className="grid grid-cols-4 gap-4 items-center py-3">
-                  <div className="text-slate-600">HIPAA Compliant</div>
-                  <div className="text-center"><CheckCircle className="w-5 h-5 text-green-500 mx-auto" /></div>
-                  <div className="text-center text-slate-400">—</div>
-                  <div className="text-center"><CheckCircle className="w-5 h-5 text-green-500 mx-auto" /></div>
-                </div>
-                <div className="grid grid-cols-4 gap-4 items-center py-3 bg-white rounded-lg">
-                  <div className="text-slate-600">No Data Tracking</div>
-                  <div className="text-center"><CheckCircle className="w-5 h-5 text-green-500 mx-auto" /></div>
-                  <div className="text-center text-slate-400">—</div>
-                  <div className="text-center text-slate-400">—</div>
-                </div>
-                <div className="grid grid-cols-4 gap-4 items-center py-3">
-                  <div className="text-slate-600">AI Contract Analysis</div>
-                  <div className="text-center"><CheckCircle className="w-5 h-5 text-green-500 mx-auto" /></div>
-                  <div className="text-center text-slate-400">—</div>
-                  <div className="text-center text-slate-400">—</div>
-                </div>
-              </div>
+            </div>
 
-              <div className="mt-8 pt-6 border-t border-slate-200 text-center">
-                <p className="text-slate-600 mb-4">
-                  <span className="font-semibold text-slate-800">RANGER E-Signatures:</span> <span className="text-green-600 font-bold">100% Free</span> vs $300+/year for DocuSign
-                </p>
+            {/* RANGER Comparison */}
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-8 border-2 border-amber-400">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 bg-amber-500 text-white text-sm font-bold uppercase tracking-wider px-4 py-1 rounded-full mb-4">
+                    RANGER
+                  </div>
+                  <h3 className="text-2xl font-semibold text-slate-800 mb-4">Unlimited Contracts. $0.</h3>
+                  <p className="text-slate-600 mb-6">
+                    While DocuSign charges $2-5 per contract with strict annual limits, RANGER gives you unlimited e-signatures completely free. No envelope caps, no overage fees, no surprise bills.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-2 text-slate-700">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span><strong>Unlimited</strong> contracts per year</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-700">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span><strong>$0</strong> cost per signature</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-700">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span><strong>HIPAA Compliant</strong> included</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-700">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span><strong>AI Contract Analysis</strong> included</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="text-center bg-white rounded-xl p-8 shadow-sm">
+                  <div className="text-6xl font-bold text-green-600 mb-2">$0</div>
+                  <div className="text-slate-500 mb-4">per contract, forever</div>
+                  <div className="text-4xl font-bold text-amber-500 mb-2">∞</div>
+                  <div className="text-slate-500 mb-6">unlimited signatures</div>
+                  <Link href="/document-signature">
+                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium h-12">
+                      Start Using RANGER Free
+                    </Button>
+                  </Link>
+                </div>
               </div>
+            </div>
+
+            {/* Bottom comparison note */}
+            <div className="mt-8 text-center">
+              <p className="text-slate-500 text-sm">
+                Example: 200 contracts/year on DocuSign Standard = <span className="text-red-600 font-semibold">$600+</span> (overage fees) vs RANGER = <span className="text-green-600 font-semibold">$0</span>
+              </p>
             </div>
           </div>
         </div>
