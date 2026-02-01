@@ -44,7 +44,7 @@ export function VeteranAuthGate({ children, serviceName }: VeteranAuthGateProps)
             Your data is protected under HIPAA compliance standards. We never sell or share your personal information.
           </p>
           
-          <a href="/api/login">
+          <a href="/login">
             <Button 
               size="lg" 
               className="bg-brand-red hover:bg-brand-red/90 text-white h-14 px-10 text-lg font-bold shadow-lg w-full"

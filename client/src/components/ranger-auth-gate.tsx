@@ -86,7 +86,7 @@ export function RangerAuthGate({ children }: RangerAuthGateProps) {
               <p className="text-gray-500">Sign in to access your documents</p>
             </div>
             
-            <a href="/api/login" className="block">
+            <a href="/login" className="block">
               <Button 
                 size="lg" 
                 className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-base shadow-xl shadow-blue-500/20 border-0"
@@ -97,7 +97,7 @@ export function RangerAuthGate({ children }: RangerAuthGateProps) {
             
             <div className="mt-6 text-center">
               <p className="text-gray-600 text-sm">
-                New user? <a href="/api/login" className="text-blue-400 hover:text-blue-300 font-medium">Create an account</a>
+                New user? <a href="/login" className="text-blue-400 hover:text-blue-300 font-medium">Create an account</a>
               </p>
             </div>
             
