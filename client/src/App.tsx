@@ -188,6 +188,9 @@ const DocumentSignature = lazy(() => import("@/pages/document-signature"));
 // Claims Navigator - VA/SSDI Claims Wizard
 const ClaimsNavigator = lazy(() => import("@/pages/claims-navigator"));
 
+// Vendor Portal - Scoped read-only/limited access for shared cases
+const VendorPortal = lazy(() => import("@/pages/vendor-portal"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -369,6 +372,7 @@ function Router() {
         <Route path="/operator-ai" component={OperatorAI} />
         <Route path="/document-signature" component={DocumentSignature} />
         <Route path="/claims-navigator" component={ClaimsNavigator} />
+        <Route path="/vendor-portal" component={VendorPortal} />
         
         <Route component={NotFound} />
       </Switch>

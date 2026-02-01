@@ -9159,5 +9159,155 @@ Generated: ${new Date().toISOString()}
     }
   });
 
+  // ====================================================
+  // VENDOR PORTAL ENDPOINTS
+  // ====================================================
+
+  // Get all cases shared with the vendor (by their email)
+  app.get("/api/vendor/cases", async (req, res) => {
+    try {
+      const vendorEmail = req.query.email as string;
+      if (!vendorEmail) {
+        return res.status(400).json({ message: "Email required" });
+      }
+
+      // Get all shares for this vendor
+      const allShares = await storage.getAllCaseShares();
+      const vendorShares = allShares.filter(s => s.email.toLowerCase() === vendorEmail.toLowerCase());
+
+      // Get case details for each share
+      const casesWithAccess = await Promise.all(
+        vendorShares.map(async (share) => {
+          const claimCase = await storage.getClaimCaseById(share.caseId);
+          if (!claimCase) return null;
+          return {
+            id: claimCase.id,
+            title: claimCase.title,
+            caseType: claimCase.caseType,
+            claimType: claimCase.claimType,
+            status: claimCase.status,
+            role: share.role,
+            sharedAt: share.createdAt,
+          };
+        })
+      );
+
+      res.json(casesWithAccess.filter(Boolean));
+    } catch (error) {
+      console.error("Error getting vendor cases:", error);
+      res.status(500).json({ message: "Failed to get vendor cases" });
+    }
+  });
+
+  // Get vendor access to a specific case
+  app.get("/api/vendor/cases/:id", async (req, res) => {
+    try {
+      const vendorEmail = req.query.email as string;
+      if (!vendorEmail) {
+        return res.status(400).json({ message: "Email required" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      // Check vendor has access
+      const share = await storage.getCaseShareByEmail(caseId, vendorEmail);
+      if (!share) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase) {
+        return res.status(404).json({ message: "Case not found" });
+      }
+
+      // Get case data based on permission level
+      const files = await storage.getClaimFilesByCaseId(caseId);
+      const notes = await storage.getCaseNotesByCaseId(caseId);
+
+      // Determine permissions
+      const canView = true;
+      const canComment = share.role === "comment" || share.role === "upload";
+      const canUpload = share.role === "upload";
+
+      res.json({
+        case: {
+          id: claimCase.id,
+          title: claimCase.title,
+          caseType: claimCase.caseType,
+          claimType: claimCase.claimType,
+          status: claimCase.status,
+        },
+        access: {
+          role: share.role,
+          canView,
+          canComment,
+          canUpload,
+        },
+        files: files.map(f => ({
+          id: f.id,
+          filename: f.originalName,
+          evidenceType: f.evidenceType,
+          condition: f.condition,
+          strength: f.strength,
+          createdAt: f.createdAt,
+        })),
+        timeline: notes.map(n => ({
+          id: n.id,
+          content: n.content,
+          authorEmail: n.authorEmail,
+          authorType: n.authorType,
+          createdAt: n.createdAt,
+        })),
+      });
+    } catch (error) {
+      console.error("Error getting vendor case:", error);
+      res.status(500).json({ message: "Failed to get case" });
+    }
+  });
+
+  // Vendor adds a note (requires comment permission)
+  app.post("/api/vendor/cases/:id/notes", async (req, res) => {
+    try {
+      const { vendorEmail, content } = req.body;
+      if (!vendorEmail) {
+        return res.status(400).json({ message: "Vendor email required" });
+      }
+      if (!content) {
+        return res.status(400).json({ message: "Content required" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      // Check vendor has comment permission
+      const share = await storage.getCaseShareByEmail(caseId, vendorEmail);
+      if (!share || (share.role !== "comment" && share.role !== "upload")) {
+        return res.status(403).json({ message: "Comment permission required" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase) {
+        return res.status(404).json({ message: "Case not found" });
+      }
+
+      const note = await storage.createCaseNote({
+        caseId,
+        content,
+        authorEmail: vendorEmail,
+        authorType: "vendor",
+      });
+
+      res.json(note);
+    } catch (error) {
+      console.error("Error adding vendor note:", error);
+      res.status(500).json({ message: "Failed to add note" });
+    }
+  });
+
   return httpServer;
 }

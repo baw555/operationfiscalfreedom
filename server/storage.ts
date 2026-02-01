@@ -469,6 +469,7 @@ export interface IStorage {
   getCaseSharesByCaseId(caseId: number): Promise<CaseShare[]>;
   getCaseShareByEmail(caseId: number, email: string): Promise<CaseShare | undefined>;
   getCaseShareById(id: number): Promise<CaseShare | undefined>;
+  getAllCaseShares(): Promise<CaseShare[]>;
   upsertCaseShare(data: InsertCaseShare): Promise<CaseShare>;
   deleteCaseShare(id: number): Promise<void>;
 
@@ -2499,6 +2500,10 @@ export class DatabaseStorage implements IStorage {
     const [share] = await db.select().from(caseShares)
       .where(and(eq(caseShares.caseId, caseId), eq(caseShares.email, email)));
     return share;
+  }
+
+  async getAllCaseShares(): Promise<CaseShare[]> {
+    return db.select().from(caseShares).orderBy(desc(caseShares.createdAt));
   }
 
   async upsertCaseShare(data: InsertCaseShare): Promise<CaseShare> {
