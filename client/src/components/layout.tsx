@@ -105,7 +105,7 @@ const freeVetSoftwareSubItems = [
   { name: "C-AI", href: "/operator-ai" },
   { name: "Video & Music Gen", href: "/naval-intelligence" },
   { name: "RANGER: Free Document Signature", href: "/document-signature" },
-  { name: "Claims Navigator", href: "/claims-navigator" },
+  { name: "VA & SSDI Navigation Tool", href: "/claims-navigator" },
 ];
 
 
