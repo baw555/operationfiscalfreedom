@@ -9077,6 +9077,257 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // ====================================================
+  // STAGE 7-10: INTELLIGENCE FEATURES
+  // ====================================================
+
+  // Stage 7: Get strength suggestions for a case
+  app.get("/api/claims/cases/:id/suggestions", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const files = await storage.getClaimFilesByCaseId(caseId);
+      
+      // Build heatmap data for suggestions
+      const map: Record<string, { condition: string; type: string; total: number; count: number }> = {};
+      for (const f of files) {
+        const condition = f.condition || "General";
+        const type = f.evidenceType || "other";
+        const key = `${condition}::${type}`;
+        if (!map[key]) {
+          map[key] = { condition, type, total: 0, count: 0 };
+        }
+        map[key].total += f.strength || 1;
+        map[key].count += 1;
+      }
+
+      const heatmap = Object.values(map).map(v => ({
+        condition: v.condition,
+        type: v.type,
+        avgStrength: v.count > 0 ? v.total / v.count : 0,
+        count: v.count
+      }));
+
+      const { suggestImprovements, getTopSuggestions } = await import("../shared/lib/strengthSuggestions");
+      const allSuggestions = suggestImprovements(heatmap);
+      const topSuggestions = getTopSuggestions(heatmap, 5);
+
+      res.json({
+        suggestions: allSuggestions,
+        topSuggestions,
+        heatmapSummary: heatmap
+      });
+    } catch (error) {
+      console.error("Error generating suggestions:", error);
+      res.status(500).json({ message: "Failed to generate suggestions" });
+    }
+  });
+
+  // Stage 8: Get vendor scorecards for a case
+  app.get("/api/claims/cases/:id/vendor-scorecards", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const notes = await storage.getCaseNotesByCaseId(caseId);
+      const shares = await storage.getCaseSharesByCaseId(caseId);
+      const files = await storage.getClaimFilesByCaseId(caseId);
+
+      // Group actions by vendor
+      const vendorActions: Record<string, any[]> = {};
+      
+      for (const note of notes) {
+        if (note.authorType === "vendor" && note.authorEmail) {
+          if (!vendorActions[note.authorEmail]) {
+            vendorActions[note.authorEmail] = [];
+          }
+          vendorActions[note.authorEmail].push({
+            type: "note",
+            timestamp: note.createdAt,
+            responseTimeHours: 12 // Default estimate
+          });
+        }
+      }
+
+      // Track vendor uploads (files with authorType = vendor)
+      for (const file of files) {
+        if ((file as any).authorType === "vendor" && (file as any).authorEmail) {
+          const email = (file as any).authorEmail;
+          if (!vendorActions[email]) {
+            vendorActions[email] = [];
+          }
+          vendorActions[email].push({
+            type: "upload",
+            timestamp: file.createdAt,
+            responseTimeHours: 8
+          });
+        }
+      }
+
+      const { buildVendorScorecard, getVendorStats } = await import("../shared/lib/vendorScorecard");
+      
+      const scorecards = Object.entries(vendorActions).map(([email, actions]) => 
+        buildVendorScorecard(email, actions)
+      );
+
+      const stats = getVendorStats(scorecards);
+
+      res.json({
+        scorecards,
+        stats,
+        activeVendors: shares.filter(s => s.status === "active").length
+      });
+    } catch (error) {
+      console.error("Error generating vendor scorecards:", error);
+      res.status(500).json({ message: "Failed to generate vendor scorecards" });
+    }
+  });
+
+  // Stage 9: Get VA lane confidence recommendation
+  app.get("/api/claims/cases/:id/lane-confidence", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const files = await storage.getClaimFilesByCaseId(caseId);
+      const tasks = await storage.getClaimTasksByCaseId(caseId);
+
+      // Calculate metrics
+      const filesWithStrength = files.filter(f => f.strength);
+      const strengthAvg = filesWithStrength.length > 0
+        ? filesWithStrength.reduce((sum, f) => sum + (f.strength || 0), 0) / filesWithStrength.length
+        : 0;
+
+      const completedTasks = tasks.filter(t => t.status === "done").length;
+      const completenessPct = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
+
+      const hasNewEvidence = files.some(f => {
+        const uploadDate = new Date(f.createdAt || Date.now());
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        return uploadDate > sixMonthsAgo;
+      });
+
+      const hasNexusLetter = files.some(f => f.evidenceType === "nexus");
+      const hasMedicalRecords = files.some(f => f.evidenceType === "medical");
+      const hasServiceRecords = files.some(f => f.evidenceType === "service");
+
+      const { recommendLane, getLaneDisplayName, getLaneDescription } = await import("../shared/lib/laneConfidence");
+      
+      const recommendation = recommendLane({
+        strengthAvg,
+        completenessPct,
+        hasNewEvidence,
+        hasNexusLetter,
+        hasMedicalRecords,
+        hasServiceRecords,
+        priorDenials: 0 // Could be tracked in case metadata
+      });
+
+      res.json({
+        recommendation: {
+          ...recommendation,
+          laneDisplayName: getLaneDisplayName(recommendation.lane),
+          laneDescription: getLaneDescription(recommendation.lane),
+          alternativeLaneDisplayName: recommendation.alternativeLane 
+            ? getLaneDisplayName(recommendation.alternativeLane)
+            : null
+        },
+        factors: {
+          strengthAvg: Math.round(strengthAvg * 10) / 10,
+          completenessPct: Math.round(completenessPct),
+          hasNewEvidence,
+          hasNexusLetter,
+          hasMedicalRecords,
+          hasServiceRecords
+        }
+      });
+    } catch (error) {
+      console.error("Error calculating lane confidence:", error);
+      res.status(500).json({ message: "Failed to calculate lane confidence" });
+    }
+  });
+
+  // Stage 10: Get VA.gov upload checklist
+  app.get("/api/claims/cases/:id/upload-checklist", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const files = await storage.getClaimFilesByCaseId(caseId);
+      
+      const checklistFiles = files.map(f => ({
+        id: f.id,
+        filename: f.originalName || f.filename,
+        evidenceType: f.evidenceType,
+        condition: f.condition,
+        strength: f.strength
+      }));
+
+      const { buildVAUploadChecklist, generateChecklistText } = await import("../shared/lib/vaUploadChecklist");
+      
+      const checklist = buildVAUploadChecklist(checklistFiles, claimCase.title);
+      const checklistText = generateChecklistText(checklist);
+
+      res.json({
+        checklist,
+        textVersion: checklistText
+      });
+    } catch (error) {
+      console.error("Error generating upload checklist:", error);
+      res.status(500).json({ message: "Failed to generate upload checklist" });
+    }
+  });
+
+  // ====================================================
   // ZIP EXPORT (PAID FEATURE)
   // ====================================================
 
