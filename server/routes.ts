@@ -6791,8 +6791,22 @@ export async function registerRoutes(
         messages.push(...conversationHistory.slice(-10));
       }
 
-      // Add the current message
-      messages.push({ role: "user", content: message });
+      // Add document context if available
+      let documentContext = "";
+      if (sessionId) {
+        try {
+          const { getDocumentContext } = await import("./documentProcessor");
+          documentContext = getDocumentContext(sessionId);
+        } catch (e) {
+          // Document processor may not be loaded yet
+        }
+      }
+
+      // Add the current message with document context
+      const userContent = documentContext 
+        ? `${message}\n\n${documentContext}` 
+        : message;
+      messages.push({ role: "user", content: userContent });
 
       // Call OpenAI API
       const openaiApiKey = process.env.OPENAI_API_KEY;
@@ -6907,6 +6921,108 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching session memory:", error);
       res.status(500).json({ message: "Failed to fetch session memory" });
+    }
+  });
+
+  // ==========================================================================
+  // DOCUMENT UPLOAD - Universal file ingestion for Operator AI
+  // ==========================================================================
+
+  // Configure multer for document uploads (in-memory storage)
+  const documentUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB max file size
+      files: 10, // Maximum 10 files
+    },
+  });
+
+  // Import document processor
+  const { processDocument, storeDocuments, getDocuments, clearSessionDocuments, getDocumentContext } = await import("./documentProcessor");
+
+  // Upload documents endpoint
+  app.post("/api/operator-ai/documents", documentUpload.array("files", 10), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const { sessionId, memoryMode = "stateless" } = req.body;
+
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
+
+      if (!sessionId) {
+        return res.status(400).json({ message: "Session ID is required" });
+      }
+
+      const processedDocs = await Promise.all(
+        files.map(async (file) => {
+          return processDocument(file.buffer, file.originalname, file.mimetype);
+        })
+      );
+
+      // Only store if not stateless
+      if (memoryMode !== "stateless") {
+        const upload = {
+          id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          sessionId,
+          memoryMode,
+          documents: processedDocs,
+          createdAt: new Date(),
+          expiresAt: memoryMode === "session" ? new Date(Date.now() + 24 * 60 * 60 * 1000) : undefined,
+        };
+        storeDocuments(upload);
+      }
+
+      res.json({
+        success: true,
+        documents: processedDocs.map(doc => ({
+          fileName: doc.fileName,
+          fileType: doc.fileType,
+          wordCount: doc.metadata.wordCount,
+          preview: doc.textContent.slice(0, 200) + (doc.textContent.length > 200 ? "..." : ""),
+        })),
+        memoryMode,
+      });
+
+    } catch (error) {
+      console.error("Document upload error:", error);
+      res.status(500).json({ message: "Failed to process documents" });
+    }
+  });
+
+  // Get uploaded documents for session
+  app.get("/api/operator-ai/documents/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const docs = getDocuments(sessionId);
+      
+      if (!docs) {
+        return res.json({ documents: [] });
+      }
+
+      res.json({
+        documents: docs.documents.map(doc => ({
+          fileName: doc.fileName,
+          fileType: doc.fileType,
+          wordCount: doc.metadata.wordCount,
+          preview: doc.textContent.slice(0, 200) + (doc.textContent.length > 200 ? "..." : ""),
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  // Clear session documents
+  app.delete("/api/operator-ai/documents/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      clearSessionDocuments(sessionId);
+      res.json({ success: true, message: "Documents cleared" });
+    } catch (error) {
+      console.error("Error clearing documents:", error);
+      res.status(500).json({ message: "Failed to clear documents" });
     }
   });
 

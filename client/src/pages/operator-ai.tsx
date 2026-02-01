@@ -28,6 +28,10 @@ import {
   MessageSquare,
   User,
   Loader2,
+  Upload,
+  File,
+  X,
+  Paperclip,
 } from "lucide-react";
 
 interface ChatMessage {
@@ -76,6 +80,11 @@ export default function OperatorAI() {
   
   // Generate a unique session ID for this browser session
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  
+  // File upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedDocs, setUploadedDocs] = useState<Array<{fileName: string; fileType: string; wordCount: number; preview: string}>>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -132,9 +141,52 @@ export default function OperatorAI() {
         timestamp: new Date(),
         model: selectedModel
       }]);
+      setUploadedDocs([]);
       toast({ title: "Session Cleared", description: "Your session memory has been forgotten." });
     },
   });
+
+  // Handle file upload
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("sessionId", sessionId);
+    formData.append("memoryMode", memoryMode);
+    
+    for (let i = 0; i < files.length; i++) {
+      formData.append("files", files[i]);
+    }
+    
+    try {
+      const response = await fetch("/api/operator-ai/documents", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error("Upload failed");
+      
+      const data = await response.json();
+      setUploadedDocs(prev => [...prev, ...data.documents]);
+      
+      // Add system message about uploaded docs
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: "assistant",
+        content: `I've processed ${data.documents.length} document(s):\n${data.documents.map((d: any) => `- ${d.fileName} (${d.wordCount} words)`).join("\n")}\n\nYou can now ask me questions about these documents.`,
+        timestamp: new Date(),
+        model: selectedModel
+      }]);
+      
+      toast({ title: "Documents Uploaded", description: `${data.documents.length} file(s) processed successfully.` });
+    } catch (error) {
+      toast({ title: "Upload Failed", description: "Failed to process documents.", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
@@ -353,6 +405,59 @@ export default function OperatorAI() {
                       Clear Display
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Document Upload */}
+              <Card className="bg-gray-800/50 border-gray-700">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-lg flex items-center gap-2">
+                    <Upload className="w-5 h-5 text-cyan-400" />
+                    Documents
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    multiple
+                    accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.md,.png,.jpg,.jpeg,.gif,.webp,.mp3,.wav,.mp4,.webm,.zip"
+                    onChange={(e) => handleFileUpload(e.target.files)}
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full border-cyan-600 text-cyan-300 hover:bg-cyan-900/30"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    data-testid="button-upload-docs"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Paperclip className="w-4 h-4 mr-2" />
+                    )}
+                    {isUploading ? "Processing..." : "Upload Files"}
+                  </Button>
+                  <p className="text-xs text-gray-500 text-center">
+                    PDF, Word, Excel, CSV, TXT, Images, Audio, Video, ZIP
+                  </p>
+                  
+                  {uploadedDocs.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-gray-700">
+                      <p className="text-xs text-gray-400">{uploadedDocs.length} document(s) loaded:</p>
+                      {uploadedDocs.slice(-3).map((doc, i) => (
+                        <div key={i} className="flex items-center gap-2 text-xs text-gray-300 bg-gray-700/50 rounded px-2 py-1">
+                          <File className="w-3 h-3 text-cyan-400" />
+                          <span className="truncate flex-1">{doc.fileName}</span>
+                        </div>
+                      ))}
+                      {uploadedDocs.length > 3 && (
+                        <p className="text-xs text-gray-500">+{uploadedDocs.length - 3} more</p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
