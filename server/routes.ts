@@ -4014,9 +4014,10 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Schedule A already signed" });
       }
 
-      const uplineCount = typeof req.body.uplineCount === 'number' ? req.body.uplineCount : 0;
-      if (uplineCount < 0 || uplineCount > 6) {
-        return res.status(400).json({ message: "Invalid upline count. Must be between 0 and 6." });
+      // Validate signature name if provided
+      const signatureName = req.body.signatureName?.trim();
+      if (!signatureName || signatureName.length < 2) {
+        return res.status(400).json({ message: "Please enter your full legal name" });
       }
 
       const forwardedFor = req.headers['x-forwarded-for'];
@@ -4024,11 +4025,11 @@ export async function registerRoutes(
 
       const validatedData = insertScheduleASignatureSchema.parse({
         userId: req.session.userId!,
-        affiliateName: user.name,
+        affiliateName: signatureName,
         affiliateEmail: user.email,
         ipAddress: clientIp,
         userAgent: req.headers['user-agent'] || 'unknown',
-        acknowledgedUplineCount: uplineCount,
+        acknowledgedUplineCount: 0, // Fixed rate, no longer variable
         version: "1.0"
       });
 
