@@ -15,7 +15,7 @@ import { useLocation, Link } from "wouter";
 import { format } from "date-fns";
 
 type LeadStatus = "new" | "contacted" | "in_progress" | "closed";
-type MainTab = "overview" | "contracts" | "calculator" | "leads" | "security";
+type MainTab = "overview" | "contracts" | "calculator" | "leads" | "security" | "ranger";
 
 const statusColors: Record<LeadStatus, string> = {
   new: "bg-blue-100 text-blue-800",
@@ -406,6 +406,7 @@ export default function AffiliateDashboard() {
     { id: "contracts", label: "Contracts", icon: <FileSignature className="w-4 h-4" />, badge: pendingContracts.length },
     { id: "calculator", label: "Calculator", icon: <Calculator className="w-4 h-4" /> },
     { id: "leads", label: "Leads", icon: <Users className="w-4 h-4" />, badge: activeLeads > 0 ? activeLeads : undefined },
+    { id: "ranger", label: "RANGER E-Sign", icon: <FileText className="w-4 h-4" /> },
     { id: "security", label: "Security", icon: <Shield className="w-4 h-4" /> },
   ];
 
@@ -1443,6 +1444,109 @@ export default function AffiliateDashboard() {
               </div>
               </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ===== RANGER E-SIGN TAB ===== */}
+        {mainTab === "ranger" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-brand-navy flex items-center gap-2">
+                    <FileText className="w-6 h-6" />
+                    RANGER E-Signature Platform
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Military-grade document security • HIPAA Compliant • 256-bit Encryption
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  Secure Connection
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileSignature className="w-5 h-5 text-blue-600" />
+                    <span className="font-bold text-blue-900">Send Contracts</span>
+                  </div>
+                  <p className="text-sm text-blue-700">
+                    Create and send contracts for electronic signature with tokenized secure links.
+                  </p>
+                  <Link href="/document-signature">
+                    <Button className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white">
+                      <Send className="w-4 h-4 mr-2" />
+                      Open RANGER
+                    </Button>
+                  </Link>
+                </div>
+
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <span className="font-bold text-green-900">Track Status</span>
+                  </div>
+                  <p className="text-sm text-green-700">
+                    Monitor pending contracts and view signed agreements with full audit trails.
+                  </p>
+                  <Link href="/document-signature">
+                    <Button variant="outline" className="mt-3 w-full border-green-600 text-green-700 hover:bg-green-50">
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Dashboard
+                    </Button>
+                  </Link>
+                </div>
+
+                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Download className="w-5 h-5 text-amber-600" />
+                    <span className="font-bold text-amber-900">Download PDFs</span>
+                  </div>
+                  <p className="text-sm text-amber-700">
+                    Generate and download signed agreements as secure PDF documents.
+                  </p>
+                  <Link href="/document-signature">
+                    <Button variant="outline" className="mt-3 w-full border-amber-600 text-amber-700 hover:bg-amber-50">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Manage Documents
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 border rounded-lg p-4">
+                <h3 className="font-bold text-brand-navy mb-2">RANGER Features</h3>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    AI Contract Analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    HIPAA Compliant Storage
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Email Notifications
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Tokenized Sign Links
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Signature Canvas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    PDF Generation
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         )}

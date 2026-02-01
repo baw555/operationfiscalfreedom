@@ -621,6 +621,10 @@ export default function MasterPortal() {
                 <DollarSign className="w-4 h-4 mr-2" />
                 Commission Breakdown
               </TabsTrigger>
+              <TabsTrigger value="ranger" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+                <FileSignature className="w-4 h-4 mr-2" />
+                RANGER E-Sign
+              </TabsTrigger>
               <TabsTrigger value="files" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
                 <FolderOpen className="w-4 h-4 mr-2" />
                 Documents
@@ -1203,6 +1207,118 @@ export default function MasterPortal() {
                       <div className="text-xs text-gray-500 mt-1">Every dollar accounted for</div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* RANGER E-Sign Tab */}
+          <TabsContent value="ranger" className="mt-6">
+            <div className="space-y-6">
+              <div className="bg-black/20 rounded-lg border border-white/10 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                      <FileSignature className="w-6 h-6 text-cyan-400" />
+                      RANGER E-Signature Platform
+                    </h2>
+                    <p className="text-gray-400 mt-1">
+                      Military-grade document security • HIPAA Compliant • 256-bit Encryption
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    Secure Connection
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <a href="/document-signature" className="block">
+                    <div className="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 border border-blue-500/30 rounded-lg p-4 hover:border-blue-400/50 transition-colors cursor-pointer">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileSignature className="w-5 h-5 text-blue-400" />
+                        <span className="font-bold text-blue-300">Send Contracts</span>
+                      </div>
+                      <p className="text-sm text-blue-200/70">
+                        Create and send contracts for electronic signature with tokenized secure links.
+                      </p>
+                      <Button className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white">
+                        Open RANGER Dashboard
+                      </Button>
+                    </div>
+                  </a>
+
+                  <a href="/document-signature" className="block">
+                    <div className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 border border-green-500/30 rounded-lg p-4 hover:border-green-400/50 transition-colors cursor-pointer">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                        <span className="font-bold text-green-300">Track Status</span>
+                      </div>
+                      <p className="text-sm text-green-200/70">
+                        Monitor pending contracts and view signed agreements with full audit trails.
+                      </p>
+                      <Button variant="outline" className="mt-3 w-full border-green-500/50 text-green-400 hover:bg-green-900/30">
+                        View All Contracts
+                      </Button>
+                    </div>
+                  </a>
+
+                  <a href="/document-signature" className="block">
+                    <div className="bg-gradient-to-br from-amber-900/40 to-yellow-900/40 border border-amber-500/30 rounded-lg p-4 hover:border-amber-400/50 transition-colors cursor-pointer">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileDown className="w-5 h-5 text-amber-400" />
+                        <span className="font-bold text-amber-300">Download PDFs</span>
+                      </div>
+                      <p className="text-sm text-amber-200/70">
+                        Generate and download signed agreements as secure PDF documents.
+                      </p>
+                      <Button variant="outline" className="mt-3 w-full border-amber-500/50 text-amber-400 hover:bg-amber-900/30">
+                        Manage Documents
+                      </Button>
+                    </div>
+                  </a>
+                </div>
+
+                <div className="bg-brand-navy/30 border border-white/10 rounded-lg p-4">
+                  <h3 className="font-bold text-white mb-3">RANGER Features</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        AI Contract Analysis
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        HIPAA Compliant Storage
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        Email Notifications
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        Tokenized Sign Links
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        Signature Canvas
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        PDF Generation
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-4 bg-gradient-to-r from-brand-red/20 to-transparent border border-brand-red/30 rounded-lg">
+                  <p className="text-sm text-gray-300">
+                    <strong className="text-brand-red">FREE for Veterans:</strong> RANGER e-signature platform is provided at no cost for veteran families as part of the NavigatorUSA mission.
+                  </p>
                 </div>
               </div>
             </div>

@@ -391,6 +391,62 @@ export default function SubMasterPortal() {
             </div>
           </div>
         </div>
+
+        {/* RANGER E-Signature Section */}
+        <div className="mt-8 bg-white rounded-lg border shadow-sm">
+          <div className="p-4 border-b flex items-center gap-3">
+            <FileText className="w-6 h-6 text-brand-navy" />
+            <div>
+              <h3 className="font-bold text-brand-navy">RANGER E-Signature Platform</h3>
+              <p className="text-sm text-gray-600">Military-grade document security • HIPAA Compliant</p>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <a href="/document-signature" className="block">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:border-blue-400 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                    <span className="font-bold text-blue-900">Send Contracts</span>
+                  </div>
+                  <p className="text-sm text-blue-700">Create and send contracts with tokenized secure links.</p>
+                  <button className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold">
+                    Open RANGER
+                  </button>
+                </div>
+              </a>
+
+              <a href="/document-signature" className="block">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 hover:border-green-400 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-5 h-5 text-green-600" />
+                    <span className="font-bold text-green-900">Track Status</span>
+                  </div>
+                  <p className="text-sm text-green-700">Monitor pending contracts and view signed agreements.</p>
+                  <button className="mt-3 w-full border border-green-600 text-green-700 py-2 rounded font-bold hover:bg-green-100">
+                    View Dashboard
+                  </button>
+                </div>
+              </a>
+
+              <a href="/document-signature" className="block">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 hover:border-amber-400 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-amber-600" />
+                    <span className="font-bold text-amber-900">Download PDFs</span>
+                  </div>
+                  <p className="text-sm text-amber-700">Generate and download signed agreements as secure PDFs.</p>
+                  <button className="mt-3 w-full border border-amber-600 text-amber-700 py-2 rounded font-bold hover:bg-amber-100">
+                    Manage Documents
+                  </button>
+                </div>
+              </a>
+            </div>
+            <p className="mt-4 text-sm text-gray-500 text-center">
+              <strong className="text-brand-red">FREE for Veterans</strong> — RANGER is provided at no cost for veteran families.
+            </p>
+          </div>
+        </div>
       </div>
     </Layout>
   );
