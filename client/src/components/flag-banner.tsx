@@ -20,7 +20,7 @@ import {
 export function FlagBanner() {
   const [showLockedDialog, setShowLockedDialog] = useState(false);
   
-  const marqueeText = "ALL VETERANS GET FREE JOB TRAINING • FREE DOCUMENT SIGNING SOFTWARE • GENERATIVE AI • OPERATOR AI THAT DOESN'T CENSOR - WE DON'T STORE - TRACK YOU • DIRECT TO INSURERS & 70 CARRIERS - SAVE 20-40% ON ALL INSURANCE • REFER & EARN • LARGEST LAW FIRMS IN US FOR VA RATINGS • SPECIALIZED TAX CREDITS • WORK • WORK • WORK";
+  const marqueeText = "ALL VETERANS GET FREE JOB TRAINING • FREE DOCUMENT SIGNING SOFTWARE • GENERATIVE AI • OPERATOR AI (CENSORLESS - PRIVATE) • DIRECT TO INSURERS & 70 CARRIERS - SAVE 20-40% ON ALL INSURANCE • REFER & EARN • LARGEST LAW FIRMS IN US FOR VA RATINGS • SPECIALIZED TAX CREDITS • WORK • WORK • WORK";
   
   const handleLockedClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -137,7 +137,7 @@ export function FlagBanner() {
             >
               <span className="flex items-center">
                 <Lock className="w-4 h-4 mr-2" />
-                Operator AI that doesn't track or censor
+                Operator AI (Censorless - Private)
               </span>
               <span className="text-xs text-gray-400">Partner Only</span>
             </DropdownMenuItem>
