@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, Pause, Play, Volume2 } from "lucide-react";
+import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, Pause, Play, Volume2, Maximize2, Minimize2 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
@@ -12,6 +12,7 @@ import { FlagBanner } from "@/components/flag-banner";
 export default function Home() {
   const [introStarted, setIntroStarted] = useState(false);
   const [introPlayed, setIntroPlayed] = useState(false);
+  const [videoFullscreen, setVideoFullscreen] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
   const [showContent, setShowContent] = useState(false);
   const [animationPaused, setAnimationPaused] = useState(false);
@@ -271,7 +272,10 @@ export default function Home() {
       
       {/* Intro Video with Audio */}
       {!introPlayed && (
-        <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden bg-black">
+        <section className={cn(
+          "relative flex items-center justify-center overflow-hidden bg-black transition-all duration-500",
+          videoFullscreen ? "min-h-[100vh]" : "min-h-[50vh] py-8"
+        )}>
           <video
             ref={introVideoRef}
             src="/videos/intro-video.mp4"
@@ -279,7 +283,10 @@ export default function Home() {
             preload="auto"
             onEnded={handleIntroEnded}
             className={cn(
-              "max-w-[480px] max-h-[640px] w-auto h-auto object-contain transition-opacity duration-500 z-5",
+              "w-auto h-auto object-contain transition-all duration-500 z-5",
+              videoFullscreen 
+                ? "max-w-[480px] max-h-[640px]" 
+                : "max-w-[320px] max-h-[420px] sm:max-w-[380px] sm:max-h-[500px]",
               introStarted ? "opacity-100" : "opacity-0"
             )}
           />
@@ -290,14 +297,37 @@ export default function Home() {
               className="absolute inset-0 z-10 flex flex-col items-center justify-center cursor-pointer bg-black"
             >
               <div className="text-center px-4">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-brand-gold flex items-center justify-center mb-6 mx-auto animate-pulse">
-                  <Play className="w-12 h-12 sm:w-16 sm:h-16 text-brand-gold ml-2" fill="#EAB308" />
+                <div className={cn(
+                  "rounded-full border-4 border-brand-gold flex items-center justify-center mb-6 mx-auto animate-pulse",
+                  videoFullscreen ? "w-24 h-24 sm:w-32 sm:h-32" : "w-16 h-16 sm:w-20 sm:h-20"
+                )}>
+                  <Play className={cn(
+                    "text-brand-gold ml-2",
+                    videoFullscreen ? "w-12 h-12 sm:w-16 sm:h-16" : "w-8 h-8 sm:w-10 sm:h-10"
+                  )} fill="#EAB308" />
                 </div>
-                <p className="text-white text-xl sm:text-2xl font-display uppercase tracking-widest mb-2">Tap to Start</p>
+                <p className={cn(
+                  "text-white font-display uppercase tracking-widest mb-2",
+                  videoFullscreen ? "text-xl sm:text-2xl" : "text-lg sm:text-xl"
+                )}>Tap to Start</p>
                 <p className="text-white/60 text-sm sm:text-base">Sound On</p>
               </div>
             </div>
           )}
+          
+          {/* Fullscreen Toggle Button */}
+          <button
+            onClick={() => setVideoFullscreen(!videoFullscreen)}
+            className="absolute top-4 right-4 z-20 p-3 bg-black/60 hover:bg-black/80 text-white rounded-lg border border-white/30 transition-all"
+            data-testid="video-fullscreen-toggle"
+            title={videoFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+          >
+            {videoFullscreen ? (
+              <Minimize2 className="w-5 h-5" />
+            ) : (
+              <Maximize2 className="w-5 h-5" />
+            )}
+          </button>
           
           {introStarted && (
             <button
