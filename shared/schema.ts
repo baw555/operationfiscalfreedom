@@ -1844,3 +1844,110 @@ export const insertAiJobSchema = createInsertSchema(aiJobs).omit({
 });
 export type InsertAiJob = z.infer<typeof insertAiJobSchema>;
 export type AiJob = typeof aiJobs.$inferSelect;
+
+// ============================================================================
+// MEDIA PIPELINE ORCHESTRATION - Multi-step job execution with planner
+// ============================================================================
+
+// Pipeline types for different media workflows
+export const pipelineTypeEnum = pgEnum("pipeline_type", [
+  "DOC_TO_CHAT",      // A) Documents → RAG for chat
+  "TEXT_TO_AUDIO",    // B) Text → TTS audio narration
+  "MEDIA_TO_VIDEO",   // C) Images + audio → video montage
+  "TEXT_TO_VIDEO",    // D) Text prompt → AI video
+  "CUSTOM",           // Custom pipeline with user-defined steps
+]);
+
+// Pipeline status
+export const pipelineStatusEnum = pgEnum("pipeline_status", [
+  "PLANNING",         // Planner LLM is generating execution plan
+  "QUEUED",           // Plan ready, waiting to execute
+  "RUNNING",          // Steps are executing
+  "RENDERING",        // Final render/stitch in progress
+  "DONE",             // Complete with downloadable artifact
+  "FAILED",           // Error occurred
+]);
+
+// Media Pipelines - Orchestrated multi-step workflows
+export const mediaPipelines = pgTable("media_pipelines", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => aiUsers.id),
+  sessionId: integer("session_id").references(() => aiSessions.id),
+  pipelineType: pipelineTypeEnum("pipeline_type").notNull(),
+  status: pipelineStatusEnum("status").notNull().default("PLANNING"),
+  userIntent: text("user_intent").notNull(),           // Original user request
+  executionPlan: text("execution_plan"),               // JSON: LLM-generated plan
+  totalSteps: integer("total_steps").notNull().default(0),
+  completedSteps: integer("completed_steps").notNull().default(0),
+  progress: integer("progress").notNull().default(0),  // 0-100 overall progress
+  finalArtifactUrl: text("final_artifact_url"),        // Downloadable result
+  finalArtifactType: text("final_artifact_type"),      // MIME type of result
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertMediaPipelineSchema = createInsertSchema(mediaPipelines).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertMediaPipeline = z.infer<typeof insertMediaPipelineSchema>;
+export type MediaPipeline = typeof mediaPipelines.$inferSelect;
+
+// Step status for individual pipeline steps
+export const stepStatusEnum = pgEnum("step_status", [
+  "PENDING",          // Waiting for dependencies
+  "RUNNING",          // Currently executing
+  "DONE",             // Completed successfully
+  "FAILED",           // Error occurred
+  "SKIPPED",          // Skipped due to condition
+]);
+
+// Pipeline Steps - Individual steps within a pipeline
+export const pipelineSteps = pgTable("pipeline_steps", {
+  id: serial("id").primaryKey(),
+  pipelineId: integer("pipeline_id").references(() => mediaPipelines.id).notNull(),
+  stepOrder: integer("step_order").notNull(),          // Execution order (1, 2, 3...)
+  stepType: text("step_type").notNull(),               // "ingest" | "tts" | "image_gen" | "render" | etc.
+  stepName: text("step_name").notNull(),               // Human-readable step name
+  status: stepStatusEnum("status").notNull().default("PENDING"),
+  inputParams: text("input_params").notNull(),         // JSON input for this step
+  outputData: text("output_data"),                     // JSON output from this step
+  dependsOn: text("depends_on"),                       // JSON array of step IDs this depends on
+  artifactUrls: text("artifact_urls"),                 // JSON array of generated file URLs
+  progress: integer("progress").notNull().default(0),  // 0-100 step progress
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPipelineStepSchema = createInsertSchema(pipelineSteps).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertPipelineStep = z.infer<typeof insertPipelineStepSchema>;
+export type PipelineStep = typeof pipelineSteps.$inferSelect;
+
+// Pipeline Artifacts - Generated files from pipeline execution
+export const pipelineArtifacts = pgTable("pipeline_artifacts", {
+  id: serial("id").primaryKey(),
+  pipelineId: integer("pipeline_id").references(() => mediaPipelines.id).notNull(),
+  stepId: integer("step_id").references(() => pipelineSteps.id),
+  artifactType: text("artifact_type").notNull(),       // "audio" | "video" | "image" | "document" | "text"
+  filename: text("filename").notNull(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: integer("size_bytes"),
+  storageUrl: text("storage_url").notNull(),
+  isFinal: boolean("is_final").notNull().default(false), // Is this the final deliverable?
+  metadata: text("metadata"),                          // JSON additional metadata
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPipelineArtifactSchema = createInsertSchema(pipelineArtifacts).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertPipelineArtifact = z.infer<typeof insertPipelineArtifactSchema>;
+export type PipelineArtifact = typeof pipelineArtifacts.$inferSelect;

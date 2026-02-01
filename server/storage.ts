@@ -48,6 +48,9 @@ import {
   hipaaTrainingRecords, type HipaaTrainingRecord, type InsertHipaaTrainingRecord,
   businessAssociateAgreements, type BusinessAssociateAgreement, type InsertBusinessAssociateAgreement,
   userMfaConfig, type UserMfaConfig, type InsertUserMfaConfig,
+  mediaPipelines, type MediaPipeline, type InsertMediaPipeline,
+  pipelineSteps, type PipelineStep, type InsertPipelineStep,
+  pipelineArtifacts, type PipelineArtifact, type InsertPipelineArtifact,
   authRateLimits, type AuthRateLimit, type InsertAuthRateLimit,
   aiGenerations, type AiGeneration, type InsertAiGeneration,
   aiTemplates, type AiTemplate, type InsertAiTemplate,
@@ -2239,6 +2242,110 @@ export class DatabaseStorage implements IStorage {
     await db.update(aiJobs)
       .set({ progress: Math.min(100, Math.max(0, progress)) })
       .where(eq(aiJobs.id, id));
+  }
+
+  // ============================================================================
+  // MEDIA PIPELINE STORAGE
+  // ============================================================================
+
+  async createMediaPipeline(pipeline: InsertMediaPipeline): Promise<MediaPipeline> {
+    const [created] = await db.insert(mediaPipelines).values(pipeline).returning();
+    return created;
+  }
+
+  async getMediaPipeline(id: number): Promise<MediaPipeline | undefined> {
+    const [pipeline] = await db.select().from(mediaPipelines).where(eq(mediaPipelines.id, id));
+    return pipeline || undefined;
+  }
+
+  async getUserPipelines(userId: number): Promise<MediaPipeline[]> {
+    return db.select().from(mediaPipelines)
+      .where(eq(mediaPipelines.userId, userId))
+      .orderBy(desc(mediaPipelines.createdAt));
+  }
+
+  async updatePipelineStatus(id: number, status: "PLANNING" | "QUEUED" | "RUNNING" | "RENDERING" | "DONE" | "FAILED", errorMessage?: string): Promise<void> {
+    const updates: any = { status };
+    if (status === "RUNNING") updates.startedAt = new Date();
+    if (status === "DONE" || status === "FAILED") updates.completedAt = new Date();
+    if (errorMessage) updates.errorMessage = errorMessage;
+    await db.update(mediaPipelines).set(updates).where(eq(mediaPipelines.id, id));
+  }
+
+  async updatePipelineProgress(id: number, completedSteps: number, progress: number): Promise<void> {
+    await db.update(mediaPipelines)
+      .set({ completedSteps, progress: Math.min(100, Math.max(0, progress)) })
+      .where(eq(mediaPipelines.id, id));
+  }
+
+  async updatePipelineFinalArtifact(id: number, artifactUrl: string, artifactType: string): Promise<void> {
+    await db.update(mediaPipelines)
+      .set({ finalArtifactUrl: artifactUrl, finalArtifactType: artifactType })
+      .where(eq(mediaPipelines.id, id));
+  }
+
+  // Pipeline Steps
+  async createPipelineStep(step: InsertPipelineStep): Promise<PipelineStep> {
+    const [created] = await db.insert(pipelineSteps).values(step).returning();
+    return created;
+  }
+
+  async getPipelineSteps(pipelineId: number): Promise<PipelineStep[]> {
+    return db.select().from(pipelineSteps)
+      .where(eq(pipelineSteps.pipelineId, pipelineId))
+      .orderBy(pipelineSteps.stepOrder);
+  }
+
+  async updatePipelineStepStatus(id: number, status: "PENDING" | "RUNNING" | "DONE" | "FAILED" | "SKIPPED"): Promise<void> {
+    const updates: any = { status };
+    if (status === "RUNNING") updates.startedAt = new Date();
+    if (status === "DONE" || status === "FAILED" || status === "SKIPPED") updates.completedAt = new Date();
+    await db.update(pipelineSteps).set(updates).where(eq(pipelineSteps.id, id));
+  }
+
+  async updatePipelineStepProgress(id: number, progress: number): Promise<void> {
+    await db.update(pipelineSteps)
+      .set({ progress: Math.min(100, Math.max(0, progress)) })
+      .where(eq(pipelineSteps.id, id));
+  }
+
+  async updatePipelineStepComplete(id: number, outputData?: Record<string, any>, artifactUrls?: string[]): Promise<void> {
+    await db.update(pipelineSteps).set({
+      status: "DONE",
+      progress: 100,
+      completedAt: new Date(),
+      outputData: outputData ? JSON.stringify(outputData) : null,
+      artifactUrls: artifactUrls ? JSON.stringify(artifactUrls) : null,
+    }).where(eq(pipelineSteps.id, id));
+  }
+
+  async updatePipelineStepFailed(id: number, errorMessage: string): Promise<void> {
+    await db.update(pipelineSteps).set({
+      status: "FAILED",
+      completedAt: new Date(),
+      errorMessage,
+    }).where(eq(pipelineSteps.id, id));
+  }
+
+  // Pipeline Artifacts
+  async createPipelineArtifact(artifact: InsertPipelineArtifact): Promise<PipelineArtifact> {
+    const [created] = await db.insert(pipelineArtifacts).values(artifact).returning();
+    return created;
+  }
+
+  async getPipelineArtifacts(pipelineId: number): Promise<PipelineArtifact[]> {
+    return db.select().from(pipelineArtifacts)
+      .where(eq(pipelineArtifacts.pipelineId, pipelineId))
+      .orderBy(pipelineArtifacts.createdAt);
+  }
+
+  async getFinalArtifact(pipelineId: number): Promise<PipelineArtifact | undefined> {
+    const [artifact] = await db.select().from(pipelineArtifacts)
+      .where(and(
+        eq(pipelineArtifacts.pipelineId, pipelineId),
+        eq(pipelineArtifacts.isFinal, true)
+      ));
+    return artifact || undefined;
   }
 }
 

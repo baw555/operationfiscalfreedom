@@ -7639,5 +7639,73 @@ Create a detailed scene plan with timing. Return JSON:
     }
   });
 
+  // ============================================================================
+  // MEDIA PIPELINE ORCHESTRATION API
+  // ============================================================================
+
+  // Create a new pipeline
+  app.post("/api/pipelines", async (req, res) => {
+    try {
+      const { userIntent, userId, sessionId, uploadedFiles } = req.body;
+      
+      if (!userIntent || typeof userIntent !== "string") {
+        return res.status(400).json({ message: "userIntent is required" });
+      }
+
+      const { createAndExecutePipeline } = await import("./mediaOrchestrator");
+      const pipeline = await createAndExecutePipeline(userIntent, userId, sessionId, uploadedFiles);
+      
+      res.json({
+        success: true,
+        pipelineId: pipeline.id,
+        status: pipeline.status,
+        message: "Pipeline created and executing",
+      });
+    } catch (error) {
+      console.error("Error creating pipeline:", error);
+      res.status(500).json({ message: "Failed to create pipeline" });
+    }
+  });
+
+  // Get pipeline status with steps and artifacts
+  app.get("/api/pipelines/:id", async (req, res) => {
+    try {
+      const pipelineId = parseInt(req.params.id);
+      if (isNaN(pipelineId)) {
+        return res.status(400).json({ message: "Invalid pipeline ID" });
+      }
+
+      const { getPipelineStatus } = await import("./mediaOrchestrator");
+      const status = await getPipelineStatus(pipelineId);
+      
+      if (!status) {
+        return res.status(404).json({ message: "Pipeline not found" });
+      }
+      
+      res.json(status);
+    } catch (error) {
+      console.error("Error getting pipeline status:", error);
+      res.status(500).json({ message: "Failed to get pipeline status" });
+    }
+  });
+
+  // Get all pipelines for a user
+  app.get("/api/users/:userId/pipelines", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const { getUserPipelines } = await import("./mediaOrchestrator");
+      const pipelines = await getUserPipelines(userId);
+      
+      res.json({ pipelines });
+    } catch (error) {
+      console.error("Error getting user pipelines:", error);
+      res.status(500).json({ message: "Failed to get user pipelines" });
+    }
+  });
+
   return httpServer;
 }
