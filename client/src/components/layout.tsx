@@ -248,13 +248,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Free Vet Software - AI Suite Dropdown */}
+            {/* Nav Perks - AI Suite Dropdown */}
             <div className="relative" onMouseEnter={() => setFreeVetSoftwareOpen(true)} onMouseLeave={() => setFreeVetSoftwareOpen(false)}>
               <button className={cn(
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
                   location === "/operator-ai" || location === "/naval-intelligence" || location === "/document-signature" ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )} data-testid="nav-free-vet-software">
-                  Free Vet Software <ChevronDown className={cn("w-4 h-4 transition-transform", freeVetSoftwareOpen && "rotate-180")} />
+                  Nav Perks <ChevronDown className={cn("w-4 h-4 transition-transform", freeVetSoftwareOpen && "rotate-180")} />
               </button>
               {freeVetSoftwareOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -426,7 +426,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <div className="h-px bg-brand-navy/20 my-2" />
 
-            {/* Mobile Free Vet Software Dropdown */}
+            {/* Mobile Nav Perks Dropdown */}
             <div className={cn("border-l-4", mobileFreeVetSoftwareOpen ? "border-blue-500" : "border-transparent")}>
               <button 
                 className={cn(
@@ -436,7 +436,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 onClick={() => setMobileFreeVetSoftwareOpen(!mobileFreeVetSoftwareOpen)}
                 data-testid="nav-mobile-free-vet-software"
               >
-                Free Vet Software <ChevronDown className={cn("w-4 h-4 transition-transform", mobileFreeVetSoftwareOpen && "rotate-180")} />
+                Nav Perks <ChevronDown className={cn("w-4 h-4 transition-transform", mobileFreeVetSoftwareOpen && "rotate-180")} />
               </button>
               {mobileFreeVetSoftwareOpen && (
                 <div className="pl-4 pb-2 bg-gradient-to-br from-blue-900 to-blue-950 rounded">
