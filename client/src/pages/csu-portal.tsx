@@ -1077,7 +1077,7 @@ interface IpGeoData {
   asn: string;
 }
 
-// EnvelopesPanel - DocuSign-like multi-recipient signing with order
+// EnvelopesPanel - RANGER multi-recipient signing with order
 function EnvelopesPanel({ templates }: { templates: CsuContractTemplate[] }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();

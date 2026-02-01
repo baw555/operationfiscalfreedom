@@ -180,7 +180,7 @@ const NavalIntelligence = lazy(() => import("@/pages/naval-intelligence"));
 // Operator AI - Comprehensive AI Assistant
 const OperatorAI = lazy(() => import("@/pages/operator-ai"));
 
-// Document Signature - Enterprise E-Signature Platform
+// RANGER: Document Signature - Enterprise E-Signature Platform
 const DocumentSignature = lazy(() => import("@/pages/document-signature"));
 
 function Router() {

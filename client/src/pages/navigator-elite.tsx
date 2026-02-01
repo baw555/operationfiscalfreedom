@@ -84,7 +84,7 @@ const portalLinks: PortalLink[] = [
     name: "CSU Contract Platform",
     route: "/csu-portal",
     icon: <FileSignature className="w-8 h-8" />,
-    description: "DocuSign-style contract management with AI analysis",
+    description: "RANGER-style contract management with AI analysis",
     status: "operational",
     features: ["AI Document Analysis", "Envelope System", "Batch Sending", "Audit Trail", "E-Signatures"],
     category: "document"

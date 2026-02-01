@@ -79,7 +79,7 @@ const finOpsSubItems = [
 const freeVetSoftwareSubItems = [
   { name: "Operator AI", href: "/operator-ai" },
   { name: "Video & Music Gen", href: "/naval-intelligence" },
-  { name: "Document Signature", href: "/document-signature" },
+  { name: "RANGER: Document Signature", href: "/document-signature" },
 ];
 
 const loginSubItems = [
