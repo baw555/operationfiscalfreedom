@@ -1,0 +1,91 @@
+STAGE 1 — CASE SHARING (Vendor access, done safely)
+Why this comes first
+
+If sharing is wrong, everything else becomes a liability.
+We build permissions before features.
+
+1.1 Data model (already approved, restated cleanly)
+
+You already migrated this, but here’s the mental model:
+
+Case → owned by veteran
+
+CaseShare → explicit permission grant
+
+Vendors do not log in as users
+
+Access is email-based + scoped per case
+
+1.2 Backend: invite vendor endpoint
+
+Create
+src/app/api/case/share/route.ts
+
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(req: Request) {
+  const { caseId, email, role } = await req.json();
+
+  if (!["view", "comment", "upload"].includes(role)) {
+    return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+  }
+
+  const share = await prisma.caseShare.upsert({
+    where: {
+      caseId_email: { caseId, email },
+    },
+    update: { role },
+    create: {
+      caseId,
+      email,
+      role,
+    },
+  });
+
+  return NextResponse.json({ ok: true, share });
+}
+
+
+Why this is correct
+
+Idempotent (re-invite just updates role)
+
+No vendor account needed
+
+Email becomes the identity boundary
+
+1.3 Frontend: simple share UI
+
+src/app/case/[id]/share.tsx
+
+"use client";
+
+import { useState } from "react";
+
+export default function ShareCase({ caseId }: { caseId: string }) {
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("view");
+
+  async function invite() {
+    await fetch("/api/case/share", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ caseId, email, role }),
+    });
+    alert("Access granted");
+  }
+
+  return (
+    <div>
+      <h3>Share this case</h3>
+      <input placeholder="vendor@email.com" onChange={e => setEmail(e.target.value)} />
+      <select onChange={e => setRole(e.target.value)}>
+        <option value="view">View only</option>
+        <option value="comment">Comment</option>
+        <option value="upload">Upload evidence</option>
+      </select>
+      <button onClick={invite}>Invite</button>
+    </div>
+  );
+}

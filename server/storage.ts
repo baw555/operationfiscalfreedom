@@ -463,6 +463,12 @@ export interface IStorage {
   // Claims Navigator - Files
   getClaimFilesByCaseId(caseId: number): Promise<ClaimFile[]>;
   createClaimFile(data: InsertClaimFile): Promise<ClaimFile>;
+
+  // Claims Navigator - Case Shares
+  getCaseSharesByCaseId(caseId: number): Promise<CaseShare[]>;
+  getCaseShareByEmail(caseId: number, email: string): Promise<CaseShare | undefined>;
+  upsertCaseShare(data: InsertCaseShare): Promise<CaseShare>;
+  deleteCaseShare(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2471,6 +2477,36 @@ export class DatabaseStorage implements IStorage {
   async createClaimFile(data: InsertClaimFile): Promise<ClaimFile> {
     const [created] = await db.insert(claimFiles).values(data).returning();
     return created;
+  }
+
+  // Claims Navigator - Case Shares
+  async getCaseSharesByCaseId(caseId: number): Promise<CaseShare[]> {
+    return db.select().from(caseShares)
+      .where(eq(caseShares.caseId, caseId))
+      .orderBy(desc(caseShares.createdAt));
+  }
+
+  async getCaseShareByEmail(caseId: number, email: string): Promise<CaseShare | undefined> {
+    const [share] = await db.select().from(caseShares)
+      .where(and(eq(caseShares.caseId, caseId), eq(caseShares.email, email)));
+    return share;
+  }
+
+  async upsertCaseShare(data: InsertCaseShare): Promise<CaseShare> {
+    const existing = await this.getCaseShareByEmail(data.caseId, data.email);
+    if (existing) {
+      const [updated] = await db.update(caseShares)
+        .set({ role: data.role })
+        .where(eq(caseShares.id, existing.id))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(caseShares).values(data).returning();
+    return created;
+  }
+
+  async deleteCaseShare(id: number): Promise<void> {
+    await db.delete(caseShares).where(eq(caseShares.id, id));
   }
 }
 

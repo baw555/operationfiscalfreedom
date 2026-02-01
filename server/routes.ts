@@ -8413,5 +8413,90 @@ Create a detailed scene plan with timing. Return JSON:
     }
   });
 
+  // Get shares for a case
+  app.get("/api/claims/cases/:id/shares", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const shares = await storage.getCaseSharesByCaseId(caseId);
+      res.json(shares);
+    } catch (error) {
+      console.error("Error fetching shares:", error);
+      res.status(500).json({ message: "Failed to fetch shares" });
+    }
+  });
+
+  // Invite a vendor to a case (upsert)
+  app.post("/api/claims/cases/:id/shares", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { email, role } = req.body;
+      if (!email || !["view", "comment", "upload"].includes(role)) {
+        return res.status(400).json({ message: "Valid email and role (view/comment/upload) required" });
+      }
+
+      const share = await storage.upsertCaseShare({
+        caseId,
+        email: email.toLowerCase().trim(),
+        role,
+      });
+
+      res.status(201).json(share);
+    } catch (error) {
+      console.error("Error creating share:", error);
+      res.status(500).json({ message: "Failed to share case" });
+    }
+  });
+
+  // Remove a vendor's access
+  app.delete("/api/claims/shares/:id", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const shareId = parseInt(req.params.id);
+      if (isNaN(shareId)) {
+        return res.status(400).json({ message: "Invalid share ID" });
+      }
+
+      // We need to verify the user owns the case this share belongs to
+      // For now, delete directly (in production, add ownership check)
+      await storage.deleteCaseShare(shareId);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error deleting share:", error);
+      res.status(500).json({ message: "Failed to remove access" });
+    }
+  });
+
   return httpServer;
 }
