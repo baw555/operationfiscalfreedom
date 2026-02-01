@@ -767,112 +767,109 @@ export default function Insurance() {
         </div>
       </section>
 
-      <section className="py-12 bg-slate-900 text-white">
+      <section className="py-16 bg-slate-900 text-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-display mb-3">Navigator Insurance Partner Network</h2>
-            <p className="text-gray-300 max-w-2xl mx-auto">
-              We work directly with 6 of America's highest-rated insurance carriers - eliminating middleman costs and passing the savings directly to you.
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display mb-4 tracking-wide">
+              WE ARE DIRECT TO <span className="text-amber-400">70+ CARRIERS</span>, INSURERS & REINSURERS
+            </h2>
+            <p className="text-2xl sm:text-3xl font-display text-amber-400 mb-6">
+              SAVE ON ANY INSURANCE
+            </p>
+            <p className="text-gray-400 max-w-3xl mx-auto">
+              Navigator Insurance connects you directly with America's highest-rated insurance carriers - eliminating middleman costs and passing the savings directly to you.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border-2 border-amber-500">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-amber-400">Sun Life Financial</h3>
-                <span className="bg-amber-500 text-slate-900 text-xs font-bold px-2 py-1 rounded">#1 AUM</span>
-              </div>
-              <div className="text-sm space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
+          <div className="overflow-x-auto pb-4 -mx-4 px-4">
+            <div className="flex gap-4 min-w-max">
+              <div className="w-64 flex-shrink-0 bg-gradient-to-br from-amber-500/20 to-slate-800 rounded-xl p-5 border-2 border-amber-500">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-lg text-amber-400">SUN LIFE</h3>
+                  <span className="bg-amber-500 text-slate-900 text-xs font-bold px-2 py-1 rounded">#1 AUM</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <p><span className="text-gray-400">Rating:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
+                  <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$1.54T</span></p>
                   <p><span className="text-gray-400">Est:</span> 1865</p>
                 </div>
-                <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$1.54 Trillion</span></p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">159+ years of financial strength. Leading dental, vision & life coverage.</p>
               </div>
-            </div>
-            
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-amber-400">Principal Financial</h3>
-                <span className="bg-white/20 text-white text-xs font-bold px-2 py-1 rounded">#2 AUM</span>
-              </div>
-              <div className="text-sm space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
-                  <p><span className="text-gray-400">S&P:</span> A+</p>
+              
+              <div className="w-64 flex-shrink-0 bg-gradient-to-br from-slate-700/50 to-slate-800 rounded-xl p-5 border border-white/20">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-lg text-amber-400">PRINCIPAL</h3>
+                  <span className="bg-white/20 text-white text-xs font-bold px-2 py-1 rounded">#2 AUM</span>
                 </div>
-                <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$781 Billion</span></p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Fortune 500 company. Serves 68M+ customers globally.</p>
+                <div className="text-sm space-y-1">
+                  <p><span className="text-gray-400">Rating:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
+                  <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$781B</span></p>
+                  <p><span className="text-gray-400">Fortune 500</span></p>
+                </div>
               </div>
-            </div>
-            
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-amber-400">Symetra Financial</h3>
-                <span className="bg-blue-500/30 text-blue-200 text-xs font-bold px-2 py-1 rounded">Low Complaints</span>
-              </div>
-              <div className="text-sm space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A Excellent</span></p>
+              
+              <div className="w-64 flex-shrink-0 bg-gradient-to-br from-slate-700/50 to-slate-800 rounded-xl p-5 border border-white/20">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-lg text-amber-400">SYMETRA</h3>
+                  <span className="bg-blue-500/30 text-blue-200 text-xs font-bold px-2 py-1 rounded">LOW COMPLAINTS</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <p><span className="text-gray-400">Rating:</span> <span className="text-green-400 font-semibold">A Excellent</span></p>
+                  <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$68.4B</span></p>
                   <p><span className="text-gray-400">Est:</span> 1957</p>
                 </div>
-                <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$68.4 Billion</span></p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Backed by Sumitomo Life (Japan). Fast 18-min approvals.</p>
               </div>
-            </div>
-            
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-amber-400">The Hartford</h3>
-                <span className="bg-red-500/30 text-red-200 text-xs font-bold px-2 py-1 rounded">Oldest US Insurer</span>
-              </div>
-              <div className="text-sm space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
-                  <p><span className="text-gray-400">S&P:</span> A+</p>
+              
+              <div className="w-64 flex-shrink-0 bg-gradient-to-br from-slate-700/50 to-slate-800 rounded-xl p-5 border border-white/20">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-lg text-amber-400">THE HARTFORD</h3>
+                  <span className="bg-red-500/30 text-red-200 text-xs font-bold px-2 py-1 rounded">OLDEST US</span>
                 </div>
-                <p><span className="text-gray-400">Revenue:</span> <span className="text-white font-bold">$26.5 Billion</span></p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">America's oldest insurer - 215+ years. #1 combined disability provider.</p>
-              </div>
-            </div>
-            
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-amber-400">UNUM Group</h3>
-                <span className="bg-purple-500/30 text-purple-200 text-xs font-bold px-2 py-1 rounded">Disability Leader</span>
-              </div>
-              <div className="text-sm space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A Excellent</span></p>
-                  <p><span className="text-gray-400">Fitch:</span> A Stable</p>
+                <div className="text-sm space-y-1">
+                  <p><span className="text-gray-400">Rating:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
+                  <p><span className="text-gray-400">Revenue:</span> <span className="text-white font-bold">$26.5B</span></p>
+                  <p><span className="text-gray-400">Est:</span> 1810</p>
                 </div>
-                <p><span className="text-gray-400">Revenue:</span> <span className="text-white font-bold">$12.9 Billion</span></p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">3rd largest US disability insurer. 38M+ beneficiaries.</p>
               </div>
-            </div>
-            
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-amber-400">The Standard</h3>
-                <span className="bg-green-500/30 text-green-200 text-xs font-bold px-2 py-1 rounded">95+ Yr A Rating</span>
+              
+              <div className="w-64 flex-shrink-0 bg-gradient-to-br from-slate-700/50 to-slate-800 rounded-xl p-5 border border-white/20">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-lg text-amber-400">UNUM GROUP</h3>
+                  <span className="bg-purple-500/30 text-purple-200 text-xs font-bold px-2 py-1 rounded">DISABILITY</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <p><span className="text-gray-400">Rating:</span> <span className="text-green-400 font-semibold">A Excellent</span></p>
+                  <p><span className="text-gray-400">Revenue:</span> <span className="text-white font-bold">$12.9B</span></p>
+                  <p><span className="text-gray-400">Fortune 500</span></p>
+                </div>
               </div>
-              <div className="text-sm space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A Excellent</span></p>
+              
+              <div className="w-64 flex-shrink-0 bg-gradient-to-br from-slate-700/50 to-slate-800 rounded-xl p-5 border border-white/20">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-lg text-amber-400">THE STANDARD</h3>
+                  <span className="bg-green-500/30 text-green-200 text-xs font-bold px-2 py-1 rounded">95+ YR A</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <p><span className="text-gray-400">Rating:</span> <span className="text-green-400 font-semibold">A Excellent</span></p>
+                  <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$25B+</span></p>
                   <p><span className="text-gray-400">Est:</span> 1906</p>
                 </div>
-                <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$25+ Billion</span></p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Only 8 insurers have held A rating for 95+ consecutive years.</p>
+              </div>
+              
+              <div className="w-64 flex-shrink-0 bg-gradient-to-br from-amber-500/10 to-slate-800 rounded-xl p-5 border border-amber-500/30 flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-4xl font-bold text-amber-400 mb-2">64+</p>
+                  <p className="text-sm text-gray-300 font-medium">MORE CARRIERS</p>
+                  <p className="text-xs text-gray-400 mt-1">All A-Rated</p>
+                </div>
               </div>
             </div>
           </div>
           
           <div className="text-center mt-10">
-            <div className="inline-flex items-center gap-3 bg-white/5 rounded-full px-6 py-3">
-              <span className="text-amber-400 font-bold">Navigator Insurance</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-300 text-sm">Provider-Direct Model = 20-40% Savings</span>
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500/20 to-transparent border border-amber-500/30 rounded-full px-8 py-4">
+              <span className="text-amber-400 font-bold text-lg">NAVIGATOR INSURANCE</span>
+              <span className="text-gray-500">|</span>
+              <span className="text-white font-medium">PROVIDER-DIRECT MODEL = 20-40% SAVINGS</span>
             </div>
           </div>
         </div>
