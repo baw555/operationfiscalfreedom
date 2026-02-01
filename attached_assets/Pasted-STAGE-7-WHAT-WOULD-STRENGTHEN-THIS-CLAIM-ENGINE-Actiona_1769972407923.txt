@@ -1,0 +1,200 @@
+STAGE 7 — “WHAT WOULD STRENGTHEN THIS CLAIM?” ENGINE
+
+(Actionable guidance without legal advice)
+
+Purpose
+
+Don’t say “your claim is weak.”
+Say “here’s what would make it stronger.”
+
+7.1 Rule-based suggestions (explainable)
+
+src/lib/strengthSuggestions.ts
+
+export function suggestImprovements(heatmap: any[]) {
+  const suggestions: string[] = [];
+
+  for (const h of heatmap) {
+    if (h.avgStrength < 3 && h.type === "medical") {
+      suggestions.push(
+        `Consider obtaining updated medical records or treatment notes for ${h.condition}.`
+      );
+    }
+
+    if (h.avgStrength < 3 && h.type === "nexus") {
+      suggestions.push(
+        `A medical opinion connecting ${h.condition} to service could materially strengthen this claim.`
+      );
+    }
+
+    if (h.type === "lay" && h.avgStrength < 3) {
+      suggestions.push(
+        `Additional personal or buddy statements describing functional impact of ${h.condition} may help.`
+      );
+    }
+  }
+
+  return [...new Set(suggestions)];
+}
+
+7.2 UX placement
+
+Put this directly below the heatmap, not buried.
+
+Veterans don’t scroll.
+They scan.
+
+STAGE 8 — VENDOR SCORECARDS
+
+(Quietly enforces quality without confrontation)
+
+Purpose
+
+Let veterans see who actually helps, not who talks.
+
+8.1 Metrics we track
+
+From earlier:
+
+uploads
+
+notes
+
+response time
+
+evidence strength delta
+
+8.2 Backend: scorecard calculator
+
+src/lib/vendorScorecard.ts
+
+export function buildVendorScorecard(actions: any[]) {
+  const uploads = actions.filter(a => a.type === "upload").length;
+  const notes = actions.filter(a => a.type === "note").length;
+  const avgResponse =
+    actions.length
+      ? Math.round(
+          actions.reduce((a,b)=>a+b.responseTimeHours,0)/actions.length
+        )
+      : null;
+
+  return {
+    uploads,
+    notes,
+    avgResponseHours: avgResponse,
+    score:
+      uploads * 2 +
+      notes +
+      (avgResponse !== null ? Math.max(10 - avgResponse, 0) : 0)
+  };
+}
+
+8.3 How this is used
+
+Visible to veteran
+
+Not gamified
+
+Later: drives referrals + monetization
+
+This is how you regulate vendors without policing them.
+
+STAGE 9 — VA LANE CONFIDENCE PERCENTAGE
+
+(Decision support, not decision making)
+
+Purpose
+
+Veterans want to know:
+
+“How confident is this recommendation?”
+
+9.1 Confidence model (transparent)
+
+src/lib/laneConfidence.ts
+
+export function laneConfidence({
+  strengthAvg,
+  completenessPct,
+  hasNewEvidence
+}: {
+  strengthAvg: number;
+  completenessPct: number;
+  hasNewEvidence: boolean;
+}) {
+  let confidence = 50;
+
+  confidence += (strengthAvg - 3) * 15;
+  confidence += (completenessPct - 70) * 0.5;
+  if (hasNewEvidence) confidence += 10;
+
+  return Math.max(10, Math.min(95, Math.round(confidence)));
+}
+
+9.2 Display pattern
+Recommended Lane: Supplemental Claim
+Confidence: 82%
+
+Why:
+• New evidence present
+• Medical + nexus evidence above average
+• No missing required categories
+
+
+This builds trust without liability.
+
+STAGE 10 — AUTO-GENERATED VA.GOV UPLOAD CHECKLIST
+
+(Bridges digital prep → government submission)
+
+Purpose
+
+Most veterans fail after preparation—at upload time.
+
+You close that gap.
+
+10.1 Checklist generator
+
+src/lib/vaUploadChecklist.ts
+
+export function buildVAUploadChecklist(files: any[]) {
+  return files.map((f, i) => ({
+    step: i + 1,
+    label: `Upload: ${f.filename}`,
+    note: `Select document type: ${f.evidenceType}`
+  }));
+}
+
+10.2 Output example (what user sees)
+VA.gov Upload Checklist
+
+☐ Upload “MRI_Back_2024.pdf” – Medical Evidence
+☐ Upload “Dr_Smith_Nexus_Letter.pdf” – Nexus Opinion
+☐ Upload “Personal_Statement.pdf” – Lay Evidence
+☐ Confirm all uploads before submission
+
+
+You are now closing the loop.
+
+HOW ALL OF THIS FITS TOGETHER
+
+By the end of Stage 10, your platform does something rare:
+
+Shows what exists
+
+Shows what’s missing
+
+Shows how strong it is
+
+Shows what would help
+
+Shows who helped
+
+Shows what to do next
+
+Shows how confident that next step is
+
+Hands them a submission-ready checklist
+
+That is not a tool.
+That is a navigation system.
