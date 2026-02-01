@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { Link } from "wouter";
-import { Shield, MessageSquare, Video, FileSignature, CheckCircle, Star, Lock, Award, Users, Zap, DollarSign, Brain, Mic, Film, Heart, ChevronRight, BadgeCheck, ShieldCheck, Clock, Globe, ChevronLeft, ArrowLeft } from "lucide-react";
+import { Shield, MessageSquare, Video, FileSignature, CheckCircle, Star, Lock, Award, Users, Zap, DollarSign, Brain, Mic, Film, Heart, ChevronRight, BadgeCheck, ShieldCheck, Clock, Globe, ChevronLeft, ArrowLeft, ClipboardList, Target, TrendingUp, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import operatorAiScreenshot from "@/assets/images/operator-ai-screenshot.png";
@@ -13,6 +13,9 @@ import rangerScreenshot from "@/assets/images/ranger-screenshot.png";
 import rangerScreenshot2 from "@/assets/images/ranger-screenshot-2.png";
 import rangerScreenshot3 from "@/assets/images/ranger-screenshot-3.png";
 import rangerScreenshot4 from "@/assets/images/ranger-screenshot-4.png";
+import claimsNavigatorScreenshot from "@/assets/images/claims-navigator-screenshot.png";
+import claimsNavigatorScreenshot2 from "@/assets/images/claims-navigator-screenshot-2.png";
+import claimsNavigatorScreenshot3 from "@/assets/images/claims-navigator-screenshot-3.png";
 
 function ImageSlideshow({ images, alt, autoPlay = true }: { images: string[], alt: string, autoPlay?: boolean }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -70,6 +73,7 @@ function ImageSlideshow({ images, alt, autoPlay = true }: { images: string[], al
 const rangerImages = [rangerScreenshot, rangerScreenshot2, rangerScreenshot3, rangerScreenshot4];
 const operatorAiImages = [operatorAiScreenshot, operatorAiScreenshot2, operatorAiScreenshot3];
 const navalIntelligenceImages = [navalIntelligenceScreenshot, navalIntelligenceScreenshot2, navalIntelligenceScreenshot3];
+const claimsNavigatorImages = [claimsNavigatorScreenshot, claimsNavigatorScreenshot2, claimsNavigatorScreenshot3];
 
 export default function AboutNavPerks() {
   return (
@@ -352,6 +356,52 @@ export default function AboutNavPerks() {
                 </div>
               </div>
             </div>
+
+            {/* VA & SSDI Navigation Tool */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="grid lg:grid-cols-2 gap-0">
+                <div className="order-2 lg:order-1 p-8 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-4">
+                    <ClipboardList className="w-8 h-8 text-red-600" />
+                    <h3 className="text-2xl font-semibold text-slate-800">VA & SSDI Navigation Tool</h3>
+                  </div>
+                  <p className="text-slate-600 mb-6">
+                    Your comprehensive claims management system. Build your case with personalized tasks, evidence tracking, and intelligent decision support.
+                  </p>
+                  <ul className="space-y-3 mb-6">
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      4-Step Personalized Wizard
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      Evidence Strength Analysis
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      VA Lane Recommendations
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      Vendor Collaboration Portal
+                    </li>
+                  </ul>
+                  <Link href="/claims-navigator">
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-medium h-12">
+                      Start Your Claim Journey
+                    </Button>
+                  </Link>
+                </div>
+                <div className="order-1 lg:order-2 relative">
+                  <div className="absolute top-4 right-4 z-20">
+                    <div className="bg-red-600/90 text-white text-xs font-medium px-3 py-1 rounded-full">
+                      10-Stage Intelligence
+                    </div>
+                  </div>
+                  <ImageSlideshow images={claimsNavigatorImages} alt="VA & SSDI Navigation Tool Dashboard" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -476,6 +526,78 @@ export default function AboutNavPerks() {
                   alt="Naval Intelligence Interface" 
                   className="rounded-xl shadow-2xl border border-slate-200"
                 />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Deep Dive: VA & SSDI Navigation Tool */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1">
+                <img 
+                  src={claimsNavigatorScreenshot} 
+                  alt="VA & SSDI Navigation Tool Interface" 
+                  className="rounded-xl shadow-2xl border border-slate-200"
+                />
+              </div>
+              <div className="order-1 lg:order-2">
+                <div className="inline-flex items-center gap-2 bg-red-50 rounded-full px-4 py-2 mb-6">
+                  <ClipboardList className="w-4 h-4 text-red-600" />
+                  <span className="text-red-600 text-sm font-medium">Claims Intelligence</span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-semibold text-slate-800 mb-6">
+                  VA & SSDI Navigation Tool: Your Claims Command Center
+                </h2>
+                <p className="text-slate-600 text-lg mb-6 leading-relaxed">
+                  Built by veterans for veterans, this comprehensive claims management system guides you through every step of your VA Disability or SSDI claim with intelligent task management and evidence analysis.
+                </p>
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                      <Target className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-800 mb-1">Personalized 4-Step Wizard</h4>
+                      <p className="text-slate-500 text-sm">Answer questions about your service history, conditions, and goals. The system generates a custom task list tailored to your unique claim.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                      <TrendingUp className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-800 mb-1">10-Stage Evidence Intelligence</h4>
+                      <p className="text-slate-500 text-sm">From evidence heatmaps to strength suggestions, vendor scorecards, and VA lane confidence—our AI analyzes every aspect of your case.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                      <FileCheck className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-800 mb-1">VA.gov Upload Checklist</h4>
+                      <p className="text-slate-500 text-sm">Step-by-step submission guidance with required, recommended, and optional items. Download your checklist and submit with confidence.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                      <Users className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-800 mb-1">Vendor Collaboration Portal</h4>
+                      <p className="text-slate-500 text-sm">Share your case securely with VSOs, attorneys, and medical providers. Track vendor performance with scorecards and ratings.</p>
+                    </div>
+                  </div>
+                </div>
+                <Link href="/claims-navigator">
+                  <Button className="bg-red-600 hover:bg-red-700 text-white">
+                    Start Your Claim <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
