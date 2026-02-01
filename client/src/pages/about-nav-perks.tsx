@@ -2,6 +2,9 @@ import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 import { Shield, MessageSquare, Video, FileSignature, CheckCircle, Star, Lock, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import operatorAiScreenshot from "@/assets/images/operator-ai-screenshot.png";
+import navalIntelligenceScreenshot from "@/assets/images/naval-intelligence-screenshot.png";
+import rangerScreenshot from "@/assets/images/ranger-screenshot.png";
 
 export default function AboutNavPerks() {
   return (
@@ -47,15 +50,14 @@ export default function AboutNavPerks() {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Operator AI Card */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group hover:shadow-lg transition-all duration-300">
-              <div className="h-48 bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <MessageSquare className="w-16 h-16 text-blue-400 mx-auto mb-3" strokeWidth={1.5} />
-                    <div className="text-white font-medium">AI Chat Interface</div>
-                  </div>
-                </div>
-                <div className="absolute top-4 right-4 bg-blue-500/20 border border-blue-400/30 rounded-full px-3 py-1">
-                  <span className="text-blue-400 text-xs font-medium">GPT-4 Powered</span>
+              <div className="h-48 relative overflow-hidden">
+                <img 
+                  src={operatorAiScreenshot} 
+                  alt="Operator AI Dashboard" 
+                  className="w-full h-full object-cover object-top"
+                />
+                <div className="absolute top-4 right-4 bg-blue-500/90 border border-blue-400/30 rounded-full px-3 py-1">
+                  <span className="text-white text-xs font-medium">GPT-4 Powered</span>
                 </div>
               </div>
               <div className="p-6">
@@ -87,15 +89,14 @@ export default function AboutNavPerks() {
 
             {/* Video & Music Gen Card */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group hover:shadow-lg transition-all duration-300">
-              <div className="h-48 bg-gradient-to-br from-purple-900 to-slate-900 relative overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <Video className="w-16 h-16 text-purple-400 mx-auto mb-3" strokeWidth={1.5} />
-                    <div className="text-white font-medium">Media Pipeline</div>
-                  </div>
-                </div>
-                <div className="absolute top-4 right-4 bg-purple-500/20 border border-purple-400/30 rounded-full px-3 py-1">
-                  <span className="text-purple-400 text-xs font-medium">AI Generation</span>
+              <div className="h-48 relative overflow-hidden">
+                <img 
+                  src={navalIntelligenceScreenshot} 
+                  alt="Video & Music Gen Dashboard" 
+                  className="w-full h-full object-cover object-top"
+                />
+                <div className="absolute top-4 right-4 bg-purple-500/90 border border-purple-400/30 rounded-full px-3 py-1">
+                  <span className="text-white text-xs font-medium">AI Generation</span>
                 </div>
               </div>
               <div className="p-6">
@@ -132,15 +133,14 @@ export default function AboutNavPerks() {
                   Featured
                 </div>
               </div>
-              <div className="h-48 bg-gradient-to-br from-amber-900 to-slate-900 relative overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <FileSignature className="w-16 h-16 text-amber-400 mx-auto mb-3" strokeWidth={1.5} />
-                    <div className="text-white font-medium">E-Signature Platform</div>
-                  </div>
-                </div>
-                <div className="absolute top-4 right-4 bg-green-500/20 border border-green-400/30 rounded-full px-3 py-1">
-                  <span className="text-green-400 text-xs font-medium">HIPAA Compliant</span>
+              <div className="h-48 relative overflow-hidden">
+                <img 
+                  src={rangerScreenshot} 
+                  alt="RANGER E-Signature Dashboard" 
+                  className="w-full h-full object-cover object-top"
+                />
+                <div className="absolute top-4 right-4 bg-green-500/90 border border-green-400/30 rounded-full px-3 py-1">
+                  <span className="text-white text-xs font-medium">HIPAA Compliant</span>
                 </div>
               </div>
               <div className="p-6">
