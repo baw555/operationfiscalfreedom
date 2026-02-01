@@ -46,6 +46,13 @@ The database schema is designed to support the platform's various functionalitie
 - **Lead Management System**: Comprehensive tracking and management of various lead types, including veteran support, business services, and grant applications.
 - **Role-Based Portals**: Dedicated portals for admins, affiliates, and sub-masters with tailored functionalities and access levels.
 - **VSO Portal Replication Pattern**: A pattern for creating branded, individualized contract management portals for Veterans Service Officers, including seed data, custom routing, and unique branding.
+- **Planning Solutions (`/planning-solutions`)**: Comprehensive insurance and financial planning services page organized into 6 categories:
+  - Planning Solutions: Long Term Care, Malpractice, Risk Mitigation
+  - Disability Solutions: Physician Disability, Group Disability
+  - Business Solutions: Custom Benefits, Key Person Insurance, Business Overhead Expense, Employee Education
+  - Future Solutions: Life Insurance Review, Retirement Planning, Estate Planning, Succession Planning
+  - Group Insurance Solutions: Group Disability Insurance, Employee Benefits Packages
+  - Individual Insurance Solutions: Life Insurance Review, Professional Disability, Long Term Care Planning
 
 ## External Dependencies
 - **PostgreSQL**: Primary database for data storage.

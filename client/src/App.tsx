@@ -67,6 +67,7 @@ const DownloadUPSRates = lazy(() => import("@/pages/download-ups-rates"));
 const FinOp = lazy(() => import("@/pages/fin-op"));
 const StressTest = lazy(() => import("@/pages/stress-test"));
 const JobPlacement = lazy(() => import("@/pages/job-placement"));
+const PlanningSolutions = lazy(() => import("@/pages/planning-solutions"));
 const HealthcarePage = lazy(() => import("@/pages/healthcare"));
 
 // Disability Rating pages - consolidated into hub
@@ -331,6 +332,7 @@ function Router() {
         <Route path="/sign-contract" component={SignContract} />
         <Route path="/comp-plan" component={CompPlan} />
         <Route path="/schedule-a" component={ScheduleA} />
+        <Route path="/planning-solutions" component={PlanningSolutions} />
         <Route path="/affiliate/login" component={AffiliateLogin} />
         <Route path="/affiliate/nda" component={AffiliateNda} />
         <Route path="/affiliate/dashboard" component={AffiliateDashboard} />

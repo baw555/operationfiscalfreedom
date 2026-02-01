@@ -300,6 +300,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
+            {/* Planning Solutions Link */}
+            <Link 
+              href="/planning-solutions"
+              className={cn(
+                "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 cursor-pointer whitespace-nowrap",
+                location === "/planning-solutions" ? "text-blue-600 border-blue-500" : "text-brand-navy border-transparent"
+              )} 
+              data-testid="nav-planning-solutions"
+            >
+              Insurance
+            </Link>
+
             {/* Login Link */}
             <Link 
               href="/login"
@@ -480,6 +492,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
+            {/* Mobile Insurance/Planning Solutions Link */}
+            <div className={cn("border-l-4", location === "/planning-solutions" ? "border-blue-500" : "border-transparent")}>
+              <Link 
+                href="/planning-solutions"
+                className={cn(
+                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center touch-manipulation min-h-[44px]",
+                  location === "/planning-solutions" ? "text-blue-600" : "text-brand-navy"
+                )}
+                onClick={() => setMobileMenuOpen(false)}
+                data-testid="nav-mobile-planning-solutions"
+              >
+                Insurance
+              </Link>
+            </div>
+
             {/* Mobile Login Link */}
             <div className={cn("border-l-4", location === "/login" ? "border-blue-500" : "border-transparent")}>
               <Link 
@@ -527,6 +554,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <ul className="space-y-1 text-gray-300 text-sm sm:text-base">
               <li><Link href="/get-help" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Free VA Rating Assistance</Link></li>
               <li><Link href="/fin-ops" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Fin-Ops Marketplace</Link></li>
+              <li><Link href="/planning-solutions" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Planning Solutions</Link></li>
               <li><Link href="/businesses" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Veteran Businesses</Link></li>
               <li><Link href="/resources" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Resources</Link></li>
             </ul>
