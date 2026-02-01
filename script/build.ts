@@ -45,6 +45,10 @@ async function buildAll() {
     ...Object.keys(pkg.devDependencies || {}),
   ];
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
+  
+  // Always externalize packages that use createRequire or have ESM/CJS compatibility issues
+  const forceExternal = ["pdf-parse"];
+  externals.push(...forceExternal);
 
   await esbuild({
     entryPoints: ["server/index.ts"],

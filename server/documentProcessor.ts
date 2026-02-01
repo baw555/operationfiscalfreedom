@@ -2,11 +2,9 @@ import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import * as unzipper from "unzipper";
 import * as path from "path";
-import { createRequire } from "module";
+import * as pdfParseModule from "pdf-parse";
 
-// Use require for pdf-parse as it doesn't have proper ESM exports
-const require = createRequire(import.meta.url);
-const pdfParse = require("pdf-parse");
+const pdfParse = (pdfParseModule as any).default || pdfParseModule;
 
 export interface ProcessedDocument {
   fileName: string;
