@@ -6484,5 +6484,209 @@ export async function registerRoutes(
     }
   });
 
+  // ==========================================
+  // NAVAL INTELLIGENCE - AI VIDEO & MUSIC GENERATION
+  // ==========================================
+
+  // Get all AI generations for the gallery
+  app.get("/api/ai/gallery", async (req, res) => {
+    try {
+      const sessionId = req.sessionID || req.headers['x-session-id'] as string;
+      
+      if (req.session.userId) {
+        const generations = await storage.getAiGenerationsByUser(req.session.userId);
+        return res.json(generations);
+      } else if (sessionId) {
+        const generations = await storage.getAiGenerationsBySession(sessionId);
+        return res.json(generations);
+      }
+      
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching AI gallery:", error);
+      res.status(500).json({ message: "Failed to fetch gallery" });
+    }
+  });
+
+  // Get a specific AI generation
+  app.get("/api/ai/generation/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const generation = await storage.getAiGeneration(id);
+      
+      if (!generation) {
+        return res.status(404).json({ message: "Generation not found" });
+      }
+      
+      res.json(generation);
+    } catch (error) {
+      console.error("Error fetching AI generation:", error);
+      res.status(500).json({ message: "Failed to fetch generation" });
+    }
+  });
+
+  // Get all active AI templates
+  app.get("/api/ai/templates", async (req, res) => {
+    try {
+      const templates = await storage.getActiveAiTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching AI templates:", error);
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  // Get templates by category
+  app.get("/api/ai/templates/category/:category", async (req, res) => {
+    try {
+      const templates = await storage.getAiTemplatesByCategory(req.params.category);
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching templates by category:", error);
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  // Zod schema for AI generation requests
+  const aiGenerationRequestSchema = z.object({
+    type: z.enum(["text-to-video", "image-to-video", "text-to-music", "music-video"]),
+    prompt: z.string().min(1, "Prompt is required").max(2000, "Prompt too long"),
+    negativePrompt: z.string().max(500).optional().nullable(),
+    duration: z.number().int().min(4).max(8).optional().default(8),
+    resolution: z.enum(["720p", "1080p"]).optional().default("720p"),
+    aspectRatio: z.enum(["16:9", "9:16", "1:1"]).optional().default("16:9"),
+    musicGenre: z.string().max(100).optional().nullable(),
+    musicLyrics: z.string().max(5000).optional().nullable(),
+    musicInstrumental: z.boolean().optional().default(false),
+    templateId: z.number().int().positive().optional().nullable(),
+    inputImageUrl: z.string().url().optional().nullable(),
+    inputMusicUrl: z.string().url().optional().nullable(),
+  });
+
+  // Start a new AI generation
+  app.post("/api/ai/generate", async (req, res) => {
+    try {
+      const validationResult = aiGenerationRequestSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid request data",
+          errors: validationResult.error.flatten().fieldErrors 
+        });
+      }
+
+      const {
+        type,
+        prompt,
+        negativePrompt,
+        duration,
+        resolution,
+        aspectRatio,
+        musicGenre,
+        musicLyrics,
+        musicInstrumental,
+        templateId,
+        inputImageUrl,
+        inputMusicUrl
+      } = validationResult.data;
+
+      // Create the generation record
+      const generation = await storage.createAiGeneration({
+        userId: req.session.userId || null,
+        sessionId: req.session.userId ? null : (req.sessionID || null),
+        type,
+        prompt,
+        negativePrompt: negativePrompt || null,
+        duration: duration || 8,
+        resolution: resolution || "720p",
+        aspectRatio: aspectRatio || "16:9",
+        provider: type.includes("music") ? "suno" : "replit",
+        musicGenre: musicGenre || null,
+        musicLyrics: musicLyrics || null,
+        musicInstrumental: musicInstrumental || false,
+        templateId: templateId || null,
+        inputImageUrl: inputImageUrl || null,
+        inputMusicUrl: inputMusicUrl || null,
+        metadata: null,
+        beatSyncEnabled: false,
+      });
+
+      // Update template usage if used
+      if (templateId) {
+        await storage.incrementTemplateUsage(templateId);
+      }
+
+      // For video generation, we use the built-in Replit video generation
+      // The actual generation will be handled asynchronously
+      // In production, this would trigger a background job
+      
+      // For now, simulate processing state
+      await storage.updateAiGeneration(generation.id, {
+        status: "processing",
+        processingStartedAt: new Date(),
+      });
+
+      res.status(201).json({ 
+        success: true, 
+        generation,
+        message: "Generation started. Your content will appear in the gallery when complete."
+      });
+    } catch (error) {
+      console.error("Error starting AI generation:", error);
+      res.status(500).json({ message: "Failed to start generation" });
+    }
+  });
+
+  // Delete an AI generation
+  app.delete("/api/ai/generation/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const generation = await storage.getAiGeneration(id);
+      
+      if (!generation) {
+        return res.status(404).json({ message: "Generation not found" });
+      }
+
+      // Only allow deletion by owner
+      if (generation.userId && generation.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Not authorized to delete this generation" });
+      }
+
+      await storage.deleteAiGeneration(id);
+      res.json({ success: true, message: "Generation deleted" });
+    } catch (error) {
+      console.error("Error deleting AI generation:", error);
+      res.status(500).json({ message: "Failed to delete generation" });
+    }
+  });
+
+  // Admin: Create a new AI template
+  app.post("/api/ai/templates", requireAdmin, async (req, res) => {
+    try {
+      const template = await storage.createAiTemplate(req.body);
+      res.status(201).json(template);
+    } catch (error) {
+      console.error("Error creating AI template:", error);
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  // Admin: Update an AI template
+  app.patch("/api/ai/templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.updateAiTemplate(id, req.body);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      console.error("Error updating AI template:", error);
+      res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
   return httpServer;
 }

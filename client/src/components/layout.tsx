@@ -249,6 +249,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/ranger-tab-signup" className="cursor-pointer" data-testid="nav-ranger-tab">
                 <RangerTabSVG size="nav" />
             </Link>
+            <Link href="/naval-intelligence" className={cn(buttonVariants(), "bg-gradient-to-r from-blue-800 to-blue-900 hover:from-blue-700 hover:to-blue-800 text-white font-bold border-2 border-blue-700 cursor-pointer shadow-lg flex items-center gap-2")} data-testid="nav-naval-intel">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                Intel
+            </Link>
             <Link href="/admin/login" className={cn(buttonVariants(), "bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold border-2 border-gray-400 cursor-pointer shadow-lg")}>
                 Admin
             </Link>
@@ -408,6 +412,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
               data-testid="nav-mobile-ranger-tab"
             >
               <RangerTabSVG size="banner" />
+            </Link>
+            <Link 
+              href="/naval-intelligence" 
+              className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-blue-800 to-blue-900 text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:from-blue-700 active:to-blue-800 shadow-lg" 
+              onClick={() => setMobileMenuOpen(false)}
+              data-testid="nav-mobile-naval-intel"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              Naval Intelligence
             </Link>
             <Link 
               href="/admin/login" 

@@ -48,7 +48,9 @@ import {
   hipaaTrainingRecords, type HipaaTrainingRecord, type InsertHipaaTrainingRecord,
   businessAssociateAgreements, type BusinessAssociateAgreement, type InsertBusinessAssociateAgreement,
   userMfaConfig, type UserMfaConfig, type InsertUserMfaConfig,
-  authRateLimits, type AuthRateLimit, type InsertAuthRateLimit
+  authRateLimits, type AuthRateLimit, type InsertAuthRateLimit,
+  aiGenerations, type AiGeneration, type InsertAiGeneration,
+  aiTemplates, type AiTemplate, type InsertAiTemplate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -344,6 +346,26 @@ export interface IStorage {
   createUserMfaConfig(config: InsertUserMfaConfig): Promise<UserMfaConfig>;
   getUserMfaConfig(userId: number): Promise<UserMfaConfig | undefined>;
   updateUserMfaConfig(userId: number, updates: Partial<UserMfaConfig>): Promise<UserMfaConfig | undefined>;
+
+  // AI Generations - Naval Intelligence
+  createAiGeneration(generation: InsertAiGeneration): Promise<AiGeneration>;
+  getAiGeneration(id: number): Promise<AiGeneration | undefined>;
+  getAiGenerationsByUser(userId: number): Promise<AiGeneration[]>;
+  getAiGenerationsBySession(sessionId: string): Promise<AiGeneration[]>;
+  getAiGenerationsByStatus(status: string): Promise<AiGeneration[]>;
+  updateAiGeneration(id: number, updates: Partial<AiGeneration>): Promise<AiGeneration | undefined>;
+  deleteAiGeneration(id: number): Promise<void>;
+  getAllAiGenerations(limit?: number): Promise<AiGeneration[]>;
+
+  // AI Templates - Naval Intelligence
+  createAiTemplate(template: InsertAiTemplate): Promise<AiTemplate>;
+  getAiTemplate(id: number): Promise<AiTemplate | undefined>;
+  getAllAiTemplates(): Promise<AiTemplate[]>;
+  getActiveAiTemplates(): Promise<AiTemplate[]>;
+  getAiTemplatesByCategory(category: string): Promise<AiTemplate[]>;
+  getAiTemplatesByType(type: string): Promise<AiTemplate[]>;
+  updateAiTemplate(id: number, updates: Partial<AiTemplate>): Promise<AiTemplate | undefined>;
+  incrementTemplateUsage(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1782,6 +1804,103 @@ export class DatabaseStorage implements IStorage {
           eq(authRateLimits.attemptType, attemptType)
         )
       );
+  }
+
+  // AI Generations
+  async createAiGeneration(generation: InsertAiGeneration): Promise<AiGeneration> {
+    const [created] = await db.insert(aiGenerations).values(generation).returning();
+    return created;
+  }
+
+  async getAiGeneration(id: number): Promise<AiGeneration | undefined> {
+    const [generation] = await db.select().from(aiGenerations).where(eq(aiGenerations.id, id));
+    return generation || undefined;
+  }
+
+  async getAiGenerationsByUser(userId: number): Promise<AiGeneration[]> {
+    return db.select().from(aiGenerations)
+      .where(eq(aiGenerations.userId, userId))
+      .orderBy(desc(aiGenerations.createdAt));
+  }
+
+  async getAiGenerationsBySession(sessionId: string): Promise<AiGeneration[]> {
+    return db.select().from(aiGenerations)
+      .where(eq(aiGenerations.sessionId, sessionId))
+      .orderBy(desc(aiGenerations.createdAt));
+  }
+
+  async getAiGenerationsByStatus(status: string): Promise<AiGeneration[]> {
+    return db.select().from(aiGenerations)
+      .where(eq(aiGenerations.status, status))
+      .orderBy(aiGenerations.createdAt);
+  }
+
+  async updateAiGeneration(id: number, updates: Partial<AiGeneration>): Promise<AiGeneration | undefined> {
+    const [updated] = await db.update(aiGenerations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(aiGenerations.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteAiGeneration(id: number): Promise<void> {
+    await db.delete(aiGenerations).where(eq(aiGenerations.id, id));
+  }
+
+  async getAllAiGenerations(limit: number = 100): Promise<AiGeneration[]> {
+    return db.select().from(aiGenerations)
+      .orderBy(desc(aiGenerations.createdAt))
+      .limit(limit);
+  }
+
+  // AI Templates
+  async createAiTemplate(template: InsertAiTemplate): Promise<AiTemplate> {
+    const [created] = await db.insert(aiTemplates).values(template).returning();
+    return created;
+  }
+
+  async getAiTemplate(id: number): Promise<AiTemplate | undefined> {
+    const [template] = await db.select().from(aiTemplates).where(eq(aiTemplates.id, id));
+    return template || undefined;
+  }
+
+  async getAllAiTemplates(): Promise<AiTemplate[]> {
+    return db.select().from(aiTemplates).orderBy(desc(aiTemplates.usageCount));
+  }
+
+  async getActiveAiTemplates(): Promise<AiTemplate[]> {
+    return db.select().from(aiTemplates)
+      .where(eq(aiTemplates.isActive, true))
+      .orderBy(desc(aiTemplates.usageCount));
+  }
+
+  async getAiTemplatesByCategory(category: string): Promise<AiTemplate[]> {
+    return db.select().from(aiTemplates)
+      .where(and(eq(aiTemplates.category, category), eq(aiTemplates.isActive, true)))
+      .orderBy(desc(aiTemplates.usageCount));
+  }
+
+  async getAiTemplatesByType(type: string): Promise<AiTemplate[]> {
+    return db.select().from(aiTemplates)
+      .where(and(eq(aiTemplates.type, type), eq(aiTemplates.isActive, true)))
+      .orderBy(desc(aiTemplates.usageCount));
+  }
+
+  async updateAiTemplate(id: number, updates: Partial<AiTemplate>): Promise<AiTemplate | undefined> {
+    const [updated] = await db.update(aiTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(aiTemplates.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async incrementTemplateUsage(id: number): Promise<void> {
+    const template = await this.getAiTemplate(id);
+    if (template) {
+      await db.update(aiTemplates)
+        .set({ usageCount: (template.usageCount || 0) + 1, updatedAt: new Date() })
+        .where(eq(aiTemplates.id, id));
+    }
   }
 }
 

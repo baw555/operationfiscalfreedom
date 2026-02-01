@@ -1593,3 +1593,86 @@ export const insertAuthRateLimitSchema = createInsertSchema(authRateLimits).omit
 
 export type InsertAuthRateLimit = z.infer<typeof insertAuthRateLimitSchema>;
 export type AuthRateLimit = typeof authRateLimits.$inferSelect;
+
+// AI Generation - Naval Intelligence Feature
+// Tracks AI-generated videos, music, and music videos
+export const aiGenerations = pgTable("ai_generations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  sessionId: text("session_id"), // For anonymous users
+  type: text("type").notNull(), // "text-to-video", "image-to-video", "text-to-music", "music-video"
+  status: text("status").notNull().default("queued"), // "queued", "processing", "completed", "failed"
+  prompt: text("prompt").notNull(),
+  negativePrompt: text("negative_prompt"),
+  inputImageUrl: text("input_image_url"), // For image-to-video
+  inputMusicUrl: text("input_music_url"), // For music-video (user-provided)
+  generatedVideoUrl: text("generated_video_url"),
+  generatedMusicUrl: text("generated_music_url"),
+  generatedMusicVideoUrl: text("generated_music_video_url"),
+  thumbnailUrl: text("thumbnail_url"),
+  duration: integer("duration"), // Seconds
+  resolution: text("resolution"), // "720p", "1080p"
+  aspectRatio: text("aspect_ratio"), // "16:9", "9:16", "1:1"
+  provider: text("provider"), // "replit", "suno", "replicate", etc.
+  providerJobId: text("provider_job_id"), // External job ID for polling
+  musicGenre: text("music_genre"), // For music generation
+  musicLyrics: text("music_lyrics"), // Custom lyrics
+  musicInstrumental: boolean("music_instrumental").default(false),
+  beatSyncEnabled: boolean("beat_sync_enabled").default(false),
+  beatMap: text("beat_map"), // JSON array of beat timestamps for sync
+  templateId: integer("template_id"), // Link to ai_templates
+  errorMessage: text("error_message"),
+  metadata: text("metadata"), // JSON for additional data
+  processingStartedAt: timestamp("processing_started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertAiGenerationSchema = createInsertSchema(aiGenerations).omit({
+  id: true,
+  status: true,
+  generatedVideoUrl: true,
+  generatedMusicUrl: true,
+  generatedMusicVideoUrl: true,
+  thumbnailUrl: true,
+  providerJobId: true,
+  beatMap: true,
+  errorMessage: true,
+  processingStartedAt: true,
+  completedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAiGeneration = z.infer<typeof insertAiGenerationSchema>;
+export type AiGeneration = typeof aiGenerations.$inferSelect;
+
+// AI Generation Templates - Pre-built prompts for veterans
+export const aiTemplates = pgTable("ai_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // "memorial", "tribute", "celebration", "family", "motivation", "custom"
+  type: text("type").notNull(), // "video", "music", "music-video"
+  description: text("description"),
+  videoPrompt: text("video_prompt"),
+  musicPrompt: text("music_prompt"),
+  musicGenre: text("music_genre"),
+  suggestedLyrics: text("suggested_lyrics"),
+  thumbnailUrl: text("thumbnail_url"),
+  previewUrl: text("preview_url"),
+  isActive: boolean("is_active").notNull().default(true),
+  usageCount: integer("usage_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertAiTemplateSchema = createInsertSchema(aiTemplates).omit({
+  id: true,
+  usageCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAiTemplate = z.infer<typeof insertAiTemplateSchema>;
+export type AiTemplate = typeof aiTemplates.$inferSelect;

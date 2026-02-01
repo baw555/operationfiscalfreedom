@@ -174,6 +174,9 @@ const HipaaAdmin = lazy(() => import("@/pages/hipaa-admin"));
 const HipaaCompliance = lazy(() => import("@/pages/hipaa-compliance"));
 const IrsVerification = lazy(() => import("@/pages/irs-verification"));
 
+// Naval Intelligence - AI Video & Music Generation
+const NavalIntelligence = lazy(() => import("@/pages/naval-intelligence"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -347,6 +350,9 @@ function Router() {
         <Route path="/hipaa-admin" component={HipaaAdmin} />
         <Route path="/hipaa-compliance" component={HipaaCompliance} />
         <Route path="/irs-verification" component={IrsVerification} />
+        
+        {/* Naval Intelligence - AI Video & Music Generation */}
+        <Route path="/naval-intelligence" component={NavalIntelligence} />
         
         <Route component={NotFound} />
       </Switch>
