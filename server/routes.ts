@@ -6732,10 +6732,19 @@ export async function registerRoutes(
   // OPERATOR AI - Comprehensive AI Chat Assistant
   // ==========================================================================
 
-  // Operator AI Chat endpoint
+  // Operator AI Chat endpoint with 3 memory modes
+  // Mode: "stateless" (no storage), "session" (temp DB), "persistent" (user-linked)
   app.post("/api/operator-ai/chat", async (req, res) => {
     try {
-      const { message, model, preset, memoryEnabled, conversationHistory } = req.body;
+      const { 
+        message, 
+        model, 
+        preset, 
+        memoryMode = "stateless", // "stateless" | "session" | "persistent"
+        sessionId,
+        userId,
+        conversationHistory 
+      } = req.body;
       
       if (!message || typeof message !== "string") {
         return res.status(400).json({ message: "Message is required" });
@@ -6753,13 +6762,33 @@ export async function registerRoutes(
       const systemContext = presetContexts[preset] || presetContexts.general;
 
       // Build messages for OpenAI
-      const messages = [
+      const messages: Array<{ role: string; content: string }> = [
         { role: "system", content: `${systemContext}\n\nYou are Operator AI, part of the Q Branch AI suite for NavigatorUSA. You help veteran families with their questions and tasks. Be helpful, concise, and professional.` },
       ];
 
-      // Add conversation history if memory is enabled
-      if (memoryEnabled && conversationHistory && Array.isArray(conversationHistory)) {
-        messages.push(...conversationHistory.slice(-10)); // Keep last 10 messages for context
+      // Memory Mode Logic:
+      // IF memoryMode = "stateless" → do not store anything, use only provided conversationHistory
+      // IF memoryMode = "session" → store in DB with sessionId, auto-delete on session end
+      // IF memoryMode = "persistent" → store by userId, persist across sessions
+      
+      let storedHistory: Array<{ role: string; content: string }> = [];
+      
+      if (memoryMode === "session" && sessionId) {
+        // Fetch session memory from DB
+        const sessionMemory = await storage.getSessionMemory(sessionId);
+        storedHistory = sessionMemory.map(m => ({ role: m.role, content: m.content }));
+      } else if (memoryMode === "persistent" && userId) {
+        // Fetch persistent memory from DB
+        const persistentMemory = await storage.getUserPersistentMemory(userId);
+        storedHistory = persistentMemory.map(m => ({ role: m.role, content: m.content }));
+      }
+      
+      // Add stored history (from DB) or provided history (for stateless mode)
+      if (storedHistory.length > 0) {
+        messages.push(...storedHistory.slice(-10)); // Keep last 10 messages for context
+      } else if (memoryMode === "stateless" && conversationHistory && Array.isArray(conversationHistory)) {
+        // Stateless: use client-provided history only, do NOT store
+        messages.push(...conversationHistory.slice(-10));
       }
 
       // Add the current message
@@ -6769,10 +6798,10 @@ export async function registerRoutes(
       const openaiApiKey = process.env.OPENAI_API_KEY;
       
       if (!openaiApiKey) {
-        // Return a fallback response if no API key
         return res.json({
-          response: `I received your message: "${message}"\n\nI'm currently in demo mode. To enable full AI capabilities, please configure the OpenAI API key. In the meantime, I can help you navigate to other features like Video & Music Generation in the Q Branch menu.`,
+          response: `I received your message: "${message}"\n\nI'm currently in demo mode. To enable full AI capabilities, please configure the OpenAI API key.`,
           model: model || "demo",
+          memoryMode,
         });
       }
 
@@ -6783,7 +6812,7 @@ export async function registerRoutes(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: model === "gpt-4o" ? "gpt-4o" : model === "gpt-4o-mini" ? "gpt-4o-mini" : "gpt-4o-mini",
+          model: model === "gpt-4o" ? "gpt-4o" : "gpt-4o-mini",
           messages,
           max_tokens: 1024,
           temperature: 0.7,
@@ -6799,14 +6828,85 @@ export async function registerRoutes(
       const data = await response.json();
       const aiResponse = data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
 
+      // CRITICAL: Only store if memoryMode is NOT "stateless"
+      if (memoryMode !== "stateless" && sessionId) {
+        const messageCount = storedHistory.length;
+        const expiresAt = memoryMode === "session" 
+          ? new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hour expiry for session
+          : null;
+
+        // Store user message
+        await storage.saveOperatorAiMessage({
+          sessionId,
+          userId: userId || null,
+          memoryMode,
+          role: "user",
+          content: message,
+          model: model || "gpt-4o-mini",
+          preset: preset || "general",
+          messageOrder: messageCount,
+          expiresAt,
+        });
+
+        // Store assistant response
+        await storage.saveOperatorAiMessage({
+          sessionId,
+          userId: userId || null,
+          memoryMode,
+          role: "assistant",
+          content: aiResponse,
+          model: model || "gpt-4o-mini",
+          preset: preset || "general",
+          messageOrder: messageCount + 1,
+          expiresAt,
+        });
+      }
+
       res.json({
         response: aiResponse,
         model: model || "gpt-4o-mini",
+        memoryMode,
       });
 
     } catch (error) {
       console.error("Operator AI chat error:", error);
       res.status(500).json({ message: "An error occurred processing your request" });
+    }
+  });
+
+  // Clear session memory (Forget Session button)
+  app.delete("/api/operator-ai/session/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      await storage.clearSessionMemory(sessionId);
+      res.json({ success: true, message: "Session memory cleared" });
+    } catch (error) {
+      console.error("Error clearing session memory:", error);
+      res.status(500).json({ message: "Failed to clear session memory" });
+    }
+  });
+
+  // Clear persistent memory (Wipe Memory button - requires user auth)
+  app.delete("/api/operator-ai/persistent/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      await storage.clearUserPersistentMemory(userId);
+      res.json({ success: true, message: "Persistent memory wiped" });
+    } catch (error) {
+      console.error("Error clearing persistent memory:", error);
+      res.status(500).json({ message: "Failed to wipe memory" });
+    }
+  });
+
+  // Get session memory history
+  app.get("/api/operator-ai/session/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const memory = await storage.getSessionMemory(sessionId);
+      res.json({ messages: memory });
+    } catch (error) {
+      console.error("Error fetching session memory:", error);
+      res.status(500).json({ message: "Failed to fetch session memory" });
     }
   });
 

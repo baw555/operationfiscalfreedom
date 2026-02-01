@@ -71,8 +71,11 @@ export default function OperatorAI() {
   // Settings
   const [selectedModel, setSelectedModel] = useState("gpt-4o");
   const [selectedPreset, setSelectedPreset] = useState("general");
-  const [memoryEnabled, setMemoryEnabled] = useState(true);
+  const [memoryMode, setMemoryMode] = useState<"stateless" | "session" | "persistent">("stateless");
   const [showSettings, setShowSettings] = useState(false);
+  
+  // Generate a unique session ID for this browser session
+  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -86,8 +89,12 @@ export default function OperatorAI() {
         message,
         model: selectedModel,
         preset: selectedPreset,
-        memoryEnabled,
-        conversationHistory: messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
+        memoryMode,
+        sessionId,
+        // Only send client history for stateless mode
+        conversationHistory: memoryMode === "stateless" 
+          ? messages.slice(-10).map(m => ({ role: m.role, content: m.content }))
+          : undefined,
       });
       return response.json();
     },
@@ -108,6 +115,24 @@ export default function OperatorAI() {
         description: error.message || "Failed to get response. Please try again.",
         variant: "destructive",
       });
+    },
+  });
+
+  // Clear session memory
+  const clearSessionMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("DELETE", `/api/operator-ai/session/${sessionId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      setMessages([{
+        id: "welcome",
+        role: "assistant",
+        content: "Session memory cleared. Starting fresh conversation.",
+        timestamp: new Date(),
+        model: selectedModel
+      }]);
+      toast({ title: "Session Cleared", description: "Your session memory has been forgotten." });
     },
   });
 
@@ -242,33 +267,92 @@ export default function OperatorAI() {
                 </CardContent>
               </Card>
 
-              {/* Memory & Settings */}
+              {/* Memory Mode Selection */}
               <Card className="bg-gray-800/50 border-gray-700">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-white text-lg flex items-center gap-2">
                     <Brain className="w-5 h-5 text-purple-400" />
-                    Memory
+                    Memory Mode
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-gray-300 text-sm">Session Memory</Label>
-                    <Switch 
-                      checked={memoryEnabled} 
-                      onCheckedChange={setMemoryEnabled}
-                      data-testid="switch-memory"
-                    />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
-                    onClick={clearChat}
-                    data-testid="button-clear-chat"
+                <CardContent className="space-y-3">
+                  {/* Stateless Mode */}
+                  <button
+                    onClick={() => setMemoryMode("stateless")}
+                    className={`w-full text-left p-3 rounded-lg transition-all ${
+                      memoryMode === "stateless"
+                        ? "bg-gray-700 border-2 border-purple-500"
+                        : "bg-gray-700/50 border border-gray-600 hover:border-gray-500"
+                    }`}
+                    data-testid="memory-stateless"
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Clear Chat
-                  </Button>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white text-sm font-medium">Stateless</span>
+                      <span className="text-xs text-gray-400">Default</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">No history stored. Every prompt is isolated.</p>
+                  </button>
+
+                  {/* Session Mode */}
+                  <button
+                    onClick={() => setMemoryMode("session")}
+                    className={`w-full text-left p-3 rounded-lg transition-all ${
+                      memoryMode === "session"
+                        ? "bg-gray-700 border-2 border-blue-500"
+                        : "bg-gray-700/50 border border-gray-600 hover:border-gray-500"
+                    }`}
+                    data-testid="memory-session"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-white text-sm font-medium">Session</span>
+                      <span className="text-xs text-blue-400">Temp</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Stored until you close or click Forget.</p>
+                  </button>
+
+                  {/* Persistent Mode */}
+                  <button
+                    onClick={() => setMemoryMode("persistent")}
+                    className={`w-full text-left p-3 rounded-lg transition-all ${
+                      memoryMode === "persistent"
+                        ? "bg-gray-700 border-2 border-green-500"
+                        : "bg-gray-700/50 border border-gray-600 hover:border-gray-500"
+                    }`}
+                    data-testid="memory-persistent"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-white text-sm font-medium">Persistent</span>
+                      <span className="text-xs text-green-400">Opt-in</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Remembers across sessions. Requires login.</p>
+                  </button>
+
+                  {/* Memory Actions */}
+                  <div className="pt-2 space-y-2 border-t border-gray-700">
+                    {memoryMode === "session" && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full border-orange-600 text-orange-300 hover:bg-orange-900/30"
+                        onClick={() => clearSessionMutation.mutate()}
+                        disabled={clearSessionMutation.isPending}
+                        data-testid="button-forget-session"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Forget Session
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+                      onClick={clearChat}
+                      data-testid="button-clear-chat"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Clear Display
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 

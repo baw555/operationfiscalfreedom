@@ -50,7 +50,8 @@ import {
   userMfaConfig, type UserMfaConfig, type InsertUserMfaConfig,
   authRateLimits, type AuthRateLimit, type InsertAuthRateLimit,
   aiGenerations, type AiGeneration, type InsertAiGeneration,
-  aiTemplates, type AiTemplate, type InsertAiTemplate
+  aiTemplates, type AiTemplate, type InsertAiTemplate,
+  operatorAiMemory, type OperatorAiMemory, type InsertOperatorAiMemory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -366,6 +367,14 @@ export interface IStorage {
   getAiTemplatesByType(type: string): Promise<AiTemplate[]>;
   updateAiTemplate(id: number, updates: Partial<AiTemplate>): Promise<AiTemplate | undefined>;
   incrementTemplateUsage(id: number): Promise<void>;
+
+  // Operator AI Memory
+  saveOperatorAiMessage(message: InsertOperatorAiMemory): Promise<OperatorAiMemory>;
+  getSessionMemory(sessionId: string): Promise<OperatorAiMemory[]>;
+  getUserPersistentMemory(userId: number): Promise<OperatorAiMemory[]>;
+  clearSessionMemory(sessionId: string): Promise<void>;
+  clearUserPersistentMemory(userId: number): Promise<void>;
+  cleanupExpiredSessions(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1901,6 +1910,48 @@ export class DatabaseStorage implements IStorage {
         .set({ usageCount: (template.usageCount || 0) + 1, updatedAt: new Date() })
         .where(eq(aiTemplates.id, id));
     }
+  }
+
+  // Operator AI Memory
+  async saveOperatorAiMessage(message: InsertOperatorAiMemory): Promise<OperatorAiMemory> {
+    const [saved] = await db.insert(operatorAiMemory).values(message).returning();
+    return saved;
+  }
+
+  async getSessionMemory(sessionId: string): Promise<OperatorAiMemory[]> {
+    return db.select().from(operatorAiMemory)
+      .where(eq(operatorAiMemory.sessionId, sessionId))
+      .orderBy(operatorAiMemory.messageOrder);
+  }
+
+  async getUserPersistentMemory(userId: number): Promise<OperatorAiMemory[]> {
+    return db.select().from(operatorAiMemory)
+      .where(and(
+        eq(operatorAiMemory.userId, userId),
+        eq(operatorAiMemory.memoryMode, "persistent")
+      ))
+      .orderBy(operatorAiMemory.messageOrder);
+  }
+
+  async clearSessionMemory(sessionId: string): Promise<void> {
+    await db.delete(operatorAiMemory)
+      .where(eq(operatorAiMemory.sessionId, sessionId));
+  }
+
+  async clearUserPersistentMemory(userId: number): Promise<void> {
+    await db.delete(operatorAiMemory)
+      .where(and(
+        eq(operatorAiMemory.userId, userId),
+        eq(operatorAiMemory.memoryMode, "persistent")
+      ));
+  }
+
+  async cleanupExpiredSessions(): Promise<void> {
+    await db.delete(operatorAiMemory)
+      .where(and(
+        eq(operatorAiMemory.memoryMode, "session"),
+        lt(operatorAiMemory.expiresAt, new Date())
+      ));
   }
 }
 

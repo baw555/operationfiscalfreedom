@@ -1676,3 +1676,27 @@ export const insertAiTemplateSchema = createInsertSchema(aiTemplates).omit({
 
 export type InsertAiTemplate = z.infer<typeof insertAiTemplateSchema>;
 export type AiTemplate = typeof aiTemplates.$inferSelect;
+
+// Operator AI Memory - Stores conversation history with 3 modes
+// Mode: "stateless" (no storage), "session" (temp), "persistent" (user-linked)
+export const operatorAiMemory = pgTable("operator_ai_memory", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull(), // Unique session identifier
+  userId: integer("user_id").references(() => users.id), // Null for anonymous, linked for persistent
+  memoryMode: text("memory_mode").notNull().default("stateless"), // "stateless", "session", "persistent"
+  role: text("role").notNull(), // "user", "assistant", "system"
+  content: text("content").notNull(),
+  model: text("model"), // Which AI model was used
+  preset: text("preset"), // Task preset used
+  messageOrder: integer("message_order").notNull().default(0), // Order in conversation
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at"), // For session memory auto-cleanup
+});
+
+export const insertOperatorAiMemorySchema = createInsertSchema(operatorAiMemory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertOperatorAiMemory = z.infer<typeof insertOperatorAiMemorySchema>;
+export type OperatorAiMemory = typeof operatorAiMemory.$inferSelect;
