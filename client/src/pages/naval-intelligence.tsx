@@ -201,8 +201,19 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
                 onError={(e) => {
                   const target = e.currentTarget;
                   target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
                 }}
               />
+            )}
+            {hasMusic && (
+              <div className="hidden items-center justify-center py-8 bg-gray-100 rounded-lg">
+                <div className="text-center">
+                  <XCircle className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600">Audio unavailable</p>
+                  <p className="text-sm text-gray-400">The audio file could not be loaded</p>
+                </div>
+              </div>
             )}
             <p className="mt-4 text-sm text-gray-600">{generation.prompt}</p>
             <div className="flex gap-2 mt-4">
@@ -263,15 +274,15 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
           <div className="flex gap-2 mt-3">
             {generation.generatedVideoUrl && (
               <a href={generation.generatedVideoUrl} download className="flex-1">
-                <Button size="sm" variant="outline" className="w-full">
-                  <Download className="w-4 h-4 mr-1" /> Video
+                <Button size="sm" variant="outline" className="w-full" data-testid="button-download-video" aria-label="Download video">
+                  <Download className="w-4 h-4 mr-1" aria-hidden="true" /> Video
                 </Button>
               </a>
             )}
             {generation.generatedMusicUrl && (
               <a href={generation.generatedMusicUrl} download className="flex-1">
-                <Button size="sm" variant="outline" className="w-full">
-                  <Download className="w-4 h-4 mr-1" /> Music
+                <Button size="sm" variant="outline" className="w-full" data-testid="button-download-music" aria-label="Download music">
+                  <Download className="w-4 h-4 mr-1" aria-hidden="true" /> Music
                 </Button>
               </a>
             )}
