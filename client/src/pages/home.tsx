@@ -338,13 +338,14 @@ export default function Home() {
             </button>
           )}
           
-          {/* Flag Banner visible when video is minimized */}
-          {!videoFullscreen && (
-            <div className="absolute bottom-0 left-0 right-0 z-10">
-              <FlagBanner />
-            </div>
-          )}
         </section>
+      )}
+      
+      {/* Flag Banner visible when video is minimized - placed below video section */}
+      {!introPlayed && !videoFullscreen && (
+        <div className="bg-black">
+          <FlagBanner />
+        </div>
       )}
 
       {/* Animated Hero Intro */}
