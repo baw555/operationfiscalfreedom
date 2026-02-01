@@ -232,33 +232,51 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
                 </a>
               )}
               {(hasVideo || hasMusic) && (
-                <Button 
-                  variant="outline" 
-                  onClick={async () => {
-                    const mediaUrl = generation.generatedVideoUrl || generation.generatedMusicUrl;
-                    if (mediaUrl) {
-                      const url = window.location.origin + mediaUrl;
-                      try {
-                        await navigator.clipboard.writeText(url);
-                        toast({
-                          title: "Link Copied",
-                          description: "Media link copied to clipboard",
-                        });
-                      } catch (err) {
-                        toast({
-                          title: "Copy Failed",
-                          description: "Unable to copy link. Please copy the URL manually.",
-                          variant: "destructive",
-                        });
+                <>
+                  <Button 
+                    variant="outline" 
+                    onClick={async () => {
+                      const mediaUrl = generation.generatedVideoUrl || generation.generatedMusicUrl;
+                      if (mediaUrl) {
+                        const url = window.location.origin + mediaUrl;
+                        try {
+                          await navigator.clipboard.writeText(url);
+                          toast({
+                            title: "Link Copied",
+                            description: "Media link copied to clipboard",
+                          });
+                        } catch (err) {
+                          toast({
+                            title: "Copy Failed",
+                            description: "Unable to copy link. Please copy the URL manually.",
+                            variant: "destructive",
+                          });
+                        }
                       }
-                    }
-                  }}
-                  className="shrink-0"
-                  data-testid="button-copy-link"
-                  aria-label="Copy link to clipboard"
-                >
-                  <Copy className="w-4 h-4" aria-hidden="true" />
-                </Button>
+                    }}
+                    className="shrink-0"
+                    data-testid="button-copy-link"
+                    aria-label="Copy link to clipboard"
+                  >
+                    <Copy className="w-4 h-4" aria-hidden="true" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      const mediaUrl = generation.generatedVideoUrl || generation.generatedMusicUrl;
+                      if (mediaUrl) {
+                        const url = window.location.origin + mediaUrl;
+                        const text = `Check out this AI-generated content from Naval Intelligence! ${url}`;
+                        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                      }
+                    }}
+                    className="shrink-0"
+                    data-testid="button-share-twitter"
+                    aria-label="Share on Twitter"
+                  >
+                    <Share2 className="w-4 h-4" aria-hidden="true" />
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -436,28 +454,141 @@ export default function NavalIntelligence() {
   const activeGenerations = generations.filter(g => g.status === 'processing' || g.status === 'queued');
   const completedGenerations = generations.filter(g => g.status === 'completed');
 
+  // Stats for the dashboard
+  const totalGenerations = generations.length;
+  const totalTemplates = templates.length;
+  const totalDuration = generations.reduce((sum, g) => sum + (g.duration || 0), 0);
+
   return (
     <Layout>
       <div className="bg-gradient-to-b from-gray-50 to-white">
-        {/* Hero Section */}
-        <section className="relative py-16 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy overflow-hidden">
+        {/* Enhanced Hero Section */}
+        <section className="relative py-20 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy overflow-hidden">
+          {/* Animated background elements */}
           <div className="absolute inset-0 bg-[url('/patterns/stars.svg')] opacity-10" />
+          <div className="absolute inset-0">
+            <div className="absolute top-20 left-10 w-64 h-64 bg-brand-gold/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-10 right-20 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse delay-1000" />
+          </div>
+          
           <div className="container mx-auto px-4 relative z-10">
-            <div className="text-center max-w-4xl mx-auto">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <div className="w-12 h-12 rounded-full bg-brand-gold flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-brand-navy" />
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left: Hero Content */}
+              <div className="text-left">
+                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+                  <Sparkles className="w-4 h-4 text-brand-gold animate-pulse" />
+                  <span className="text-white/90 text-sm font-medium">Powered by Google Veo 3.1 & Suno V5</span>
+                </div>
+                <h1 className="text-5xl md:text-7xl font-display text-white mb-6 leading-tight">
+                  Naval<br />
+                  <span className="text-brand-gold">Intelligence</span>
+                </h1>
+                <p className="text-xl text-white/80 mb-4 max-w-lg">
+                  State-of-the-art AI video and music creation suite built exclusively for veteran families.
+                </p>
+                <p className="text-lg text-white/60 mb-8 max-w-lg">
+                  Create stunning tribute videos, memorial content, and original patriotic music in minutes.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <Button 
+                    size="lg" 
+                    className="bg-brand-gold text-brand-navy hover:bg-brand-gold/90 font-display text-lg px-8"
+                    onClick={() => document.getElementById('create-section')?.scrollIntoView({ behavior: 'smooth' })}
+                    data-testid="button-start-creating"
+                  >
+                    <Wand2 className="w-5 h-5 mr-2" />
+                    Start Creating
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="border-white/30 text-white hover:bg-white/10"
+                    onClick={() => document.getElementById('gallery-section')?.scrollIntoView({ behavior: 'smooth' })}
+                    data-testid="button-view-gallery"
+                  >
+                    <Film className="w-5 h-5 mr-2" />
+                    View Gallery
+                  </Button>
                 </div>
               </div>
-              <h1 className="text-4xl md:text-6xl font-display text-white mb-4">
-                Naval Intelligence
-              </h1>
-              <p className="text-xl text-white/80 mb-2">
-                AI-Powered Video & Music Creation
-              </p>
-              <p className="text-lg text-brand-gold">
-                Create stunning tribute videos, memorial content, and original music for your veteran family
-              </p>
+              
+              {/* Right: Featured Video Showcase */}
+              <div className="relative hidden lg:block">
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/50 to-transparent z-10 pointer-events-none" />
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20">
+                  <video 
+                    src="/videos/flag-tribute.mp4" 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                    className="w-full aspect-video object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                    <p className="text-white font-medium">Featured Creation</p>
+                    <p className="text-white/70 text-sm">AI-Generated Flag Tribute Video</p>
+                  </div>
+                </div>
+                {/* Floating stats cards */}
+                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl p-4 z-20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-brand-navy">{totalGenerations}</p>
+                      <p className="text-xs text-gray-500">Videos Created</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl p-4 z-20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Video className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-brand-navy">{totalDuration}s</p>
+                      <p className="text-xs text-gray-500">Total Runtime</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Statistics Bar */}
+        <section className="bg-white border-b py-6">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Video className="w-5 h-5 text-brand-blue" />
+                  <span className="text-3xl font-display text-brand-navy">{totalGenerations}</span>
+                </div>
+                <p className="text-sm text-gray-500">Videos in Gallery</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Flag className="w-5 h-5 text-brand-red" />
+                  <span className="text-3xl font-display text-brand-navy">{totalTemplates}</span>
+                </div>
+                <p className="text-sm text-gray-500">Veteran Templates</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Clock className="w-5 h-5 text-brand-gold" />
+                  <span className="text-3xl font-display text-brand-navy">{totalDuration}</span>
+                </div>
+                <p className="text-sm text-gray-500">Seconds of Content</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Sparkles className="w-5 h-5 text-purple-500" />
+                  <span className="text-3xl font-display text-brand-navy">4K</span>
+                </div>
+                <p className="text-sm text-gray-500">Max Resolution</p>
+              </div>
             </div>
           </div>
         </section>
@@ -481,19 +612,21 @@ export default function NavalIntelligence() {
         )}
 
         {/* Main Content */}
-        <section className="py-12">
+        <section id="create-section" className="py-12 scroll-mt-20">
           <div className="container mx-auto px-4">
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Left Panel - Generation Form */}
               <div className="lg:col-span-2">
-                <Card className="border-2 border-brand-navy/10">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Wand2 className="w-5 h-5 text-brand-red" />
+                <Card className="border-2 border-brand-navy/10 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-brand-navy/5 to-brand-blue/5 border-b">
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-red to-brand-navy flex items-center justify-center">
+                        <Wand2 className="w-5 h-5 text-white" />
+                      </div>
                       Create New Content
                     </CardTitle>
-                    <CardDescription>
-                      Use AI to generate videos, music, and complete music videos
+                    <CardDescription className="text-base">
+                      Use AI to generate videos, music, and complete music videos for your veteran family
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -709,38 +842,64 @@ export default function NavalIntelligence() {
               </div>
 
               {/* Right Panel - Gallery */}
-              <div>
-                <Card className="sticky top-24">
-                  <CardHeader>
+              <div id="gallery-section" className="scroll-mt-20">
+                <Card className="sticky top-24 shadow-lg border-2 border-brand-navy/10">
+                  <CardHeader className="bg-gradient-to-r from-brand-blue/5 to-brand-navy/5 border-b">
                     <CardTitle className="flex items-center justify-between">
                       <span className="flex items-center gap-2">
-                        <Film className="w-5 h-5 text-brand-blue" />
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-blue to-brand-navy flex items-center justify-center">
+                          <Film className="w-4 h-4 text-white" />
+                        </div>
                         Your Gallery
                       </span>
-                      <Badge variant="secondary">{generations.length}</Badge>
+                      <Badge className="bg-brand-navy text-white">{generations.length} items</Badge>
                     </CardTitle>
                     <CardDescription>
-                      Your generated content appears here
+                      Your AI-generated content collection
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="max-h-[600px] overflow-y-auto space-y-4">
+                  <CardContent className="max-h-[600px] overflow-y-auto space-y-4 p-4">
                     {loadingGenerations ? (
                       <div className="space-y-4">
                         {[1,2].map(i => (
-                          <div key={i} className="animate-pulse bg-gray-200 rounded-lg h-48" />
+                          <div key={i} className="animate-pulse bg-gradient-to-r from-gray-200 to-gray-100 rounded-lg h-48" />
                         ))}
                       </div>
                     ) : generations.length > 0 ? (
-                      generations.map(generation => (
-                        <GenerationCard key={generation.id} generation={generation} />
-                      ))
+                      <>
+                        {/* Gallery Filter Tabs */}
+                        <div className="flex gap-2 mb-4 flex-wrap">
+                          <Badge variant="secondary" className="cursor-pointer hover:bg-brand-navy hover:text-white transition-colors">
+                            All ({generations.length})
+                          </Badge>
+                          <Badge variant="outline" className="cursor-pointer hover:bg-brand-blue hover:text-white transition-colors">
+                            Videos ({generations.filter(g => g.type.includes('video')).length})
+                          </Badge>
+                          <Badge variant="outline" className="cursor-pointer hover:bg-green-500 hover:text-white transition-colors">
+                            Music ({generations.filter(g => g.type === 'text-to-music').length})
+                          </Badge>
+                        </div>
+                        {generations.map(generation => (
+                          <GenerationCard key={generation.id} generation={generation} />
+                        ))}
+                      </>
                     ) : (
                       <div className="text-center py-12">
-                        <Video className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-                        <p className="text-gray-500 mb-2">No generations yet</p>
-                        <p className="text-sm text-gray-400">
-                          Create your first video or music above!
+                        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                          <Video className="w-10 h-10 text-gray-300" />
+                        </div>
+                        <p className="text-gray-600 font-medium mb-2">No creations yet</p>
+                        <p className="text-sm text-gray-400 mb-4">
+                          Use the form to create your first AI video or music
                         </p>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => document.getElementById('create-section')?.scrollIntoView({ behavior: 'smooth' })}
+                        >
+                          <Wand2 className="w-4 h-4 mr-2" />
+                          Start Creating
+                        </Button>
                       </div>
                     )}
                   </CardContent>
