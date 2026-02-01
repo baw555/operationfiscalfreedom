@@ -6577,9 +6577,35 @@ export async function registerRoutes(
     inputMusicUrl: z.string().url().optional().nullable(),
   });
 
+  // Simple in-memory rate limiter for AI generation (5 requests per minute per session)
+  const aiRateLimiter = new Map<string, { count: number; resetAt: number }>();
+  const AI_RATE_LIMIT = 5;
+  const AI_RATE_WINDOW_MS = 60000; // 1 minute
+
   // Start a new AI generation
   app.post("/api/ai/generate", async (req, res) => {
     try {
+      // Rate limiting check
+      const rateLimitKey = req.session.userId ? `user:${req.session.userId}` : `session:${req.sessionID}`;
+      const now = Date.now();
+      const rateLimitData = aiRateLimiter.get(rateLimitKey);
+      
+      if (rateLimitData) {
+        if (now < rateLimitData.resetAt) {
+          if (rateLimitData.count >= AI_RATE_LIMIT) {
+            return res.status(429).json({ 
+              message: "Too many generation requests. Please wait a minute before trying again.",
+              retryAfter: Math.ceil((rateLimitData.resetAt - now) / 1000)
+            });
+          }
+          rateLimitData.count++;
+        } else {
+          aiRateLimiter.set(rateLimitKey, { count: 1, resetAt: now + AI_RATE_WINDOW_MS });
+        }
+      } else {
+        aiRateLimiter.set(rateLimitKey, { count: 1, resetAt: now + AI_RATE_WINDOW_MS });
+      }
+
       const validationResult = aiGenerationRequestSchema.safeParse(req.body);
       
       if (!validationResult.success) {

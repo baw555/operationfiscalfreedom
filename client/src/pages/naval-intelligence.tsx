@@ -175,7 +175,22 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
                 controls 
                 autoPlay
                 className="w-full rounded-lg shadow-lg"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
               />
+            )}
+            {hasVideo && (
+              <div className="hidden items-center justify-center py-12 bg-gray-100 rounded-lg">
+                <div className="text-center">
+                  <XCircle className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600">Video unavailable</p>
+                  <p className="text-sm text-gray-400">The video file could not be loaded</p>
+                </div>
+              </div>
             )}
             {hasMusic && (
               <audio 
@@ -183,6 +198,10 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
                 controls 
                 autoPlay
                 className="w-full"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                }}
               />
             )}
             <p className="mt-4 text-sm text-gray-600">{generation.prompt}</p>
@@ -204,22 +223,30 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
               {(hasVideo || hasMusic) && (
                 <Button 
                   variant="outline" 
-                  onClick={() => {
+                  onClick={async () => {
                     const mediaUrl = generation.generatedVideoUrl || generation.generatedMusicUrl;
                     if (mediaUrl) {
                       const url = window.location.origin + mediaUrl;
-                      navigator.clipboard.writeText(url).then(() => {
+                      try {
+                        await navigator.clipboard.writeText(url);
                         toast({
                           title: "Link Copied",
                           description: "Media link copied to clipboard",
                         });
-                      });
+                      } catch (err) {
+                        toast({
+                          title: "Copy Failed",
+                          description: "Unable to copy link. Please copy the URL manually.",
+                          variant: "destructive",
+                        });
+                      }
                     }
                   }}
                   className="shrink-0"
                   data-testid="button-copy-link"
+                  aria-label="Copy link to clipboard"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-4 h-4" aria-hidden="true" />
                 </Button>
               )}
             </div>
@@ -250,13 +277,29 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
             )}
           </div>
         )}
-        {generation.status === 'failed' && generation.errorMessage && (
-          <p className="text-xs text-red-500 mt-2">{generation.errorMessage}</p>
+        {generation.status === 'failed' && (
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <XCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-red-700">Generation Failed</p>
+                <p className="text-xs text-red-600 mt-1">{generation.errorMessage || "An unexpected error occurred"}</p>
+              </div>
+            </div>
+          </div>
         )}
         {generation.status === 'processing' && (
           <div className="mt-3">
-            <Progress value={45} className="h-2" />
+            <Progress value={undefined} className="h-2 animate-pulse" />
             <p className="text-xs text-blue-600 mt-1 animate-pulse">Generating your content...</p>
+          </div>
+        )}
+        {generation.status === 'queued' && (
+          <div className="mt-3">
+            <div className="flex items-center gap-2 text-xs text-yellow-600">
+              <Clock className="w-3 h-3" />
+              <span>Queued - waiting to start</span>
+            </div>
           </div>
         )}
       </CardContent>
@@ -410,14 +453,17 @@ export default function NavalIntelligence() {
 
         {/* Active Generations Banner */}
         {activeGenerations.length > 0 && (
-          <div className="bg-blue-50 border-b border-blue-200 py-3">
+          <div className="bg-blue-50 border-b border-blue-200 py-3" role="status" aria-live="polite">
             <div className="container mx-auto px-4">
               <div className="flex items-center gap-3">
-                <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />
+                <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" aria-hidden="true" />
                 <span className="text-blue-700 font-medium">
                   {activeGenerations.length} generation{activeGenerations.length > 1 ? 's' : ''} in progress
                 </span>
-                <Progress value={30} className="flex-1 max-w-xs" />
+                <div className="flex-1 max-w-xs">
+                  <Progress value={undefined} className="animate-pulse" />
+                  <span className="sr-only">Processing your content</span>
+                </div>
               </div>
             </div>
           </div>
@@ -441,10 +487,16 @@ export default function NavalIntelligence() {
                   </CardHeader>
                   <CardContent>
                     <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as GenerationType)}>
-                      <TabsList className="grid grid-cols-4 w-full mb-6">
+                      <TabsList className="grid grid-cols-4 w-full mb-6" aria-label="Content generation types">
                         {Object.entries(GENERATION_TYPES).map(([key, { icon: Icon, label }]) => (
-                          <TabsTrigger key={key} value={key} className="flex items-center gap-2 text-xs sm:text-sm">
-                            <Icon className="w-4 h-4" />
+                          <TabsTrigger 
+                            key={key} 
+                            value={key} 
+                            className="flex items-center gap-2 text-xs sm:text-sm"
+                            data-testid={`tab-${key}`}
+                            aria-label={label}
+                          >
+                            <Icon className="w-4 h-4" aria-hidden="true" />
                             <span className="hidden sm:inline">{label}</span>
                           </TabsTrigger>
                         ))}
