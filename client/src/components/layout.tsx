@@ -84,12 +84,6 @@ const freeVetSoftwareSubItems = [
   { name: "RANGER: Document Signature", href: "/document-signature" },
 ];
 
-const loginSubItems = [
-  { name: "Enlist (Affiliate)", href: "/affiliate" },
-  { name: "Deploy (Login)", href: "/login" },
-  { name: "Ranger Tab", href: "/ranger-tab-signup" },
-  { name: "Admin Portal", href: "/admin/login" },
-];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -104,9 +98,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileBusinessOpen, setMobileBusinessOpen] = useState(false);
   const [freeVetSoftwareOpen, setFreeVetSoftwareOpen] = useState(false);
   const [mobileFreeVetSoftwareOpen, setMobileFreeVetSoftwareOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [mobileLoginOpen, setMobileLoginOpen] = useState(false);
-
+  
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
       {/* Top Bar - INTENSE */}
@@ -283,32 +275,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Login Dropdown */}
-            <div className="relative" onMouseEnter={() => setLoginOpen(true)} onMouseLeave={() => setLoginOpen(false)}>
-              <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
-                  location === "/affiliate" || location === "/login" || location === "/ranger-tab-signup" || location === "/admin/login" ? "text-blue-600 border-blue-500" : "text-brand-navy"
-                )} data-testid="nav-login">
-                  Login <ChevronDown className={cn("w-4 h-4 transition-transform", loginOpen && "rotate-180")} />
-              </button>
-              {loginOpen && (
-                <div className="absolute top-full right-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
-                  {loginSubItems.map((item) => (
-                    <Link 
-                      key={item.href} 
-                      href={item.href} 
-                      className={cn(
-                        "block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer",
-                        location === item.href ? "text-blue-300 bg-blue-800" : "text-white"
-                      )}
-                      data-testid={`nav-${item.href.replace('/', '')}`}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Login Link */}
+            <Link 
+              href="/login"
+              className={cn(
+                "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 cursor-pointer whitespace-nowrap",
+                location === "/login" ? "text-blue-600 border-blue-500" : "text-brand-navy border-transparent"
+              )} 
+              data-testid="nav-login"
+            >
+              Login
+            </Link>
           </nav>
 
           {/* Payzium link only when on Payzium pages */}
@@ -478,33 +455,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Mobile Login Dropdown */}
-            <div className={cn("border-l-4", mobileLoginOpen ? "border-blue-500" : "border-transparent")}>
-              <button 
+            {/* Mobile Login Link */}
+            <div className={cn("border-l-4", location === "/login" ? "border-blue-500" : "border-transparent")}>
+              <Link 
+                href="/login"
                 className={cn(
-                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]",
-                  mobileLoginOpen ? "text-blue-600" : "text-brand-navy"
+                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center touch-manipulation min-h-[44px]",
+                  location === "/login" ? "text-blue-600" : "text-brand-navy"
                 )}
-                onClick={() => setMobileLoginOpen(!mobileLoginOpen)}
+                onClick={() => setMobileMenuOpen(false)}
                 data-testid="nav-mobile-login"
               >
-                Login <ChevronDown className={cn("w-4 h-4 transition-transform", mobileLoginOpen && "rotate-180")} />
-              </button>
-              {mobileLoginOpen && (
-                <div className="pl-4 pb-2 bg-gradient-to-br from-blue-900 to-blue-950 rounded">
-                  {loginSubItems.map((item) => (
-                    <Link 
-                      key={item.href} 
-                      href={item.href} 
-                      className="text-white font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-blue-300 active:bg-blue-800 border-b border-blue-700 last:border-0" 
-                      onClick={() => setMobileMenuOpen(false)}
-                      data-testid={`nav-mobile-${item.href.replace('/', '')}`}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
+                Login
+              </Link>
             </div>
             {location.toLowerCase().startsWith("/payzium") && (
               <Link 
