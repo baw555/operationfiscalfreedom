@@ -1,14 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +14,6 @@ import { apiRequest } from "@/lib/queryClient";
 import {
   Bot,
   Send,
-  Paperclip,
   Image,
   Video,
   Music,
@@ -24,26 +21,12 @@ import {
   Brain,
   Zap,
   Settings,
-  History,
   Trash2,
-  Download,
   Copy,
   Sparkles,
-  RefreshCw,
-  ChevronDown,
-  Upload,
-  Mic,
-  Camera,
   Wand2,
-  Shield,
-  Star,
   MessageSquare,
   User,
-  Clock,
-  MoreVertical,
-  X,
-  Check,
-  AlertCircle,
   Loader2,
 } from "lucide-react";
 
@@ -53,25 +36,11 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   model?: string;
-  attachments?: Array<{
-    type: "image" | "video" | "audio" | "file";
-    url: string;
-    name: string;
-  }>;
-}
-
-interface ConversationSession {
-  id: string;
-  title: string;
-  createdAt: Date;
-  updatedAt: Date;
-  messageCount: number;
 }
 
 const AI_MODELS = [
   { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", description: "Most capable model for complex tasks", icon: "🧠" },
   { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI", description: "Fast and efficient for most tasks", icon: "⚡" },
-  { id: "claude-sonnet", name: "Claude 3.5 Sonnet", provider: "Anthropic", description: "Excellent for analysis and writing", icon: "📝" },
 ];
 
 const TASK_PRESETS = [
@@ -84,16 +53,14 @@ const TASK_PRESETS = [
 
 export default function OperatorAI() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "assistant",
-      content: "Welcome to Operator AI, your comprehensive AI command center. I'm here to assist you with text, image, video, and audio tasks. How can I help you today?",
+      content: "Welcome to Operator AI, your comprehensive AI command center. I'm here to assist you with text analysis, writing, coding, research, and creative tasks. How can I help you today?",
       timestamp: new Date(),
       model: "gpt-4o"
     }
@@ -105,9 +72,7 @@ export default function OperatorAI() {
   const [selectedModel, setSelectedModel] = useState("gpt-4o");
   const [selectedPreset, setSelectedPreset] = useState("general");
   const [memoryEnabled, setMemoryEnabled] = useState(true);
-  const [streamingEnabled, setStreamingEnabled] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [attachments, setAttachments] = useState<File[]>([]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -147,7 +112,7 @@ export default function OperatorAI() {
   });
 
   const handleSendMessage = () => {
-    if (!inputMessage.trim() && attachments.length === 0) return;
+    if (!inputMessage.trim()) return;
     
     // Add user message
     const userMessage: ChatMessage = {
@@ -155,33 +120,14 @@ export default function OperatorAI() {
       role: "user",
       content: inputMessage,
       timestamp: new Date(),
-      attachments: attachments.map(f => ({
-        type: f.type.startsWith("image") ? "image" : 
-              f.type.startsWith("video") ? "video" : 
-              f.type.startsWith("audio") ? "audio" : "file",
-        url: URL.createObjectURL(f),
-        name: f.name,
-      }))
     };
     
     setMessages(prev => [...prev, userMessage]);
     setInputMessage("");
-    setAttachments([]);
     setIsTyping(true);
     
     // Send to API
     chatMutation.mutate(inputMessage);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setAttachments(prev => [...prev, ...newFiles]);
-    }
-  };
-
-  const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const clearChat = () => {
@@ -313,14 +259,6 @@ export default function OperatorAI() {
                       data-testid="switch-memory"
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-gray-300 text-sm">Streaming</Label>
-                    <Switch 
-                      checked={streamingEnabled} 
-                      onCheckedChange={setStreamingEnabled}
-                      data-testid="switch-streaming"
-                    />
-                  </div>
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -427,16 +365,6 @@ export default function OperatorAI() {
                                 : "bg-gray-700 text-gray-100 rounded-tl-sm"
                             }`}>
                               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                              {message.attachments && message.attachments.length > 0 && (
-                                <div className="mt-2 space-y-1">
-                                  {message.attachments.map((att, i) => (
-                                    <div key={i} className="text-xs opacity-80 flex items-center gap-1">
-                                      <Paperclip className="w-3 h-3" />
-                                      {att.name}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
                             </div>
                             <div className={`flex items-center gap-2 mt-1 text-xs text-gray-500 ${message.role === "user" ? "justify-end" : ""}`}>
                               <span>{message.timestamp.toLocaleTimeString()}</span>
@@ -475,44 +403,9 @@ export default function OperatorAI() {
                   </ScrollArea>
                 </CardContent>
 
-                {/* Attachments Preview */}
-                {attachments.length > 0 && (
-                  <div className="px-4 py-2 border-t border-gray-700 flex gap-2 flex-wrap">
-                    {attachments.map((file, index) => (
-                      <div key={index} className="flex items-center gap-2 bg-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-300">
-                        <Paperclip className="w-3 h-3" />
-                        <span className="truncate max-w-[100px]">{file.name}</span>
-                        <button 
-                          onClick={() => removeAttachment(index)}
-                          className="hover:text-red-400"
-                          data-testid={`remove-attachment-${index}`}
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
                 {/* Input Area */}
                 <div className="p-4 border-t border-gray-700">
                   <div className="flex gap-2">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      multiple
-                      onChange={handleFileSelect}
-                    />
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="text-gray-400 hover:text-white hover:bg-gray-700"
-                      onClick={() => fileInputRef.current?.click()}
-                      data-testid="button-attach"
-                    >
-                      <Paperclip className="w-5 h-5" />
-                    </Button>
                     <div className="flex-1 relative">
                       <Textarea
                         value={inputMessage}
@@ -530,7 +423,7 @@ export default function OperatorAI() {
                     </div>
                     <Button 
                       onClick={handleSendMessage}
-                      disabled={chatMutation.isPending || (!inputMessage.trim() && attachments.length === 0)}
+                      disabled={chatMutation.isPending || !inputMessage.trim()}
                       className="bg-blue-600 hover:bg-blue-700"
                       data-testid="button-send"
                     >
