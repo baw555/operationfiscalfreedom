@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Shield, Award, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -51,93 +51,139 @@ export function FlagBanner() {
       <div className="flag-banner-container relative">
         {/* Animated Flag Banner */}
         <div 
-          className="flag-banner relative overflow-hidden rounded-xl shadow-2xl"
+          className="flag-banner relative overflow-hidden rounded-none shadow-2xl border-4 border-brand-gold"
           style={{ filter: "url(#flag-wave-filter)" }}
         >
-          {/* Multi-layer gradient background for depth */}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-red via-brand-navy to-brand-blue" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent flag-shimmer" />
+          {/* Military camo-inspired gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1a2a1a] via-brand-navy to-[#0d1b2a]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent flag-shimmer" />
           
-          {/* Fabric fold highlights */}
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-white/40 via-transparent to-white/20" />
-            <div className="absolute top-0 left-1/2 w-px h-full bg-gradient-to-b from-transparent via-white/30 to-transparent" />
-            <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-white/20 via-transparent to-white/40" />
-          </div>
+          {/* Military insignia pattern overlay */}
+          <div className="absolute inset-0 opacity-10" style={{
+            backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,215,0,0.1) 10px, rgba(255,215,0,0.1) 20px)`
+          }} />
+          
+          {/* Top military rank bar */}
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-red via-brand-gold to-brand-red" />
+          
+          {/* Bottom military rank bar */}
+          <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-red via-brand-gold to-brand-red" />
 
           {/* Content */}
-          <div className="relative z-10 px-6 sm:px-10 py-8 sm:py-10">
-            {/* Main Headline */}
+          <div className="relative z-10 px-6 sm:px-10 py-10 sm:py-12">
+            {/* Military shield emblem */}
+            <div className="flex justify-center mb-4">
+              <div className="relative">
+                <Shield className="w-12 h-12 sm:w-16 sm:h-16 text-brand-gold drop-shadow-lg" fill="rgba(234, 179, 8, 0.2)" />
+                <Star className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-white" fill="white" />
+              </div>
+            </div>
+
+            {/* Main Headline with military stencil styling */}
             <Link href="/ranger-tab-signup">
               <h2 
-                className="text-center text-2xl sm:text-3xl md:text-4xl font-display text-white mb-4 cursor-pointer hover:text-brand-gold transition-colors tracking-wide"
+                className="text-center text-2xl sm:text-3xl md:text-4xl font-display text-white mb-3 cursor-pointer hover:text-brand-gold transition-colors tracking-[0.15em] uppercase"
                 data-testid="link-ranger-banner"
+                style={{ textShadow: '2px 2px 0 rgba(0,0,0,0.5), -1px -1px 0 rgba(0,0,0,0.3)' }}
               >
-                <span className="text-brand-gold">All Veterans</span> Get{" "}
-                <span className="text-white font-bold">FREE</span>{" "}
-                <span className="bg-gradient-to-r from-brand-gold via-yellow-300 to-brand-gold bg-clip-text text-transparent animate-pulse">
+                <span className="text-brand-gold">★ All Veterans ★</span>
+                <br />
+                <span className="text-white font-bold">GET FREE</span>{" "}
+                <span className="inline-block bg-brand-gold text-brand-navy px-3 py-1 rounded-sm shadow-lg transform -skew-x-3">
                   RANGER
-                </span>
-                <br className="sm:hidden" />
-                <span className="text-white/90 text-xl sm:text-2xl md:text-3xl block sm:inline mt-1 sm:mt-0">
-                  : Document Signing Software
                 </span>
               </h2>
             </Link>
-
-            {/* Divider */}
-            <div className="w-32 sm:w-48 h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-5" />
-
-            {/* Subtitle */}
-            <p className="text-center text-lg sm:text-xl text-white/90 font-display mb-6 tracking-wide">
-              There is more! Check back frequently for{" "}
-              <span className="text-brand-gold">new free veteran services</span>
+            
+            <p className="text-center text-lg sm:text-xl text-white/80 font-display tracking-wider mb-4">
+              Document Signing Software
             </p>
 
-            {/* Integrated Dropdown */}
+            {/* Military-style divider with stars */}
+            <div className="flex items-center justify-center gap-3 mb-5">
+              <div className="w-12 sm:w-20 h-0.5 bg-gradient-to-r from-transparent to-brand-gold" />
+              <Award className="w-6 h-6 text-brand-gold" />
+              <div className="w-12 sm:w-20 h-0.5 bg-gradient-to-l from-transparent to-brand-gold" />
+            </div>
+
+            {/* Subtitle with military briefing style */}
+            <div className="bg-black/40 border-l-4 border-brand-gold px-4 py-3 mb-6 mx-auto max-w-lg">
+              <p className="text-center text-base sm:text-lg text-brand-gold font-display tracking-wide uppercase">
+                ⚡ Intel Brief ⚡
+              </p>
+              <p className="text-center text-sm sm:text-base text-white/90 font-display">
+                There is more! Check back frequently for{" "}
+                <span className="text-brand-gold font-bold">new free veteran services</span>
+              </p>
+            </div>
+
+            {/* Military-styled Dropdown Button */}
             <div className="flex justify-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
-                    className="h-12 sm:h-14 px-6 sm:px-10 text-base sm:text-lg font-display bg-brand-gold hover:bg-brand-gold/90 text-brand-navy shadow-lg shadow-black/30 border-2 border-white/30 transition-all hover:scale-105"
+                    className="h-14 sm:h-16 px-8 sm:px-12 text-base sm:text-lg font-display bg-gradient-to-b from-[#4a5d23] to-[#2d3a14] hover:from-[#5a6d33] hover:to-[#3d4a24] text-white shadow-lg border-2 border-brand-gold/50 transition-all hover:scale-105 uppercase tracking-wider rounded-none"
+                    style={{ 
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.4)'
+                    }}
                     data-testid="button-free-services-dropdown"
                   >
-                    Free Member Services
+                    <Shield className="mr-2 h-5 w-5" />
+                    Access Free Services
                     <ChevronDown className="ml-2 h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[calc(100vw-2rem)] max-w-80 mx-2 bg-white border-2 border-brand-navy/20 shadow-2xl" align="center">
-                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
-                    <Link href="/apply-website">Get Free Business Website</Link>
+                <DropdownMenuContent className="w-[calc(100vw-2rem)] max-w-80 mx-2 bg-[#1a2a1a] border-2 border-brand-gold/50 shadow-2xl rounded-none" align="center">
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-white hover:bg-brand-gold/20 hover:text-brand-gold border-b border-brand-gold/20">
+                    <Link href="/apply-website" className="flex items-center gap-2">
+                      <span className="text-brand-gold">▸</span> Get Free Business Website
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
-                    <Link href="/apply-startup-grant">Apply for Startup Grant</Link>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-white hover:bg-brand-gold/20 hover:text-brand-gold border-b border-brand-gold/20">
+                    <Link href="/apply-startup-grant" className="flex items-center gap-2">
+                      <span className="text-brand-gold">▸</span> Apply for Startup Grant
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
-                    <Link href="/private-doctor">VA Too Slow? Private Doctor</Link>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-white hover:bg-brand-gold/20 hover:text-brand-gold border-b border-brand-gold/20">
+                    <Link href="/private-doctor" className="flex items-center gap-2">
+                      <span className="text-brand-gold">▸</span> VA Too Slow? Private Doctor
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
-                    <Link href="/new-home-furniture">New Home Furniture Assistance</Link>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-white hover:bg-brand-gold/20 hover:text-brand-gold border-b border-brand-gold/20">
+                    <Link href="/new-home-furniture" className="flex items-center gap-2">
+                      <span className="text-brand-gold">▸</span> New Home Furniture Assistance
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-gold/20 hover:text-brand-navy border-t border-gray-200">
-                    <Link href="/ranger-tab-signup">Apply for RANGER Software</Link>
+                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-gold hover:bg-brand-red/20 hover:text-white">
+                    <Link href="/ranger-tab-signup" className="flex items-center gap-2">
+                      <span className="text-brand-red">★</span> Apply for RANGER Software
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
 
-          {/* Corner stars for patriotic flair */}
-          <div className="absolute top-3 left-3 text-brand-gold text-xl sm:text-2xl opacity-60">★</div>
-          <div className="absolute top-3 right-3 text-brand-gold text-xl sm:text-2xl opacity-60">★</div>
-          <div className="absolute bottom-3 left-3 text-brand-gold text-xl sm:text-2xl opacity-60">★</div>
-          <div className="absolute bottom-3 right-3 text-brand-gold text-xl sm:text-2xl opacity-60">★</div>
+          {/* Corner military rank insignias */}
+          <div className="absolute top-4 left-4 flex gap-1">
+            <div className="w-2 h-6 bg-brand-gold rounded-sm" />
+            <div className="w-2 h-6 bg-brand-gold rounded-sm" />
+            <div className="w-2 h-6 bg-brand-gold rounded-sm" />
+          </div>
+          <div className="absolute top-4 right-4 flex gap-1">
+            <div className="w-2 h-6 bg-brand-gold rounded-sm" />
+            <div className="w-2 h-6 bg-brand-gold rounded-sm" />
+            <div className="w-2 h-6 bg-brand-gold rounded-sm" />
+          </div>
+          <div className="absolute bottom-4 left-4 text-brand-gold text-2xl font-bold opacity-60">★★★</div>
+          <div className="absolute bottom-4 right-4 text-brand-gold text-2xl font-bold opacity-60">★★★</div>
         </div>
 
-        {/* Flag pole shadow effect */}
-        <div className="absolute -left-2 top-0 bottom-0 w-1 bg-gradient-to-b from-gray-600 via-gray-400 to-gray-600 rounded-full shadow-lg" />
-        <div className="absolute -left-3 top-0 w-3 h-3 bg-brand-gold rounded-full shadow-md" />
-        <div className="absolute -left-3 bottom-0 w-3 h-3 bg-brand-gold rounded-full shadow-md" />
+        {/* Flag pole with military styling */}
+        <div className="absolute -left-3 top-0 bottom-0 w-2 bg-gradient-to-b from-gray-400 via-gray-300 to-gray-500 rounded-full shadow-lg" />
+        <div className="absolute -left-4 -top-2 w-5 h-5 bg-brand-gold rounded-full shadow-md border-2 border-yellow-600" />
+        <div className="absolute -left-4 -bottom-2 w-5 h-5 bg-brand-gold rounded-full shadow-md border-2 border-yellow-600" />
       </div>
     </div>
   );
