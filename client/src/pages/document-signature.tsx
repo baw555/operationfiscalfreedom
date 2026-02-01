@@ -296,29 +296,62 @@ export default function DocumentSignature() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                      { label: "Total Envelopes", value: stats.total, icon: FileText, color: "blue", change: "+12%" },
-                      { label: "Awaiting Signature", value: stats.pending, icon: Clock, color: "amber", change: "-3%" },
-                      { label: "Completed", value: stats.signed, icon: CheckCircle, color: "emerald", change: "+24%" },
-                      { label: "Completion Rate", value: `${stats.signRate}%`, icon: TrendingUp, color: "cyan", change: "+5%" },
-                    ].map((stat, index) => (
-                      <Card key={index} className="bg-gray-800/50 border-gray-700/50 backdrop-blur-sm overflow-hidden">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="text-sm text-gray-400">{stat.label}</p>
-                              <p className="text-3xl font-bold text-white mt-1">{stat.value}</p>
-                              <p className={`text-xs mt-2 ${stat.change.startsWith('+') ? 'text-emerald-400' : 'text-red-400'}`}>
-                                {stat.change} from last month
-                              </p>
-                            </div>
-                            <div className={`w-12 h-12 rounded-xl bg-${stat.color}-500/20 flex items-center justify-center`}>
-                              <stat.icon className={`w-6 h-6 text-${stat.color}-400`} />
-                            </div>
+                    <Card className="bg-gray-800/50 border-gray-700/50 backdrop-blur-sm overflow-hidden" data-testid="stat-total-envelopes">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm text-gray-400">Total Envelopes</p>
+                            <p className="text-3xl font-bold text-white mt-1" data-testid="text-total-count">{stats.total}</p>
+                            <p className="text-xs mt-2 text-emerald-400">+12% from last month</p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                            <FileText className="w-6 h-6 text-blue-400" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-gray-800/50 border-gray-700/50 backdrop-blur-sm overflow-hidden" data-testid="stat-pending">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm text-gray-400">Awaiting Signature</p>
+                            <p className="text-3xl font-bold text-white mt-1" data-testid="text-pending-count">{stats.pending}</p>
+                            <p className="text-xs mt-2 text-red-400">-3% from last month</p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                            <Clock className="w-6 h-6 text-amber-400" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-gray-800/50 border-gray-700/50 backdrop-blur-sm overflow-hidden" data-testid="stat-completed">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm text-gray-400">Completed</p>
+                            <p className="text-3xl font-bold text-white mt-1" data-testid="text-signed-count">{stats.signed}</p>
+                            <p className="text-xs mt-2 text-emerald-400">+24% from last month</p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-emerald-400" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-gray-800/50 border-gray-700/50 backdrop-blur-sm overflow-hidden" data-testid="stat-completion-rate">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm text-gray-400">Completion Rate</p>
+                            <p className="text-3xl font-bold text-white mt-1" data-testid="text-rate">{stats.signRate}%</p>
+                            <p className="text-xs mt-2 text-emerald-400">+5% from last month</p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                            <TrendingUp className="w-6 h-6 text-cyan-400" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -454,6 +487,7 @@ export default function DocumentSignature() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10 bg-gray-800/50 border-gray-700 text-white"
+                        data-testid="input-search-envelopes"
                       />
                     </div>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -473,10 +507,10 @@ export default function DocumentSignature() {
 
                   <Tabs defaultValue="pending" className="space-y-4">
                     <TabsList className="bg-gray-800/50 border border-gray-700">
-                      <TabsTrigger value="pending" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                      <TabsTrigger value="pending" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-awaiting">
                         Awaiting ({stats.pending})
                       </TabsTrigger>
-                      <TabsTrigger value="completed" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
+                      <TabsTrigger value="completed" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white" data-testid="tab-completed">
                         Completed ({stats.signed})
                       </TabsTrigger>
                     </TabsList>
