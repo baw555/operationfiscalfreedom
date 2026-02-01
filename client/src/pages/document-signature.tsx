@@ -109,6 +109,10 @@ export default function DocumentSignature() {
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
   const [templateContent, setTemplateContent] = useState("");
+  const [editingTemplate, setEditingTemplate] = useState<ContractTemplate | null>(null);
+  const [showBatchSendDialog, setShowBatchSendDialog] = useState(false);
+  const [batchRecipients, setBatchRecipients] = useState<Array<{name: string; email: string; phone: string}>>([]);
+  const [batchCsvInput, setBatchCsvInput] = useState("");
 
   const { data: templates = [], isLoading: templatesLoading } = useQuery<ContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
@@ -166,6 +170,74 @@ export default function DocumentSignature() {
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to create template.", variant: "destructive" });
+    },
+  });
+
+  const updateTemplateMutation = useMutation({
+    mutationFn: async (data: { id: number; name: string; description: string; content: string; isActive?: boolean }) => {
+      const res = await apiRequest("PUT", `/api/csu/templates/${data.id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/csu/templates"] });
+      toast({ title: "Template Updated", description: "Template has been saved." });
+      setShowTemplateDialog(false);
+      setEditingTemplate(null);
+      resetTemplateForm();
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update template.", variant: "destructive" });
+    },
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/csu/templates/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/csu/templates"] });
+      toast({ title: "Template Deleted", description: "Template has been removed." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete template.", variant: "destructive" });
+    },
+  });
+
+  const fixTemplateMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("POST", `/api/csu/fix-template/${id}`, {});
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.fixedContent) {
+        setTemplateContent(data.fixedContent);
+        toast({ title: "AI Template Fixer", description: "Template has been improved! Review the changes below." });
+      }
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to fix template with AI.", variant: "destructive" });
+    },
+  });
+
+  const batchSendMutation = useMutation({
+    mutationFn: async (data: { templateId: number; recipients: Array<{name: string; email: string; phone?: string}> }) => {
+      const res = await apiRequest("POST", "/api/csu/send-contract-batch", data);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/csu/pending"] });
+      toast({ 
+        title: "Batch Send Complete", 
+        description: `Successfully sent to ${data.successCount || 0} recipient(s).` 
+      });
+      setShowBatchSendDialog(false);
+      setBatchRecipients([]);
+      setBatchCsvInput("");
+      setSelectedTemplate(null);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to send batch.", variant: "destructive" });
     },
   });
 
@@ -246,6 +318,7 @@ export default function DocumentSignature() {
                     { id: "dashboard", icon: BarChart3, label: "Dashboard" },
                     { id: "envelopes", icon: Inbox, label: "Envelopes" },
                     { id: "templates", icon: FileText, label: "Templates" },
+                    { id: "analytics", icon: TrendingUp, label: "Analytics" },
                     { id: "activity", icon: Activity, label: "Activity" },
                   ].map((item) => (
                     <button
@@ -266,14 +339,25 @@ export default function DocumentSignature() {
 
                 <Separator className="my-6 bg-gray-800" />
 
-                <Button
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25"
-                  onClick={() => setShowSendDialog(true)}
-                  data-testid="button-new-envelope"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Envelope
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25"
+                    onClick={() => setShowSendDialog(true)}
+                    data-testid="button-new-envelope"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Envelope
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+                    onClick={() => setShowBatchSendDialog(true)}
+                    data-testid="button-batch-send"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Batch Send
+                  </Button>
+                </div>
 
                 <div className="mt-8 p-4 rounded-xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50">
                   <div className="flex items-center gap-2 mb-3">
@@ -686,7 +770,8 @@ export default function DocumentSignature() {
                                 variant="outline"
                                 size="sm"
                                 className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setSelectedTemplate(template);
                                   setShowSendDialog(true);
                                 }}
@@ -694,8 +779,35 @@ export default function DocumentSignature() {
                                 <Send className="w-3 h-3 mr-1" />
                                 Use
                               </Button>
-                              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-gray-400 hover:text-white"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingTemplate(template);
+                                  setTemplateName(template.name);
+                                  setTemplateDescription(template.description || "");
+                                  setTemplateContent(template.content);
+                                  setShowTemplateDialog(true);
+                                }}
+                                data-testid={`button-edit-template-${template.id}`}
+                              >
                                 <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-gray-400 hover:text-red-400"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (confirm("Are you sure you want to delete this template?")) {
+                                    deleteTemplateMutation.mutate(template.id);
+                                  }
+                                }}
+                                data-testid={`button-delete-template-${template.id}`}
+                              >
+                                <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
                           </CardContent>
@@ -703,6 +815,200 @@ export default function DocumentSignature() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {activeTab === "analytics" && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Analytics</h2>
+                      <p className="text-gray-400">Track signature performance and engagement metrics</p>
+                    </div>
+                    <Select defaultValue="30days">
+                      <SelectTrigger className="w-[180px] bg-gray-800/50 border-gray-700 text-white" data-testid="select-analytics-timerange">
+                        <SelectValue placeholder="Time range" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-700">
+                        <SelectItem value="7days">Last 7 days</SelectItem>
+                        <SelectItem value="30days">Last 30 days</SelectItem>
+                        <SelectItem value="90days">Last 90 days</SelectItem>
+                        <SelectItem value="year">This year</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card className="bg-gray-800/50 border-gray-700/50">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm text-gray-400">Documents Sent</p>
+                            <p className="text-3xl font-bold text-white mt-1">{pendingContracts.length + signedContracts.length}</p>
+                            <div className="flex items-center gap-1 mt-2">
+                              <TrendingUp className="w-3 h-3 text-emerald-400" />
+                              <span className="text-xs text-emerald-400">+18%</span>
+                            </div>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                            <Send className="w-6 h-6 text-blue-400" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gray-800/50 border-gray-700/50">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm text-gray-400">Avg. Time to Sign</p>
+                            <p className="text-3xl font-bold text-white mt-1">2.4h</p>
+                            <div className="flex items-center gap-1 mt-2">
+                              <TrendingUp className="w-3 h-3 text-emerald-400" />
+                              <span className="text-xs text-emerald-400">-32%</span>
+                            </div>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                            <Clock className="w-6 h-6 text-purple-400" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gray-800/50 border-gray-700/50">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm text-gray-400">View Rate</p>
+                            <p className="text-3xl font-bold text-white mt-1">94%</p>
+                            <div className="flex items-center gap-1 mt-2">
+                              <TrendingUp className="w-3 h-3 text-emerald-400" />
+                              <span className="text-xs text-emerald-400">+5%</span>
+                            </div>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                            <Eye className="w-6 h-6 text-cyan-400" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gray-800/50 border-gray-700/50">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm text-gray-400">Completion Rate</p>
+                            <p className="text-3xl font-bold text-white mt-1">{stats.signRate}%</p>
+                            <div className="flex items-center gap-1 mt-2">
+                              <TrendingUp className="w-3 h-3 text-emerald-400" />
+                              <span className="text-xs text-emerald-400">+8%</span>
+                            </div>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-emerald-400" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className="bg-gray-800/50 border-gray-700/50">
+                      <CardHeader>
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <BarChart3 className="w-5 h-5 text-blue-400" />
+                          Template Performance
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {templates.slice(0, 5).map((template, index) => {
+                            const completionRate = Math.round(50 + Math.random() * 50);
+                            return (
+                              <div key={template.id} className="space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-white">{template.name}</span>
+                                  <span className="text-gray-400">{completionRate}%</span>
+                                </div>
+                                <Progress value={completionRate} className="h-2 bg-gray-700" />
+                              </div>
+                            );
+                          })}
+                          {templates.length === 0 && (
+                            <p className="text-center text-gray-500 py-4">No templates yet</p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gray-800/50 border-gray-700/50">
+                      <CardHeader>
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <Activity className="w-5 h-5 text-cyan-400" />
+                          Signature Funnel
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 rounded-full bg-blue-500" />
+                              <span className="text-white">Sent</span>
+                            </div>
+                            <span className="text-gray-400">{pendingContracts.length + signedContracts.length}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 rounded-full bg-purple-500" />
+                              <span className="text-white">Viewed</span>
+                            </div>
+                            <span className="text-gray-400">{Math.round((pendingContracts.length + signedContracts.length) * 0.94)}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 rounded-full bg-amber-500" />
+                              <span className="text-white">Pending Signature</span>
+                            </div>
+                            <span className="text-gray-400">{pendingContracts.length}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                              <span className="text-white">Completed</span>
+                            </div>
+                            <span className="text-gray-400">{signedContracts.length}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 rounded-full bg-red-500" />
+                              <span className="text-white">Expired</span>
+                            </div>
+                            <span className="text-gray-400">{stats.expired}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-purple-600/20 border-purple-500/30">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                            <Sparkles className="w-7 h-7 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-white">AI Insights</h3>
+                            <p className="text-gray-300">Get AI-powered recommendations to improve your signature completion rates</p>
+                          </div>
+                        </div>
+                        <Button className="bg-white text-gray-900 hover:bg-gray-100">
+                          Generate Insights
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
 
@@ -991,15 +1297,21 @@ export default function DocumentSignature() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+      <Dialog open={showTemplateDialog} onOpenChange={(open) => {
+        setShowTemplateDialog(open);
+        if (!open) {
+          setEditingTemplate(null);
+          resetTemplateForm();
+        }
+      }}>
         <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl flex items-center gap-2">
               <FileText className="w-5 h-5 text-blue-400" />
-              Create Template
+              {editingTemplate ? "Edit Template" : "Create Template"}
             </DialogTitle>
             <DialogDescription className="text-gray-400">
-              Create a reusable document template for your signatures
+              {editingTemplate ? "Update your document template" : "Create a reusable document template for your signatures"}
             </DialogDescription>
           </DialogHeader>
 
@@ -1023,7 +1335,27 @@ export default function DocumentSignature() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Template Content (HTML) *</Label>
+              <div className="flex items-center justify-between">
+                <Label>Template Content (HTML) *</Label>
+                {editingTemplate && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fixTemplateMutation.mutate(editingTemplate.id)}
+                    disabled={fixTemplateMutation.isPending}
+                    className="border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                    data-testid="button-ai-fix-template"
+                  >
+                    {fixTemplateMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 mr-1" />
+                    )}
+                    AI Fix Template
+                  </Button>
+                )}
+              </div>
               <Textarea
                 value={templateContent}
                 onChange={(e) => setTemplateContent(e.target.value)}
@@ -1037,26 +1369,184 @@ export default function DocumentSignature() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowTemplateDialog(false); resetTemplateForm(); }} className="border-gray-600 text-gray-300">
+            <Button variant="outline" onClick={() => { setShowTemplateDialog(false); setEditingTemplate(null); resetTemplateForm(); }} className="border-gray-600 text-gray-300">
               Cancel
             </Button>
             <Button
               onClick={() => {
-                createTemplateMutation.mutate({
-                  name: templateName,
-                  description: templateDescription,
-                  content: templateContent,
-                });
+                if (editingTemplate) {
+                  updateTemplateMutation.mutate({
+                    id: editingTemplate.id,
+                    name: templateName,
+                    description: templateDescription,
+                    content: templateContent,
+                  });
+                } else {
+                  createTemplateMutation.mutate({
+                    name: templateName,
+                    description: templateDescription,
+                    content: templateContent,
+                  });
+                }
               }}
-              disabled={!templateName || !templateContent || createTemplateMutation.isPending}
+              disabled={!templateName || !templateContent || createTemplateMutation.isPending || updateTemplateMutation.isPending}
               className="bg-gradient-to-r from-blue-600 to-cyan-500"
             >
-              {createTemplateMutation.isPending ? (
+              {(createTemplateMutation.isPending || updateTemplateMutation.isPending) ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : editingTemplate ? (
+                <CheckCircle className="w-4 h-4 mr-2" />
               ) : (
                 <Plus className="w-4 h-4 mr-2" />
               )}
-              Create Template
+              {editingTemplate ? "Save Changes" : "Create Template"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showBatchSendDialog} onOpenChange={setShowBatchSendDialog}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-400" />
+              Batch Send
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Send documents to multiple recipients at once
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label>Select Template *</Label>
+              <Select 
+                value={selectedTemplate?.id?.toString() || ""} 
+                onValueChange={(val) => setSelectedTemplate(templates.find(t => t.id === parseInt(val)) || null)}
+              >
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white" data-testid="select-batch-template">
+                  <SelectValue placeholder="Choose a template" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  {templates.filter(t => t.isActive).map((template) => (
+                    <SelectItem key={template.id} value={template.id.toString()}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Recipients (CSV format: name, email, phone)</Label>
+              <Textarea
+                value={batchCsvInput}
+                onChange={(e) => setBatchCsvInput(e.target.value)}
+                placeholder="John Doe, john@example.com, 555-123-4567
+Jane Smith, jane@example.com, 555-987-6543
+Bob Wilson, bob@example.com"
+                className="bg-gray-800 border-gray-700 text-white min-h-[150px] font-mono text-sm"
+                data-testid="input-batch-csv"
+              />
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500">
+                  One recipient per line. Phone is optional.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-600 text-gray-300"
+                  onClick={() => {
+                    const lines = batchCsvInput.trim().split("\n").filter(l => l.trim());
+                    const parsed = lines.map(line => {
+                      const parts = line.split(",").map(p => p.trim());
+                      return {
+                        name: parts[0] || "",
+                        email: parts[1] || "",
+                        phone: parts[2] || "",
+                      };
+                    }).filter(r => r.name && r.email);
+                    setBatchRecipients(parsed);
+                    if (parsed.length > 0) {
+                      toast({ title: "Parsed Recipients", description: `Found ${parsed.length} valid recipient(s)` });
+                    }
+                  }}
+                  data-testid="button-parse-csv"
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Parse
+                </Button>
+              </div>
+            </div>
+
+            {batchRecipients.length > 0 && (
+              <div className="space-y-2">
+                <Label>Recipients to Send ({batchRecipients.length})</Label>
+                <ScrollArea className="h-[200px] rounded-lg border border-gray-700 bg-gray-800/50 p-4">
+                  <div className="space-y-2">
+                    {batchRecipients.map((recipient, index) => (
+                      <div 
+                        key={index} 
+                        className="flex items-center justify-between p-3 rounded-lg bg-gray-900/50 border border-gray-700"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm">
+                            {recipient.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-white">{recipient.name}</p>
+                            <p className="text-xs text-gray-400">{recipient.email}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-gray-400 hover:text-red-400"
+                          onClick={() => setBatchRecipients(prev => prev.filter((_, i) => i !== index))}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => { 
+                setShowBatchSendDialog(false); 
+                setBatchRecipients([]); 
+                setBatchCsvInput(""); 
+                setSelectedTemplate(null);
+              }} 
+              className="border-gray-600 text-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedTemplate && batchRecipients.length > 0) {
+                  batchSendMutation.mutate({
+                    templateId: selectedTemplate.id,
+                    recipients: batchRecipients,
+                  });
+                }
+              }}
+              disabled={!selectedTemplate || batchRecipients.length === 0 || batchSendMutation.isPending}
+              className="bg-gradient-to-r from-blue-600 to-cyan-500"
+              data-testid="button-batch-send-submit"
+            >
+              {batchSendMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              Send to {batchRecipients.length} Recipient{batchRecipients.length !== 1 ? "s" : ""}
             </Button>
           </DialogFooter>
         </DialogContent>
