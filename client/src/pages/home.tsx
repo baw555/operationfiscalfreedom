@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, ChevronDown, Pause, Play } from "lucide-react";
+import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, ChevronDown, Pause, Play, Volume2 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
@@ -22,6 +22,7 @@ export default function Home() {
   const [showContent, setShowContent] = useState(false);
   const [animationPaused, setAnimationPaused] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.7);
   const loopIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const introVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -99,6 +100,21 @@ export default function Home() {
       montageAudioRef.current.play().catch(() => {});
     }
   }, []);
+
+  // Handle volume change
+  const handleVolumeChange = useCallback((newVolume: number) => {
+    setVolume(newVolume);
+    if (montageAudioRef.current) {
+      montageAudioRef.current.volume = newVolume;
+    }
+  }, []);
+
+  // Apply initial volume when audio is ready
+  useEffect(() => {
+    if (montageAudioRef.current) {
+      montageAudioRef.current.volume = volume;
+    }
+  }, [volume]);
 
   const toggleAllPlayback = () => {
     if (animationPaused) {
@@ -219,25 +235,44 @@ export default function Home() {
         onEnded={handleAudioEnded}
       />
 
-      {/* Floating Pause/Play Control - visible during text sequence and montage */}
+      {/* Floating Music Controls - visible during text sequence and montage */}
       {introPlayed && (
-        <button
-          onClick={toggleAllPlayback}
-          data-testid="button-floating-music"
-          className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-base tracking-wider rounded-full shadow-lg shadow-brand-gold/40 transition-all hover:scale-105 uppercase"
-        >
-          {isMusicPlaying && !animationPaused ? (
-            <>
-              <Pause className="w-5 h-5 fill-current" />
-              Pause
-            </>
-          ) : (
-            <>
-              <Play className="w-5 h-5 fill-current" />
-              Play
-            </>
-          )}
-        </button>
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+          {/* Volume Slider */}
+          <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2.5 shadow-lg">
+            <Volume2 className="w-5 h-5 text-brand-gold flex-shrink-0" />
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={volume}
+              onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+              data-testid="slider-volume"
+              className="w-24 h-2 bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-brand-gold [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-brand-gold [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
+            />
+            <span className="text-white/80 text-sm font-mono w-8">{Math.round(volume * 100)}%</span>
+          </div>
+          
+          {/* Play/Pause Button */}
+          <button
+            onClick={toggleAllPlayback}
+            data-testid="button-floating-music"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-base tracking-wider rounded-full shadow-lg shadow-brand-gold/40 transition-all hover:scale-105 uppercase"
+          >
+            {isMusicPlaying && !animationPaused ? (
+              <>
+                <Pause className="w-5 h-5 fill-current" />
+                Pause
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5 fill-current" />
+                Play
+              </>
+            )}
+          </button>
+        </div>
       )}
       
       {/* Intro Video with Audio */}
