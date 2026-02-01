@@ -8136,15 +8136,28 @@ Create a detailed scene plan with timing. Return JSON:
   // CLAIMS NAVIGATOR API ENDPOINTS
   // ==========================================
 
+  // Helper to get authenticated user ID (with dev bypass for testing)
+  const getVeteranUserId = (req: any): string | null => {
+    // Dev bypass for testing - use a test user ID
+    if (process.env.NODE_ENV === "development" && req.headers["x-dev-bypass"] === "true") {
+      return "test-veteran-user";
+    }
+    // Normal auth flow
+    if (req.user && req.user.claims && req.user.claims.sub) {
+      return req.user.claims.sub;
+    }
+    return null;
+  };
+
   // Get all cases for the logged-in veteran
   app.get("/api/claims/cases", async (req, res) => {
     try {
-      const veteranUser = (req as any).veteranUser;
-      if (!veteranUser) {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const cases = await storage.getClaimCasesByUserId(veteranUser.id);
+      const cases = await storage.getClaimCasesByUserId(userId);
       res.json(cases);
     } catch (error) {
       console.error("Error fetching cases:", error);
@@ -8155,8 +8168,8 @@ Create a detailed scene plan with timing. Return JSON:
   // Get a specific case
   app.get("/api/claims/cases/:id", async (req, res) => {
     try {
-      const veteranUser = (req as any).veteranUser;
-      if (!veteranUser) {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
@@ -8170,7 +8183,7 @@ Create a detailed scene plan with timing. Return JSON:
         return res.status(404).json({ message: "Case not found" });
       }
 
-      if (claimCase.veteranUserId !== veteranUser.id) {
+      if (claimCase.veteranUserId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8184,8 +8197,8 @@ Create a detailed scene plan with timing. Return JSON:
   // Create a new case with tasks
   app.post("/api/claims/cases", async (req, res) => {
     try {
-      const veteranUser = (req as any).veteranUser;
-      if (!veteranUser) {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
@@ -8196,7 +8209,7 @@ Create a detailed scene plan with timing. Return JSON:
       }
 
       const newCase = await storage.createClaimCase({
-        veteranUserId: veteranUser.id,
+        veteranUserId: userId,
         title,
         caseType,
         claimType,
@@ -8208,7 +8221,7 @@ Create a detailed scene plan with timing. Return JSON:
         for (const task of tasks) {
           await storage.createClaimTask({
             caseId: newCase.id,
-            veteranUserId: veteranUser.id,
+            veteranUserId: userId,
             title: task.title,
             description: task.description,
             status: task.status || "todo",
@@ -8228,8 +8241,8 @@ Create a detailed scene plan with timing. Return JSON:
   // Get tasks for a case
   app.get("/api/claims/cases/:id/tasks", async (req, res) => {
     try {
-      const veteranUser = (req as any).veteranUser;
-      if (!veteranUser) {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
@@ -8239,7 +8252,7 @@ Create a detailed scene plan with timing. Return JSON:
       }
 
       const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+      if (!claimCase || claimCase.veteranUserId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8254,8 +8267,8 @@ Create a detailed scene plan with timing. Return JSON:
   // Update a task status
   app.patch("/api/claims/tasks/:id", async (req, res) => {
     try {
-      const veteranUser = (req as any).veteranUser;
-      if (!veteranUser) {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
@@ -8269,7 +8282,7 @@ Create a detailed scene plan with timing. Return JSON:
         return res.status(404).json({ message: "Task not found" });
       }
 
-      if (task.veteranUserId !== veteranUser.id) {
+      if (task.veteranUserId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8293,8 +8306,8 @@ Create a detailed scene plan with timing. Return JSON:
   // Get notes for a case
   app.get("/api/claims/cases/:id/notes", async (req, res) => {
     try {
-      const veteranUser = (req as any).veteranUser;
-      if (!veteranUser) {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
@@ -8304,7 +8317,7 @@ Create a detailed scene plan with timing. Return JSON:
       }
 
       const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+      if (!claimCase || claimCase.veteranUserId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8319,8 +8332,8 @@ Create a detailed scene plan with timing. Return JSON:
   // Add a note to a case
   app.post("/api/claims/cases/:id/notes", async (req, res) => {
     try {
-      const veteranUser = (req as any).veteranUser;
-      if (!veteranUser) {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
@@ -8330,7 +8343,7 @@ Create a detailed scene plan with timing. Return JSON:
       }
 
       const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+      if (!claimCase || claimCase.veteranUserId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8341,7 +8354,7 @@ Create a detailed scene plan with timing. Return JSON:
 
       const note = await storage.createCaseNote({
         caseId,
-        authorEmail: veteranUser.email || "veteran",
+        authorEmail: userId,
         authorType: "veteran",
         content,
       });
@@ -8356,8 +8369,8 @@ Create a detailed scene plan with timing. Return JSON:
   // Get deadlines for a case
   app.get("/api/claims/cases/:id/deadlines", async (req, res) => {
     try {
-      const veteranUser = (req as any).veteranUser;
-      if (!veteranUser) {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
@@ -8367,7 +8380,7 @@ Create a detailed scene plan with timing. Return JSON:
       }
 
       const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+      if (!claimCase || claimCase.veteranUserId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8382,8 +8395,8 @@ Create a detailed scene plan with timing. Return JSON:
   // Get files for a case
   app.get("/api/claims/cases/:id/files", async (req, res) => {
     try {
-      const veteranUser = (req as any).veteranUser;
-      if (!veteranUser) {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
@@ -8393,7 +8406,7 @@ Create a detailed scene plan with timing. Return JSON:
       }
 
       const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+      if (!claimCase || claimCase.veteranUserId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
 

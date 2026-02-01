@@ -5,10 +5,15 @@ import { Shield, LogIn } from "lucide-react";
 interface VeteranAuthGateProps {
   children: React.ReactNode;
   serviceName: string;
+  devBypass?: boolean;
 }
 
-export function VeteranAuthGate({ children, serviceName }: VeteranAuthGateProps) {
+export function VeteranAuthGate({ children, serviceName, devBypass = false }: VeteranAuthGateProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
+
+  if (devBypass) {
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return (

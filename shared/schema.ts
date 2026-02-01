@@ -2015,7 +2015,7 @@ export const claimTasks = pgTable("claim_tasks", {
   id: serial("id").primaryKey(),
   sessionId: integer("session_id").references(() => claimSessions.id),
   caseId: integer("case_id").references(() => claimCases.id),
-  veteranUserId: varchar("veteran_user_id").references(() => veteranAuthUsers.id),
+  veteranUserId: varchar("veteran_user_id"),
   title: text("title").notNull(),
   description: text("description"),
   status: claimTaskStatusEnum("status").notNull().default("todo"),
@@ -2068,7 +2068,7 @@ export const deadlineStatusEnum = pgEnum("deadline_status", ["open", "at_risk", 
 // Claim Cases - Veteran-owned cases (the veteran owns the case)
 export const claimCases = pgTable("claim_cases", {
   id: serial("id").primaryKey(),
-  veteranUserId: varchar("veteran_user_id").references(() => veteranAuthUsers.id).notNull(),
+  veteranUserId: varchar("veteran_user_id").notNull(),
   title: text("title").notNull(),
   caseType: claimTrackEnum("case_type").notNull(), // VA or SSDI
   claimType: claimTypeEnum("claim_type"),
