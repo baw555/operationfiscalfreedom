@@ -6728,5 +6728,87 @@ export async function registerRoutes(
     }
   });
 
+  // ==========================================================================
+  // OPERATOR AI - Comprehensive AI Chat Assistant
+  // ==========================================================================
+
+  // Operator AI Chat endpoint
+  app.post("/api/operator-ai/chat", async (req, res) => {
+    try {
+      const { message, model, preset, memoryEnabled, conversationHistory } = req.body;
+      
+      if (!message || typeof message !== "string") {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      // Build context based on preset
+      const presetContexts: Record<string, string> = {
+        general: "You are a helpful AI assistant for veteran families. Be respectful, professional, and supportive.",
+        writing: "You are a professional writing assistant. Help with content creation, editing, and improving written communication.",
+        code: "You are a skilled technical assistant. Help with coding, debugging, and technical explanations.",
+        creative: "You are a creative assistant. Help with brainstorming, creative writing, and artistic ideas.",
+        research: "You are a research analyst. Help with analysis, data interpretation, and finding information.",
+      };
+
+      const systemContext = presetContexts[preset] || presetContexts.general;
+
+      // Build messages for OpenAI
+      const messages = [
+        { role: "system", content: `${systemContext}\n\nYou are Operator AI, part of the Q Branch AI suite for NavigatorUSA. You help veteran families with their questions and tasks. Be helpful, concise, and professional.` },
+      ];
+
+      // Add conversation history if memory is enabled
+      if (memoryEnabled && conversationHistory && Array.isArray(conversationHistory)) {
+        messages.push(...conversationHistory.slice(-10)); // Keep last 10 messages for context
+      }
+
+      // Add the current message
+      messages.push({ role: "user", content: message });
+
+      // Call OpenAI API
+      const openaiApiKey = process.env.OPENAI_API_KEY;
+      
+      if (!openaiApiKey) {
+        // Return a fallback response if no API key
+        return res.json({
+          response: `I received your message: "${message}"\n\nI'm currently in demo mode. To enable full AI capabilities, please configure the OpenAI API key. In the meantime, I can help you navigate to other features like Video & Music Generation in the Q Branch menu.`,
+          model: model || "demo",
+        });
+      }
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openaiApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: model === "gpt-4o" ? "gpt-4o" : model === "gpt-4o-mini" ? "gpt-4o-mini" : "gpt-4o-mini",
+          messages,
+          max_tokens: 1024,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error("OpenAI API error:", error);
+        return res.status(500).json({ message: "Failed to get AI response" });
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
+
+      res.json({
+        response: aiResponse,
+        model: model || "gpt-4o-mini",
+      });
+
+    } catch (error) {
+      console.error("Operator AI chat error:", error);
+      res.status(500).json({ message: "An error occurred processing your request" });
+    }
+  });
+
   return httpServer;
 }

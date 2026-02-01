@@ -76,6 +76,11 @@ const finOpsSubItems = [
   { name: "Veteran Led Tax Solutions", href: "/veteran-led-tax" },
 ];
 
+const qBranchSubItems = [
+  { name: "Operator AI", href: "/operator-ai" },
+  { name: "Video & Music Gen", href: "/naval-intelligence" },
+];
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -87,6 +92,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileFinOpsOpen, setMobileFinOpsOpen] = useState(false);
   const [businessOpen, setBusinessOpen] = useState(false);
   const [mobileBusinessOpen, setMobileBusinessOpen] = useState(false);
+  const [qBranchOpen, setQBranchOpen] = useState(false);
+  const [mobileQBranchOpen, setMobileQBranchOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
@@ -236,6 +243,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               )}
             </div>
+
+            {/* Q Branch - AI Suite Dropdown */}
+            <div className="relative" onMouseEnter={() => setQBranchOpen(true)} onMouseLeave={() => setQBranchOpen(false)}>
+              <button className={cn(
+                  "text-sm font-bold uppercase tracking-wider hover:text-brand-blue transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location === "/operator-ai" || location === "/naval-intelligence" ? "text-brand-blue border-brand-blue" : "text-brand-navy"
+                )} data-testid="nav-q-branch">
+                  Q Branch <ChevronDown className={cn("w-4 h-4 transition-transform", qBranchOpen && "rotate-180")} />
+              </button>
+              {qBranchOpen && (
+                <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                  {qBranchSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className={cn(
+                        "block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer",
+                        location === item.href ? "text-blue-300 bg-blue-800" : "text-white"
+                      )}
+                      data-testid={`nav-${item.href.replace('/', '')}`}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* CTA Buttons - INTENSE */}
@@ -248,10 +282,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </Link>
             <Link href="/ranger-tab-signup" className="cursor-pointer" data-testid="nav-ranger-tab">
                 <RangerTabSVG size="nav" />
-            </Link>
-            <Link href="/naval-intelligence" className={cn(buttonVariants(), "bg-gradient-to-r from-blue-800 to-blue-900 hover:from-blue-700 hover:to-blue-800 text-white font-bold border-2 border-blue-700 cursor-pointer shadow-lg flex items-center gap-2")} data-testid="nav-naval-intel">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                Intel
             </Link>
             <Link href="/admin/login" className={cn(buttonVariants(), "bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold border-2 border-gray-400 cursor-pointer shadow-lg")}>
                 Admin
@@ -413,15 +443,36 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               <RangerTabSVG size="banner" />
             </Link>
-            <Link 
-              href="/naval-intelligence" 
-              className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-blue-800 to-blue-900 text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:from-blue-700 active:to-blue-800 shadow-lg" 
-              onClick={() => setMobileMenuOpen(false)}
-              data-testid="nav-mobile-naval-intel"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-              Naval Intelligence
-            </Link>
+
+            {/* Mobile Q Branch Dropdown */}
+            <div className={cn("border-l-4", mobileQBranchOpen ? "border-blue-500" : "border-transparent")}>
+              <button 
+                className={cn(
+                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]",
+                  mobileQBranchOpen ? "text-blue-600" : "text-brand-navy"
+                )}
+                onClick={() => setMobileQBranchOpen(!mobileQBranchOpen)}
+                data-testid="nav-mobile-q-branch"
+              >
+                Q Branch <ChevronDown className={cn("w-4 h-4 transition-transform", mobileQBranchOpen && "rotate-180")} />
+              </button>
+              {mobileQBranchOpen && (
+                <div className="pl-4 pb-2 bg-gradient-to-br from-blue-900 to-blue-950 rounded">
+                  {qBranchSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className="text-white font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-blue-300 active:bg-blue-800 border-b border-blue-700 last:border-0" 
+                      onClick={() => setMobileMenuOpen(false)}
+                      data-testid={`nav-mobile-${item.href.replace('/', '')}`}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Link 
               href="/admin/login" 
               className="flex items-center justify-center w-full py-4 bg-gray-800 text-gray-200 border-2 border-gray-400 font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-gray-700 shadow-lg" 

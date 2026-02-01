@@ -177,6 +177,9 @@ const IrsVerification = lazy(() => import("@/pages/irs-verification"));
 // Naval Intelligence - AI Video & Music Generation
 const NavalIntelligence = lazy(() => import("@/pages/naval-intelligence"));
 
+// Operator AI - Comprehensive AI Assistant
+const OperatorAI = lazy(() => import("@/pages/operator-ai"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -351,8 +354,9 @@ function Router() {
         <Route path="/hipaa-compliance" component={HipaaCompliance} />
         <Route path="/irs-verification" component={IrsVerification} />
         
-        {/* Naval Intelligence - AI Video & Music Generation */}
+        {/* Q Branch - AI Suite */}
         <Route path="/naval-intelligence" component={NavalIntelligence} />
+        <Route path="/operator-ai" component={OperatorAI} />
         
         <Route component={NotFound} />
       </Switch>
