@@ -98,6 +98,7 @@ interface AiTemplate {
 
 function GenerationCard({ generation }: { generation: AiGeneration }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const { toast } = useToast();
   const typeInfo = GENERATION_TYPES[generation.type as GenerationType] || GENERATION_TYPES["text-to-video"];
   const Icon = typeInfo.icon;
   
@@ -200,16 +201,27 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
                   </Button>
                 </a>
               )}
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  const url = window.location.origin + (generation.generatedVideoUrl || generation.generatedMusicUrl);
-                  navigator.clipboard.writeText(url);
-                }}
-                className="shrink-0"
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
+              {(hasVideo || hasMusic) && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    const mediaUrl = generation.generatedVideoUrl || generation.generatedMusicUrl;
+                    if (mediaUrl) {
+                      const url = window.location.origin + mediaUrl;
+                      navigator.clipboard.writeText(url).then(() => {
+                        toast({
+                          title: "Link Copied",
+                          description: "Media link copied to clipboard",
+                        });
+                      });
+                    }
+                  }}
+                  className="shrink-0"
+                  data-testid="button-copy-link"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
