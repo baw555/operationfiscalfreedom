@@ -1,10 +1,75 @@
 import { Layout } from "@/components/layout";
 import { Link } from "wouter";
-import { Shield, MessageSquare, Video, FileSignature, CheckCircle, Star, Lock, Award, Users, Zap, DollarSign, Brain, Mic, Film, Heart, ChevronRight, BadgeCheck, ShieldCheck, Clock, Globe } from "lucide-react";
+import { Shield, MessageSquare, Video, FileSignature, CheckCircle, Star, Lock, Award, Users, Zap, DollarSign, Brain, Mic, Film, Heart, ChevronRight, BadgeCheck, ShieldCheck, Clock, Globe, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import operatorAiScreenshot from "@/assets/images/operator-ai-screenshot.png";
+import operatorAiScreenshot2 from "@/assets/images/operator-ai-screenshot-2.png";
+import operatorAiScreenshot3 from "@/assets/images/operator-ai-screenshot-3.png";
 import navalIntelligenceScreenshot from "@/assets/images/naval-intelligence-screenshot.png";
+import navalIntelligenceScreenshot2 from "@/assets/images/naval-intelligence-screenshot-2.png";
+import navalIntelligenceScreenshot3 from "@/assets/images/naval-intelligence-screenshot-3.png";
 import rangerScreenshot from "@/assets/images/ranger-screenshot.png";
+import rangerScreenshot2 from "@/assets/images/ranger-screenshot-2.png";
+import rangerScreenshot3 from "@/assets/images/ranger-screenshot-3.png";
+import rangerScreenshot4 from "@/assets/images/ranger-screenshot-4.png";
+
+function ImageSlideshow({ images, alt, autoPlay = true }: { images: string[], alt: string, autoPlay?: boolean }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!autoPlay) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [images.length, autoPlay]);
+
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  return (
+    <div className="relative group">
+      <div className="overflow-hidden rounded-xl">
+        <img 
+          src={images[currentIndex]} 
+          alt={`${alt} ${currentIndex + 1}`}
+          className="w-full h-full object-cover transition-opacity duration-500"
+        />
+      </div>
+      <button 
+        onClick={goToPrevious}
+        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <button 
+        onClick={goToNext}
+        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+        {images.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentIndex(idx)}
+            className={`w-2 h-2 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-4' : 'bg-white/50'}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const rangerImages = [rangerScreenshot, rangerScreenshot2, rangerScreenshot3, rangerScreenshot4];
+const operatorAiImages = [operatorAiScreenshot, operatorAiScreenshot2, operatorAiScreenshot3];
+const navalIntelligenceImages = [navalIntelligenceScreenshot, navalIntelligenceScreenshot2, navalIntelligenceScreenshot3];
 
 export default function AboutNavPerks() {
   return (
@@ -143,127 +208,140 @@ export default function AboutNavPerks() {
             </p>
           </div>
 
-          {/* Dashboard Cards Grid */}
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Operator AI Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group hover:shadow-lg transition-all duration-300">
-              <div className="h-48 relative overflow-hidden">
-                <img 
-                  src={operatorAiScreenshot} 
-                  alt="Operator AI Dashboard" 
-                  className="w-full h-full object-cover object-top"
-                />
-                <div className="absolute top-4 right-4 bg-blue-500/90 border border-blue-400/30 rounded-full px-3 py-1">
-                  <span className="text-white text-xs font-medium">Choose Your AI Plan</span>
+          {/* Platform Slideshows - RANGER First */}
+          <div className="space-y-16 max-w-6xl mx-auto">
+            {/* RANGER - Featured */}
+            <div className="bg-white rounded-2xl shadow-lg border-2 border-amber-500 overflow-hidden">
+              <div className="grid lg:grid-cols-2 gap-0">
+                <div className="relative">
+                  <div className="absolute top-4 left-4 z-20">
+                    <div className="bg-amber-500 text-white text-xs font-bold uppercase tracking-wider px-4 py-1 rounded-full">
+                      100% Free
+                    </div>
+                  </div>
+                  <div className="absolute top-4 right-4 z-20">
+                    <div className="bg-green-500/90 text-white text-xs font-medium px-3 py-1 rounded-full">
+                      HIPAA Compliant
+                    </div>
+                  </div>
+                  <ImageSlideshow images={rangerImages} alt="RANGER Dashboard" />
                 </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-slate-800 mb-2">Operator AI</h3>
-                <p className="text-slate-500 text-sm mb-4">
-                  Your intelligent assistant with 3-tier memory management. Private, secure conversations that never track or censor.
-                </p>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Session or Persistent Memory
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    No Data Tracking
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Uncensored Responses
-                  </li>
-                </ul>
-                <Link href="/operator-ai">
-                  <Button variant="outline" className="w-full border-slate-300 text-slate-700 hover:bg-slate-50">
-                    Launch Operator AI
-                  </Button>
-                </Link>
+                <div className="p-8 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-4">
+                    <FileSignature className="w-8 h-8 text-amber-500" />
+                    <h3 className="text-2xl font-semibold text-slate-800">RANGER</h3>
+                  </div>
+                  <p className="text-slate-600 mb-6">
+                    Enterprise document signature platform with Fortune 500 authentication and AI-powered document analysis. Completely free for all veterans.
+                  </p>
+                  <ul className="space-y-3 mb-6">
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      HIPAA Compliant E-Signatures
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      AI Contract Analysis
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      Secure PDF Generation
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      Send & Track Documents
+                    </li>
+                  </ul>
+                  <Link href="/document-signature">
+                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium h-12">
+                      Launch RANGER - It's Free
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
 
-            {/* Video & Music Gen Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group hover:shadow-lg transition-all duration-300">
-              <div className="h-48 relative overflow-hidden">
-                <img 
-                  src={navalIntelligenceScreenshot} 
-                  alt="Video & Music Gen Dashboard" 
-                  className="w-full h-full object-cover object-top"
-                />
-                <div className="absolute top-4 right-4 bg-purple-500/90 border border-purple-400/30 rounded-full px-3 py-1">
-                  <span className="text-white text-xs font-medium">AI Generation</span>
+            {/* Operator AI */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="grid lg:grid-cols-2 gap-0">
+                <div className="order-2 lg:order-1 p-8 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-4">
+                    <MessageSquare className="w-8 h-8 text-blue-500" />
+                    <h3 className="text-2xl font-semibold text-slate-800">Operator AI</h3>
+                  </div>
+                  <p className="text-slate-600 mb-6">
+                    Your intelligent assistant with 3-tier memory management. Private, secure conversations that never track or censor.
+                  </p>
+                  <ul className="space-y-3 mb-6">
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      Session or Persistent Memory
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      No Data Tracking
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      Uncensored Responses
+                    </li>
+                  </ul>
+                  <Link href="/operator-ai">
+                    <Button variant="outline" className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 h-12">
+                      Launch Operator AI
+                    </Button>
+                  </Link>
                 </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-slate-800 mb-2">Video & Music Gen</h3>
-                <p className="text-slate-500 text-sm mb-4">
-                  Naval Intelligence media orchestration. Transform documents into audio, create video montages, and generate AI content.
-                </p>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Document to Audio
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Video Montage Creation
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    AI Video Generation
-                  </li>
-                </ul>
-                <Link href="/naval-intelligence">
-                  <Button variant="outline" className="w-full border-slate-300 text-slate-700 hover:bg-slate-50">
-                    Launch Media Gen
-                  </Button>
-                </Link>
+                <div className="order-1 lg:order-2 relative">
+                  <div className="absolute top-4 right-4 z-20">
+                    <div className="bg-blue-500/90 text-white text-xs font-medium px-3 py-1 rounded-full">
+                      Choose Your AI Plan
+                    </div>
+                  </div>
+                  <ImageSlideshow images={operatorAiImages} alt="Operator AI Dashboard" />
+                </div>
               </div>
             </div>
 
-            {/* RANGER Card - Highlighted */}
-            <div className="bg-white rounded-xl shadow-lg border-2 border-amber-500 overflow-hidden group hover:shadow-xl transition-all duration-300 relative">
-              <div className="absolute -top-0 left-1/2 -translate-x-1/2 z-20">
-                <div className="bg-amber-500 text-white text-xs font-bold uppercase tracking-wider px-4 py-1 rounded-b-lg">
-                  Featured
+            {/* Video & Music Gen */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="grid lg:grid-cols-2 gap-0">
+                <div className="relative">
+                  <div className="absolute top-4 right-4 z-20">
+                    <div className="bg-purple-500/90 text-white text-xs font-medium px-3 py-1 rounded-full">
+                      AI Generation
+                    </div>
+                  </div>
+                  <ImageSlideshow images={navalIntelligenceImages} alt="Naval Intelligence Dashboard" />
                 </div>
-              </div>
-              <div className="h-48 relative overflow-hidden">
-                <img 
-                  src={rangerScreenshot} 
-                  alt="RANGER E-Signature Dashboard" 
-                  className="w-full h-full object-cover object-top"
-                />
-                <div className="absolute top-4 right-4 bg-green-500/90 border border-green-400/30 rounded-full px-3 py-1">
-                  <span className="text-white text-xs font-medium">HIPAA Compliant</span>
+                <div className="p-8 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Video className="w-8 h-8 text-purple-500" />
+                    <h3 className="text-2xl font-semibold text-slate-800">Video & Music Gen</h3>
+                  </div>
+                  <p className="text-slate-600 mb-6">
+                    Naval Intelligence media orchestration. Transform documents into audio, create video montages, and generate AI content.
+                  </p>
+                  <ul className="space-y-3 mb-6">
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      Document to Audio
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      Video Montage Creation
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-600">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      AI Video Generation
+                    </li>
+                  </ul>
+                  <Link href="/naval-intelligence">
+                    <Button variant="outline" className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 h-12">
+                      Launch Media Gen
+                    </Button>
+                  </Link>
                 </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-slate-800 mb-2">RANGER</h3>
-                <p className="text-slate-500 text-sm mb-4">
-                  Enterprise document signature platform with Fortune 500 authentication and AI-powered document analysis.
-                </p>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    HIPAA Compliant
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    AI Contract Analysis
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Secure PDF Generation
-                  </li>
-                </ul>
-                <Link href="/document-signature">
-                  <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium">
-                    Launch RANGER
-                  </Button>
-                </Link>
               </div>
             </div>
           </div>
