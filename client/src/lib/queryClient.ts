@@ -7,13 +7,6 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-const devBypassHeaders = (): Record<string, string> => {
-  if (import.meta.env.DEV) {
-    return { "X-Dev-Bypass": "true" };
-  }
-  return {};
-};
-
 export async function apiRequest(
   method: string,
   url: string,
@@ -21,10 +14,7 @@ export async function apiRequest(
 ): Promise<Response> {
   const res = await fetch(url, {
     method,
-    headers: { 
-      ...(data ? { "Content-Type": "application/json" } : {}),
-      ...devBypassHeaders(),
-    },
+    headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -41,7 +31,6 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const res = await fetch(queryKey.join("/") as string, {
       credentials: "include",
-      headers: devBypassHeaders(),
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

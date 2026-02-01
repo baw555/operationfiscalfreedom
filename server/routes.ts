@@ -8136,13 +8136,8 @@ Create a detailed scene plan with timing. Return JSON:
   // CLAIMS NAVIGATOR API ENDPOINTS
   // ==========================================
 
-  // Helper to get authenticated user ID (with dev bypass for testing)
+  // Helper to get authenticated user ID
   const getVeteranUserId = (req: any): string | null => {
-    // Dev bypass for testing - use a test user ID
-    if (process.env.NODE_ENV === "development" && req.headers["x-dev-bypass"] === "true") {
-      return "test-veteran-user";
-    }
-    // Normal auth flow
     if (req.user && req.user.claims && req.user.claims.sub) {
       return req.user.claims.sub;
     }

@@ -321,12 +321,11 @@ export default function ClaimsNavigator() {
   const [activeTab, setActiveTab] = useState("tasks");
   const [newNote, setNewNote] = useState("");
 
-  const devHeaders: Record<string, string> = import.meta.env.DEV ? { "X-Dev-Bypass": "true" } : {};
 
   const { data: myCases, isLoading: casesLoading } = useQuery({
     queryKey: ["/api/claims/cases"],
     queryFn: async () => {
-      const res = await fetch("/api/claims/cases", { credentials: "include", headers: devHeaders });
+      const res = await fetch("/api/claims/cases", { credentials: "include" });
       if (!res.ok) return [];
       return res.json() as Promise<ClaimCase[]>;
     },
@@ -336,7 +335,7 @@ export default function ClaimsNavigator() {
     queryKey: ["/api/claims/cases", activeCaseId],
     queryFn: async () => {
       if (!activeCaseId) return null;
-      const res = await fetch(`/api/claims/cases/${activeCaseId}`, { credentials: "include", headers: devHeaders });
+      const res = await fetch(`/api/claims/cases/${activeCaseId}`, { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -347,7 +346,7 @@ export default function ClaimsNavigator() {
     queryKey: ["/api/claims/cases", activeCaseId, "tasks"],
     queryFn: async () => {
       if (!activeCaseId) return [];
-      const res = await fetch(`/api/claims/cases/${activeCaseId}/tasks`, { credentials: "include", headers: devHeaders });
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/tasks`, { credentials: "include" });
       if (!res.ok) return [];
       return res.json() as Promise<ClaimTask[]>;
     },
@@ -358,7 +357,7 @@ export default function ClaimsNavigator() {
     queryKey: ["/api/claims/cases", activeCaseId, "deadlines"],
     queryFn: async () => {
       if (!activeCaseId) return [];
-      const res = await fetch(`/api/claims/cases/${activeCaseId}/deadlines`, { credentials: "include", headers: devHeaders });
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/deadlines`, { credentials: "include" });
       if (!res.ok) return [];
       return res.json() as Promise<CaseDeadline[]>;
     },
@@ -369,7 +368,7 @@ export default function ClaimsNavigator() {
     queryKey: ["/api/claims/cases", activeCaseId, "notes"],
     queryFn: async () => {
       if (!activeCaseId) return [];
-      const res = await fetch(`/api/claims/cases/${activeCaseId}/notes`, { credentials: "include", headers: devHeaders });
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/notes`, { credentials: "include" });
       if (!res.ok) return [];
       return res.json() as Promise<CaseNote[]>;
     },
@@ -380,7 +379,7 @@ export default function ClaimsNavigator() {
     queryKey: ["/api/claims/cases", activeCaseId, "files"],
     queryFn: async () => {
       if (!activeCaseId) return [];
-      const res = await fetch(`/api/claims/cases/${activeCaseId}/files`, { credentials: "include", headers: devHeaders });
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/files`, { credentials: "include" });
       if (!res.ok) return [];
       return res.json() as Promise<ClaimFile[]>;
     },
@@ -456,7 +455,7 @@ export default function ClaimsNavigator() {
   if (myCases && myCases.length > 0 && step !== "dashboard" && !activeCaseId) {
     return (
       <Layout>
-        <VeteranAuthGate serviceName="Claims Navigator" devBypass={true}>
+        <VeteranAuthGate serviceName="Claims Navigator">
           <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
             <div className="container mx-auto px-4 py-12">
               <div className="max-w-4xl mx-auto">
@@ -523,7 +522,7 @@ export default function ClaimsNavigator() {
   if (step === "dashboard" && activeCaseId) {
     return (
       <Layout>
-        <VeteranAuthGate serviceName="Claims Navigator" devBypass={true}>
+        <VeteranAuthGate serviceName="Claims Navigator">
           <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
             <div className="container mx-auto px-4 py-8">
               <div className="max-w-6xl mx-auto">
@@ -879,7 +878,7 @@ export default function ClaimsNavigator() {
 
   return (
     <Layout>
-      <VeteranAuthGate serviceName="Claims Navigator" devBypass={true}>
+      <VeteranAuthGate serviceName="Claims Navigator">
         <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
           <div className="container mx-auto px-4 py-12">
             <div className="max-w-3xl mx-auto">
