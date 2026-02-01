@@ -735,7 +735,7 @@ export default function PlanningSolutions() {
                     </div>
 
                     <div className="mt-6 flex flex-wrap gap-3">
-                      <Link href="/help">
+                      <Link href="/contact">
                         <Button className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold">
                           Request Consultation
                         </Button>
@@ -761,7 +761,7 @@ export default function PlanningSolutions() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <Link href="/help">
+                <Link href="/contact">
                   <Button className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6">
                     Get Started
                   </Button>

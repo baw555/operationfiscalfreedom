@@ -9,7 +9,7 @@ import { TCPAConsent } from "@/components/tcpa-consent";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Shield, CheckCircle, Users, Building2, Briefcase, DollarSign, Heart, Car, Home, FileText,
-  ChevronDown, ChevronRight, TrendingUp, Target, UserCheck, Stethoscope, GraduationCap, Star
+  ChevronRight, TrendingUp, Star
 } from "lucide-react";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
 import { Link } from "wouter";
