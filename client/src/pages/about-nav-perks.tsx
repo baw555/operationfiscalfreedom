@@ -31,7 +31,7 @@ export default function AboutNavPerks() {
               Enterprise-grade AI tools built exclusively for veterans. Powerful platforms designed for those who served.
             </p>
             <p className="text-slate-300 text-base leading-relaxed max-w-3xl mx-auto mb-8 bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-              We are constantly adding more software to our stack. RANGER, our HIPAA compliant AI-powered cutting edge document signature software, is completely free. Our other tools are no cost for active members and low cost for veterans who just want to not be censored, tracked, or stored. All of our software is for you, not for us! <span className="text-amber-400 font-semibold">We will never sell your information and we do not store your search history!</span>
+              RANGER is completely free. Other tools are no cost for active members, low cost for everyone else. Built for you, not us. <span className="text-amber-400 font-semibold">We never sell your data or store your search history.</span>
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/operator-ai">
