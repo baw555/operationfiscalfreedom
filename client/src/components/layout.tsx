@@ -112,7 +112,7 @@ const freeVetSoftwareSubItems = [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [disabilityOpen, setDisabilityOpen] = useState(false);
   const [finOpsOpen, setFinOpsOpen] = useState(false);
