@@ -79,6 +79,7 @@ const finOpsSubItems = [
 const qBranchSubItems = [
   { name: "Operator AI", href: "/operator-ai" },
   { name: "Video & Music Gen", href: "/naval-intelligence" },
+  { name: "Document Signature", href: "/document-signature" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
