@@ -54,6 +54,7 @@ const navItems = [
 
 const businessSubItems = [
   { name: "Business Overview", href: "/businesses" },
+  { name: "Veteran Logistics", href: "/shipping" },
   { name: "Cost Savings / Services", href: "/job-placement" },
   { name: "Insurance Savings", href: "/insurance" },
   { name: "Tax Solutions", href: "/veteran-led-tax" },

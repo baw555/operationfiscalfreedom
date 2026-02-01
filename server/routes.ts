@@ -4591,6 +4591,85 @@ Example response: {"name": "John Doe", "email": "john@example.com", "phone": "55
     }
   });
 
+  // Analyze template content with AI (no file upload required)
+  app.post("/api/csu/analyze-template-content", async (req, res) => {
+    try {
+      const { content, templateName } = req.body;
+      
+      if (!content || typeof content !== 'string') {
+        return res.status(400).json({ message: "Template content is required" });
+      }
+
+      // Strip HTML tags for text analysis
+      const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      
+      if (plainText.length < 20) {
+        return res.status(400).json({ 
+          message: "Template content is too short for analysis" 
+        });
+      }
+
+      // Analyze the content with AI
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({ apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY });
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert document analyzer specializing in contracts and legal documents. Analyze the provided document content and return a JSON response with the following structure:
+{
+  "fieldsDetected": number (count of signature fields, date fields, name fields, etc.),
+  "signatureFields": number,
+  "dateFields": number,
+  "partyIdentificationSections": number,
+  "riskScore": number (0-100, where 0 is no risk and 100 is very high risk),
+  "riskLevel": "low" | "medium" | "high",
+  "riskFactors": string[] (list of any risk factors found),
+  "summary": string (brief summary of the document),
+  "recommendations": string[] (optimization recommendations),
+  "documentType": string (e.g., "NDA", "Service Agreement", "Employment Contract", etc.),
+  "estimatedCompletionTime": string (e.g., "2-3 minutes")
+}
+
+Be thorough but concise. Focus on actionable insights.`
+          },
+          {
+            role: "user",
+            content: `Analyze this document template${templateName ? ` called "${templateName}"` : ""}:\n\n${plainText.substring(0, 8000)}`
+          }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+      });
+
+      const analysisText = response.choices[0]?.message?.content || "{}";
+      const analysis = JSON.parse(analysisText);
+      
+      res.json({
+        success: true,
+        analysis: {
+          fieldsDetected: analysis.fieldsDetected || 0,
+          signatureFields: analysis.signatureFields || 0,
+          dateFields: analysis.dateFields || 0,
+          partyIdentificationSections: analysis.partyIdentificationSections || 0,
+          riskScore: analysis.riskScore || 0,
+          riskLevel: analysis.riskLevel || "low",
+          riskFactors: analysis.riskFactors || [],
+          summary: analysis.summary || "Document analyzed successfully.",
+          recommendations: analysis.recommendations || [],
+          documentType: analysis.documentType || "Contract",
+          estimatedCompletionTime: analysis.estimatedCompletionTime || "2-3 minutes",
+        }
+      });
+    } catch (error) {
+      console.error("Error analyzing template content:", error);
+      const message = error instanceof Error ? error.message : "Failed to analyze template";
+      res.status(500).json({ message });
+    }
+  });
+
   // Get all CSU contract templates (admin)
   app.get("/api/csu/templates", requireAdmin, async (req, res) => {
     try {

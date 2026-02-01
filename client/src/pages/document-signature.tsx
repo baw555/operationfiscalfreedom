@@ -381,19 +381,69 @@ export default function DocumentSignature() {
     setTemplateContent("");
   };
 
-  const runAiAnalysis = useCallback(() => {
-    if (!selectedTemplate) return;
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiAnalysisData, setAiAnalysisData] = useState<{
+    signatureFields: number;
+    dateFields: number;
+    partyIdentificationSections: number;
+    documentType: string;
+    recommendations: string[];
+    riskLevel: string;
+  } | null>(null);
+
+  const runAiAnalysis = useCallback(async () => {
+    const contentToAnalyze = selectedTemplate?.content || customContent;
     
+    if (!contentToAnalyze) {
+      toast({ title: "No Content", description: "Please select a template or upload a document first.", variant: "destructive" });
+      return;
+    }
+    
+    setIsAnalyzing(true);
     toast({ title: "AI Analysis Started", description: "Scanning document for fields, risks, and optimization..." });
     
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/csu/analyze-template-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: contentToAnalyze,
+          templateName: selectedTemplate?.name || 'Custom Document'
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Analysis failed');
+      }
+      
+      const data = await response.json();
+      const analysis = data.analysis;
+      
       setAiFieldsDetected(true);
-      setAiRiskScore(Math.floor(Math.random() * 30) + 10);
-      setAiSummary("This is a standard agreement template. AI detected 6 signature fields, 4 date fields, and 2 party identification sections. No high-risk clauses detected.");
+      setAiRiskScore(analysis.riskScore);
+      setAiSummary(analysis.summary);
+      setAiAnalysisData({
+        signatureFields: analysis.signatureFields,
+        dateFields: analysis.dateFields,
+        partyIdentificationSections: analysis.partyIdentificationSections,
+        documentType: analysis.documentType,
+        recommendations: analysis.recommendations,
+        riskLevel: analysis.riskLevel,
+      });
       setAiAnalysisComplete(true);
       toast({ title: "AI Analysis Complete", description: "Document has been analyzed and optimized." });
-    }, 2000);
-  }, [selectedTemplate, toast]);
+    } catch (error) {
+      console.error("AI analysis error:", error);
+      toast({ 
+        title: "Analysis Failed", 
+        description: error instanceof Error ? error.message : "Could not analyze document", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [selectedTemplate, customContent, toast]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -794,11 +844,21 @@ export default function DocumentSignature() {
                               <div className="space-y-4">
                                 <Button
                                   onClick={runAiAnalysis}
-                                  className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white py-6 text-lg shadow-lg shadow-purple-500/30"
+                                  disabled={isAnalyzing}
+                                  className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white py-6 text-lg shadow-lg shadow-purple-500/30 disabled:opacity-50"
                                   data-testid="button-run-ai-analysis"
                                 >
-                                  <Brain className="w-5 h-5 mr-2" />
-                                  Run AI Analysis
+                                  {isAnalyzing ? (
+                                    <>
+                                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                      Analyzing...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Brain className="w-5 h-5 mr-2" />
+                                      Run AI Analysis
+                                    </>
+                                  )}
                                 </Button>
                                 <p className="text-center text-sm text-gray-500">
                                   AI will detect signature fields, analyze risks, and suggest optimizations
@@ -815,8 +875,12 @@ export default function DocumentSignature() {
                                       <ScanText className="w-5 h-5 text-emerald-400" />
                                       <span className="font-medium text-white">Fields Detected</span>
                                     </div>
-                                    <p className="text-2xl font-bold text-emerald-400">12</p>
-                                    <p className="text-xs text-gray-500">Signature, date, name fields</p>
+                                    <p className="text-2xl font-bold text-emerald-400">
+                                      {(aiAnalysisData?.signatureFields || 0) + (aiAnalysisData?.dateFields || 0) + (aiAnalysisData?.partyIdentificationSections || 0)}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {aiAnalysisData?.signatureFields || 0} signature, {aiAnalysisData?.dateFields || 0} date, {aiAnalysisData?.partyIdentificationSections || 0} party fields
+                                    </p>
                                   </div>
                                   
                                   <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
@@ -825,16 +889,16 @@ export default function DocumentSignature() {
                                       <span className="font-medium text-white">Risk Score</span>
                                     </div>
                                     <p className="text-2xl font-bold text-blue-400">{aiRiskScore}%</p>
-                                    <p className="text-xs text-gray-500">Low risk document</p>
+                                    <p className="text-xs text-gray-500 capitalize">{aiAnalysisData?.riskLevel || 'Low'} risk document</p>
                                   </div>
                                   
                                   <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/30">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <Zap className="w-5 h-5 text-purple-400" />
-                                      <span className="font-medium text-white">Optimization</span>
+                                      <FileCheck className="w-5 h-5 text-purple-400" />
+                                      <span className="font-medium text-white">Document Type</span>
                                     </div>
-                                    <p className="text-2xl font-bold text-purple-400">+24%</p>
-                                    <p className="text-xs text-gray-500">Predicted completion boost</p>
+                                    <p className="text-lg font-bold text-purple-400 truncate">{aiAnalysisData?.documentType || 'Contract'}</p>
+                                    <p className="text-xs text-gray-500">Identified by AI</p>
                                   </div>
                                 </div>
 
@@ -848,6 +912,26 @@ export default function DocumentSignature() {
                                     </div>
                                   </div>
                                 </div>
+                                
+                                {/* AI Recommendations */}
+                                {aiAnalysisData?.recommendations && aiAnalysisData.recommendations.length > 0 && (
+                                  <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                                    <div className="flex items-start gap-3">
+                                      <Zap className="w-5 h-5 text-amber-400 mt-0.5" />
+                                      <div>
+                                        <p className="font-medium text-white mb-2">Recommendations</p>
+                                        <ul className="text-sm text-gray-400 space-y-1">
+                                          {aiAnalysisData.recommendations.slice(0, 3).map((rec, idx) => (
+                                            <li key={idx} className="flex items-start gap-2">
+                                              <span className="text-amber-400">•</span>
+                                              {rec}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
 
                                 {/* AI Q&A */}
                                 <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
