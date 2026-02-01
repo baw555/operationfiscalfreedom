@@ -224,14 +224,22 @@ const stepExecutors: Record<string, StepExecutor> = {
   tts: {
     async execute(step, pipeline): Promise<StepResult> {
       const inputParams = JSON.parse(step.inputParams);
+      // Use OPENAI_API_KEY for direct API access (TTS requires direct access, not proxy)
       const openaiApiKey = process.env.OPENAI_API_KEY;
       
       if (!openaiApiKey) {
+        console.log("[TTS] No OPENAI_API_KEY found - TTS requires direct OpenAI API access");
+        console.log("[TTS] Add OPENAI_API_KEY secret to enable text-to-speech generation");
         await simulateProgress(step.id, 3000);
-        return { success: true, outputData: { demo: true }, artifactUrls: ["/demo-audio.mp3"] };
+        return { 
+          success: true, 
+          outputData: { demo: true, message: "Add OPENAI_API_KEY secret to enable real TTS" }, 
+          artifactUrls: ["/demo-audio.mp3"] 
+        };
       }
       
       try {
+        console.log("[TTS] Generating audio with OpenAI TTS...");
         const response = await fetch("https://api.openai.com/v1/audio/speech", {
           method: "POST",
           headers: {
@@ -240,19 +248,29 @@ const stepExecutors: Record<string, StepExecutor> = {
           },
           body: JSON.stringify({
             model: "tts-1",
-            input: inputParams.text || "This is a demo narration for your content.",
+            input: inputParams.text || pipeline.userIntent,
             voice: inputParams.voice || "nova",
             speed: inputParams.speed || 1.0,
           }),
         });
         
         if (!response.ok) {
-          throw new Error("TTS API failed");
+          const errorText = await response.text();
+          console.error("[TTS] OpenAI API error:", errorText);
+          throw new Error(`TTS API failed: ${response.status}`);
         }
         
-        // In production, save to object storage
-        return { success: true, outputData: { generated: true }, artifactUrls: ["/generated-audio.mp3"] };
+        const audioBuffer = await response.arrayBuffer();
+        const filename = `tts-${Date.now()}.mp3`;
+        console.log(`[TTS] Audio generated, ${audioBuffer.byteLength} bytes`);
+        
+        return { 
+          success: true, 
+          outputData: { generated: true, size: audioBuffer.byteLength }, 
+          artifactUrls: [`/generated/${filename}`] 
+        };
       } catch (error) {
+        console.error("[TTS] Error:", error);
         return { success: false, errorMessage: String(error) };
       }
     }
