@@ -8,32 +8,38 @@ interface MontageSegment {
   description: string;
 }
 
-// Timeline aligned to music beats:
+// Timeline aligned to music - 257 seconds total
 // 0-25s: Text sequence plays (montage not visible yet)
 // 25s+: Montage becomes visible - GEAR video should be first seen
 const montageTimeline: MontageSegment[] = [
   // Not visible during text sequence (0-25s)
-  { src: "/videos/soldiers-marching-new.mp4", startTime: 0, endTime: 12, description: "march" },
-  { src: "/videos/montage-rain.mp4", startTime: 12, endTime: 24, description: "rain" },
+  { src: "/videos/soldiers-marching-new.mp4", startTime: 0, endTime: 15, description: "march" },
+  { src: "/videos/montage-rain.mp4", startTime: 15, endTime: 25, description: "rain" },
   
   // FIRST VISIBLE: Soldiers loading gear when montage appears (~25s)
-  { src: "/videos/montage-gear.mp4", startTime: 24, endTime: 36, description: "gear up - first visible" },
+  { src: "/videos/montage-gear.mp4", startTime: 25, endTime: 40, description: "gear up - first visible" },
   
-  // Percussion hits - action/shooting footage  
-  { src: "/videos/montage-clip.mp4", startTime: 36, endTime: 48, description: "shooting/action" },
-  { src: "/videos/montage-helicopter.mp4", startTime: 48, endTime: 56, description: "helicopter" },
+  // Action sequence
+  { src: "/videos/montage-clip.mp4", startTime: 40, endTime: 55, description: "shooting/action" },
+  { src: "/videos/montage-helicopter.mp4", startTime: 55, endTime: 70, description: "helicopter" },
   
-  // Serious/emotional section - embrace and crying
-  { src: "/videos/montage-embrace-1.mp4", startTime: 56, endTime: 68, description: "embrace" },
-  { src: "/videos/montage-embrace-2.mp4", startTime: 68, endTime: 80, description: "crying/emotion" },
+  // Emotional section
+  { src: "/videos/montage-embrace-1.mp4", startTime: 70, endTime: 90, description: "embrace" },
+  { src: "/videos/montage-embrace-2.mp4", startTime: 90, endTime: 110, description: "crying/emotion" },
   
-  // Building to climax
-  { src: "/videos/soldiers-marching-new.mp4", startTime: 80, endTime: 90, description: "march again" },
-  { src: "/videos/montage-salute.mp4", startTime: 90, endTime: 100, description: "salute" },
-  { src: "/videos/montage-helicopter.mp4", startTime: 100, endTime: 108, description: "helicopter" },
+  // Building momentum
+  { src: "/videos/soldiers-marching-new.mp4", startTime: 110, endTime: 130, description: "march again" },
+  { src: "/videos/montage-salute.mp4", startTime: 130, endTime: 150, description: "salute" },
+  { src: "/videos/montage-helicopter.mp4", startTime: 150, endTime: 170, description: "helicopter" },
+  
+  // Second wave - repeat cycle
+  { src: "/videos/montage-gear.mp4", startTime: 170, endTime: 185, description: "gear up" },
+  { src: "/videos/montage-clip.mp4", startTime: 185, endTime: 200, description: "action" },
+  { src: "/videos/montage-embrace-1.mp4", startTime: 200, endTime: 215, description: "embrace" },
+  { src: "/videos/soldiers-marching-new.mp4", startTime: 215, endTime: 230, description: "march" },
   
   // Finale - Iwo Jima flag raising
-  { src: "/videos/montage-iwojima.mp4", startTime: 108, endTime: 128, description: "iwo jima - finale" },
+  { src: "/videos/montage-iwojima.mp4", startTime: 230, endTime: 257, description: "iwo jima - finale" },
 ];
 
 const uniqueVideos = Array.from(new Set(montageTimeline.map(s => s.src)));
@@ -48,7 +54,7 @@ export function HeroMontage({ isActive = true, onMontageEnd, audioRef }: HeroMon
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [displayTime, setDisplayTime] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(128);
+  const [audioDuration, setAudioDuration] = useState(257);
   
   // Single video element approach - only one video plays at a time
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
