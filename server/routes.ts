@@ -2510,6 +2510,10 @@ export async function registerRoutes(
         return res.status(400).json({ message: "You must agree to the terms to proceed" });
       }
       
+      if (!customReferralCode || typeof customReferralCode !== 'string' || customReferralCode.trim().length < 3) {
+        return res.status(400).json({ message: "Custom referral code is required (at least 3 characters)" });
+      }
+      
       // Check if already signed
       const alreadySigned = await storage.hasAffiliateSignedNda(req.session.userId!);
       if (alreadySigned) {
@@ -2517,32 +2521,28 @@ export async function registerRoutes(
       }
 
       // Check if custom referral code is already taken BEFORE creating NDA
-      if (customReferralCode) {
-        const codeToCheck = customReferralCode.toUpperCase().trim();
-        const existingUser = await storage.getUserByReferralCode(codeToCheck);
-        if (existingUser && existingUser.id !== req.session.userId) {
-          return res.status(400).json({ 
-            message: "This referral code is already taken. Please choose a different code." 
-          });
-        }
+      const codeToCheck = customReferralCode.toUpperCase().trim();
+      const existingUser = await storage.getUserByReferralCode(codeToCheck);
+      if (existingUser && existingUser.id !== req.session.userId) {
+        return res.status(400).json({ 
+          message: "This referral code is already taken. Please choose a different code." 
+        });
       }
 
       // Get IP address
       const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
       
-      // Update user's referral code FIRST if custom one provided (before NDA creation)
-      if (customReferralCode) {
-        try {
-          await storage.updateUserReferralCode(req.session.userId!, customReferralCode.toUpperCase().trim());
-        } catch (codeError: any) {
-          // Handle race condition where code was taken between check and update
-          if (codeError?.code === '23505') {
-            return res.status(400).json({ 
-              message: "This referral code was just taken by another user. Please choose a different code." 
-            });
-          }
-          throw codeError;
+      // Update user's referral code FIRST (before NDA creation)
+      try {
+        await storage.updateUserReferralCode(req.session.userId!, codeToCheck);
+      } catch (codeError: any) {
+        // Handle race condition where code was taken between check and update
+        if (codeError?.code === '23505') {
+          return res.status(400).json({ 
+            message: "This referral code was just taken by another user. Please choose a different code." 
+          });
         }
+        throw codeError;
       }
       
       // Create NDA record
