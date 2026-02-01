@@ -87,7 +87,7 @@ const businessSubItems = [
 
 const aboutSubItems = [
   { name: "About", href: "/about" },
-  { name: "Mission Act Health", href: "/private-doctor" },
+  { name: "The Mission Act - Your Rights", href: "/private-doctor" },
   { name: "Refer & Earn", href: "/fin-ops" },
 ];
 
