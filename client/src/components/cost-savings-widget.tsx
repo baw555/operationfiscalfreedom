@@ -7,25 +7,9 @@ export function CostSavingsWidget() {
   const [isMinimized, setIsMinimized] = useState(false);
 
   return (
-    <div className="fixed top-24 right-0 z-50 flex items-start">
-      <button
-        onClick={() => setIsMinimized(!isMinimized)}
-        className="bg-gradient-to-b from-green-600 to-green-700 text-white px-2 py-4 rounded-l-lg shadow-lg hover:from-green-500 hover:to-green-600 transition-all flex flex-col items-center gap-1"
-        data-testid="cost-savings-toggle"
-      >
-        {isMinimized ? (
-          <ChevronLeft className="w-4 h-4" />
-        ) : (
-          <ChevronRight className="w-4 h-4" />
-        )}
-        <DollarSign className="w-4 h-4" />
-        <span className="text-xs font-bold uppercase tracking-wider [writing-mode:vertical-rl] [text-orientation:mixed]">
-          Savings
-        </span>
-      </button>
-      
+    <div className="fixed top-24 left-0 z-50 flex items-start">
       <div
-        className={`bg-slate-900 border border-green-500/30 rounded-l-xl shadow-2xl transition-all duration-300 overflow-hidden ${
+        className={`bg-slate-900 border border-green-500/30 rounded-r-xl shadow-2xl transition-all duration-300 overflow-hidden ${
           isMinimized ? "w-0 opacity-0" : "w-72 sm:w-80 opacity-100"
         }`}
       >
@@ -55,6 +39,22 @@ export function CostSavingsWidget() {
           </Link>
         </div>
       </div>
+      
+      <button
+        onClick={() => setIsMinimized(!isMinimized)}
+        className="bg-gradient-to-b from-green-600 to-green-700 text-white px-2 py-4 rounded-r-lg shadow-lg hover:from-green-500 hover:to-green-600 transition-all flex flex-col items-center gap-1"
+        data-testid="cost-savings-toggle"
+      >
+        {isMinimized ? (
+          <ChevronRight className="w-4 h-4" />
+        ) : (
+          <ChevronLeft className="w-4 h-4" />
+        )}
+        <DollarSign className="w-4 h-4" />
+        <span className="text-xs font-bold uppercase tracking-wider [writing-mode:vertical-rl] [text-orientation:mixed]">
+          Savings
+        </span>
+      </button>
     </div>
   );
 }
