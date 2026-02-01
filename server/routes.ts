@@ -4502,7 +4502,7 @@ Example: {"name": "John Doe", "email": "john@example.com", "phone": "+1 (555) 12
       const OpenAI = (await import("openai")).default;
       const openai = new OpenAI({ apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY });
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -4614,7 +4614,7 @@ Example response: {"name": "John Doe", "email": "john@example.com", "phone": "55
       const openai = new OpenAI({ apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY });
       
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -7122,7 +7122,7 @@ Be thorough but concise. Focus on actionable insights.`
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: model === "gpt-4o" ? "gpt-4o" : "gpt-4o-mini",
+          model: "gpt-4o-mini",
           messages,
           max_tokens: 1024,
           temperature: 0.7,
@@ -7407,7 +7407,7 @@ Respond with JSON:
 }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "You are an AI orchestration router. Return only valid JSON." },
           { role: "user", content: routerPrompt }
@@ -7611,7 +7611,7 @@ Create a detailed scene plan with timing. Return JSON:
 }`;
 
       const planResponse = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "You are a creative director. Return only valid JSON." },
           { role: "user", content: planPrompt }

@@ -48,7 +48,7 @@ export async function extractTextFromImage(buffer: Buffer, mimeType: string): Pr
     const base64Image = buffer.toString("base64");
     
     const response = await openai.chat.completions.create({
-      model: "gpt-5.2",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "user",
@@ -100,7 +100,7 @@ export async function extractDocumentText(buffer: Buffer, filename: string): Pro
 
 export async function reformatDocumentText(rawText: string): Promise<string> {
   const response = await openai.chat.completions.create({
-    model: "gpt-5.2",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
@@ -133,7 +133,7 @@ Return ONLY the reformatted text. Do not add any commentary or explanations.`
 
 export async function fixTemplateContent(htmlContent: string): Promise<string> {
   const response = await openai.chat.completions.create({
-    model: "gpt-5.2",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
