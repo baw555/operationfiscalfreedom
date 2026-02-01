@@ -28,10 +28,10 @@ export default function AboutNavPerks() {
             </h1>
             <div className="w-20 h-0.5 bg-amber-500/60 mx-auto mb-6" />
             <p className="text-slate-400 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-4">
-              Enterprise-grade AI tools built exclusively for veterans. Three powerful platforms, completely free.
+              Enterprise-grade AI tools built exclusively for veterans. Powerful platforms designed for those who served.
             </p>
             <p className="text-slate-300 text-base leading-relaxed max-w-3xl mx-auto mb-8 bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-              We are constantly adding more software to our stack that is free like RANGER, our HIPAA compliant AI powered cutting edge document signature software, no cost for active members, or low / at cost. All of our software is for you, not for us! <span className="text-amber-400 font-semibold">We will never sell your information and we do not store your search history!</span>
+              We are constantly adding more software to our stack. RANGER, our HIPAA compliant AI-powered cutting edge document signature software, is completely free. Our other tools are no cost for active members and low cost for veterans who just want to not be censored, tracked, or stored. All of our software is for you, not for us! <span className="text-amber-400 font-semibold">We will never sell your information and we do not store your search history!</span>
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/operator-ai">
@@ -70,8 +70,8 @@ export default function AboutNavPerks() {
                 </p>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="text-center p-4 bg-slate-50 rounded-xl">
-                    <div className="text-3xl font-bold text-amber-500 mb-1">$0</div>
-                    <div className="text-sm text-slate-500">Forever Free</div>
+                    <div className="text-3xl font-bold text-amber-500 mb-1">Free</div>
+                    <div className="text-sm text-slate-500">RANGER E-Sign</div>
                   </div>
                   <div className="text-center p-4 bg-slate-50 rounded-xl">
                     <div className="text-3xl font-bold text-amber-500 mb-1">3</div>
@@ -481,9 +481,9 @@ export default function AboutNavPerks() {
                 <div className="w-14 h-14 bg-amber-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <DollarSign className="w-7 h-7 text-amber-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">100% Free</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">Free for Veterans</h3>
                 <p className="text-slate-400 text-sm">
-                  No fees, no premium tiers for veterans
+                  No fees, no premium tiers for RANGER
                 </p>
               </div>
             </div>
@@ -521,7 +521,7 @@ export default function AboutNavPerks() {
               <div className="space-y-4">
                 <div className="grid grid-cols-4 gap-4 items-center py-3">
                   <div className="text-slate-600">Monthly Cost</div>
-                  <div className="text-center font-bold text-green-600">$0</div>
+                  <div className="text-center font-bold text-green-600">Free - Low</div>
                   <div className="text-center text-slate-500">$20/mo</div>
                   <div className="text-center text-slate-500">$25/mo</div>
                 </div>
@@ -565,7 +565,7 @@ export default function AboutNavPerks() {
 
               <div className="mt-8 pt-6 border-t border-slate-200 text-center">
                 <p className="text-slate-600 mb-4">
-                  <span className="font-semibold text-slate-800">Annual Savings:</span> Up to <span className="text-green-600 font-bold">$540/year</span> compared to paid alternatives
+                  <span className="font-semibold text-slate-800">RANGER E-Signatures:</span> <span className="text-green-600 font-bold">100% Free</span> vs $300+/year for DocuSign
                 </p>
               </div>
             </div>
@@ -627,9 +627,9 @@ export default function AboutNavPerks() {
 
             <div className="space-y-4">
               <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h3 className="font-semibold text-slate-800 mb-2">Is Nav Perks really 100% free?</h3>
+                <h3 className="font-semibold text-slate-800 mb-2">What does Nav Perks cost?</h3>
                 <p className="text-slate-600">
-                  Yes. All three platforms (Operator AI, Video & Music Gen, and RANGER) are completely free for verified veterans. No credit card required, no hidden fees, no premium tiers. This is our way of giving back to those who served.
+                  RANGER is completely free for all veterans. Operator AI and Video & Music Gen are no cost for active members and available at low cost for veterans who want AI tools that don't censor, track, or store their data. This is our way of giving back to those who served.
                 </p>
               </div>
 
@@ -672,7 +672,7 @@ export default function AboutNavPerks() {
             Ready to Get Started?
           </h2>
           <p className="text-slate-400 mb-8 max-w-xl mx-auto text-lg">
-            Join veterans already using Nav Perks. All platforms are completely free—no credit card required.
+            Join veterans already using Nav Perks. RANGER is completely free, and our AI tools are available at low cost for veterans.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/operator-ai">
