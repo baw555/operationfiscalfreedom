@@ -1,0 +1,109 @@
+Stage F — Plan generator endpoint (creates tasks)
+
+Create src/app/api/plan/generate/route.ts:
+
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+function buildTasks(input: { track: string; claimType: string; hasMedicalEvidence: string }) {
+  const tasks: { title: string; description?: string }[] = [];
+
+  if (input.track === "va") {
+    // VA: link to official “how to file” page + forms mapping (later you can deep-link)
+    tasks.push({ title: "Create/verify VA.gov account", description: "So you can start, save, upload evidence, and track status." });
+    tasks.push({ title: "List conditions + onset dates", description: "Primary + secondary conditions. Include approx. dates + how it affects function." });
+
+    if (input.claimType === "new") {
+      tasks.push({ title: "Start VA disability claim (new/secondary)", description: "Begin application workflow and gather required evidence." });
+    }
+    if (input.claimType === "increase") {
+      tasks.push({ title: "Document worsening symptoms", description: "New visits, meds, limitations, flare frequency, missed work." });
+    }
+    if (input.claimType === "appeal") {
+      tasks.push({ title: "Choose appeal lane", description: "Supplemental claim vs higher-level review vs board appeal—match to evidence situation." });
+    }
+  } else {
+    // SSDI
+    tasks.push({ title: "Create your SSDI timeline", description: "Work history, onset date, treatments, functional limitations." });
+    tasks.push({ title: "Gather medical records + provider list", description: "Hospitals, clinics, prescriptions, mental health, imaging." });
+
+    if (input.claimType === "apply") {
+      tasks.push({ title: "Complete SSDI application checklist", description: "Employment history, symptoms, ADL limitations, meds, providers." });
+    }
+    if (input.claimType === "reconsideration") {
+      tasks.push({ title: "Appeal: reconsideration packet prep", description: "New evidence + updated function statement." });
+    }
+    if (input.claimType === "alj") {
+      tasks.push({ title: "ALJ hearing prep checklist", description: "Organize record, updated statements, key limitations and examples." });
+    }
+  }
+
+  // Evidence-dependent tasks
+  if (input.hasMedicalEvidence === "none") {
+    tasks.push({ title: "Book appointments to establish record", description: "Objective documentation is key—start building paper trail." });
+  } else if (input.hasMedicalEvidence === "some") {
+    tasks.push({ title: "Request missing records", description: "Pull full notes, imaging, labs, provider letters if applicable." });
+  } else {
+    tasks.push({ title: "Organize evidence by condition + date", description: "Index docs so it’s easy to upload and reference." });
+  }
+
+  tasks.push({ title: "Upload documents to your case folder", description: "Keep everything centralized here." });
+
+  return tasks;
+}
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  // MVP: create/attach to a demo user
+  const email = "demo@local";
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: { email },
+  });
+
+  const session = await prisma.session.create({
+    data: { userId: user.id },
+  });
+
+  const tasks = buildTasks(body);
+
+  await prisma.task.createMany({
+    data: tasks.map((t) => ({
+      userId: user.id,
+      title: t.title,
+      description: t.description,
+    })),
+  });
+
+  return NextResponse.json({ ok: true, tasksCreated: tasks.length, sessionId: session.id });
+}
+
+Stage G — Dashboard (task list)
+
+Create src/app/dashboard/page.tsx:
+
+import { prisma } from "@/lib/prisma";
+
+export default async function Dashboard() {
+  const user = await prisma.user.findUnique({ where: { email: "demo@local" } });
+  if (!user) return <div style={{ padding: 24 }}>No user yet. Go run the wizard.</div>;
+
+  const tasks = await prisma.task.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } });
+
+  return (
+    <div style={{ padding: 24, maxWidth: 900 }}>
+      <h1 style={{ fontSize: 28, fontWeight: 700 }}>My Plan</h1>
+      <div style={{ marginTop: 16 }}>
+        {tasks.map((t) => (
+          <div key={t.id} style={{ border: "1px solid #ddd", padding: 12, marginBottom: 10 }}>
+            <div style={{ fontWeight: 700 }}>{t.title}</div>
+            {t.description ? <div style={{ marginTop: 6, color: "#333" }}>{t.description}</div> : null}
+            <div style={{ marginTop: 8, fontSize: 12, color: "#666" }}>Status: {t.status}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

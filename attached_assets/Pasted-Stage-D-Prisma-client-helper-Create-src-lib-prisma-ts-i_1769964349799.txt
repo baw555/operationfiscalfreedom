@@ -1,0 +1,91 @@
+Stage D — Prisma client helper
+
+Create src/lib/prisma.ts:
+
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: ["error", "warn"],
+  });
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+Stage E — The wizard (VA + SSDI navigation)
+
+Create src/app/wizard/page.tsx (basic MVP UI):
+
+"use client";
+
+import { useState } from "react";
+
+type Track = "va" | "ssdi";
+
+export default function WizardPage() {
+  const [track, setTrack] = useState<Track>("va");
+  const [claimType, setClaimType] = useState<string>("new");
+  const [hasMedicalEvidence, setHasMedicalEvidence] = useState<string>("some");
+
+  async function generatePlan() {
+    const res = await fetch("/api/plan/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ track, claimType, hasMedicalEvidence }),
+    });
+    const data = await res.json();
+    alert(`Created ${data.tasksCreated} tasks. Go to /dashboard`);
+  }
+
+  return (
+    <div style={{ padding: 24, maxWidth: 720 }}>
+      <h1 style={{ fontSize: 28, fontWeight: 700 }}>Claim Navigator</h1>
+
+      <div style={{ marginTop: 16 }}>
+        <label style={{ fontWeight: 600 }}>Track</label>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <button onClick={() => setTrack("va")} style={{ padding: 10, border: "1px solid #ccc" }}>
+            VA Disability
+          </button>
+          <button onClick={() => setTrack("ssdi")} style={{ padding: 10, border: "1px solid #ccc" }}>
+            SSDI
+          </button>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <label style={{ fontWeight: 600 }}>What are you doing?</label>
+        <select value={claimType} onChange={(e) => setClaimType(e.target.value)} style={{ display: "block", marginTop: 8, padding: 10, width: "100%" }}>
+          {track === "va" ? (
+            <>
+              <option value="new">New claim</option>
+              <option value="increase">Increase / worsening</option>
+              <option value="appeal">Appeal / review</option>
+            </>
+          ) : (
+            <>
+              <option value="apply">Applying for SSDI</option>
+              <option value="reconsideration">Appeal (reconsideration)</option>
+              <option value="alj">ALJ hearing prep</option>
+            </>
+          )}
+        </select>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <label style={{ fontWeight: 600 }}>How much medical evidence do you have?</label>
+        <select value={hasMedicalEvidence} onChange={(e) => setHasMedicalEvidence(e.target.value)} style={{ display: "block", marginTop: 8, padding: 10, width: "100%" }}>
+          <option value="none">None yet</option>
+          <option value="some">Some records</option>
+          <option value="a_lot">A lot of records</option>
+        </select>
+      </div>
+
+      <button onClick={generatePlan} style={{ marginTop: 20, padding: 12, border: "1px solid #000" }}>
+        Generate my step-by-step plan
+      </button>
+    </div>
+  );
+}
