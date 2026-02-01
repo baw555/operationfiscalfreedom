@@ -8558,7 +8558,7 @@ Create a detailed scene plan with timing. Return JSON:
         reconsideration: "appeal",
         alj: "appeal",
       };
-      const purpose = purposeMap[claimCase.claimType] || "new_claim";
+      const purpose = claimCase.claimType ? purposeMap[claimCase.claimType] || "new_claim" : "new_claim";
       const track = claimCase.caseType.toUpperCase();
 
       const requirements = await storage.getEvidenceRequirements(track, purpose);

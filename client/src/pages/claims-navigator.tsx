@@ -407,6 +407,39 @@ export default function ClaimsNavigator() {
     enabled: !!activeCaseId,
   });
 
+  const { data: completenessData } = useQuery({
+    queryKey: ["/api/claims/cases", activeCaseId, "completeness"],
+    queryFn: async () => {
+      if (!activeCaseId) return null;
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/completeness`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeCaseId,
+  });
+
+  const { data: strengthData } = useQuery({
+    queryKey: ["/api/claims/cases", activeCaseId, "strength"],
+    queryFn: async () => {
+      if (!activeCaseId) return null;
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/strength`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeCaseId,
+  });
+
+  const { data: laneData } = useQuery({
+    queryKey: ["/api/claims/cases", activeCaseId, "lane-recommendation"],
+    queryFn: async () => {
+      if (!activeCaseId) return null;
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/lane-recommendation`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeCaseId,
+  });
+
   const createShareMutation = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: string }) => {
       const res = await apiRequest("POST", `/api/claims/cases/${activeCaseId}/shares`, { email, role });
@@ -622,6 +655,10 @@ export default function ClaimsNavigator() {
                     <TabsTrigger value="sharing" className="data-[state=active]:bg-amber-500 data-[state=active]:text-black">
                       <Users className="w-4 h-4 mr-2" />
                       Sharing
+                    </TabsTrigger>
+                    <TabsTrigger value="analysis" className="data-[state=active]:bg-amber-500 data-[state=active]:text-black">
+                      <Target className="w-4 h-4 mr-2" />
+                      Analysis
                     </TabsTrigger>
                   </TabsList>
 
@@ -984,6 +1021,248 @@ export default function ClaimsNavigator() {
                         )}
                       </CardContent>
                     </Card>
+                  </TabsContent>
+
+                  <TabsContent value="analysis" className="space-y-4">
+                    {/* Document Completeness Card */}
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardHeader>
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-amber-400" />
+                          Document Completeness
+                        </CardTitle>
+                        <CardDescription className="text-slate-400">
+                          Required evidence for your {activeCase?.caseType?.toUpperCase()} claim
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {completenessData ? (
+                          <>
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                                  completenessData.stats.percentComplete >= 100 ? "bg-green-500/20" :
+                                  completenessData.stats.percentComplete >= 50 ? "bg-amber-500/20" :
+                                  "bg-red-500/20"
+                                }`}>
+                                  <span className={`text-xl font-bold ${
+                                    completenessData.stats.percentComplete >= 100 ? "text-green-400" :
+                                    completenessData.stats.percentComplete >= 50 ? "text-amber-400" :
+                                    "text-red-400"
+                                  }`}>
+                                    {completenessData.stats.percentComplete}%
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-white font-medium">
+                                    {completenessData.stats.completedRequired} of {completenessData.stats.totalRequired} required documents
+                                  </p>
+                                  <p className="text-sm text-slate-400">
+                                    {completenessData.stats.percentComplete >= 100 
+                                      ? "All required evidence present" 
+                                      : "Some evidence still needed"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <Progress 
+                              value={completenessData.stats.percentComplete} 
+                              className="h-2 bg-slate-700 mb-4" 
+                            />
+                            <div className="space-y-2">
+                              {completenessData.results.map((item: any, idx: number) => (
+                                <div 
+                                  key={idx} 
+                                  className={`flex items-center justify-between p-3 rounded-lg ${
+                                    item.status === "present" ? "bg-green-500/10 border border-green-500/30" : "bg-red-500/10 border border-red-500/30"
+                                  }`}
+                                  data-testid={`completeness-item-${idx}`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {item.status === "present" ? (
+                                      <CheckCircle2 className="w-5 h-5 text-green-400" />
+                                    ) : (
+                                      <AlertTriangle className="w-5 h-5 text-red-400" />
+                                    )}
+                                    <div>
+                                      <p className={item.status === "present" ? "text-green-300" : "text-red-300"}>
+                                        {item.requirement.label}
+                                      </p>
+                                      {item.requirement.description && (
+                                        <p className="text-xs text-slate-400">{item.requirement.description}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Badge variant="outline" className={
+                                    item.status === "present" ? "border-green-500 text-green-400" : "border-red-500 text-red-400"
+                                  }>
+                                    {item.status === "present" ? `${item.matchingFiles} file${item.matchingFiles > 1 ? "s" : ""}` : "Missing"}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center py-8">
+                            <Loader2 className="w-8 h-8 text-slate-500 mx-auto mb-4 animate-spin" />
+                            <p className="text-slate-400">Analyzing your documents...</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Evidence Strength Card */}
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardHeader>
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <Award className="w-5 h-5 text-amber-400" />
+                          Evidence Strength
+                        </CardTitle>
+                        <CardDescription className="text-slate-400">
+                          How strong is your evidentiary support?
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {strengthData ? (
+                          <>
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                                  strengthData.overallStrength >= 4 ? "bg-green-500/20" :
+                                  strengthData.overallStrength >= 2.5 ? "bg-amber-500/20" :
+                                  "bg-red-500/20"
+                                }`}>
+                                  <span className={`text-2xl font-bold ${
+                                    strengthData.overallStrength >= 4 ? "text-green-400" :
+                                    strengthData.overallStrength >= 2.5 ? "text-amber-400" :
+                                    "text-red-400"
+                                  }`}>
+                                    {strengthData.overallStrength.toFixed(1)}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-white font-medium text-lg">Overall Strength Score</p>
+                                  <p className="text-sm text-slate-400">
+                                    Based on {strengthData.scoredFiles} of {strengthData.totalFiles} files
+                                  </p>
+                                </div>
+                              </div>
+                              {strengthData.hasNexusLetter && (
+                                <Badge className="bg-green-500/20 text-green-400 border border-green-500/30">
+                                  <Check className="w-3 h-3 mr-1" /> Nexus Letter Present
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            {strengthData.conditionStrengths && strengthData.conditionStrengths.length > 0 && (
+                              <div className="space-y-3">
+                                <h4 className="text-white font-medium">Strength by Condition</h4>
+                                {strengthData.conditionStrengths.map((cs: any, idx: number) => (
+                                  <div key={idx} className="bg-slate-700/50 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-white">{cs.condition}</span>
+                                      <span className={`font-medium ${
+                                        cs.avgStrength >= 4 ? "text-green-400" :
+                                        cs.avgStrength >= 2.5 ? "text-amber-400" :
+                                        "text-red-400"
+                                      }`}>
+                                        {cs.avgStrength.toFixed(1)} / 5
+                                      </span>
+                                    </div>
+                                    <Progress value={(cs.avgStrength / 5) * 100} className="h-2 bg-slate-600" />
+                                    <p className="text-xs text-slate-400 mt-1">{cs.fileCount} supporting file{cs.fileCount > 1 ? "s" : ""}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {(!strengthData.conditionStrengths || strengthData.conditionStrengths.length === 0) && (
+                              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                                <p className="text-blue-300 text-sm">
+                                  Tag your documents with conditions to see strength analysis by condition.
+                                </p>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="text-center py-8">
+                            <Loader2 className="w-8 h-8 text-slate-500 mx-auto mb-4 animate-spin" />
+                            <p className="text-slate-400">Calculating evidence strength...</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Lane Recommendation Card (VA only) */}
+                    {activeCase?.caseType === "va" && (
+                      <Card className="bg-slate-800/50 border-slate-700">
+                        <CardHeader>
+                          <CardTitle className="text-white flex items-center gap-2">
+                            <Briefcase className="w-5 h-5 text-amber-400" />
+                            Lane Recommendation
+                          </CardTitle>
+                          <CardDescription className="text-slate-400">
+                            Based on your evidence, here's the recommended appeal path
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          {laneData?.applicable ? (
+                            <div className="space-y-4">
+                              <div className={`p-4 rounded-lg border ${
+                                laneData.lane === "Supplemental Claim" ? "bg-green-500/10 border-green-500/30" :
+                                laneData.lane === "Higher-Level Review" ? "bg-blue-500/10 border-blue-500/30" :
+                                "bg-amber-500/10 border-amber-500/30"
+                              }`}>
+                                <div className="flex items-center justify-between mb-2">
+                                  <h3 className={`text-xl font-bold ${
+                                    laneData.lane === "Supplemental Claim" ? "text-green-400" :
+                                    laneData.lane === "Higher-Level Review" ? "text-blue-400" :
+                                    "text-amber-400"
+                                  }`}>
+                                    {laneData.lane}
+                                  </h3>
+                                  <Badge variant="outline" className={
+                                    laneData.confidence === "high" ? "border-green-500 text-green-400" :
+                                    laneData.confidence === "medium" ? "border-amber-500 text-amber-400" :
+                                    "border-slate-500 text-slate-400"
+                                  }>
+                                    {laneData.confidence} confidence
+                                  </Badge>
+                                </div>
+                                <p className="text-slate-300">{laneData.reason}</p>
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-3 text-center">
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                  <p className="text-2xl font-bold text-white">{laneData.strengthAvg?.toFixed(1) || "0"}</p>
+                                  <p className="text-xs text-slate-400">Avg Strength</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                  <p className="text-2xl font-bold text-white">{laneData.hasNewEvidence ? "Yes" : "No"}</p>
+                                  <p className="text-xs text-slate-400">New Evidence</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                  <p className="text-2xl font-bold text-white">{laneData.hasNexusLetter ? "Yes" : "No"}</p>
+                                  <p className="text-xs text-slate-400">Nexus Letter</p>
+                                </div>
+                              </div>
+
+                              <div className="bg-slate-700/30 rounded-lg p-4">
+                                <p className="text-xs text-slate-400">
+                                  <strong>Disclaimer:</strong> This recommendation is based on your uploaded evidence and is for informational purposes only. 
+                                  It is not legal advice. Consult with a qualified Veterans Service Officer (VSO) or attorney before making decisions about your claim.
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-8">
+                              <Target className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+                              <p className="text-slate-400">Upload documents to receive a lane recommendation</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
                   </TabsContent>
                 </Tabs>
               </div>
