@@ -4188,23 +4188,31 @@ export async function registerRoutes(
           </div>
           
           <div class="section">
-            <p><span class="section-title">2. COMMISSION STRUCTURE.</span> Affiliate will receive commissions as outlined in the Company's compensation plan. Commission rates are determined by the Company and may vary by service type. Affiliate agrees to refer to the current compensation plan for specific rates.</p>
+            <p><span class="section-title">2. COMMISSION POOL.</span> For each service sale, the Company receives a gross commission from the service provider. The commission rate varies by service type. This gross commission forms the "Commission Pool" from which Affiliates are paid.</p>
           </div>
           
           <div class="section">
-            <p><span class="section-title">3. ADDITIONAL INCOME OPPORTUNITIES.</span> Affiliate may also earn commissions from additional revenue streams including but not limited to referral programs, volume bonuses, and promotional incentives as determined by the Company.</p>
+            <p><span class="section-title">3. PRODUCER COMMISSION.</span> The Producer (Affiliate who closes the sale) receives <strong>69%</strong> of the Commission Pool as base compensation. Additionally, Producers receive <strong>+1% for each empty upline level</strong> (maximum 6 levels). A solo Producer with no uplines receives <strong>75%</strong> of the Commission Pool.</p>
           </div>
           
           <div class="section">
-            <p><span class="section-title">4. PAYMENT TERMS.</span> Commissions are paid according to the Company's standard payment schedule. The Company reserves the right to withhold payment pending verification of sales and compliance with all applicable terms.</p>
+            <p><span class="section-title">4. OVERRIDE COMPENSATION.</span> Affiliates earn <strong>1%</strong> of the Commission Pool for each level they are above the Producer in the organization structure, up to 6 levels deep.</p>
           </div>
           
           <div class="section">
-            <p><span class="section-title">5. ACKNOWLEDGMENT.</span> By signing below, Affiliate acknowledges that they have read, understand, and agree to the commission structure outlined in this Schedule A.</p>
+            <p><span class="section-title">5. RECRUITER BOUNTY.</span> A <strong>2.5%</strong> bounty is paid to the Affiliate who recruited the Producer, when applicable.</p>
           </div>
           
           <div class="section">
-            <p><span class="section-title">6. MODIFICATIONS.</span> The Company reserves the right to modify this commission structure with reasonable notice. Continued participation after such notice constitutes acceptance of any modifications.</p>
+            <p><span class="section-title">6. PAYMENT TERMS.</span> Commissions are paid according to the Company's standard payment schedule following verification of sales and compliance with all applicable terms.</p>
+          </div>
+          
+          <div class="section">
+            <p><span class="section-title">7. ACKNOWLEDGMENT.</span> By signing below, Affiliate acknowledges that they have read, understand, and agree to the commission structure outlined in this Schedule A.</p>
+          </div>
+          
+          <div class="section">
+            <p><span class="section-title">8. MODIFICATIONS.</span> The Company reserves the right to modify this commission structure with reasonable notice. Continued participation constitutes acceptance of any modifications.</p>
           </div>
           
           <div class="signature-block">
