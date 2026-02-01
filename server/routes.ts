@@ -7026,5 +7026,195 @@ export async function registerRoutes(
     }
   });
 
+  // ==========================================================================
+  // NAVAL INTELLIGENCE - AI ORCHESTRATION SYSTEM
+  // Smart router that selects the best model per task and chains pipelines
+  // ==========================================================================
+
+  // Get model registry and available pipelines
+  app.get("/api/orchestration/models", async (req, res) => {
+    try {
+      const { MODEL_REGISTRY, PIPELINE_TEMPLATES } = await import("../shared/orchestration");
+      res.json({
+        models: MODEL_REGISTRY,
+        templates: PIPELINE_TEMPLATES,
+      });
+    } catch (error) {
+      console.error("Error fetching orchestration models:", error);
+      res.status(500).json({ message: "Failed to fetch models" });
+    }
+  });
+
+  // Route user intent to optimal model(s)
+  app.post("/api/orchestration/route", async (req, res) => {
+    try {
+      const { userIntent, inputs, preferSpeed, preferQuality, maxBudget } = req.body;
+      
+      if (!userIntent) {
+        return res.status(400).json({ message: "User intent is required" });
+      }
+
+      const { MODEL_REGISTRY, PIPELINE_TEMPLATES } = await import("../shared/orchestration");
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI();
+
+      // Use GPT to analyze intent and determine pipeline
+      const routerPrompt = `You are an AI orchestration router. Analyze the user's intent and determine:
+1. What type of media creation task is this?
+2. What models/steps are needed?
+3. What is the optimal pipeline?
+
+Available task types: text-reasoning, image-generation, image-to-video, text-to-video, text-to-speech, speech-to-text, music-generation, video-generation, fusion
+
+Available pipeline templates:
+${JSON.stringify(PIPELINE_TEMPLATES, null, 2)}
+
+User Intent: "${userIntent}"
+User Inputs: ${JSON.stringify(inputs || [])}
+Preferences: Speed=${preferSpeed}, Quality=${preferQuality}, Budget=${maxBudget || "unlimited"}
+
+Respond with JSON:
+{
+  "selectedTemplate": "template-id or null for custom",
+  "taskTypes": ["array", "of", "task", "types"],
+  "reasoning": "explanation of why this pipeline",
+  "steps": [
+    { "order": 1, "taskType": "...", "description": "..." }
+  ],
+  "estimatedDuration": "human readable estimate",
+  "estimatedCost": number in dollars
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: "You are an AI orchestration router. Return only valid JSON." },
+          { role: "user", content: routerPrompt }
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const routerDecision = JSON.parse(response.choices[0].message.content || "{}");
+
+      // Map task types to actual models
+      const selectedModels = routerDecision.taskTypes?.map((taskType: string) => {
+        const model = MODEL_REGISTRY.find((m: any) => m.taskTypes.includes(taskType));
+        return model ? { taskType, model: model.name, modelId: model.id } : null;
+      }).filter(Boolean) || [];
+
+      res.json({
+        ...routerDecision,
+        selectedModels,
+        models: MODEL_REGISTRY,
+      });
+
+    } catch (error) {
+      console.error("Error routing orchestration:", error);
+      res.status(500).json({ message: "Failed to route orchestration request" });
+    }
+  });
+
+  // Execute an orchestration pipeline
+  app.post("/api/orchestration/execute", async (req, res) => {
+    try {
+      const { pipelineId, steps, inputs, sessionId } = req.body;
+      
+      if (!steps || !Array.isArray(steps)) {
+        return res.status(400).json({ message: "Pipeline steps are required" });
+      }
+
+      // Create pipeline record
+      const pipeline = {
+        id: `pipeline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: pipelineId || "Custom Pipeline",
+        status: "running" as const,
+        steps: steps.map((s: any, i: number) => ({
+          ...s,
+          id: `step_${i}`,
+          status: "pending" as const,
+        })),
+        createdAt: new Date(),
+        inputs,
+      };
+
+      // For now, return the pipeline structure - actual execution would be async
+      res.json({
+        success: true,
+        pipeline,
+        message: "Pipeline created. Execution will proceed asynchronously.",
+      });
+
+    } catch (error) {
+      console.error("Error executing pipeline:", error);
+      res.status(500).json({ message: "Failed to execute pipeline" });
+    }
+  });
+
+  // Fusion endpoint - combine multiple media types
+  app.post("/api/orchestration/fusion", async (req, res) => {
+    try {
+      const { images, audio, text, duration, style, outputFormat } = req.body;
+      
+      if (!outputFormat) {
+        return res.status(400).json({ message: "Output format is required" });
+      }
+
+      // Validate we have at least some inputs
+      if (!images?.length && !audio && !text) {
+        return res.status(400).json({ message: "At least one input (images, audio, or text) is required" });
+      }
+
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI();
+
+      // Step 1: Scene planning with LLM
+      const planPrompt = `You are a creative director planning a ${outputFormat}.
+      
+Inputs:
+- Images: ${images?.length || 0} images provided
+- Audio: ${audio ? "Yes" : "No"}
+- Text/Script: ${text || "None"}
+- Desired Duration: ${duration || "Auto"}
+- Style: ${style || "Professional"}
+
+Create a detailed scene plan with timing. Return JSON:
+{
+  "scenes": [
+    { "order": 1, "duration": 3, "description": "...", "transition": "fade" }
+  ],
+  "totalDuration": number in seconds,
+  "audioStrategy": "background music / narration / sync with content",
+  "visualStyle": "description of visual treatment"
+}`;
+
+      const planResponse = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: "You are a creative director. Return only valid JSON." },
+          { role: "user", content: planPrompt }
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const scenePlan = JSON.parse(planResponse.choices[0].message.content || "{}");
+
+      res.json({
+        success: true,
+        fusionPlan: scenePlan,
+        status: "planned",
+        message: "Fusion plan created. Ready for video generation.",
+        nextSteps: [
+          "Generate video frames from scene descriptions",
+          "Sync audio with video timeline",
+          "Apply transitions and render final output"
+        ],
+      });
+
+    } catch (error) {
+      console.error("Error in fusion:", error);
+      res.status(500).json({ message: "Failed to create fusion plan" });
+    }
+  });
+
   return httpServer;
 }

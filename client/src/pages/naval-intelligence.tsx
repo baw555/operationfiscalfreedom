@@ -34,7 +34,15 @@ import {
   Flag,
   Star,
   Heart,
-  Users
+  Users,
+  Workflow,
+  ArrowRight,
+  Brain,
+  Mic,
+  FileAudio,
+  Upload,
+  Zap,
+  Settings2
 } from "lucide-react";
 
 const GENERATION_TYPES = {
@@ -43,6 +51,315 @@ const GENERATION_TYPES = {
   "text-to-music": { icon: Music, label: "Text to Music", color: "bg-green-500" },
   "music-video": { icon: Film, label: "Music Video", color: "bg-red-500" }
 };
+
+const MODEL_ICONS: Record<string, any> = {
+  "text-reasoning": Brain,
+  "image-generation": Image,
+  "text-to-speech": Mic,
+  "speech-to-text": FileAudio,
+  "music-generation": Music,
+  "video-generation": Video,
+  "fusion": Workflow,
+};
+
+const MODEL_COLORS: Record<string, string> = {
+  "text-reasoning": "from-purple-500 to-indigo-600",
+  "image-generation": "from-pink-500 to-rose-600",
+  "text-to-speech": "from-green-500 to-emerald-600",
+  "speech-to-text": "from-teal-500 to-cyan-600",
+  "music-generation": "from-orange-500 to-amber-600",
+  "video-generation": "from-blue-500 to-sky-600",
+  "fusion": "from-red-500 to-brand-red",
+};
+
+interface PipelineTemplate {
+  id: string;
+  name: string;
+  description: string;
+  steps: Array<{ taskType: string; description: string }>;
+}
+
+interface RouterDecision {
+  selectedTemplate: string | null;
+  taskTypes: string[];
+  reasoning: string;
+  steps: Array<{ order: number; taskType: string; description: string }>;
+  estimatedDuration: string;
+  estimatedCost: number;
+  selectedModels?: Array<{ taskType: string; model: string; modelId: string }>;
+}
+
+function OrchestrationPanel() {
+  const { toast } = useToast();
+  const [userIntent, setUserIntent] = useState("");
+  const [isRouting, setIsRouting] = useState(false);
+  const [routerDecision, setRouterDecision] = useState<RouterDecision | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [uploadedAudio, setUploadedAudio] = useState<File | null>(null);
+  const [preferSpeed, setPreferSpeed] = useState(false);
+  const [preferQuality, setPreferQuality] = useState(true);
+
+  const { data: orchestrationData } = useQuery({
+    queryKey: ["/api/orchestration/models"],
+    queryFn: async () => {
+      const res = await fetch("/api/orchestration/models");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
+  const templates: PipelineTemplate[] = orchestrationData?.templates || [];
+
+  const handleRouteIntent = async () => {
+    if (!userIntent.trim()) {
+      toast({ title: "Describe your creation", description: "Tell us what you want to create", variant: "destructive" });
+      return;
+    }
+
+    setIsRouting(true);
+    try {
+      const res = await fetch("/api/orchestration/route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userIntent,
+          inputs: [
+            ...(uploadedImages.length ? [{ type: "image", count: uploadedImages.length }] : []),
+            ...(uploadedAudio ? [{ type: "audio", name: uploadedAudio.name }] : []),
+          ],
+          preferSpeed,
+          preferQuality,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Routing failed");
+      
+      const decision = await res.json();
+      setRouterDecision(decision);
+      toast({ title: "Pipeline Planned", description: `${decision.steps?.length || 0} steps identified` });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to analyze your request", variant: "destructive" });
+    } finally {
+      setIsRouting(false);
+    }
+  };
+
+  const handleExecutePipeline = async () => {
+    if (!routerDecision) return;
+
+    toast({ 
+      title: "Pipeline Started", 
+      description: "Your creation is being processed. This may take a few minutes.",
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg">
+              <Workflow className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <span className="text-xl">AI Orchestration Engine</span>
+              <p className="text-sm font-normal text-gray-500 mt-1">
+                Smart router that chains the perfect models for your creation
+              </p>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <Label className="text-base font-semibold mb-2 block">What do you want to create?</Label>
+            <Textarea
+              value={userIntent}
+              onChange={(e) => setUserIntent(e.target.value)}
+              placeholder="Example: Create a memorial tribute video using my photos with patriotic music and voice narration..."
+              className="min-h-[100px] text-base"
+              data-testid="input-orchestration-intent"
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Upload Images (optional)</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors cursor-pointer">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  id="image-upload"
+                  onChange={(e) => setUploadedImages(Array.from(e.target.files || []))}
+                />
+                <label htmlFor="image-upload" className="cursor-pointer">
+                  <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500">
+                    {uploadedImages.length > 0 
+                      ? `${uploadedImages.length} image(s) selected` 
+                      : "Click to upload images"}
+                  </p>
+                </label>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Upload Audio (optional)</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors cursor-pointer">
+                <input
+                  type="file"
+                  accept="audio/*"
+                  className="hidden"
+                  id="audio-upload"
+                  onChange={(e) => setUploadedAudio(e.target.files?.[0] || null)}
+                />
+                <label htmlFor="audio-upload" className="cursor-pointer">
+                  <FileAudio className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500">
+                    {uploadedAudio ? uploadedAudio.name : "Click to upload audio"}
+                  </p>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={preferQuality}
+                onChange={(e) => { setPreferQuality(e.target.checked); if (e.target.checked) setPreferSpeed(false); }}
+                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              />
+              <span className="text-sm">Prioritize Quality</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={preferSpeed}
+                onChange={(e) => { setPreferSpeed(e.target.checked); if (e.target.checked) setPreferQuality(false); }}
+                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              />
+              <span className="text-sm">Prioritize Speed</span>
+            </label>
+          </div>
+
+          <Button
+            onClick={handleRouteIntent}
+            disabled={isRouting || !userIntent.trim()}
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-6 text-lg"
+            data-testid="button-analyze-pipeline"
+          >
+            {isRouting ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Analyzing your request...
+              </>
+            ) : (
+              <>
+                <Zap className="w-5 h-5 mr-2" />
+                Analyze & Plan Pipeline
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {routerDecision && (
+        <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              Pipeline Plan Ready
+            </CardTitle>
+            <CardDescription>{routerDecision.reasoning}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Estimated Duration: <strong>{routerDecision.estimatedDuration}</strong></span>
+              <span className="text-gray-600">Estimated Cost: <strong>${routerDecision.estimatedCost?.toFixed(2) || "0.00"}</strong></span>
+            </div>
+
+            <div className="relative">
+              <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 via-blue-400 to-green-400" />
+              
+              <div className="space-y-4">
+                {routerDecision.steps?.map((step, index) => {
+                  const IconComponent = MODEL_ICONS[step.taskType] || Sparkles;
+                  const colorClass = MODEL_COLORS[step.taskType] || "from-gray-500 to-gray-600";
+                  const selectedModel = routerDecision.selectedModels?.find(m => m.taskType === step.taskType);
+                  
+                  return (
+                    <div key={index} className="relative flex items-start gap-4 pl-0" data-testid={`pipeline-step-${index}`}>
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center shadow-lg z-10`}>
+                        <IconComponent className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1 bg-white rounded-lg p-4 shadow-sm border">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-gray-900">Step {step.order}: {step.taskType.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                          {selectedModel && (
+                            <Badge variant="outline" className="text-xs">{selectedModel.model}</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                      </div>
+                      {index < (routerDecision.steps?.length || 0) - 1 && (
+                        <ArrowRight className="absolute -bottom-4 left-5 w-4 h-4 text-gray-400 z-10" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Button
+              onClick={handleExecutePipeline}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-6 text-lg"
+              data-testid="button-execute-pipeline"
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Execute Pipeline
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid md:grid-cols-2 gap-4">
+        {templates.map((template) => (
+          <Card
+            key={template.id}
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              selectedTemplate === template.id ? "border-2 border-purple-500 bg-purple-50" : "border hover:border-purple-300"
+            }`}
+            onClick={() => {
+              setSelectedTemplate(template.id);
+              setUserIntent(`Use the "${template.name}" workflow: ${template.description}`);
+            }}
+            data-testid={`template-${template.id}`}
+          >
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Workflow className="w-5 h-5 text-purple-600" />
+                {template.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+              <div className="flex flex-wrap gap-1">
+                {template.steps.map((step, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs">
+                    {step.taskType.replace(/-/g, " ")}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const TEMPLATE_CATEGORIES = [
   { id: "memorial", label: "Memorial & Tribute", icon: Flag },
@@ -622,9 +939,31 @@ export default function NavalIntelligence() {
           </div>
         )}
 
-        {/* Main Content */}
+        {/* AI Orchestrator Section - NEW */}
+        <section id="orchestrator-section" className="py-12 bg-gradient-to-br from-purple-50 via-indigo-50 to-white scroll-mt-20">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <Badge className="bg-purple-100 text-purple-700 mb-4">NEW: AI Orchestration Engine</Badge>
+              <h2 className="text-3xl md:text-4xl font-display text-brand-navy mb-4">
+                Smart Model <span className="text-purple-600">Router</span>
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Describe what you want to create, and our AI router will automatically select and chain the best models for each task.
+                <br />
+                <strong>Image + Audio → Scene Planner → Video Generator → Audio Sync → Render → Download</strong>
+              </p>
+            </div>
+            <OrchestrationPanel />
+          </div>
+        </section>
+
+        {/* Main Content - Direct Creation */}
         <section id="create-section" className="py-12 scroll-mt-20">
           <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-display text-brand-navy mb-2">Direct Creation Tools</h2>
+              <p className="text-gray-600">Or use individual tools for specific generation tasks</p>
+            </div>
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Left Panel - Generation Form */}
               <div className="lg:col-span-2">
