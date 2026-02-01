@@ -941,9 +941,14 @@ Example: 'John Doe from Acme Corp - john@acme.com, 555-123-4567, 123 Main St, Ch
                               </Button>
                               
                               {aiConfidence && (
-                                <div className="mt-3 flex items-center justify-center gap-2 text-sm">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                  <span className="text-emerald-400">{aiConfidence}% confidence from 3-pass verification</span>
+                                <div className="mt-3 flex flex-col items-center gap-1 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                    <span className="text-emerald-400">{aiConfidence}% confidence from 3-pass verification</span>
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Powered by model router - best model auto-selected per task
+                                  </div>
                                 </div>
                               )}
                               

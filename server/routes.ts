@@ -4348,6 +4348,7 @@ export async function registerRoutes(
 
   // AI Autofill - extract contact info from pasted text
   // AI Smart Extract - Consolidated AI that extracts, formats, and triple-checks all fields in one call
+  // Uses modelRouter to select best extraction model - no hardcoded models
   app.post("/api/csu/ai-smart-extract", async (req, res) => {
     try {
       const { text } = req.body;
@@ -4355,7 +4356,13 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Text is required" });
       }
 
+      // Use model router to get best model for text extraction
+      const { modelRouter } = await import("../shared/orchestration");
+      const routerResult = modelRouter("text-extraction", { preferQuality: true });
+      const selectedModel = routerResult.model.id;
+      
       console.log(`[AI Smart Extract] Starting 3-pass extraction from ${text.length} chars`);
+      console.log(`[AI Smart Extract] Model router selected: ${selectedModel} (${routerResult.reasoning})`);
 
       const OpenAI = (await import("openai")).default;
       const openai = new OpenAI({ apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY });
@@ -4393,7 +4400,7 @@ Example: {"name": "John Doe", "email": "john@example.com", "phone": "+1 (555) 12
         console.log(`[AI Smart Extract] Pass ${pass}/3`);
         
         const response = await openai.chat.completions.create({
-          model: "gpt-4o",
+          model: selectedModel,  // Using model router - swappable without UI changes
           messages: [
             { role: "system", content: extractionPrompt },
             { role: "user", content: text }
@@ -4469,7 +4476,10 @@ Example: {"name": "John Doe", "email": "john@example.com", "phone": "+1 (555) 12
         _meta: {
           passes: 3,
           successful: allResults.length,
-          confidence: Math.round((allResults.length / 3) * 100)
+          confidence: Math.round((allResults.length / 3) * 100),
+          model: selectedModel,
+          modelName: routerResult.model.name,
+          routing: routerResult.reasoning,
         }
       });
     } catch (error) {
@@ -7223,10 +7233,32 @@ Example response: {"name": "John Doe", "email": "john@example.com", "phone": "55
   // Get model registry and available pipelines
   app.get("/api/orchestration/models", async (req, res) => {
     try {
-      const { MODEL_REGISTRY, PIPELINE_TEMPLATES } = await import("../shared/orchestration");
+      const { MODEL_REGISTRY, PIPELINE_TEMPLATES, modelRouter, getAvailableModelsForTask } = await import("../shared/orchestration");
+      
+      // Show which model would be selected for each task type
+      const taskTypes = ["text-reasoning", "text-extraction", "text-chat", "image-generation", "text-to-video", "music-generation", "text-to-speech"] as const;
+      const defaultRouting: Record<string, any> = {};
+      
+      for (const taskType of taskTypes) {
+        try {
+          const result = modelRouter(taskType as any);
+          defaultRouting[taskType] = {
+            selectedModel: result.model.id,
+            modelName: result.model.name,
+            provider: result.model.provider,
+            quality: result.model.qualityScores[taskType as any],
+            reasoning: result.reasoning,
+          };
+        } catch (e) {
+          defaultRouting[taskType] = { error: "No model available" };
+        }
+      }
+      
       res.json({
         models: MODEL_REGISTRY,
         templates: PIPELINE_TEMPLATES,
+        routing: defaultRouting,
+        routerInfo: "Model router automatically selects best model per task. Update MODEL_REGISTRY when new models appear.",
       });
     } catch (error) {
       console.error("Error fetching orchestration models:", error);
