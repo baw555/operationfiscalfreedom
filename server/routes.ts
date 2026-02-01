@@ -7771,7 +7771,7 @@ Be thorough but concise. Focus on actionable insights.`
             selectedModel: result.model.id,
             modelName: result.model.name,
             provider: result.model.provider,
-            quality: result.model.qualityScores[taskType as any],
+            quality: result.model.qualityScores[taskType as keyof typeof result.model.qualityScores],
             reasoning: result.reasoning,
           };
         } catch (e) {
@@ -9163,17 +9163,33 @@ Generated: ${new Date().toISOString()}
   // VENDOR PORTAL ENDPOINTS
   // ====================================================
 
-  // Get all cases shared with the vendor (by their email)
+  // Helper: Get vendor email from session token
+  async function getVendorEmailFromSession(req: any): Promise<string | null> {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return null;
+    }
+    const sessionToken = authHeader.substring(7);
+    const session = await storage.getVendorSessionByToken(sessionToken);
+    return session?.email || null;
+  }
+
+  // Get all cases shared with the vendor (session-based)
   app.get("/api/vendor/cases", async (req, res) => {
     try {
-      const vendorEmail = req.query.email as string;
+      // Support both session-based and legacy email param (for backward compatibility during transition)
+      let vendorEmail = await getVendorEmailFromSession(req);
       if (!vendorEmail) {
-        return res.status(400).json({ message: "Email required" });
+        // Fallback to query param if no session (will be deprecated)
+        vendorEmail = req.query.email as string;
+      }
+      if (!vendorEmail) {
+        return res.status(401).json({ message: "Authentication required" });
       }
 
       // Get all shares for this vendor
       const allShares = await storage.getAllCaseShares();
-      const vendorShares = allShares.filter(s => s.email.toLowerCase() === vendorEmail.toLowerCase());
+      const vendorShares = allShares.filter(s => s.email.toLowerCase() === vendorEmail!.toLowerCase());
 
       // Get case details for each share
       const casesWithAccess = await Promise.all(
@@ -9199,12 +9215,16 @@ Generated: ${new Date().toISOString()}
     }
   });
 
-  // Get vendor access to a specific case
+  // Get vendor access to a specific case (session-based)
   app.get("/api/vendor/cases/:id", async (req, res) => {
     try {
-      const vendorEmail = req.query.email as string;
+      // Support both session-based and legacy email param
+      let vendorEmail = await getVendorEmailFromSession(req);
       if (!vendorEmail) {
-        return res.status(400).json({ message: "Email required" });
+        vendorEmail = req.query.email as string;
+      }
+      if (!vendorEmail) {
+        return res.status(401).json({ message: "Authentication required" });
       }
 
       const caseId = parseInt(req.params.id);
@@ -9468,12 +9488,18 @@ Generated: ${new Date().toISOString()}
     }
   });
 
-  // Vendor adds a note (requires comment permission)
+  // Vendor adds a note (requires comment permission, session-based auth)
   app.post("/api/vendor/cases/:id/notes", async (req, res) => {
     try {
-      const { vendorEmail, content } = req.body;
+      const { content } = req.body;
+      
+      // Get vendor email from session (preferred) or body (legacy)
+      let vendorEmail = await getVendorEmailFromSession(req);
       if (!vendorEmail) {
-        return res.status(400).json({ message: "Vendor email required" });
+        vendorEmail = req.body.vendorEmail;
+      }
+      if (!vendorEmail) {
+        return res.status(401).json({ message: "Authentication required" });
       }
       if (!content) {
         return res.status(400).json({ message: "Content required" });
