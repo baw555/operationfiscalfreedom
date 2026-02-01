@@ -2516,8 +2516,34 @@ export async function registerRoutes(
         return res.status(400).json({ message: "NDA already signed" });
       }
 
+      // Check if custom referral code is already taken BEFORE creating NDA
+      if (customReferralCode) {
+        const codeToCheck = customReferralCode.toUpperCase().trim();
+        const existingUser = await storage.getUserByReferralCode(codeToCheck);
+        if (existingUser && existingUser.id !== req.session.userId) {
+          return res.status(400).json({ 
+            message: "This referral code is already taken. Please choose a different code." 
+          });
+        }
+      }
+
       // Get IP address
       const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+      
+      // Update user's referral code FIRST if custom one provided (before NDA creation)
+      if (customReferralCode) {
+        try {
+          await storage.updateUserReferralCode(req.session.userId!, customReferralCode.toUpperCase().trim());
+        } catch (codeError: any) {
+          // Handle race condition where code was taken between check and update
+          if (codeError?.code === '23505') {
+            return res.status(400).json({ 
+              message: "This referral code was just taken by another user. Please choose a different code." 
+            });
+          }
+          throw codeError;
+        }
+      }
       
       // Create NDA record
       const nda = await storage.createAffiliateNda({
@@ -2532,11 +2558,6 @@ export async function registerRoutes(
         signedIpAddress: ipAddress,
         agreedToTerms: "true",
       });
-      
-      // Update user's referral code if custom one provided
-      if (customReferralCode) {
-        await storage.updateUserReferralCode(req.session.userId!, customReferralCode.toUpperCase());
-      }
       
       res.json({ success: true, nda });
     } catch (error) {
