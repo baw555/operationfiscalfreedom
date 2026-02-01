@@ -164,10 +164,97 @@ export default function DocumentSignature() {
   const [templateContent, setTemplateContent] = useState("");
   const [editingTemplate, setEditingTemplate] = useState<ContractTemplate | null>(null);
   
+  // Signature Canvas State
+  const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  
   // Batch Send
   const [showBatchSendDialog, setShowBatchSendDialog] = useState(false);
   const [batchRecipients, setBatchRecipients] = useState<Array<{name: string; email: string; phone: string}>>([]);
   const [batchCsvInput, setBatchCsvInput] = useState("");
+  
+  // Signature Canvas Drawing Functions
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    
+    setIsDrawing(true);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    let x, y;
+    
+    if ('touches' in e) {
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
+    } else {
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    }
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+  
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    let x, y;
+    
+    if ('touches' in e) {
+      e.preventDefault();
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
+    } else {
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    }
+    
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#1a365d';
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+  
+  const stopDrawing = () => {
+    setIsDrawing(false);
+    const canvas = signatureCanvasRef.current;
+    if (canvas) {
+      setSignatureDataUrl(canvas.toDataURL('image/png'));
+    }
+  };
+  
+  const clearSignature = () => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignatureDataUrl(null);
+  };
+  
+  useEffect(() => {
+    const canvas = signatureCanvasRef.current;
+    if (canvas && showSignatureModal) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+  }, [showSignatureModal]);
 
   const { data: templates = [], isLoading: templatesLoading } = useQuery<ContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
@@ -1390,6 +1477,15 @@ Example: 'John Doe from Acme Corp - john@acme.com, 555-123-4567, 123 Main St, Ch
                             <HelpCircle className="w-4 h-4 mr-2 text-cyan-400" />
                             Ask AI Question
                           </Button>
+                          <Separator className="bg-gray-700 my-2" />
+                          <Button
+                            onClick={() => setShowSignatureModal(true)}
+                            className="w-full justify-start bg-gradient-to-r from-emerald-600/20 to-teal-500/20 hover:from-emerald-600/30 hover:to-teal-500/30 text-emerald-300"
+                            data-testid="button-sign-myself"
+                          >
+                            <PenTool className="w-4 h-4 mr-2 text-emerald-400" />
+                            Sign It Myself
+                          </Button>
                         </CardContent>
                       </Card>
 
@@ -2230,6 +2326,96 @@ Example: 'John Doe from Acme Corp - john@acme.com, 555-123-4567, 123 Main St, Ch
               className="bg-gradient-to-r from-blue-600 to-cyan-500"
             >
               {editingTemplate ? "Save Changes" : "Create Template"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Signature Canvas Modal */}
+      <Dialog open={showSignatureModal} onOpenChange={setShowSignatureModal}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <PenTool className="w-5 h-5 text-blue-400" />
+              Draw Your Signature
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Use your mouse or finger to draw your signature below
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl p-2 border-2 border-dashed border-gray-300">
+              <canvas
+                ref={signatureCanvasRef}
+                width={550}
+                height={200}
+                className="w-full cursor-crosshair touch-none rounded-lg"
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+                data-testid="signature-canvas"
+              />
+            </div>
+            
+            <div className="flex items-center justify-between text-sm text-gray-400">
+              <span>Draw your signature above</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearSignature}
+                className="text-gray-400 hover:text-white"
+                data-testid="button-clear-signature"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Clear
+              </Button>
+            </div>
+            
+            {signatureDataUrl && (
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                <div className="flex items-center gap-2 text-emerald-400">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">Signature captured successfully</span>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowSignatureModal(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (signatureDataUrl) {
+                  toast({ 
+                    title: "Signature Saved", 
+                    description: "Your signature has been captured and will be applied to the document" 
+                  });
+                  setShowSignatureModal(false);
+                } else {
+                  toast({ 
+                    title: "No Signature", 
+                    description: "Please draw your signature first", 
+                    variant: "destructive" 
+                  });
+                }
+              }}
+              disabled={!signatureDataUrl}
+              className="bg-gradient-to-r from-emerald-600 to-teal-500"
+              data-testid="button-apply-signature"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Apply Signature
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -7469,6 +7469,108 @@ Respond with JSON:
     }
   });
 
+  // Image Generation endpoint - real GPT-4o Image API
+  app.post("/api/ai/generate-image", async (req, res) => {
+    try {
+      const { prompt, style, aspectRatio, quality } = req.body;
+
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI();
+
+      // Determine size based on aspect ratio
+      let size: "1024x1024" | "1536x1024" | "1024x1536" = "1024x1024";
+      if (aspectRatio === "16:9") size = "1536x1024";
+      else if (aspectRatio === "9:16") size = "1024x1536";
+
+      // Enhance prompt with style
+      const enhancedPrompt = style 
+        ? `${prompt}, ${style} style, high quality, detailed`
+        : `${prompt}, professional quality, detailed`;
+
+      const response = await openai.images.generate({
+        model: "gpt-image-1",
+        prompt: enhancedPrompt,
+        n: 1,
+        size,
+        quality: quality === "hd" ? "hd" : "standard",
+      });
+
+      const imageData = response.data?.[0];
+      const imageUrl = imageData?.url || imageData?.b64_json;
+
+      if (!imageUrl) {
+        return res.status(500).json({ message: "No image generated" });
+      }
+
+      // If it's base64, we need to handle it differently
+      const isBase64 = typeof imageUrl === 'string' && !imageUrl.startsWith("http");
+
+      res.json({
+        success: true,
+        image: {
+          url: isBase64 ? `data:image/png;base64,${imageUrl}` : imageUrl,
+          prompt: enhancedPrompt,
+          style,
+          aspectRatio,
+          createdAt: new Date().toISOString(),
+        },
+      });
+    } catch (error: any) {
+      console.error("Error generating image:", error);
+      res.status(500).json({ 
+        message: "Failed to generate image",
+        error: error.message 
+      });
+    }
+  });
+
+  // Text-to-Speech endpoint
+  app.post("/api/ai/text-to-speech", async (req, res) => {
+    try {
+      const { text, voice, speed } = req.body;
+
+      if (!text) {
+        return res.status(400).json({ message: "Text is required" });
+      }
+
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI();
+
+      const response = await openai.audio.speech.create({
+        model: "gpt-4o-mini-tts",
+        voice: voice || "alloy",
+        input: text,
+        speed: speed || 1.0,
+      });
+
+      // Get the audio as an ArrayBuffer
+      const buffer = Buffer.from(await response.arrayBuffer());
+      
+      // Convert to base64
+      const base64Audio = buffer.toString('base64');
+
+      res.json({
+        success: true,
+        audio: {
+          data: `data:audio/mpeg;base64,${base64Audio}`,
+          text,
+          voice: voice || "alloy",
+          createdAt: new Date().toISOString(),
+        },
+      });
+    } catch (error: any) {
+      console.error("Error generating speech:", error);
+      res.status(500).json({ 
+        message: "Failed to generate speech",
+        error: error.message 
+      });
+    }
+  });
+
   // Fusion endpoint - combine multiple media types
   app.post("/api/orchestration/fusion", async (req, res) => {
     try {

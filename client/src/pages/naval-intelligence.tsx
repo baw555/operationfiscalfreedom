@@ -369,6 +369,369 @@ const TEMPLATE_CATEGORIES = [
   { id: "custom", label: "Custom", icon: Wand2 }
 ];
 
+const IMAGE_STYLES = [
+  { id: "photorealistic", label: "Photorealistic", description: "Ultra-realistic photography" },
+  { id: "cinematic", label: "Cinematic", description: "Movie-quality visuals" },
+  { id: "oil-painting", label: "Oil Painting", description: "Classic art style" },
+  { id: "watercolor", label: "Watercolor", description: "Soft, artistic style" },
+  { id: "digital-art", label: "Digital Art", description: "Modern digital illustration" },
+  { id: "vintage", label: "Vintage", description: "Retro, nostalgic look" },
+];
+
+const VOICE_OPTIONS = [
+  { id: "alloy", label: "Alloy", description: "Neutral, balanced" },
+  { id: "echo", label: "Echo", description: "Warm, inviting" },
+  { id: "fable", label: "Fable", description: "Expressive, storyteller" },
+  { id: "onyx", label: "Onyx", description: "Deep, authoritative" },
+  { id: "nova", label: "Nova", description: "Youthful, energetic" },
+  { id: "shimmer", label: "Shimmer", description: "Clear, professional" },
+];
+
+function ImageGenerationPanel() {
+  const { toast } = useToast();
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [selectedStyle, setSelectedStyle] = useState("photorealistic");
+  const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [quality, setQuality] = useState("standard");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<Array<{
+    url: string;
+    prompt: string;
+    style: string;
+    createdAt: string;
+  }>>([]);
+  const [generationProgress, setGenerationProgress] = useState(0);
+
+  const generateImage = async () => {
+    if (!imagePrompt.trim()) {
+      toast({ title: "Enter a description", description: "Describe the image you want to create", variant: "destructive" });
+      return;
+    }
+
+    setIsGenerating(true);
+    setGenerationProgress(0);
+    
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setGenerationProgress(prev => Math.min(prev + 10, 90));
+    }, 500);
+
+    try {
+      const res = await fetch("/api/ai/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: imagePrompt,
+          style: selectedStyle,
+          aspectRatio,
+          quality,
+        }),
+      });
+
+      clearInterval(progressInterval);
+      setGenerationProgress(100);
+
+      if (!res.ok) throw new Error("Generation failed");
+      
+      const data = await res.json();
+      
+      setGeneratedImages(prev => [data.image, ...prev]);
+      toast({ title: "Image Generated!", description: "Your AI image is ready" });
+      setImagePrompt("");
+    } catch (error) {
+      clearInterval(progressInterval);
+      toast({ title: "Generation Failed", description: "Unable to generate image. Please try again.", variant: "destructive" });
+    } finally {
+      setIsGenerating(false);
+      setTimeout(() => setGenerationProgress(0), 1000);
+    }
+  };
+
+  return (
+    <Card className="border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-rose-50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-600 to-rose-600 flex items-center justify-center shadow-lg">
+            <Image className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <span className="text-xl">AI Image Generator</span>
+            <p className="text-sm font-normal text-gray-500 mt-1">
+              Create stunning images with GPT-4o Vision
+            </p>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <Label className="text-base font-semibold mb-2 block">Describe your image</Label>
+          <Textarea
+            value={imagePrompt}
+            onChange={(e) => setImagePrompt(e.target.value)}
+            placeholder="A majestic bald eagle soaring over the American flag at sunset, photorealistic, dramatic lighting..."
+            className="min-h-[100px] text-base"
+            data-testid="input-image-prompt"
+          />
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Style</Label>
+            <Select value={selectedStyle} onValueChange={setSelectedStyle}>
+              <SelectTrigger data-testid="select-image-style">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {IMAGE_STYLES.map((style) => (
+                  <SelectItem key={style.id} value={style.id}>
+                    <div className="flex flex-col">
+                      <span>{style.label}</span>
+                      <span className="text-xs text-gray-500">{style.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Aspect Ratio</Label>
+            <Select value={aspectRatio} onValueChange={setAspectRatio}>
+              <SelectTrigger data-testid="select-image-aspect">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1:1">1:1 Square</SelectItem>
+                <SelectItem value="16:9">16:9 Landscape</SelectItem>
+                <SelectItem value="9:16">9:16 Portrait</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Quality</Label>
+            <Select value={quality} onValueChange={setQuality}>
+              <SelectTrigger data-testid="select-image-quality">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="standard">Standard</SelectItem>
+                <SelectItem value="hd">HD (Higher detail)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {isGenerating && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-pink-600 font-medium flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating your image...
+              </span>
+              <span className="text-gray-500">{generationProgress}%</span>
+            </div>
+            <Progress value={generationProgress} className="h-2" />
+          </div>
+        )}
+
+        <Button
+          onClick={generateImage}
+          disabled={isGenerating || !imagePrompt.trim()}
+          className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white py-6 text-lg"
+          data-testid="button-generate-image"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Creating Image...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-5 h-5 mr-2" />
+              Generate Image
+            </>
+          )}
+        </Button>
+
+        {/* Generated Images Gallery */}
+        {generatedImages.length > 0 && (
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="font-semibold text-gray-700">Generated Images</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {generatedImages.map((img, index) => (
+                <div key={index} className="relative group rounded-xl overflow-hidden shadow-lg">
+                  <img 
+                    src={img.url} 
+                    alt={img.prompt}
+                    className="w-full aspect-square object-cover transition-transform group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <p className="text-white text-xs line-clamp-2 mb-2">{img.prompt}</p>
+                      <div className="flex gap-2">
+                        <a href={img.url} download={`ai-image-${index}.png`} className="flex-1">
+                          <Button size="sm" variant="secondary" className="w-full">
+                            <Download className="w-3 h-3 mr-1" /> Save
+                          </Button>
+                        </a>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            navigator.clipboard.writeText(img.url);
+                            toast({ title: "Copied!", description: "Image URL copied to clipboard" });
+                          }}
+                        >
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TextToSpeechPanel() {
+  const { toast } = useToast();
+  const [text, setText] = useState("");
+  const [selectedVoice, setSelectedVoice] = useState("alloy");
+  const [speed, setSpeed] = useState("1.0");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+
+  const generateSpeech = async () => {
+    if (!text.trim()) {
+      toast({ title: "Enter text", description: "Provide the text you want converted to speech", variant: "destructive" });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/ai/text-to-speech", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          voice: selectedVoice,
+          speed: parseFloat(speed),
+        }),
+      });
+
+      if (!res.ok) throw new Error("Generation failed");
+      
+      const data = await res.json();
+      setAudioUrl(data.audio.data);
+      toast({ title: "Speech Generated!", description: "Your audio is ready to play" });
+    } catch (error) {
+      toast({ title: "Generation Failed", description: "Unable to generate speech. Please try again.", variant: "destructive" });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-emerald-600 flex items-center justify-center shadow-lg">
+            <Mic className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <span className="text-xl">Text to Speech</span>
+            <p className="text-sm font-normal text-gray-500 mt-1">
+              Convert text to natural-sounding speech
+            </p>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <Label className="text-base font-semibold mb-2 block">Enter your text</Label>
+          <Textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Enter the text you want to convert to speech. This could be a narration, message, or any content..."
+            className="min-h-[100px] text-base"
+            data-testid="input-tts-text"
+          />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Voice</Label>
+            <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+              <SelectTrigger data-testid="select-voice">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {VOICE_OPTIONS.map((voice) => (
+                  <SelectItem key={voice.id} value={voice.id}>
+                    <div className="flex flex-col">
+                      <span>{voice.label}</span>
+                      <span className="text-xs text-gray-500">{voice.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Speed</Label>
+            <Select value={speed} onValueChange={setSpeed}>
+              <SelectTrigger data-testid="select-speed">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0.5">0.5x (Slow)</SelectItem>
+                <SelectItem value="0.75">0.75x</SelectItem>
+                <SelectItem value="1.0">1x (Normal)</SelectItem>
+                <SelectItem value="1.25">1.25x</SelectItem>
+                <SelectItem value="1.5">1.5x (Fast)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {audioUrl && (
+          <div className="p-4 bg-white rounded-xl border border-green-200 shadow-sm">
+            <Label className="text-sm font-medium mb-2 block text-green-700">Generated Audio</Label>
+            <audio src={audioUrl} controls className="w-full" data-testid="audio-output" />
+            <a href={audioUrl} download="speech.mp3" className="block mt-2">
+              <Button variant="outline" size="sm" className="w-full">
+                <Download className="w-4 h-4 mr-2" /> Download Audio
+              </Button>
+            </a>
+          </div>
+        )}
+
+        <Button
+          onClick={generateSpeech}
+          disabled={isGenerating || !text.trim()}
+          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-6 text-lg"
+          data-testid="button-generate-speech"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Generating Speech...
+            </>
+          ) : (
+            <>
+              <Mic className="w-5 h-5 mr-2" />
+              Generate Speech
+            </>
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 const MUSIC_GENRES = [
   "Patriotic Orchestral",
   "Country",
@@ -1073,6 +1436,12 @@ export default function NavalIntelligence() {
               </p>
             </div>
             <OrchestrationPanel />
+            
+            {/* Quick Generation Tools */}
+            <div className="mt-12 grid lg:grid-cols-2 gap-8">
+              <ImageGenerationPanel />
+              <TextToSpeechPanel />
+            </div>
           </div>
         </section>
 
