@@ -337,7 +337,7 @@ export default function AboutNavPerks() {
                 </div>
               </div>
 
-              {/* VA & SSDI Tool Comparison */}
+              {/* VA/SSDI CSO NAVIGATOR Comparison */}
               <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
                   LOW COST
@@ -346,7 +346,7 @@ export default function AboutNavPerks() {
                   <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
                     <ClipboardList className="w-5 h-5 text-red-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">VA & SSDI Tool</h3>
+                  <h3 className="text-lg font-semibold text-white">VA/SSDI CSO NAVIGATOR</h3>
                 </div>
                 <p className="text-slate-400 text-sm mb-4">Claims Navigation</p>
                 <div className="space-y-3">
@@ -537,13 +537,13 @@ export default function AboutNavPerks() {
               </div>
             </div>
 
-            {/* VA & SSDI Navigation Tool */}
+            {/* VA/SSDI CSO NAVIGATOR */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="grid lg:grid-cols-2 gap-0">
                 <div className="order-2 lg:order-1 p-8 flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-4">
                     <ClipboardList className="w-8 h-8 text-red-600" />
-                    <h3 className="text-2xl font-semibold text-slate-800">VA & SSDI Navigation Tool</h3>
+                    <h3 className="text-2xl font-semibold text-slate-800">VA/SSDI CSO NAVIGATOR</h3>
                   </div>
                   <p className="text-slate-600 mb-6">
                     Your comprehensive claims management system. Build your case with personalized tasks, evidence tracking, and intelligent decision support.
@@ -578,7 +578,7 @@ export default function AboutNavPerks() {
                       10-Stage Intelligence
                     </div>
                   </div>
-                  <ImageSlideshow images={claimsNavigatorImages} alt="VA & SSDI Navigation Tool Dashboard" />
+                  <ImageSlideshow images={claimsNavigatorImages} alt="VA/SSDI CSO NAVIGATOR Dashboard" />
                 </div>
               </div>
             </div>
@@ -712,7 +712,7 @@ export default function AboutNavPerks() {
         </div>
       </section>
 
-      {/* Deep Dive: VA & SSDI Navigation Tool */}
+      {/* Deep Dive: VA/SSDI CSO NAVIGATOR */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
@@ -720,7 +720,7 @@ export default function AboutNavPerks() {
               <div className="order-2 lg:order-1">
                 <img 
                   src={claimsNavigatorScreenshot} 
-                  alt="VA & SSDI Navigation Tool Interface" 
+                  alt="VA/SSDI CSO NAVIGATOR Interface" 
                   className="rounded-xl shadow-2xl border border-slate-200"
                 />
               </div>
@@ -730,7 +730,7 @@ export default function AboutNavPerks() {
                   <span className="text-red-600 text-sm font-medium">Claims Intelligence</span>
                 </div>
                 <h2 className="text-3xl md:text-4xl font-semibold text-slate-800 mb-6">
-                  VA & SSDI Navigation Tool: Your Claims Command Center
+                  VA/SSDI CSO NAVIGATOR: Your Claims Command Center
                 </h2>
                 <p className="text-slate-600 text-lg mb-6 leading-relaxed">
                   Built by veterans for veterans, this comprehensive claims management system guides you through every step of your VA Disability or SSDI claim with intelligent task management and evidence analysis.
