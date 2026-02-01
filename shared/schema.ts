@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { pgTable, text, varchar, integer, timestamp, serial, boolean, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { veteranAuthUsers } from "./models/auth";
 
 // Users table (Admin and Affiliate)
 export const users = pgTable("users", {
@@ -1951,6 +1952,106 @@ export const insertPipelineArtifactSchema = createInsertSchema(pipelineArtifacts
 });
 export type InsertPipelineArtifact = z.infer<typeof insertPipelineArtifactSchema>;
 export type PipelineArtifact = typeof pipelineArtifacts.$inferSelect;
+
+// ==========================================
+// CLAIMS NAVIGATOR - VA/SSDI Claim Wizard
+// ==========================================
+
+// Track type enum for claims
+export const claimTrackEnum = pgEnum("claim_track", ["va", "ssdi"]);
+
+// Claim type enum
+export const claimTypeEnum = pgEnum("claim_type", [
+  "new",            // VA: new claim
+  "increase",       // VA: increase/worsening
+  "appeal",         // VA: appeal/review
+  "apply",          // SSDI: applying
+  "reconsideration", // SSDI: appeal reconsideration
+  "alj",            // SSDI: ALJ hearing prep
+]);
+
+// Evidence level enum
+export const evidenceLevelEnum = pgEnum("evidence_level", ["none", "some", "a_lot"]);
+
+// Task status enum
+export const claimTaskStatusEnum = pgEnum("claim_task_status", ["todo", "doing", "done"]);
+
+// Claim Sessions - Wizard sessions tracking user progress
+export const claimSessions = pgTable("claim_sessions", {
+  id: serial("id").primaryKey(),
+  veteranUserId: varchar("veteran_user_id").references(() => veteranAuthUsers.id),
+  track: claimTrackEnum("track").notNull(),
+  claimType: claimTypeEnum("claim_type").notNull(),
+  evidenceLevel: evidenceLevelEnum("evidence_level").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertClaimSessionSchema = createInsertSchema(claimSessions).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertClaimSession = z.infer<typeof insertClaimSessionSchema>;
+export type ClaimSession = typeof claimSessions.$inferSelect;
+
+// Claim Answers - Store wizard question responses
+export const claimAnswers = pgTable("claim_answers", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").references(() => claimSessions.id).notNull(),
+  questionKey: text("question_key").notNull(),
+  answerValue: text("answer_value").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertClaimAnswerSchema = createInsertSchema(claimAnswers).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertClaimAnswer = z.infer<typeof insertClaimAnswerSchema>;
+export type ClaimAnswer = typeof claimAnswers.$inferSelect;
+
+// Claim Tasks - Personalized checklist items
+export const claimTasks = pgTable("claim_tasks", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").references(() => claimSessions.id).notNull(),
+  veteranUserId: varchar("veteran_user_id").references(() => veteranAuthUsers.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: claimTaskStatusEnum("status").notNull().default("todo"),
+  dueDate: timestamp("due_date"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertClaimTaskSchema = createInsertSchema(claimTasks).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertClaimTask = z.infer<typeof insertClaimTaskSchema>;
+export type ClaimTask = typeof claimTasks.$inferSelect;
+
+// Claim Files - Document uploads for claims
+export const claimFiles = pgTable("claim_files", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").references(() => claimSessions.id).notNull(),
+  veteranUserId: varchar("veteran_user_id").references(() => veteranAuthUsers.id),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: integer("size_bytes"),
+  storageUrl: text("storage_url").notNull(),
+  category: text("category"), // medical_records, service_records, statements, etc.
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertClaimFileSchema = createInsertSchema(claimFiles).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertClaimFile = z.infer<typeof insertClaimFileSchema>;
+export type ClaimFile = typeof claimFiles.$inferSelect;
 
 // Replit Auth tables (for veteran users)
 export * from "./models/auth";
