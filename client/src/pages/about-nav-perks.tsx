@@ -27,8 +27,11 @@ export default function AboutNavPerks() {
               About Nav Perks
             </h1>
             <div className="w-20 h-0.5 bg-amber-500/60 mx-auto mb-6" />
-            <p className="text-slate-400 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-8">
+            <p className="text-slate-400 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-4">
               Enterprise-grade AI tools built exclusively for veterans. Three powerful platforms, completely free.
+            </p>
+            <p className="text-slate-300 text-base leading-relaxed max-w-3xl mx-auto mb-8 bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+              We are constantly adding more software to our stack that is either no strings attached free (like RANGER), no cost for active members or low / at cost. All of our software is for you, not for us! <span className="text-amber-400 font-semibold">We will never sell your information and we do not store your search history!</span>
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/operator-ai">
