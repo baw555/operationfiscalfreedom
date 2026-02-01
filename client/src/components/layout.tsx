@@ -107,6 +107,7 @@ const freeVetSoftwareSubItems = [
   { name: "Operator AI", href: "/operator-ai" },
   { name: "Video & Music Gen", href: "/naval-intelligence" },
   { name: "RANGER: Free Document Signature", href: "/document-signature" },
+  { name: "Claims Navigator", href: "/claims-navigator" },
 ];
 
 
@@ -277,7 +278,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="relative" onMouseEnter={() => setFreeVetSoftwareOpen(true)} onMouseLeave={() => setFreeVetSoftwareOpen(false)}>
               <button className={cn(
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
-                  location === "/operator-ai" || location === "/naval-intelligence" || location === "/document-signature" ? "text-blue-600 border-blue-500" : "text-brand-navy"
+                  location === "/operator-ai" || location === "/naval-intelligence" || location === "/document-signature" || location === "/claims-navigator" ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )} data-testid="nav-free-vet-software">
                   <FlashingNavPerks /> <ChevronDown className={cn("w-4 h-4 transition-transform", freeVetSoftwareOpen && "rotate-180")} />
               </button>

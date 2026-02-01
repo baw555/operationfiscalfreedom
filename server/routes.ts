@@ -8132,5 +8132,278 @@ Create a detailed scene plan with timing. Return JSON:
     }
   });
 
+  // ==========================================
+  // CLAIMS NAVIGATOR API ENDPOINTS
+  // ==========================================
+
+  // Get all cases for the logged-in veteran
+  app.get("/api/claims/cases", async (req, res) => {
+    try {
+      const veteranUser = (req as any).veteranUser;
+      if (!veteranUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const cases = await storage.getClaimCasesByUserId(veteranUser.id);
+      res.json(cases);
+    } catch (error) {
+      console.error("Error fetching cases:", error);
+      res.status(500).json({ message: "Failed to fetch cases" });
+    }
+  });
+
+  // Get a specific case
+  app.get("/api/claims/cases/:id", async (req, res) => {
+    try {
+      const veteranUser = (req as any).veteranUser;
+      if (!veteranUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase) {
+        return res.status(404).json({ message: "Case not found" });
+      }
+
+      if (claimCase.veteranUserId !== veteranUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(claimCase);
+    } catch (error) {
+      console.error("Error fetching case:", error);
+      res.status(500).json({ message: "Failed to fetch case" });
+    }
+  });
+
+  // Create a new case with tasks
+  app.post("/api/claims/cases", async (req, res) => {
+    try {
+      const veteranUser = (req as any).veteranUser;
+      if (!veteranUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { title, caseType, claimType, tasks } = req.body;
+
+      if (!title || !caseType) {
+        return res.status(400).json({ message: "Title and case type are required" });
+      }
+
+      const newCase = await storage.createClaimCase({
+        veteranUserId: veteranUser.id,
+        title,
+        caseType,
+        claimType,
+        status: "active",
+      });
+
+      // Create tasks for the case
+      if (tasks && Array.isArray(tasks)) {
+        for (const task of tasks) {
+          await storage.createClaimTask({
+            caseId: newCase.id,
+            veteranUserId: veteranUser.id,
+            title: task.title,
+            description: task.description,
+            status: task.status || "todo",
+            dueDate: task.dueDate,
+            sortOrder: task.sortOrder || 0,
+          });
+        }
+      }
+
+      res.status(201).json(newCase);
+    } catch (error) {
+      console.error("Error creating case:", error);
+      res.status(500).json({ message: "Failed to create case" });
+    }
+  });
+
+  // Get tasks for a case
+  app.get("/api/claims/cases/:id/tasks", async (req, res) => {
+    try {
+      const veteranUser = (req as any).veteranUser;
+      if (!veteranUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const tasks = await storage.getClaimTasksByCaseId(caseId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
+  // Update a task status
+  app.patch("/api/claims/tasks/:id", async (req, res) => {
+    try {
+      const veteranUser = (req as any).veteranUser;
+      if (!veteranUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const taskId = parseInt(req.params.id);
+      if (isNaN(taskId)) {
+        return res.status(400).json({ message: "Invalid task ID" });
+      }
+
+      const task = await storage.getClaimTaskById(taskId);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      if (task.veteranUserId !== veteranUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { status, title, description, dueDate } = req.body;
+      const updates: any = {};
+      
+      if (status) updates.status = status;
+      if (title) updates.title = title;
+      if (description !== undefined) updates.description = description;
+      if (dueDate !== undefined) updates.dueDate = dueDate;
+      if (status === "done") updates.completedAt = new Date();
+
+      const updatedTask = await storage.updateClaimTask(taskId, updates);
+      res.json(updatedTask);
+    } catch (error) {
+      console.error("Error updating task:", error);
+      res.status(500).json({ message: "Failed to update task" });
+    }
+  });
+
+  // Get notes for a case
+  app.get("/api/claims/cases/:id/notes", async (req, res) => {
+    try {
+      const veteranUser = (req as any).veteranUser;
+      if (!veteranUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const notes = await storage.getCaseNotesByCaseId(caseId);
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+      res.status(500).json({ message: "Failed to fetch notes" });
+    }
+  });
+
+  // Add a note to a case
+  app.post("/api/claims/cases/:id/notes", async (req, res) => {
+    try {
+      const veteranUser = (req as any).veteranUser;
+      if (!veteranUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { content } = req.body;
+      if (!content) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      const note = await storage.createCaseNote({
+        caseId,
+        authorEmail: veteranUser.email || "veteran",
+        authorType: "veteran",
+        content,
+      });
+
+      res.status(201).json(note);
+    } catch (error) {
+      console.error("Error creating note:", error);
+      res.status(500).json({ message: "Failed to create note" });
+    }
+  });
+
+  // Get deadlines for a case
+  app.get("/api/claims/cases/:id/deadlines", async (req, res) => {
+    try {
+      const veteranUser = (req as any).veteranUser;
+      if (!veteranUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const deadlines = await storage.getCaseDeadlinesByCaseId(caseId);
+      res.json(deadlines);
+    } catch (error) {
+      console.error("Error fetching deadlines:", error);
+      res.status(500).json({ message: "Failed to fetch deadlines" });
+    }
+  });
+
+  // Get files for a case
+  app.get("/api/claims/cases/:id/files", async (req, res) => {
+    try {
+      const veteranUser = (req as any).veteranUser;
+      if (!veteranUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== veteranUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const files = await storage.getClaimFilesByCaseId(caseId);
+      res.json(files);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+      res.status(500).json({ message: "Failed to fetch files" });
+    }
+  });
+
   return httpServer;
 }

@@ -1,0 +1,160 @@
+1. Product model (locked in)
+Core principle
+
+The veteran owns the case
+
+Nothing is shared unless they explicitly allow it
+
+Vendors do not take control — they view/comment/upload only what’s shared
+
+Think of it like:
+
+Google Docs sharing, not handing over your account.
+
+Roles (simple, powerful)
+
+You only need 3 roles, nothing more:
+
+Veteran (default)
+
+Creates and owns the case
+
+Uploads documents
+
+Tags evidence
+
+Generates drafts
+
+Manages deadlines
+
+Chooses appeal lanes
+
+Controls sharing
+
+Vendor (external)
+
+Can be granted:
+
+View-only
+
+Comment
+
+Upload evidence
+
+No ability to delete core data
+
+No access unless invited
+
+System / Admin (you)
+
+Platform oversight
+
+No editing veteran content by default
+
+Audit / abuse handling only
+
+This keeps you clean.
+
+2. Data model changes (Prisma)
+
+We’ll extend what you already have.
+
+New concepts
+
+Case (instead of tying everything to a session)
+
+Share (explicit permissions)
+
+Notes (timeline comments)
+
+Deadlines (first-class object)
+
+Updated Prisma schema (additions)
+model Case {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  type        String   // VA | SSDI
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  tasks       Task[]
+  files       File[]
+  notes       Note[]
+  deadlines   Deadline[]
+  shares      CaseShare[]
+}
+
+model CaseShare {
+  id        String   @id @default(uuid())
+  caseId    String
+  email     String
+  role      String   // view | comment | upload
+  createdAt DateTime @default(now())
+
+  case      Case     @relation(fields: [caseId], references: [id])
+
+  @@unique([caseId, email])
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  caseId    String
+  author    String   // user email or "vendor"
+  content   String
+  createdAt DateTime @default(now())
+
+  case      Case     @relation(fields: [caseId], references: [id])
+}
+
+model Deadline {
+  id          String   @id @default(uuid())
+  caseId      String
+  title       String
+  dueDate     DateTime
+  status      String   @default("open") // open | at_risk | late | done
+  createdAt   DateTime @default(now())
+
+  case        Case     @relation(fields: [caseId], references: [id])
+}
+
+
+Run:
+
+npx prisma migrate dev --name case_sharing
+
+3. Permission logic (this is the heart)
+Rules (non-negotiable)
+
+Veteran can always do everything
+
+Vendor permissions are scoped per case
+
+Vendor access is read from CaseShare only
+
+No global vendor accounts
+
+Permission check helper
+
+Create src/lib/permissions.ts:
+
+export function canViewCase({ userEmail, ownerEmail, share }: {
+  userEmail: string;
+  ownerEmail: string;
+  share?: { role: string };
+}) {
+  if (userEmail === ownerEmail) return true;
+  if (!share) return false;
+  return ["view", "comment", "upload"].includes(share.role);
+}
+
+export function canUpload(share?: { role: string }) {
+  return share?.role === "upload";
+}
+
+export function canComment(share?: { role: string }) {
+  return ["comment", "upload"].includes(share?.role || "");
+}
+
+
+This keeps your backend clean and auditable.

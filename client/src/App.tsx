@@ -185,6 +185,9 @@ const OperatorAI = lazy(() => import("@/pages/operator-ai"));
 // RANGER: Document Signature - Enterprise E-Signature Platform
 const DocumentSignature = lazy(() => import("@/pages/document-signature"));
 
+// Claims Navigator - VA/SSDI Claims Wizard
+const ClaimsNavigator = lazy(() => import("@/pages/claims-navigator"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -365,6 +368,7 @@ function Router() {
         <Route path="/naval-intelligence" component={NavalIntelligence} />
         <Route path="/operator-ai" component={OperatorAI} />
         <Route path="/document-signature" component={DocumentSignature} />
+        <Route path="/claims-navigator" component={ClaimsNavigator} />
         
         <Route component={NotFound} />
       </Switch>

@@ -60,7 +60,13 @@ import {
   aiMessages, type AiMessage, type InsertAiMessage,
   aiFiles, type AiFile, type InsertAiFile,
   aiMemory, type AiMemory, type InsertAiMemory,
-  aiJobs, type AiJob, type InsertAiJob
+  aiJobs, type AiJob, type InsertAiJob,
+  claimCases, type ClaimCase, type InsertClaimCase,
+  claimTasks, type ClaimTask, type InsertClaimTask,
+  claimFiles, type ClaimFile, type InsertClaimFile,
+  caseNotes, type CaseNote, type InsertCaseNote,
+  caseDeadlines, type CaseDeadline, type InsertCaseDeadline,
+  caseShares, type CaseShare, type InsertCaseShare
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -432,6 +438,31 @@ export interface IStorage {
   getQueuedAiJobs(): Promise<AiJob[]>;
   updateAiJobStatus(id: number, status: "QUEUED" | "RUNNING" | "DONE" | "FAILED", output?: string, errorMessage?: string): Promise<AiJob | undefined>;
   updateAiJobProgress(id: number, progress: number): Promise<void>;
+
+  // Claims Navigator - Cases
+  getClaimCasesByUserId(userId: string): Promise<ClaimCase[]>;
+  getClaimCaseById(id: number): Promise<ClaimCase | undefined>;
+  createClaimCase(data: InsertClaimCase): Promise<ClaimCase>;
+  updateClaimCase(id: number, updates: Partial<ClaimCase>): Promise<ClaimCase | undefined>;
+
+  // Claims Navigator - Tasks
+  getClaimTasksByCaseId(caseId: number): Promise<ClaimTask[]>;
+  getClaimTaskById(id: number): Promise<ClaimTask | undefined>;
+  createClaimTask(data: InsertClaimTask): Promise<ClaimTask>;
+  updateClaimTask(id: number, updates: Partial<ClaimTask>): Promise<ClaimTask | undefined>;
+
+  // Claims Navigator - Notes
+  getCaseNotesByCaseId(caseId: number): Promise<CaseNote[]>;
+  createCaseNote(data: InsertCaseNote): Promise<CaseNote>;
+
+  // Claims Navigator - Deadlines
+  getCaseDeadlinesByCaseId(caseId: number): Promise<CaseDeadline[]>;
+  createCaseDeadline(data: InsertCaseDeadline): Promise<CaseDeadline>;
+  updateCaseDeadline(id: number, updates: Partial<CaseDeadline>): Promise<CaseDeadline | undefined>;
+
+  // Claims Navigator - Files
+  getClaimFilesByCaseId(caseId: number): Promise<ClaimFile[]>;
+  createClaimFile(data: InsertClaimFile): Promise<ClaimFile>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2346,6 +2377,100 @@ export class DatabaseStorage implements IStorage {
         eq(pipelineArtifacts.isFinal, true)
       ));
     return artifact || undefined;
+  }
+
+  // Claims Navigator - Cases
+  async getClaimCasesByUserId(userId: string): Promise<ClaimCase[]> {
+    return db.select().from(claimCases)
+      .where(eq(claimCases.veteranUserId, userId))
+      .orderBy(desc(claimCases.createdAt));
+  }
+
+  async getClaimCaseById(id: number): Promise<ClaimCase | undefined> {
+    const [result] = await db.select().from(claimCases).where(eq(claimCases.id, id));
+    return result || undefined;
+  }
+
+  async createClaimCase(data: InsertClaimCase): Promise<ClaimCase> {
+    const [created] = await db.insert(claimCases).values(data).returning();
+    return created;
+  }
+
+  async updateClaimCase(id: number, updates: Partial<ClaimCase>): Promise<ClaimCase | undefined> {
+    const [updated] = await db.update(claimCases)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(claimCases.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Claims Navigator - Tasks
+  async getClaimTasksByCaseId(caseId: number): Promise<ClaimTask[]> {
+    return db.select().from(claimTasks)
+      .where(eq(claimTasks.caseId, caseId))
+      .orderBy(claimTasks.sortOrder);
+  }
+
+  async getClaimTaskById(id: number): Promise<ClaimTask | undefined> {
+    const [result] = await db.select().from(claimTasks).where(eq(claimTasks.id, id));
+    return result || undefined;
+  }
+
+  async createClaimTask(data: InsertClaimTask): Promise<ClaimTask> {
+    const [created] = await db.insert(claimTasks).values(data).returning();
+    return created;
+  }
+
+  async updateClaimTask(id: number, updates: Partial<ClaimTask>): Promise<ClaimTask | undefined> {
+    const [updated] = await db.update(claimTasks)
+      .set(updates)
+      .where(eq(claimTasks.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Claims Navigator - Notes
+  async getCaseNotesByCaseId(caseId: number): Promise<CaseNote[]> {
+    return db.select().from(caseNotes)
+      .where(eq(caseNotes.caseId, caseId))
+      .orderBy(desc(caseNotes.createdAt));
+  }
+
+  async createCaseNote(data: InsertCaseNote): Promise<CaseNote> {
+    const [created] = await db.insert(caseNotes).values(data).returning();
+    return created;
+  }
+
+  // Claims Navigator - Deadlines
+  async getCaseDeadlinesByCaseId(caseId: number): Promise<CaseDeadline[]> {
+    return db.select().from(caseDeadlines)
+      .where(eq(caseDeadlines.caseId, caseId))
+      .orderBy(caseDeadlines.dueDate);
+  }
+
+  async createCaseDeadline(data: InsertCaseDeadline): Promise<CaseDeadline> {
+    const [created] = await db.insert(caseDeadlines).values(data).returning();
+    return created;
+  }
+
+  async updateCaseDeadline(id: number, updates: Partial<CaseDeadline>): Promise<CaseDeadline | undefined> {
+    const [updated] = await db.update(caseDeadlines)
+      .set(updates)
+      .where(eq(caseDeadlines.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Claims Navigator - Files
+  async getClaimFilesByCaseId(caseId: number): Promise<ClaimFile[]> {
+    return db.select().from(claimFiles)
+      .where(eq(claimFiles.caseId, caseId))
+      .orderBy(desc(claimFiles.createdAt));
+  }
+
+  async createClaimFile(data: InsertClaimFile): Promise<ClaimFile> {
+    const [created] = await db.insert(claimFiles).values(data).returning();
+    return created;
   }
 }
 

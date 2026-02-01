@@ -1,0 +1,110 @@
+4. Real auth (magic link, minimal friction)
+
+You do not want passwords here.
+
+Use email magic links
+
+Lower friction for veterans
+
+Easier support
+
+Works well with sharing
+
+Use NextAuth with email provider.
+
+Install if not already:
+
+npm i next-auth @auth/prisma-adapter nodemailer
+
+
+I’ll keep this high-level here, but next drop I can give you the exact config.
+
+5. Document Center (foundation)
+
+This is where the product starts to feel serious.
+
+File upload endpoint (multer)
+
+Create src/app/api/files/upload/route.ts:
+
+import { NextResponse } from "next/server";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { prisma } from "@/lib/prisma";
+
+const uploadDir = process.env.UPLOAD_DIR || "./uploads";
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+const storage = multer.diskStorage({
+  destination: uploadDir,
+  filename: (_, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+const upload = multer({ storage });
+
+export const POST = upload.single("file")(async (req: any) => {
+  const { caseId, userId } = req.body;
+
+  const file = await prisma.file.create({
+    data: {
+      userId,
+      caseId,
+      filename: req.file.originalname,
+      mimeType: req.file.mimetype,
+      storagePath: req.file.path,
+    },
+  });
+
+  return NextResponse.json({ ok: true, file });
+});
+
+
+This is MVP-safe and works on Replit.
+
+6. Evidence tagging (simple, extensible)
+
+Add tags as structured metadata, not strings.
+
+Extend File later with:
+
+evidenceType String? // medical | lay | nexus | exam
+condition    String?
+dateRange    String?
+
+
+This lets you build:
+
+Evidence index
+
+“Missing evidence” warnings
+
+Lane eligibility logic later
+
+7. Timeline view (why users stick)
+
+The timeline is the product.
+
+Everything flows into it:
+
+Tasks
+
+Files
+
+Notes
+
+Deadlines
+
+Vendor comments
+
+Conceptually:
+
+[Jan 12] Uploaded MRI – Back condition
+[Jan 14] Task completed: List symptoms
+[Jan 18] Deadline at risk: Appeal window
+[Jan 20] Vendor note added
+
+
+This is what removes anxiety for veterans.

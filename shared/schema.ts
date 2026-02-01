@@ -2013,7 +2013,8 @@ export type ClaimAnswer = typeof claimAnswers.$inferSelect;
 // Claim Tasks - Personalized checklist items
 export const claimTasks = pgTable("claim_tasks", {
   id: serial("id").primaryKey(),
-  sessionId: integer("session_id").references(() => claimSessions.id).notNull(),
+  sessionId: integer("session_id").references(() => claimSessions.id),
+  caseId: integer("case_id").references(() => claimCases.id),
   veteranUserId: varchar("veteran_user_id").references(() => veteranAuthUsers.id),
   title: text("title").notNull(),
   description: text("description"),
@@ -2034,7 +2035,8 @@ export type ClaimTask = typeof claimTasks.$inferSelect;
 // Claim Files - Document uploads for claims
 export const claimFiles = pgTable("claim_files", {
   id: serial("id").primaryKey(),
-  sessionId: integer("session_id").references(() => claimSessions.id).notNull(),
+  sessionId: integer("session_id").references(() => claimSessions.id),
+  caseId: integer("case_id").references(() => claimCases.id),
   veteranUserId: varchar("veteran_user_id").references(() => veteranAuthUsers.id),
   filename: text("filename").notNull(),
   originalName: text("original_name").notNull(),
@@ -2052,6 +2054,87 @@ export const insertClaimFileSchema = createInsertSchema(claimFiles).omit({
 });
 export type InsertClaimFile = z.infer<typeof insertClaimFileSchema>;
 export type ClaimFile = typeof claimFiles.$inferSelect;
+
+// ==========================================
+// CLAIM CASES - Veteran-owned case management
+// ==========================================
+
+// Case share role enum
+export const caseShareRoleEnum = pgEnum("case_share_role", ["view", "comment", "upload"]);
+
+// Deadline status enum
+export const deadlineStatusEnum = pgEnum("deadline_status", ["open", "at_risk", "late", "done"]);
+
+// Claim Cases - Veteran-owned cases (the veteran owns the case)
+export const claimCases = pgTable("claim_cases", {
+  id: serial("id").primaryKey(),
+  veteranUserId: varchar("veteran_user_id").references(() => veteranAuthUsers.id).notNull(),
+  title: text("title").notNull(),
+  caseType: claimTrackEnum("case_type").notNull(), // VA or SSDI
+  claimType: claimTypeEnum("claim_type"),
+  status: text("status").notNull().default("active"), // active, submitted, closed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertClaimCaseSchema = createInsertSchema(claimCases).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertClaimCase = z.infer<typeof insertClaimCaseSchema>;
+export type ClaimCase = typeof claimCases.$inferSelect;
+
+// Case Shares - Vendor access permissions (explicit sharing)
+export const caseShares = pgTable("case_shares", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").references(() => claimCases.id).notNull(),
+  email: text("email").notNull(),
+  role: caseShareRoleEnum("role").notNull().default("view"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCaseShareSchema = createInsertSchema(caseShares).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertCaseShare = z.infer<typeof insertCaseShareSchema>;
+export type CaseShare = typeof caseShares.$inferSelect;
+
+// Case Notes - Timeline comments
+export const caseNotes = pgTable("case_notes", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").references(() => claimCases.id).notNull(),
+  authorEmail: text("author_email").notNull(),
+  authorType: text("author_type").notNull().default("veteran"), // veteran, vendor, system
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCaseNoteSchema = createInsertSchema(caseNotes).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertCaseNote = z.infer<typeof insertCaseNoteSchema>;
+export type CaseNote = typeof caseNotes.$inferSelect;
+
+// Case Deadlines - First-class deadline tracking
+export const caseDeadlines = pgTable("case_deadlines", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").references(() => claimCases.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  dueDate: timestamp("due_date").notNull(),
+  status: deadlineStatusEnum("status").notNull().default("open"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCaseDeadlineSchema = createInsertSchema(caseDeadlines).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertCaseDeadline = z.infer<typeof insertCaseDeadlineSchema>;
+export type CaseDeadline = typeof caseDeadlines.$inferSelect;
 
 // Replit Auth tables (for veteran users)
 export * from "./models/auth";
