@@ -82,7 +82,6 @@ const businessSubItems = [
   { name: "Veteran Logistics", href: "/shipping" },
   { name: "Cost Savings / Services", href: "/job-placement" },
   { name: "Tax Solutions", href: "/veteran-led-tax" },
-  { name: "Innovation Tax Law", href: "https://www.innovationtaxlaw.com", external: true },
 ];
 
 const aboutSubItems = [
@@ -259,28 +258,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               {businessOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
                   {businessSubItems.map((item) => (
-                    item.external ? (
-                      <a 
-                        key={item.href} 
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer text-white"
-                      >
-                        {item.name} ↗
-                      </a>
-                    ) : (
-                      <Link 
-                        key={item.href} 
-                        href={item.href} 
-                        className={cn(
-                          "block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer",
-                          location === item.href ? "text-blue-300 bg-blue-800" : "text-white"
-                        )}
-                      >
-                        {item.name}
-                      </Link>
-                    )
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className={cn(
+                        "block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer",
+                        location === item.href ? "text-blue-300 bg-blue-800" : "text-white"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
                   ))}
                 </div>
               )}
@@ -450,27 +437,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
               {mobileBusinessOpen && (
                 <div className="pl-4 pb-2 bg-gray-50 rounded">
                   {businessSubItems.map((item) => (
-                    item.external ? (
-                      <a 
-                        key={item.href} 
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-brand-navy font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-brand-red active:bg-brand-red/10 border-b border-gray-200 last:border-0"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {item.name} ↗
-                      </a>
-                    ) : (
-                      <Link 
-                        key={item.href} 
-                        href={item.href} 
-                        className="text-brand-navy font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-brand-red active:bg-brand-red/10 border-b border-gray-200 last:border-0" 
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
-                    )
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className="text-brand-navy font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-brand-red active:bg-brand-red/10 border-b border-gray-200 last:border-0" 
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
                   ))}
                 </div>
               )}

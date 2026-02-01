@@ -7,7 +7,7 @@ export function CostSavingsWidget() {
   const [isMinimized, setIsMinimized] = useState(false);
 
   return (
-    <div className="fixed top-24 left-0 z-50 flex items-start">
+    <div className="fixed top-[40%] left-0 z-50 flex items-start">
       <div
         className={`bg-slate-900 border border-green-500/30 rounded-r-xl shadow-2xl transition-all duration-300 overflow-hidden ${
           isMinimized ? "w-0 opacity-0" : "w-72 sm:w-80 opacity-100"

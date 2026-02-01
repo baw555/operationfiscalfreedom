@@ -1,5 +1,6 @@
 import { Layout } from "@/components/layout";
 import { Link } from "wouter";
+import innovationTaxLawPreview from "@/assets/images/innovation-tax-law-preview.png";
 
 export default function VLTHome() {
   return (
@@ -11,6 +12,30 @@ export default function VLTHome() {
         <p className="text-gold-500 font-semibold mt-2">
           Under our Commanding Officer, a Highly Decorated Air Force Veteran
         </p>
+
+        {/* Innovation Tax Law Partnership Banner */}
+        <div className="mt-8 mb-8">
+          <a 
+            href="https://www.innovationtaxlaw.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block group"
+          >
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-xl overflow-hidden shadow-2xl border border-brand-gold/30 hover:border-brand-gold/60 transition-all">
+              <img 
+                src={innovationTaxLawPreview} 
+                alt="Innovation Tax Law, LLP" 
+                className="w-full h-auto object-cover group-hover:opacity-90 transition-opacity"
+              />
+              <div className="p-4 text-center bg-gradient-to-r from-brand-navy to-slate-900">
+                <p className="text-brand-gold font-display text-lg tracking-wider">
+                  Powered by <span className="font-bold">Innovation Tax Law, LLP</span>
+                </p>
+                <p className="text-white/70 text-sm mt-1">Click to visit →</p>
+              </div>
+            </div>
+          </a>
+        </div>
 
         <p className="mt-6 max-w-3xl text-gray-700">
           Veteran Led Tax Solutions is a Financial Operations & Intake Platform
