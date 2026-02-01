@@ -218,16 +218,16 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
             <p className="mt-4 text-sm text-gray-600">{generation.prompt}</p>
             <div className="flex gap-2 mt-4">
               {hasVideo && (
-                <a href={generation.generatedVideoUrl} download className="flex-1">
-                  <Button className="w-full bg-brand-navy hover:bg-brand-navy/90">
-                    <Download className="w-4 h-4 mr-2" /> Download Video
+                <a href={generation.generatedVideoUrl} download className="flex-1" data-testid={`download-video-${generation.id}`}>
+                  <Button className="w-full bg-brand-navy hover:bg-brand-navy/90" data-testid={`button-download-video-${generation.id}`}>
+                    <Download className="w-4 h-4 mr-2" aria-hidden="true" /> Download Video
                   </Button>
                 </a>
               )}
               {hasMusic && (
-                <a href={generation.generatedMusicUrl} download className="flex-1">
-                  <Button className="w-full bg-brand-navy hover:bg-brand-navy/90">
-                    <Download className="w-4 h-4 mr-2" /> Download Music
+                <a href={generation.generatedMusicUrl} download className="flex-1" data-testid={`download-music-${generation.id}`}>
+                  <Button className="w-full bg-brand-navy hover:bg-brand-navy/90" data-testid={`button-download-music-${generation.id}`}>
+                    <Download className="w-4 h-4 mr-2" aria-hidden="true" /> Download Music
                   </Button>
                 </a>
               )}
@@ -380,6 +380,8 @@ export default function NavalIntelligence() {
   const [lyrics, setLyrics] = useState("");
   const [isInstrumental, setIsInstrumental] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<AiTemplate | null>(null);
+  const [galleryFilter, setGalleryFilter] = useState<"all" | "video" | "music">("all");
+  const [previousPrompt, setPreviousPrompt] = useState<string | null>(null);
 
   const { data: generations = [], isLoading: loadingGenerations } = useQuery<AiGeneration[]>({
     queryKey: ["/api/ai/gallery"],
@@ -523,6 +525,8 @@ export default function NavalIntelligence() {
                     muted 
                     playsInline
                     className="w-full aspect-video object-cover"
+                    aria-label="Featured AI-generated flag tribute video"
+                    data-testid="video-hero-showcase"
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                     <p className="text-white font-medium">Featured Creation</p>
@@ -530,24 +534,24 @@ export default function NavalIntelligence() {
                   </div>
                 </div>
                 {/* Floating stats cards */}
-                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl p-4 z-20">
+                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl p-4 z-20" data-testid="stat-videos-created">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-brand-navy">{totalGenerations}</p>
+                      <p className="text-2xl font-bold text-brand-navy" aria-label={`${totalGenerations} videos created`}>{totalGenerations}</p>
                       <p className="text-xs text-gray-500">Videos Created</p>
                     </div>
                   </div>
                 </div>
-                <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl p-4 z-20">
+                <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl p-4 z-20" data-testid="stat-total-runtime">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Video className="w-5 h-5 text-blue-600" />
+                      <Video className="w-5 h-5 text-blue-600" aria-hidden="true" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-brand-navy">{totalDuration}s</p>
+                      <p className="text-2xl font-bold text-brand-navy" aria-label={`${totalDuration} seconds total runtime`}>{totalDuration}s</p>
                       <p className="text-xs text-gray-500">Total Runtime</p>
                     </div>
                   </div>
@@ -653,42 +657,65 @@ export default function NavalIntelligence() {
                             <Label htmlFor="prompt" className="text-base font-semibold">
                               {activeTab.includes("video") ? "Describe your video" : "Describe your music"}
                             </Label>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                if (!prompt.trim()) {
+                            <div className="flex gap-2">
+                              {previousPrompt && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setPrompt(previousPrompt);
+                                    setPreviousPrompt(null);
+                                    toast({
+                                      title: "Prompt Restored",
+                                      description: "Reverted to your original prompt.",
+                                    });
+                                  }}
+                                  className="text-gray-500 hover:text-gray-700"
+                                  data-testid="button-undo-enhance"
+                                >
+                                  <RefreshCw className="w-4 h-4 mr-1" />
+                                  Undo
+                                </Button>
+                              )}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (!prompt.trim()) {
+                                    toast({
+                                      title: "Enter a prompt first",
+                                      description: "Write a basic description, then click enhance to improve it.",
+                                    });
+                                    return;
+                                  }
+                                  const enhancements = activeTab.includes("video") ? [
+                                    "cinematic lighting, professional quality, 4K resolution, slow motion",
+                                    "dramatic composition, emotional atmosphere, golden hour lighting",
+                                    "patriotic theme, honoring service, smooth camera movement",
+                                    "detailed textures, vibrant colors, studio quality footage"
+                                  ] : [
+                                    "emotional crescendo, rich orchestration, professional mixing",
+                                    "patriotic brass section, stirring strings, powerful drums",
+                                    "uplifting melody, harmonious arrangement, studio quality",
+                                    "inspiring anthem, full orchestra, dramatic dynamics"
+                                  ];
+                                  const randomEnhancement = enhancements[Math.floor(Math.random() * enhancements.length)];
+                                  setPreviousPrompt(prompt);
+                                  setPrompt(prev => `${prev.trim()}, ${randomEnhancement}`);
                                   toast({
-                                    title: "Enter a prompt first",
-                                    description: "Write a basic description, then click enhance to improve it.",
+                                    title: "Prompt Enhanced",
+                                    description: "Added professional quality suggestions. Click Undo to revert.",
                                   });
-                                  return;
-                                }
-                                const enhancements = activeTab.includes("video") ? [
-                                  "cinematic lighting, professional quality, 4K resolution, slow motion",
-                                  "dramatic composition, emotional atmosphere, golden hour lighting",
-                                  "patriotic theme, honoring service, smooth camera movement",
-                                  "detailed textures, vibrant colors, studio quality footage"
-                                ] : [
-                                  "emotional crescendo, rich orchestration, professional mixing",
-                                  "patriotic brass section, stirring strings, powerful drums",
-                                  "uplifting melody, harmonious arrangement, studio quality",
-                                  "inspiring anthem, full orchestra, dramatic dynamics"
-                                ];
-                                const randomEnhancement = enhancements[Math.floor(Math.random() * enhancements.length)];
-                                setPrompt(prev => `${prev.trim()}, ${randomEnhancement}`);
-                                toast({
-                                  title: "Prompt Enhanced",
-                                  description: "Added professional quality suggestions to your prompt.",
-                                });
-                              }}
-                              className="text-brand-blue hover:text-brand-navy"
-                              data-testid="button-enhance-prompt"
-                            >
-                              <Sparkles className="w-4 h-4 mr-1" />
-                              Enhance
-                            </Button>
+                                }}
+                                className="text-brand-blue hover:text-brand-navy"
+                                data-testid="button-enhance-prompt"
+                              >
+                                <Sparkles className="w-4 h-4 mr-1" />
+                                Enhance
+                              </Button>
+                            </div>
                           </div>
                           <Textarea
                             id="prompt"
@@ -712,6 +739,8 @@ export default function NavalIntelligence() {
                                 size="sm" 
                                 onClick={() => setSelectedTemplate(null)}
                                 className="text-red-500 ml-2"
+                                data-testid="button-clear-template"
+                                aria-label="Clear selected template"
                               >
                                 Clear
                               </Button>
@@ -909,25 +938,56 @@ export default function NavalIntelligence() {
                     ) : generations.length > 0 ? (
                       <>
                         {/* Gallery Filter Tabs */}
-                        <div className="flex gap-2 mb-4 flex-wrap">
-                          <Badge variant="secondary" className="cursor-pointer hover:bg-brand-navy hover:text-white transition-colors">
+                        <div className="flex gap-2 mb-4 flex-wrap" role="tablist" aria-label="Filter gallery content">
+                          <button 
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${galleryFilter === "all" ? "bg-brand-navy text-white border-brand-navy" : "border-input bg-background hover:bg-brand-navy hover:text-white"}`}
+                            onClick={() => setGalleryFilter("all")}
+                            onKeyDown={(e) => e.key === 'Enter' && setGalleryFilter("all")}
+                            role="tab"
+                            tabIndex={0}
+                            aria-selected={galleryFilter === "all"}
+                            data-testid="filter-all"
+                          >
                             All ({generations.length})
-                          </Badge>
-                          <Badge variant="outline" className="cursor-pointer hover:bg-brand-blue hover:text-white transition-colors">
+                          </button>
+                          <button 
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${galleryFilter === "video" ? "bg-brand-blue text-white border-brand-blue" : "border-input bg-background hover:bg-brand-blue hover:text-white"}`}
+                            onClick={() => setGalleryFilter("video")}
+                            onKeyDown={(e) => e.key === 'Enter' && setGalleryFilter("video")}
+                            role="tab"
+                            tabIndex={0}
+                            aria-selected={galleryFilter === "video"}
+                            data-testid="filter-videos"
+                          >
                             Videos ({generations.filter(g => g.type.includes('video')).length})
-                          </Badge>
-                          <Badge variant="outline" className="cursor-pointer hover:bg-green-500 hover:text-white transition-colors">
+                          </button>
+                          <button 
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${galleryFilter === "music" ? "bg-green-600 text-white border-green-600" : "border-input bg-background hover:bg-green-500 hover:text-white"}`}
+                            onClick={() => setGalleryFilter("music")}
+                            onKeyDown={(e) => e.key === 'Enter' && setGalleryFilter("music")}
+                            role="tab"
+                            tabIndex={0}
+                            aria-selected={galleryFilter === "music"}
+                            data-testid="filter-music"
+                          >
                             Music ({generations.filter(g => g.type === 'text-to-music').length})
-                          </Badge>
+                          </button>
                         </div>
-                        {generations.map(generation => (
-                          <GenerationCard key={generation.id} generation={generation} />
-                        ))}
+                        {generations
+                          .filter(g => {
+                            if (galleryFilter === "all") return true;
+                            if (galleryFilter === "video") return g.type.includes('video');
+                            if (galleryFilter === "music") return g.type === 'text-to-music';
+                            return true;
+                          })
+                          .map(generation => (
+                            <GenerationCard key={generation.id} generation={generation} />
+                          ))}
                       </>
                     ) : (
                       <div className="text-center py-12">
                         <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                          <Video className="w-10 h-10 text-gray-300" />
+                          <Video className="w-10 h-10 text-gray-300" aria-hidden="true" />
                         </div>
                         <p className="text-gray-600 font-medium mb-2">No creations yet</p>
                         <p className="text-sm text-gray-400 mb-4">
@@ -937,8 +997,10 @@ export default function NavalIntelligence() {
                           size="sm" 
                           variant="outline"
                           onClick={() => document.getElementById('create-section')?.scrollIntoView({ behavior: 'smooth' })}
+                          data-testid="button-empty-start-creating"
+                          aria-label="Start creating content"
                         >
-                          <Wand2 className="w-4 h-4 mr-2" />
+                          <Wand2 className="w-4 h-4 mr-2" aria-hidden="true" />
                           Start Creating
                         </Button>
                       </div>
