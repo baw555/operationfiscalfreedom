@@ -208,6 +208,186 @@ export default function AboutNavPerks() {
         </div>
       </section>
 
+      {/* Pricing Comparison Section */}
+      <section className="py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-6">
+              <DollarSign className="w-4 h-4 text-green-400" />
+              <span className="text-green-400 text-sm font-medium uppercase tracking-wider">Pricing Comparison</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-semibold text-white mb-4">
+              See What You're Saving
+            </h2>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+              Compare our tools to industry leaders. Same enterprise features, fraction of the cost.
+            </p>
+          </div>
+
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* RANGER Comparison */}
+              <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                  FREE
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                    <FileSignature className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">RANGER</h3>
+                </div>
+                <p className="text-slate-400 text-sm mb-4">Document Signatures</p>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">DocuSign</span>
+                    <span className="text-red-400 font-semibold line-through">$45/mo</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">Adobe Sign</span>
+                    <span className="text-red-400 font-semibold line-through">$34/mo</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">HelloSign</span>
+                    <span className="text-red-400 font-semibold line-through">$20/mo</span>
+                  </div>
+                  <div className="border-t border-slate-700 pt-3 mt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-semibold">RANGER</span>
+                      <span className="text-green-400 font-bold text-xl">$0</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 text-center">
+                  <span className="text-green-400 text-sm font-medium">Save up to $540/year</span>
+                </div>
+              </div>
+
+              {/* OPERATOR: AI Comparison */}
+              <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                  LOW COST
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <MessageSquare className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">OPERATOR: AI</h3>
+                </div>
+                <p className="text-slate-400 text-sm mb-4">Private AI Assistant</p>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">ChatGPT Plus</span>
+                    <span className="text-red-400 font-semibold line-through">$20/mo</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">Claude Pro</span>
+                    <span className="text-red-400 font-semibold line-through">$20/mo</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">Gemini Ultra</span>
+                    <span className="text-red-400 font-semibold line-through">$20/mo</span>
+                  </div>
+                  <div className="border-t border-slate-700 pt-3 mt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-semibold">OPERATOR: AI</span>
+                      <span className="text-green-400 font-bold text-xl">Free*</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 text-center">
+                  <span className="text-slate-500 text-xs">*Free for members, low cost otherwise</span>
+                </div>
+              </div>
+
+              {/* Video & Music Gen Comparison */}
+              <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                  LOW COST
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <Video className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Video & Music</h3>
+                </div>
+                <p className="text-slate-400 text-sm mb-4">AI Media Generation</p>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">Runway</span>
+                    <span className="text-red-400 font-semibold line-through">$35/mo</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">Suno AI</span>
+                    <span className="text-red-400 font-semibold line-through">$10/mo</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">Pika Labs</span>
+                    <span className="text-red-400 font-semibold line-through">$28/mo</span>
+                  </div>
+                  <div className="border-t border-slate-700 pt-3 mt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-semibold">Naval Intel</span>
+                      <span className="text-green-400 font-bold text-xl">Free*</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 text-center">
+                  <span className="text-slate-500 text-xs">*Free for members, low cost otherwise</span>
+                </div>
+              </div>
+
+              {/* VA & SSDI Tool Comparison */}
+              <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                  FREE
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                    <ClipboardList className="w-5 h-5 text-red-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">VA & SSDI Tool</h3>
+                </div>
+                <p className="text-slate-400 text-sm mb-4">Claims Navigation</p>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">VA Claims Insider</span>
+                    <span className="text-red-400 font-semibold line-through">$3,000+</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">Claim Attorneys</span>
+                    <span className="text-red-400 font-semibold line-through">20-33%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">Paid VSO Services</span>
+                    <span className="text-red-400 font-semibold line-through">$500+</span>
+                  </div>
+                  <div className="border-t border-slate-700 pt-3 mt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-semibold">Nav Tool</span>
+                      <span className="text-green-400 font-bold text-xl">$0</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 text-center">
+                  <span className="text-green-400 text-sm font-medium">Save thousands</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Total Savings Banner */}
+            <div className="mt-12 bg-gradient-to-r from-green-600/20 via-green-500/20 to-green-600/20 border border-green-500/30 rounded-2xl p-8 text-center">
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                Total Potential Savings: <span className="text-green-400">$4,000+/year</span>
+              </h3>
+              <p className="text-slate-400 max-w-xl mx-auto">
+                Stop paying enterprise prices for tools you deserve. NavigatorUSA gives you the same capabilities—built specifically for veterans.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Dashboard Montage Section */}
       <section id="platforms" className="py-20 bg-slate-50">
         <div className="container mx-auto px-6">
@@ -216,7 +396,7 @@ export default function AboutNavPerks() {
               Your Command Center
             </h2>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              Three specialized platforms designed to serve your unique needs
+              Four specialized platforms designed to serve your unique needs
             </p>
           </div>
 
