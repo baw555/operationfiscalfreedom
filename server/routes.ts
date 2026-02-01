@@ -9268,6 +9268,206 @@ Generated: ${new Date().toISOString()}
     }
   });
 
+  // ==========================================
+  // VENDOR MAGIC LINK AUTH
+  // ==========================================
+
+  // Request a magic link (vendor enters email)
+  app.post("/api/vendor/auth/request-magic-link", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ message: "Valid email required" });
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Check if vendor has any shared cases
+      const allShares = await storage.getAllCaseShares();
+      const vendorShares = allShares.filter(s => s.email.toLowerCase() === normalizedEmail);
+      
+      if (vendorShares.length === 0) {
+        // Don't reveal if email exists - just say link sent
+        return res.json({ success: true, message: "If you have access to any cases, a login link will be sent." });
+      }
+
+      // Generate secure token
+      const crypto = await import("crypto");
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      // Store magic link
+      await storage.createVendorMagicLink({
+        email: normalizedEmail,
+        token,
+        expiresAt,
+      });
+
+      // Send email via Resend
+      try {
+        const { getResendClient } = await import("./resendClient");
+        const { client: resend, fromEmail } = await getResendClient();
+        
+        const appUrl = process.env.REPL_SLUG 
+          ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+          : "http://localhost:5000";
+        
+        const magicLinkUrl = `${appUrl}/vendor-portal?token=${token}`;
+
+        await resend.emails.send({
+          from: fromEmail,
+          to: normalizedEmail,
+          subject: "Your NavigatorUSA Vendor Portal Login Link",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: #1A365D; padding: 20px; text-align: center;">
+                <h1 style="color: white; margin: 0;">NavigatorUSA</h1>
+                <p style="color: #E21C3D; margin: 5px 0 0 0; font-weight: bold;">Vendor Portal Access</p>
+              </div>
+              <div style="padding: 30px; background: #f8f9fa;">
+                <h2 style="color: #1A365D;">Your Login Link</h2>
+                <p>Click the button below to access your shared cases. This link expires in 15 minutes.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${magicLinkUrl}" style="background: #E21C3D; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    Access Vendor Portal
+                  </a>
+                </div>
+                <p style="color: #666; font-size: 12px;">If you didn't request this link, you can safely ignore this email.</p>
+              </div>
+            </div>
+          `,
+        });
+      } catch (emailErr) {
+        console.error("Failed to send magic link email:", emailErr);
+        // Still return success to not reveal email existence
+      }
+
+      res.json({ success: true, message: "If you have access to any cases, a login link will be sent." });
+    } catch (error) {
+      console.error("Error requesting magic link:", error);
+      res.status(500).json({ message: "Failed to send login link" });
+    }
+  });
+
+  // Verify magic link and create session
+  app.post("/api/vendor/auth/verify", async (req, res) => {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return res.status(400).json({ message: "Token required" });
+      }
+
+      // Find and validate magic link
+      const magicLink = await storage.getVendorMagicLinkByToken(token);
+      if (!magicLink) {
+        return res.status(401).json({ message: "Invalid or expired link" });
+      }
+
+      // Mark as used
+      await storage.markMagicLinkUsed(magicLink.id);
+
+      // Create session
+      const crypto = await import("crypto");
+      const sessionToken = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+      const session = await storage.createVendorSession({
+        email: magicLink.email,
+        sessionToken,
+        expiresAt,
+      });
+
+      res.json({
+        success: true,
+        sessionToken,
+        email: magicLink.email,
+        expiresAt: session.expiresAt,
+      });
+    } catch (error) {
+      console.error("Error verifying magic link:", error);
+      res.status(500).json({ message: "Failed to verify link" });
+    }
+  });
+
+  // Check vendor session (get current vendor info)
+  app.get("/api/vendor/auth/session", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ message: "No session" });
+      }
+
+      const sessionToken = authHeader.substring(7);
+      const session = await storage.getVendorSessionByToken(sessionToken);
+      
+      if (!session) {
+        return res.status(401).json({ message: "Invalid or expired session" });
+      }
+
+      // Get vendor's shared cases
+      const allShares = await storage.getAllCaseShares();
+      const vendorShares = allShares.filter(s => s.email.toLowerCase() === session.email.toLowerCase());
+
+      res.json({
+        email: session.email,
+        expiresAt: session.expiresAt,
+        sharedCases: vendorShares.length,
+      });
+    } catch (error) {
+      console.error("Error checking session:", error);
+      res.status(500).json({ message: "Failed to check session" });
+    }
+  });
+
+  // Logout (delete session)
+  app.post("/api/vendor/auth/logout", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const sessionToken = authHeader.substring(7);
+        await storage.deleteVendorSession(sessionToken);
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error logging out:", error);
+      res.status(500).json({ message: "Failed to logout" });
+    }
+  });
+
+  // Get vendor's shared cases (using session)
+  app.get("/api/vendor/my-cases", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const sessionToken = authHeader.substring(7);
+      const session = await storage.getVendorSessionByToken(sessionToken);
+      
+      if (!session) {
+        return res.status(401).json({ message: "Invalid or expired session" });
+      }
+
+      // Get all shares for this vendor
+      const allShares = await storage.getAllCaseShares();
+      const vendorShares = allShares.filter(s => s.email.toLowerCase() === session.email.toLowerCase());
+
+      // Get case details for each share
+      const casesWithDetails = await Promise.all(
+        vendorShares.map(async (share) => {
+          const claimCase = await storage.getClaimCaseById(share.caseId);
+          return claimCase ? { ...claimCase, role: share.role, shareId: share.id } : null;
+        })
+      );
+
+      res.json(casesWithDetails.filter(Boolean));
+    } catch (error) {
+      console.error("Error getting vendor cases:", error);
+      res.status(500).json({ message: "Failed to get cases" });
+    }
+  });
+
   // Vendor adds a note (requires comment permission)
   app.post("/api/vendor/cases/:id/notes", async (req, res) => {
     try {
