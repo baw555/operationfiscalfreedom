@@ -8769,5 +8769,246 @@ Create a detailed scene plan with timing. Return JSON:
     }
   });
 
+  // ====================================================
+  // VENDOR PERFORMANCE METRICS
+  // ====================================================
+
+  // Get vendor activity metrics for a case
+  app.get("/api/claims/cases/:id/vendor-metrics", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get files and notes for this case
+      const files = await storage.getClaimFilesByCaseId(caseId);
+      const notes = await storage.getCaseNotesByCaseId(caseId);
+
+      // Aggregate vendor activity
+      const vendorActivity: Record<string, {
+        email: string;
+        filesUploaded: number;
+        notesAdded: number;
+        lastActivity: string | null;
+      }> = {};
+
+      // Track file uploads by vendors
+      files.forEach((file) => {
+        if (file.authorType === "vendor" && file.authorId) {
+          if (!vendorActivity[file.authorId]) {
+            vendorActivity[file.authorId] = {
+              email: file.authorId,
+              filesUploaded: 0,
+              notesAdded: 0,
+              lastActivity: null,
+            };
+          }
+          vendorActivity[file.authorId].filesUploaded++;
+          const fileDate = new Date(file.createdAt).toISOString();
+          if (!vendorActivity[file.authorId].lastActivity || 
+              fileDate > vendorActivity[file.authorId].lastActivity!) {
+            vendorActivity[file.authorId].lastActivity = fileDate;
+          }
+        }
+      });
+
+      // Track notes by vendors
+      notes.forEach((note) => {
+        if (note.authorType === "vendor") {
+          if (!vendorActivity[note.authorEmail]) {
+            vendorActivity[note.authorEmail] = {
+              email: note.authorEmail,
+              filesUploaded: 0,
+              notesAdded: 0,
+              lastActivity: null,
+            };
+          }
+          vendorActivity[note.authorEmail].notesAdded++;
+          const noteDate = new Date(note.createdAt).toISOString();
+          if (!vendorActivity[note.authorEmail].lastActivity || 
+              noteDate > vendorActivity[note.authorEmail].lastActivity!) {
+            vendorActivity[note.authorEmail].lastActivity = noteDate;
+          }
+        }
+      });
+
+      const vendors = Object.values(vendorActivity);
+      const totalVendorFiles = vendors.reduce((sum, v) => sum + v.filesUploaded, 0);
+      const totalVendorNotes = vendors.reduce((sum, v) => sum + v.notesAdded, 0);
+
+      res.json({
+        vendors,
+        summary: {
+          activeVendors: vendors.length,
+          totalVendorFiles,
+          totalVendorNotes,
+          totalVendorActions: totalVendorFiles + totalVendorNotes,
+        },
+      });
+    } catch (error) {
+      console.error("Error getting vendor metrics:", error);
+      res.status(500).json({ message: "Failed to get vendor metrics" });
+    }
+  });
+
+  // ====================================================
+  // EXPORT PACKAGES
+  // ====================================================
+
+  // Generate export package summary for a case
+  app.get("/api/claims/cases/:id/export", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get all case data
+      const files = await storage.getClaimFilesByCaseId(caseId);
+      const tasks = await storage.getClaimTasksByCaseId(caseId);
+      const notes = await storage.getCaseNotesByCaseId(caseId);
+      const deadlines = await storage.getCaseDeadlinesByCaseId(caseId);
+
+      // Map claim type to purpose for requirements
+      const purposeMap: Record<string, string> = {
+        new: "new_claim",
+        increase: "increase",
+        appeal: "appeal",
+        apply: "apply",
+        reconsideration: "appeal",
+        alj: "appeal",
+      };
+      const purpose = claimCase.claimType ? purposeMap[claimCase.claimType] || "new_claim" : "new_claim";
+      const track = claimCase.caseType.toUpperCase();
+
+      const requirements = await storage.getEvidenceRequirements(track, purpose);
+
+      // Organize files by evidence type
+      const filesByType: Record<string, typeof files> = {
+        medical: [],
+        lay: [],
+        nexus: [],
+        exam: [],
+        other: [],
+      };
+
+      files.forEach((file) => {
+        const type = file.evidenceType || "other";
+        if (filesByType[type]) {
+          filesByType[type].push(file);
+        } else {
+          filesByType.other.push(file);
+        }
+      });
+
+      // Check completeness
+      const filesByTypeCount = Object.entries(filesByType).reduce((acc, [type, typeFiles]) => {
+        acc[type] = typeFiles.length;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const completenessResults = requirements.map((req) => ({
+        label: req.label,
+        evidenceType: req.evidenceType,
+        required: req.required,
+        status: filesByTypeCount[req.evidenceType] > 0 ? "present" : "missing",
+      }));
+
+      const requiredPresent = completenessResults.filter((r) => r.required && r.status === "present").length;
+      const requiredTotal = completenessResults.filter((r) => r.required).length;
+      const isComplete = requiredPresent === requiredTotal;
+
+      // Calculate strength
+      const filesWithStrength = files.filter((f) => f.strength);
+      const avgStrength = filesWithStrength.length > 0
+        ? filesWithStrength.reduce((sum, f) => sum + (f.strength || 0), 0) / filesWithStrength.length
+        : 0;
+
+      // Task progress
+      const completedTasks = tasks.filter((t) => t.status === "completed").length;
+      const taskProgress = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
+
+      res.json({
+        case: {
+          id: claimCase.id,
+          title: claimCase.title,
+          caseType: claimCase.caseType,
+          claimType: claimCase.claimType,
+          status: claimCase.status,
+          createdAt: claimCase.createdAt,
+        },
+        readiness: {
+          isComplete,
+          requiredPresent,
+          requiredTotal,
+          completenessPercent: requiredTotal > 0 ? Math.round((requiredPresent / requiredTotal) * 100) : 100,
+          taskProgress,
+          avgStrength,
+        },
+        documents: {
+          total: files.length,
+          byType: filesByTypeCount,
+          files: files.map((f) => ({
+            id: f.id,
+            filename: f.originalName,
+            evidenceType: f.evidenceType || "other",
+            condition: f.condition,
+            strength: f.strength,
+            createdAt: f.createdAt,
+            storageUrl: f.storageUrl,
+          })),
+        },
+        checklist: completenessResults,
+        tasks: {
+          total: tasks.length,
+          completed: completedTasks,
+          items: tasks.map((t) => ({
+            id: t.id,
+            title: t.title,
+            status: t.status,
+          })),
+        },
+        timeline: notes.map((n) => ({
+          id: n.id,
+          content: n.content,
+          authorEmail: n.authorEmail,
+          authorType: n.authorType,
+          createdAt: n.createdAt,
+        })),
+        deadlines: deadlines.map((d) => ({
+          id: d.id,
+          title: d.title,
+          dueDate: d.dueDate,
+          status: d.status,
+        })),
+        exportedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error generating export:", error);
+      res.status(500).json({ message: "Failed to generate export" });
+    }
+  });
+
   return httpServer;
 }
