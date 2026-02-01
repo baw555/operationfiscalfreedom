@@ -859,7 +859,15 @@ export default function AffiliateDashboard() {
                               </p>
                             </div>
                           </div>
-                          <CheckCircle className="w-6 h-6 text-green-500" />
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-green-300 text-green-700 hover:bg-green-50"
+                            onClick={() => window.open(`/api/contracts/signed/${agreement.id}/download`, '_blank')}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                          </Button>
                         </div>
                       );
                     })}

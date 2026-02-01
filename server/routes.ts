@@ -3304,6 +3304,99 @@ export async function registerRoutes(
     }
   });
 
+  // Download signed agreement as HTML document
+  app.get("/api/contracts/signed/:id/download", requireAuth, async (req, res) => {
+    try {
+      const agreementId = parseInt(req.params.id);
+      const agreement = await storage.getSignedAgreement(agreementId);
+      
+      if (!agreement) {
+        return res.status(404).json({ message: "Signed agreement not found" });
+      }
+
+      // Verify the user owns this agreement
+      if (agreement.affiliateId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get the contract template
+      const template = await storage.getContractTemplate(agreement.contractTemplateId);
+      if (!template) {
+        return res.status(404).json({ message: "Contract template not found" });
+      }
+
+      // Get user info for the signature
+      const user = await storage.getUser(agreement.affiliateId);
+      const signedDate = new Date(agreement.signedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${template.name} - Signed Agreement</title>
+          <style>
+            body { font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+            h1 { text-align: center; font-size: 20px; margin-bottom: 5px; }
+            h2 { text-align: center; font-size: 14px; font-weight: normal; margin-bottom: 30px; }
+            .contract-content { margin-bottom: 40px; }
+            .signature-block { margin-top: 60px; padding-top: 20px; border-top: 2px solid #000; }
+            .signature-line { display: flex; justify-content: space-between; margin-top: 30px; }
+            .sig-item { width: 45%; }
+            .sig-item .line { border-bottom: 1px solid #000; height: 30px; margin-bottom: 5px; padding-bottom: 5px; }
+            .sig-item .label { font-size: 12px; color: #666; }
+            .audit-info { margin-top: 40px; padding: 15px; background: #f5f5f5; font-size: 11px; color: #666; }
+            @media print { body { margin: 0; padding: 20px; } .audit-info { break-inside: avoid; } }
+          </style>
+        </head>
+        <body>
+          <h1>${template.name}</h1>
+          <h2>${template.companyName} • Version ${template.version}</h2>
+          
+          <div class="contract-content">
+            ${template.content}
+          </div>
+          
+          <div class="signature-block">
+            <h3>SIGNATURE</h3>
+            <div class="signature-line">
+              <div class="sig-item">
+                <div class="line">${user?.name || 'Affiliate'}</div>
+                <p class="label">Affiliate Signature</p>
+              </div>
+              <div class="sig-item">
+                <div class="line">${signedDate}</div>
+                <p class="label">Date Signed</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="audit-info">
+            <strong>Electronic Signature Audit Trail</strong><br>
+            Agreement ID: ${agreement.id}<br>
+            Signed By: ${user?.email || 'N/A'}<br>
+            Signed At: ${agreement.signedAt}<br>
+            IP Address: ${agreement.signedIpAddress || 'N/A'}<br>
+            Status: ${agreement.status}
+          </div>
+        </body>
+        </html>
+      `;
+
+      const fileName = `${template.name.replace(/\s+/g, '_')}_Signed_${signedDate.replace(/\s+/g, '_')}.html`;
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.send(htmlContent);
+    } catch (error) {
+      console.error("Error downloading signed agreement:", error);
+      res.status(500).json({ message: "Failed to download agreement" });
+    }
+  });
+
   // ===== COMMISSION CALCULATION API =====
 
   // Calculate commission breakdown for a sale
