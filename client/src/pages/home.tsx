@@ -229,10 +229,11 @@ export default function Home() {
         onEnded={handleAudioEnded}
       />
 
-      {/* Floating Volume Control - visible during text sequence and montage */}
+      {/* Floating Music Controls - visible during text sequence and montage */}
       {introPlayed && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2.5 shadow-lg border border-brand-gold/30">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+          {/* Volume Slider */}
+          <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2.5 shadow-lg">
             <Volume2 className="w-5 h-5 text-brand-gold flex-shrink-0" />
             <input
               type="range"
@@ -246,6 +247,25 @@ export default function Home() {
             />
             <span className="text-white/80 text-sm font-mono w-8">{Math.round(volume * 100)}%</span>
           </div>
+          
+          {/* Play/Pause Button */}
+          <button
+            onClick={toggleAllPlayback}
+            data-testid="button-floating-music"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-base tracking-wider rounded-full shadow-lg shadow-brand-gold/40 transition-all hover:scale-105 uppercase"
+          >
+            {isMusicPlaying && !animationPaused ? (
+              <>
+                <Pause className="w-5 h-5 fill-current" />
+                Pause
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5 fill-current" />
+                Play
+              </>
+            )}
+          </button>
         </div>
       )}
       
