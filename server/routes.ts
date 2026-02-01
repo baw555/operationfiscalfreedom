@@ -4346,6 +4346,62 @@ export async function registerRoutes(
     }
   });
 
+  // AI Autofill - extract contact info from pasted text
+  app.post("/api/csu/ai-autofill", async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text || typeof text !== "string") {
+        return res.status(400).json({ message: "Text is required" });
+      }
+
+      console.log(`[AI Autofill] Extracting contact info from ${text.length} chars`);
+
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI();
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a contact information extractor. Extract the following from the provided text:
+- name: The person's full name
+- email: Their email address
+- phone: Their phone number (if present)
+- company: Their company name (if present)
+
+Return ONLY valid JSON with these fields. If a field is not found, omit it from the response.
+Example response: {"name": "John Doe", "email": "john@example.com", "phone": "555-123-4567"}`
+          },
+          {
+            role: "user",
+            content: text
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 200,
+      });
+
+      const content = response.choices[0]?.message?.content || "{}";
+      let extracted: { name?: string; email?: string; phone?: string; company?: string } = {};
+      
+      try {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          extracted = JSON.parse(jsonMatch[0]);
+        }
+      } catch (e) {
+        console.error("[AI Autofill] Failed to parse JSON:", content);
+      }
+
+      console.log(`[AI Autofill] Extracted:`, extracted);
+      res.json(extracted);
+    } catch (error) {
+      console.error("Error in AI autofill:", error);
+      const message = error instanceof Error ? error.message : "Failed to extract contact info";
+      res.status(500).json({ message });
+    }
+  });
+
   // Upload and analyze a contract document to extract form fields
   app.post("/api/csu/analyze-document", requireAdmin, (req, res, next) => {
     contractUpload.single('document')(req, res, (err) => {

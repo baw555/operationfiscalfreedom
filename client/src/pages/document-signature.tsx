@@ -113,6 +113,7 @@ export default function DocumentSignature() {
   const [showBatchSendDialog, setShowBatchSendDialog] = useState(false);
   const [batchRecipients, setBatchRecipients] = useState<Array<{name: string; email: string; phone: string}>>([]);
   const [batchCsvInput, setBatchCsvInput] = useState("");
+  const [autofillText, setAutofillText] = useState("");
 
   const { data: templates = [], isLoading: templatesLoading } = useQuery<ContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
@@ -241,6 +242,26 @@ export default function DocumentSignature() {
     },
   });
 
+  const autofillMutation = useMutation({
+    mutationFn: async (text: string) => {
+      const res = await apiRequest("POST", "/api/csu/ai-autofill", { text });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.name) setRecipientName(data.name);
+      if (data.email) setRecipientEmail(data.email);
+      if (data.phone) setRecipientPhone(data.phone);
+      setAutofillText("");
+      toast({ 
+        title: "Contact Extracted!", 
+        description: `Found: ${data.name || "No name"} - ${data.email || "No email"}` 
+      });
+    },
+    onError: () => {
+      toast({ title: "Extraction Failed", description: "Could not extract contact info. Try adding more details.", variant: "destructive" });
+    },
+  });
+
   const resetSendForm = () => {
     setRecipientName("");
     setRecipientEmail("");
@@ -316,6 +337,7 @@ export default function DocumentSignature() {
                 <nav className="space-y-1">
                   {[
                     { id: "dashboard", icon: BarChart3, label: "Dashboard" },
+                    { id: "ai-studio", icon: Sparkles, label: "AI Studio", isAI: true },
                     { id: "envelopes", icon: Inbox, label: "Envelopes" },
                     { id: "templates", icon: FileText, label: "Templates" },
                     { id: "analytics", icon: TrendingUp, label: "Analytics" },
@@ -326,13 +348,20 @@ export default function DocumentSignature() {
                       onClick={() => setActiveTab(item.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
                         activeTab === item.id
-                          ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 text-white border border-blue-500/30"
-                          : "text-gray-400 hover:text-white hover:bg-white/5"
+                          ? (item as any).isAI 
+                            ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 text-white border border-purple-500/50 shadow-lg shadow-purple-500/20"
+                            : "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 text-white border border-blue-500/30"
+                          : (item as any).isAI
+                            ? "text-purple-300 hover:text-white hover:bg-purple-500/10 border border-purple-500/20"
+                            : "text-gray-400 hover:text-white hover:bg-white/5"
                       }`}
                       data-testid={`nav-${item.id}`}
                     >
-                      <item.icon className="w-5 h-5" />
+                      <item.icon className={`w-5 h-5 ${(item as any).isAI ? "text-purple-400" : ""}`} />
                       <span className="font-medium">{item.label}</span>
+                      {(item as any).isAI && (
+                        <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/30 text-purple-300 font-semibold">NEW</span>
+                      )}
                     </button>
                   ))}
                 </nav>
@@ -818,6 +847,150 @@ export default function DocumentSignature() {
                 </div>
               )}
 
+              {activeTab === "ai-studio" && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 animate-pulse">
+                          <Sparkles className="w-5 h-5 text-white" />
+                        </div>
+                        AI Studio
+                      </h2>
+                      <p className="text-gray-400">Powered by GPT-4o - Intelligent document automation</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <Card className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-purple-500/30 hover:border-purple-400/50 transition-all cursor-pointer group" data-testid="card-ai-template-fixer">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform">
+                            <Zap className="w-7 h-7 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-white mb-1">AI Template Fixer</h3>
+                            <p className="text-sm text-gray-400 mb-4">
+                              Automatically improve contract language, fix legal issues, and optimize templates for higher completion rates.
+                            </p>
+                            <Button
+                              className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25"
+                              onClick={() => {
+                                if (templates.length > 0) {
+                                  setEditingTemplate(templates[0]);
+                                  setTemplateName(templates[0].name);
+                                  setTemplateDescription(templates[0].description || "");
+                                  setTemplateContent(templates[0].content);
+                                  setShowTemplateDialog(true);
+                                } else {
+                                  toast({ title: "No Templates", description: "Create a template first to use AI fixer" });
+                                }
+                              }}
+                              data-testid="button-ai-fixer-launch"
+                            >
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Fix My Templates
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 border-blue-500/30 hover:border-blue-400/50 transition-all cursor-pointer group" data-testid="card-ai-autofill">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
+                            <User className="w-7 h-7 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-white mb-1">AI Autofill</h3>
+                            <p className="text-sm text-gray-400 mb-4">
+                              Paste any text, email, or business card - AI extracts recipient name, email, phone, and company instantly.
+                            </p>
+                            <Button
+                              className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25"
+                              onClick={() => setShowSendDialog(true)}
+                              data-testid="button-ai-autofill-launch"
+                            >
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Smart Send
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-emerald-900/40 to-teal-900/40 border-emerald-500/30 hover:border-emerald-400/50 transition-all cursor-pointer group" data-testid="card-ai-generator">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+                            <FileText className="w-7 h-7 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-white mb-1">AI Template Generator</h3>
+                            <p className="text-sm text-gray-400 mb-4">
+                              Describe what you need in plain English - AI creates professional contract templates in seconds.
+                            </p>
+                            <Button
+                              className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/25"
+                              onClick={() => setShowTemplateDialog(true)}
+                              data-testid="button-ai-generator-launch"
+                            >
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Generate Template
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card className="bg-gray-800/50 border-gray-700/50">
+                    <CardHeader>
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-purple-400" />
+                        AI-Powered Features
+                      </CardTitle>
+                      <CardDescription className="text-gray-400">
+                        All AI features are powered by GPT-4o for enterprise-grade intelligence
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-xl bg-gray-900/50 border border-gray-700/50">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CheckCircle className="w-5 h-5 text-emerald-400" />
+                            <span className="font-medium text-white">Smart Contract Analysis</span>
+                          </div>
+                          <p className="text-sm text-gray-400">AI reviews templates for legal clarity, missing clauses, and compliance issues</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-gray-900/50 border border-gray-700/50">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CheckCircle className="w-5 h-5 text-emerald-400" />
+                            <span className="font-medium text-white">Recipient Auto-Detection</span>
+                          </div>
+                          <p className="text-sm text-gray-400">Paste any text and AI extracts contact information automatically</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-gray-900/50 border border-gray-700/50">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CheckCircle className="w-5 h-5 text-emerald-400" />
+                            <span className="font-medium text-white">Template Generation</span>
+                          </div>
+                          <p className="text-sm text-gray-400">Describe your contract needs in plain English - AI writes the template</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-gray-900/50 border border-gray-700/50">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CheckCircle className="w-5 h-5 text-emerald-400" />
+                            <span className="font-medium text-white">Completion Optimization</span>
+                          </div>
+                          <p className="text-sm text-gray-400">AI suggests improvements to increase signature completion rates</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
               {activeTab === "analytics" && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -1160,6 +1333,48 @@ export default function DocumentSignature() {
           {sendStep === 2 && (
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">Add Recipient</h3>
+              
+              <div className="p-4 rounded-xl bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                  <span className="font-medium text-white">AI Autofill</span>
+                  <Badge className="bg-purple-500/30 text-purple-300 text-xs">NEW</Badge>
+                </div>
+                <Textarea
+                  placeholder="Paste any text, email, or business card info here...
+
+Example: 
+John Doe
+Senior VP at ABC Company
+john.doe@abccompany.com
+(555) 123-4567"
+                  className="bg-gray-800/50 border-gray-700 text-white min-h-[80px] text-sm mb-3"
+                  value={autofillText}
+                  onChange={(e) => setAutofillText(e.target.value)}
+                  data-testid="input-ai-autofill"
+                />
+                <Button
+                  type="button"
+                  onClick={() => autofillMutation.mutate(autofillText)}
+                  disabled={!autofillText.trim() || autofillMutation.isPending}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white"
+                  data-testid="button-ai-extract"
+                >
+                  {autofillMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
+                  )}
+                  Extract Contact Info
+                </Button>
+              </div>
+
+              <div className="relative flex items-center my-4">
+                <div className="flex-1 h-px bg-gray-700"></div>
+                <span className="px-3 text-sm text-gray-500">or enter manually</span>
+                <div className="flex-1 h-px bg-gray-700"></div>
+              </div>
+              
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Full Name *</Label>
@@ -1170,6 +1385,7 @@ export default function DocumentSignature() {
                       onChange={(e) => setRecipientName(e.target.value)}
                       placeholder="John Doe"
                       className="pl-10 bg-gray-800 border-gray-700 text-white"
+                      data-testid="input-recipient-name"
                     />
                   </div>
                 </div>
@@ -1183,6 +1399,7 @@ export default function DocumentSignature() {
                       onChange={(e) => setRecipientEmail(e.target.value)}
                       placeholder="john@example.com"
                       className="pl-10 bg-gray-800 border-gray-700 text-white"
+                      data-testid="input-recipient-email"
                     />
                   </div>
                 </div>
@@ -1195,6 +1412,7 @@ export default function DocumentSignature() {
                       onChange={(e) => setRecipientPhone(e.target.value)}
                       placeholder="+1 (555) 123-4567"
                       className="pl-10 bg-gray-800 border-gray-700 text-white"
+                      data-testid="input-recipient-phone"
                     />
                   </div>
                 </div>
