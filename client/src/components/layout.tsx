@@ -1,41 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Menu, X, Star, LogIn, ChevronDown } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import logoImage from "@assets/Navigaor_USA_Logo_396x86_1767699671480.png";
 import logoStacked from "@assets/NavStar-Stacked_(2)_1769496493964.png";
 import { RangerTabSVG } from "@/components/ranger-tab-svg";
-
-function CyclingText({ texts, interval = 3000, offset = 0 }: { texts: string[]; interval?: number; offset?: number }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
-
-  useEffect(() => {
-    const startTimeout = setTimeout(() => {
-      const cycleInterval = setInterval(() => {
-        setIsVisible(false);
-        setTimeout(() => {
-          setCurrentIndex((prev) => (prev + 1) % texts.length);
-          setIsVisible(true);
-        }, 300);
-      }, interval);
-      return () => clearInterval(cycleInterval);
-    }, offset);
-    return () => clearTimeout(startTimeout);
-  }, [texts.length, interval, offset]);
-
-  return (
-    <span 
-      className={cn(
-        "transition-all duration-300",
-        isVisible ? "opacity-100" : "opacity-0"
-      )}
-    >
-      {texts[currentIndex]}
-    </span>
-  );
-}
 
 const animatedTextStyles = `
   @keyframes letterWave {
@@ -198,10 +168,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             
             <div className="relative" onMouseEnter={() => setAboutOpen(true)} onMouseLeave={() => setAboutOpen(false)}>
               <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1 min-w-[120px]",
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
                   location === "/about" || location === "/private-doctor" || location.includes("/finops-refer") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  <CyclingText texts={["About", "Mission Act", "Refer & Earn"]} interval={12000} offset={0} /> <ChevronDown className={cn("w-4 h-4 transition-transform", aboutOpen && "rotate-180")} />
+                  About <ChevronDown className={cn("w-4 h-4 transition-transform", aboutOpen && "rotate-180")} />
               </button>
               {aboutOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -224,10 +194,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             {/* VA Rating / Health Dropdown */}
             <div className="relative" onMouseEnter={() => setDisabilityOpen(true)} onMouseLeave={() => setDisabilityOpen(false)}>
               <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1 min-w-[160px]",
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
                   location.startsWith("/disability-rating") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  <CyclingText texts={["VA Rating", "Healthcare", "Disability Benefits"]} interval={10500} offset={3000} /> <ChevronDown className={cn("w-4 h-4 transition-transform", disabilityOpen && "rotate-180")} />
+                  VA Rating / Health <ChevronDown className={cn("w-4 h-4 transition-transform", disabilityOpen && "rotate-180")} />
               </button>
               {disabilityOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -255,10 +225,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             
             <div className="relative" onMouseEnter={() => setFinOpsOpen(true)} onMouseLeave={() => setFinOpsOpen(false)}>
               <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1 min-w-[160px]",
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
                   location.startsWith("/fin-ops") || location.startsWith("/merchant") || location.startsWith("/my-locker") || location.startsWith("/shipping") || location.startsWith("/logistics") || location.startsWith("/best-practices") || location.startsWith("/veteran-led-tax") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  <CyclingText texts={["Fin-Ops", "Veteran Logistics", "Insurance Savings", "Tax Solutions"]} interval={9000} offset={6000} /> <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
+                  Fin-Ops <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
               </button>
               {finOpsOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -280,10 +250,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             <div className="relative" onMouseEnter={() => setBusinessOpen(true)} onMouseLeave={() => setBusinessOpen(false)}>
               <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1 min-w-[160px]",
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
                   location === "/businesses" || location === "/job-placement" ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  <CyclingText texts={["Business", "Cost Savings", "Insurance Savings", "Veteran Logistics", "Tax Solutions"]} interval={9600} offset={1500} /> <ChevronDown className={cn("w-4 h-4 transition-transform", businessOpen && "rotate-180")} />
+                  Business <ChevronDown className={cn("w-4 h-4 transition-transform", businessOpen && "rotate-180")} />
               </button>
               {businessOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -329,6 +299,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               )}
             </div>
+
+            {/* Planning Solutions Link */}
+            <Link 
+              href="/planning-solutions"
+              className={cn(
+                "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 cursor-pointer whitespace-nowrap",
+                location === "/planning-solutions" ? "text-blue-600 border-blue-500" : "text-brand-navy border-transparent"
+              )} 
+              data-testid="nav-planning-solutions"
+            >
+              Insurance
+            </Link>
 
             {/* Login Link */}
             <Link 
@@ -508,6 +490,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Mobile Insurance/Planning Solutions Link */}
+            <div className={cn("border-l-4", location === "/planning-solutions" ? "border-blue-500" : "border-transparent")}>
+              <Link 
+                href="/planning-solutions"
+                className={cn(
+                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center touch-manipulation min-h-[44px]",
+                  location === "/planning-solutions" ? "text-blue-600" : "text-brand-navy"
+                )}
+                onClick={() => setMobileMenuOpen(false)}
+                data-testid="nav-mobile-planning-solutions"
+              >
+                Insurance
+              </Link>
             </div>
 
             {/* Mobile Login Link */}
