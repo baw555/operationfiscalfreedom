@@ -7060,10 +7060,12 @@ Be thorough but concise. Focus on actionable insights.`
         { role: "system", content: `${CORE_SYSTEM_PROMPT}\n\n${systemContext}\n\nYou are Operator AI, part of the Q Branch AI suite for NavigatorUSA. You help veteran families with their questions and tasks. Be helpful, concise, and professional.` },
       ];
 
-      // Memory Mode Logic:
-      // IF memoryMode = "stateless" → do not store anything, use only provided conversationHistory
-      // IF memoryMode = "session" → store in DB with sessionId, auto-delete on session end
-      // IF memoryMode = "persistent" → store by userId, persist across sessions
+      // ========================================
+      // MEMORY MODE LOGIC (Maps to OpenAI store parameter pattern)
+      // ========================================
+      // OFF (stateless)  → store: false - NEVER store anything, use only client-provided history
+      // SESSION          → store: true  - Store in DB with sessionId, purge on "Forget Session"
+      // PERSISTENT       → store in DB + keep thread IDs, persist across sessions by userId
       
       let storedHistory: Array<{ role: string; content: string }> = [];
       

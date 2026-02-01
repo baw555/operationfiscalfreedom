@@ -1,5 +1,21 @@
-// Content Filter & System Prompt Enforcement
-// Only specific topics are blocked - legal questions get disclaimer prefix
+// ============================================================================
+// CONTENT FILTER - 3-LAYER GUARDRAILS SYSTEM
+// ============================================================================
+// 
+// LAYER A: Instruction (System Prompt)
+//   - Injected on every AI call via CORE_SYSTEM_PROMPT
+//   - Short, absolute rules about what NOT to discuss
+//
+// LAYER B: Input Gate (Pre-Model)
+//   - checkContentRestrictions() runs BEFORE model call
+//   - Blocks restricted topics → returns refusal without calling model
+//   - Detects legal questions → sets legalDisclaimer flag
+//
+// LAYER C: Output Decorator (Post-Model)
+//   - postProcessResponse() runs AFTER model response
+//   - If legalDisclaimer=true → prepends legal disclaimer to response
+//
+// ============================================================================
 
 // ============================================================================
 // CORE SYSTEM PROMPT - Injected on every AI call
