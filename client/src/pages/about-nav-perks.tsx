@@ -261,6 +261,9 @@ export default function AboutNavPerks() {
                 <div className="mt-4 text-center">
                   <span className="text-green-400 text-sm font-medium">Save up to $540/year</span>
                 </div>
+                <div className="mt-2 text-center">
+                  <span className="text-slate-500 text-xs">*Competitor prices for 100 envelopes/yr vs ours unlimited</span>
+                </div>
               </div>
 
               {/* OPERATOR: AI Comparison */}
