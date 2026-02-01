@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
+import { useVeteranVerification } from "@/components/veteran-verification-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -368,6 +369,11 @@ function TemplateCard({ template, onSelect }: { template: AiTemplate; onSelect: 
 }
 
 export default function NavalIntelligence() {
+  const { showPopup, isVerified, checkVerification, VeteranPopup } = useVeteranVerification();
+  
+  useEffect(() => {
+    checkVerification();
+  }, []);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<GenerationType>("text-to-video");
@@ -463,6 +469,7 @@ export default function NavalIntelligence() {
 
   return (
     <Layout>
+      <VeteranPopup />
       <div className="bg-gradient-to-b from-gray-50 to-white">
         {/* Enhanced Hero Section */}
         <section className="relative py-20 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy overflow-hidden">

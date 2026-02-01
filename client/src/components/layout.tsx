@@ -76,10 +76,17 @@ const finOpsSubItems = [
   { name: "Veteran Led Tax Solutions", href: "/veteran-led-tax" },
 ];
 
-const qBranchSubItems = [
+const freeVetSoftwareSubItems = [
   { name: "Operator AI", href: "/operator-ai" },
   { name: "Video & Music Gen", href: "/naval-intelligence" },
   { name: "Document Signature", href: "/document-signature" },
+];
+
+const loginSubItems = [
+  { name: "Enlist (Affiliate)", href: "/affiliate" },
+  { name: "Deploy (Login)", href: "/login" },
+  { name: "Ranger Tab", href: "/ranger-tab-signup" },
+  { name: "Admin Portal", href: "/admin/login" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -93,8 +100,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileFinOpsOpen, setMobileFinOpsOpen] = useState(false);
   const [businessOpen, setBusinessOpen] = useState(false);
   const [mobileBusinessOpen, setMobileBusinessOpen] = useState(false);
-  const [qBranchOpen, setQBranchOpen] = useState(false);
-  const [mobileQBranchOpen, setMobileQBranchOpen] = useState(false);
+  const [freeVetSoftwareOpen, setFreeVetSoftwareOpen] = useState(false);
+  const [mobileFreeVetSoftwareOpen, setMobileFreeVetSoftwareOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [mobileLoginOpen, setMobileLoginOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-body">
@@ -140,20 +149,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
             
             <div className="relative" onMouseEnter={() => setAboutOpen(true)} onMouseLeave={() => setAboutOpen(false)}>
               <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
-                  location === "/about" || location === "/private-doctor" || location.includes("/finops-refer") ? "text-brand-red border-brand-red" : "text-brand-navy"
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location === "/about" || location === "/private-doctor" || location.includes("/finops-refer") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
                   About <ChevronDown className={cn("w-4 h-4 transition-transform", aboutOpen && "rotate-180")} />
               </button>
               {aboutOpen && (
-                <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
                   {aboutSubItems.map((item) => (
                     <Link 
                       key={item.href} 
                       href={item.href} 
                       className={cn(
-                        "block px-4 py-2 text-sm font-bold hover:bg-brand-red hover:text-white transition-colors cursor-pointer",
-                        location === item.href ? "text-brand-red bg-brand-red/10" : "text-brand-navy"
+                        "block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer",
+                        location === item.href ? "text-blue-300 bg-blue-800" : "text-white"
                       )}
                     >
                       {item.name}
@@ -166,16 +175,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
             {/* VA Rating / Health Dropdown */}
             <div className="relative" onMouseEnter={() => setDisabilityOpen(true)} onMouseLeave={() => setDisabilityOpen(false)}>
               <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
-                  location.startsWith("/disability-rating") ? "text-brand-red border-brand-red" : "text-brand-navy"
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location.startsWith("/disability-rating") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
                   VA Rating / Health <ChevronDown className={cn("w-4 h-4 transition-transform", disabilityOpen && "rotate-180")} />
               </button>
               {disabilityOpen && (
-                <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
                   {disabilityRatingSubItems.map((item: any) => (
                     item.header ? (
-                      <div key={item.href} className="px-4 py-2 text-xs font-black uppercase tracking-wider text-brand-red bg-gray-100 border-t border-b border-gray-200 mt-2">
+                      <div key={item.href} className="px-4 py-2 text-xs font-black uppercase tracking-wider text-blue-300 bg-blue-800 border-t border-b border-blue-700 mt-2">
                         {item.name}
                       </div>
                     ) : (
@@ -183,8 +192,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         key={item.href} 
                         href={item.href} 
                         className={cn(
-                          "block px-4 py-2 text-sm font-bold hover:bg-brand-red hover:text-white transition-colors cursor-pointer",
-                          location === item.href ? "text-brand-red bg-brand-red/10" : "text-brand-navy"
+                          "block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer",
+                          location === item.href ? "text-blue-300 bg-blue-800" : "text-white"
                         )}
                       >
                         {item.name}
@@ -197,20 +206,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
             
             <div className="relative" onMouseEnter={() => setFinOpsOpen(true)} onMouseLeave={() => setFinOpsOpen(false)}>
               <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
-                  location.startsWith("/fin-ops") || location.startsWith("/merchant") || location.startsWith("/my-locker") || location.startsWith("/shipping") || location.startsWith("/logistics") || location.startsWith("/best-practices") || location.startsWith("/veteran-led-tax") ? "text-brand-red border-brand-red" : "text-brand-navy"
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location.startsWith("/fin-ops") || location.startsWith("/merchant") || location.startsWith("/my-locker") || location.startsWith("/shipping") || location.startsWith("/logistics") || location.startsWith("/best-practices") || location.startsWith("/veteran-led-tax") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
                   Fin-Ops <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
               </button>
               {finOpsOpen && (
-                <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
                   {finOpsSubItems.map((item) => (
                     <Link 
                       key={item.href} 
                       href={item.href} 
                       className={cn(
-                        "block px-4 py-2 text-sm font-bold hover:bg-brand-red hover:text-white transition-colors cursor-pointer",
-                        location === item.href ? "text-brand-red bg-brand-red/10" : "text-brand-navy"
+                        "block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer",
+                        location === item.href ? "text-blue-300 bg-blue-800" : "text-white"
                       )}
                     >
                       {item.name}
@@ -222,20 +231,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             <div className="relative" onMouseEnter={() => setBusinessOpen(true)} onMouseLeave={() => setBusinessOpen(false)}>
               <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-brand-red transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
-                  location === "/businesses" || location === "/job-placement" ? "text-brand-red border-brand-red" : "text-brand-navy"
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location === "/businesses" || location === "/job-placement" ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
                   Business <ChevronDown className={cn("w-4 h-4 transition-transform", businessOpen && "rotate-180")} />
               </button>
               {businessOpen && (
-                <div className="absolute top-full left-0 bg-white border-2 border-brand-red rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
                   {businessSubItems.map((item) => (
                     <Link 
                       key={item.href} 
                       href={item.href} 
                       className={cn(
-                        "block px-4 py-2 text-sm font-bold hover:bg-brand-red hover:text-white transition-colors cursor-pointer",
-                        location === item.href ? "text-brand-red bg-brand-red/10" : "text-brand-navy"
+                        "block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer",
+                        location === item.href ? "text-blue-300 bg-blue-800" : "text-white"
                       )}
                     >
                       {item.name}
@@ -245,17 +254,44 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Q Branch - AI Suite Dropdown */}
-            <div className="relative" onMouseEnter={() => setQBranchOpen(true)} onMouseLeave={() => setQBranchOpen(false)}>
+            {/* Free Vet Software - AI Suite Dropdown */}
+            <div className="relative" onMouseEnter={() => setFreeVetSoftwareOpen(true)} onMouseLeave={() => setFreeVetSoftwareOpen(false)}>
               <button className={cn(
-                  "text-sm font-bold uppercase tracking-wider hover:text-brand-blue transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
-                  location === "/operator-ai" || location === "/naval-intelligence" ? "text-brand-blue border-brand-blue" : "text-brand-navy"
-                )} data-testid="nav-q-branch">
-                  Q Branch <ChevronDown className={cn("w-4 h-4 transition-transform", qBranchOpen && "rotate-180")} />
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location === "/operator-ai" || location === "/naval-intelligence" || location === "/document-signature" ? "text-blue-600 border-blue-500" : "text-brand-navy"
+                )} data-testid="nav-free-vet-software">
+                  Free Vet Software <ChevronDown className={cn("w-4 h-4 transition-transform", freeVetSoftwareOpen && "rotate-180")} />
               </button>
-              {qBranchOpen && (
+              {freeVetSoftwareOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
-                  {qBranchSubItems.map((item) => (
+                  {freeVetSoftwareSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className={cn(
+                        "block px-4 py-2 text-sm font-bold hover:bg-blue-700 transition-colors cursor-pointer",
+                        location === item.href ? "text-blue-300 bg-blue-800" : "text-white"
+                      )}
+                      data-testid={`nav-${item.href.replace('/', '')}`}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Login Dropdown */}
+            <div className="relative" onMouseEnter={() => setLoginOpen(true)} onMouseLeave={() => setLoginOpen(false)}>
+              <button className={cn(
+                  "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
+                  location === "/affiliate" || location === "/login" || location === "/ranger-tab-signup" || location === "/admin/login" ? "text-blue-600 border-blue-500" : "text-brand-navy"
+                )} data-testid="nav-login">
+                  Login <ChevronDown className={cn("w-4 h-4 transition-transform", loginOpen && "rotate-180")} />
+              </button>
+              {loginOpen && (
+                <div className="absolute top-full right-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
+                  {loginSubItems.map((item) => (
                     <Link 
                       key={item.href} 
                       href={item.href} 
@@ -273,20 +309,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </nav>
 
-          {/* CTA Buttons - INTENSE */}
+          {/* Payzium link only when on Payzium pages */}
           <div className="hidden md:flex items-center gap-3">
-             <Link href="/affiliate" className={cn(buttonVariants(), "bg-brand-red hover:bg-brand-red/90 text-white font-bold border-2 border-brand-red cursor-pointer shadow-lg")}>
-                Enlist
-            </Link>
-            <Link href="/login" className={cn(buttonVariants(), "bg-black hover:bg-gray-900 text-white font-bold border-2 border-black cursor-pointer shadow-lg")}>
-                Deploy
-            </Link>
-            <Link href="/ranger-tab-signup" className="cursor-pointer" data-testid="nav-ranger-tab">
-                <RangerTabSVG size="nav" />
-            </Link>
-            <Link href="/admin/login" className={cn(buttonVariants(), "bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold border-2 border-gray-400 cursor-pointer shadow-lg")}>
-                Admin
-            </Link>
             {location.toLowerCase().startsWith("/payzium") && (
               <Link href="/Payzium" className={cn(buttonVariants(), "bg-purple-600 hover:bg-purple-700 text-white font-bold border-2 border-purple-600 cursor-pointer shadow-lg")}>
                   Payzium
@@ -422,44 +446,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
             <div className="h-px bg-brand-navy/20 my-2" />
-            <Link 
-              href="/affiliate" 
-              className="flex items-center justify-center w-full py-4 bg-brand-red text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-brand-red/80 shadow-lg" 
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Enlist
-            </Link>
-            <Link 
-              href="/login" 
-              className="flex items-center justify-center w-full py-4 bg-black text-white font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-gray-900 shadow-lg" 
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Deploy
-            </Link>
-            <Link 
-              href="/ranger-tab-signup" 
-              className="flex justify-center min-h-[48px] items-center" 
-              onClick={() => setMobileMenuOpen(false)}
-              data-testid="nav-mobile-ranger-tab"
-            >
-              <RangerTabSVG size="banner" />
-            </Link>
 
-            {/* Mobile Q Branch Dropdown */}
-            <div className={cn("border-l-4", mobileQBranchOpen ? "border-blue-500" : "border-transparent")}>
+            {/* Mobile Free Vet Software Dropdown */}
+            <div className={cn("border-l-4", mobileFreeVetSoftwareOpen ? "border-blue-500" : "border-transparent")}>
               <button 
                 className={cn(
                   "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]",
-                  mobileQBranchOpen ? "text-blue-600" : "text-brand-navy"
+                  mobileFreeVetSoftwareOpen ? "text-blue-600" : "text-brand-navy"
                 )}
-                onClick={() => setMobileQBranchOpen(!mobileQBranchOpen)}
-                data-testid="nav-mobile-q-branch"
+                onClick={() => setMobileFreeVetSoftwareOpen(!mobileFreeVetSoftwareOpen)}
+                data-testid="nav-mobile-free-vet-software"
               >
-                Q Branch <ChevronDown className={cn("w-4 h-4 transition-transform", mobileQBranchOpen && "rotate-180")} />
+                Free Vet Software <ChevronDown className={cn("w-4 h-4 transition-transform", mobileFreeVetSoftwareOpen && "rotate-180")} />
               </button>
-              {mobileQBranchOpen && (
+              {mobileFreeVetSoftwareOpen && (
                 <div className="pl-4 pb-2 bg-gradient-to-br from-blue-900 to-blue-950 rounded">
-                  {qBranchSubItems.map((item) => (
+                  {freeVetSoftwareSubItems.map((item) => (
                     <Link 
                       key={item.href} 
                       href={item.href} 
@@ -474,13 +476,34 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            <Link 
-              href="/admin/login" 
-              className="flex items-center justify-center w-full py-4 bg-gray-800 text-gray-200 border-2 border-gray-400 font-bold uppercase cursor-pointer touch-manipulation min-h-[48px] active:bg-gray-700 shadow-lg" 
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Admin
-            </Link>
+            {/* Mobile Login Dropdown */}
+            <div className={cn("border-l-4", mobileLoginOpen ? "border-blue-500" : "border-transparent")}>
+              <button 
+                className={cn(
+                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center justify-between touch-manipulation min-h-[44px]",
+                  mobileLoginOpen ? "text-blue-600" : "text-brand-navy"
+                )}
+                onClick={() => setMobileLoginOpen(!mobileLoginOpen)}
+                data-testid="nav-mobile-login"
+              >
+                Login <ChevronDown className={cn("w-4 h-4 transition-transform", mobileLoginOpen && "rotate-180")} />
+              </button>
+              {mobileLoginOpen && (
+                <div className="pl-4 pb-2 bg-gradient-to-br from-blue-900 to-blue-950 rounded">
+                  {loginSubItems.map((item) => (
+                    <Link 
+                      key={item.href} 
+                      href={item.href} 
+                      className="text-white font-semibold py-3 px-3 block cursor-pointer touch-manipulation min-h-[44px] flex items-center hover:text-blue-300 active:bg-blue-800 border-b border-blue-700 last:border-0" 
+                      onClick={() => setMobileMenuOpen(false)}
+                      data-testid={`nav-mobile-${item.href.replace('/', '')}`}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             {location.toLowerCase().startsWith("/payzium") && (
               <Link 
                 href="/Payzium" 

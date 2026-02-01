@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
+import { useVeteranVerification } from "@/components/veteran-verification-popup";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -58,6 +59,11 @@ const TASK_PRESETS = [
 export default function OperatorAI() {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { showPopup, isVerified, checkVerification, VeteranPopup } = useVeteranVerification();
+  
+  useEffect(() => {
+    checkVerification();
+  }, []);
   
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -228,6 +234,7 @@ export default function OperatorAI() {
 
   return (
     <Layout>
+      <VeteranPopup />
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-950 to-gray-900">
         {/* Hero Header */}
         <section className="relative py-8 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 overflow-hidden">

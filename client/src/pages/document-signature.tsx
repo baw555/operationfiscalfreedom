@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
+import { useVeteranVerification } from "@/components/veteran-verification-popup";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,6 +88,11 @@ interface SignedAgreement {
 }
 
 export default function DocumentSignature() {
+  const { showPopup, isVerified, checkVerification, VeteranPopup } = useVeteranVerification();
+  
+  useEffect(() => {
+    checkVerification();
+  }, []);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -214,6 +220,7 @@ export default function DocumentSignature() {
 
   return (
     <Layout>
+      <VeteranPopup />
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent" />
         
