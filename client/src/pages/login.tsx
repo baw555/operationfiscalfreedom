@@ -86,9 +86,12 @@ export default function Login() {
                 Secure access to veteran resources, affiliate tools, and administrative systems.
               </p>
               <div className="mt-12 pt-8 border-t border-slate-700/50">
-                <p className="text-slate-500 text-sm uppercase tracking-widest">
-                  Trusted by 150,000+ Veteran Families
+                <p className="text-slate-500 text-sm uppercase tracking-widest mb-3">
+                  Trusted By Veterans
                 </p>
+                <a href="/hipaa-compliance" className="text-amber-500/80 text-sm hover:text-amber-400 transition-colors">
+                  HIPAA Compliant
+                </a>
               </div>
             </div>
           </div>
