@@ -740,9 +740,9 @@ export default function PlanningSolutions() {
                           Request Consultation
                         </Button>
                       </Link>
-                      <Link href="/schedule-a">
+                      <Link href="/insurance">
                         <Button variant="outline" className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10">
-                          View Commission Structure
+                          Get Free Quote
                         </Button>
                       </Link>
                     </div>

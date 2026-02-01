@@ -7,14 +7,287 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TCPAConsent } from "@/components/tcpa-consent";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, CheckCircle, Users, Building2, Briefcase, DollarSign, Heart, Car, Home, FileText } from "lucide-react";
+import { 
+  Shield, CheckCircle, Users, Building2, Briefcase, DollarSign, Heart, Car, Home, FileText,
+  ChevronDown, ChevronRight, TrendingUp, Target, UserCheck, Stethoscope, GraduationCap, Star
+} from "lucide-react";
 import { useScrollToTopOnChange } from "@/hooks/use-scroll-to-top";
+import { Link } from "wouter";
+
+type ServiceCategory = "planning" | "disability" | "business" | "future";
+
+interface Service {
+  id: string;
+  name: string;
+  shortDesc: string;
+  features: string[];
+  benefits: string[];
+}
+
+const PLANNING_SOLUTIONS: Service[] = [
+  {
+    id: "long-term-care",
+    name: "Long Term Care Planning",
+    shortDesc: "Protect your assets and ensure quality care for the future with nursing home costs averaging $120K+/year",
+    features: [
+      "Traditional standalone LTC with tax-deductible premiums",
+      "Hybrid Life + LTC policies with fixed premiums",
+      "Cash indemnity options - no receipts needed",
+      "2-5% compound inflation protection",
+      "90-day retroactive benefits"
+    ],
+    benefits: [
+      "Protect savings from catastrophic care costs",
+      "Choose your preferred care settings",
+      "Tax-advantaged premium deductions up to $6,020/year",
+      "Peace of mind for you and your family"
+    ]
+  },
+  {
+    id: "malpractice",
+    name: "Malpractice Insurance",
+    shortDesc: "Professional liability protection for healthcare providers with comprehensive coverage options",
+    features: [
+      "Occurrence-based vs. claims-made policies",
+      "Tail coverage for retired practitioners",
+      "Defense costs outside policy limits",
+      "Telemedicine and virtual care coverage",
+      "Multi-state licensing protection"
+    ],
+    benefits: [
+      "Financial protection from lawsuit costs",
+      "Access to experienced medical defense attorneys",
+      "Protection of personal assets",
+      "License defense coverage"
+    ]
+  },
+  {
+    id: "risk-mitigation",
+    name: "Risk Mitigation",
+    shortDesc: "Comprehensive strategies to identify and minimize business and personal financial risks",
+    features: [
+      "Comprehensive risk assessment and audit",
+      "Liability gap analysis",
+      "Asset protection structuring",
+      "Business continuity planning",
+      "Insurance portfolio optimization"
+    ],
+    benefits: [
+      "Reduce exposure to lawsuits",
+      "Protect business and personal assets",
+      "Lower insurance premiums",
+      "Ensure business continuity"
+    ]
+  }
+];
+
+const DISABILITY_SOLUTIONS: Service[] = [
+  {
+    id: "physician-disability",
+    name: "Physician Disability Insurance",
+    shortDesc: "True own-occupation coverage protecting your medical specialty with benefits up to $15,000/month",
+    features: [
+      "True own-occupation definition (gold standard)",
+      "Non-cancelable and guaranteed renewable to age 65-70",
+      "Student loan protection rider ($150K-$250K lump sum)",
+      "Residual/partial disability coverage",
+      "Cost of living adjustment (COLA) rider",
+      "Recovery benefit for returning to practice"
+    ],
+    benefits: [
+      "Protect income tied to your specific specialty",
+      "Locked-in premiums that can't increase",
+      "Coverage continues even if you work in another field",
+      "Tax-free benefits when you pay premiums personally"
+    ]
+  },
+  {
+    id: "group-disability",
+    name: "Group Disability Insurance",
+    shortDesc: "Employee income protection with 60% replacement up to $10,000/month at group rates",
+    features: [
+      "Short-term (3-12 months) and long-term (to age 65) coverage",
+      "60% income replacement with monthly caps",
+      "Guaranteed issue - no medical underwriting",
+      "Work incentive and rehabilitation programs",
+      "Mental health coverage included",
+      "Critical illness coverage bundling"
+    ],
+    benefits: [
+      "Lower premiums than individual policies",
+      "No medical exam required for employees",
+      "Comprehensive STD + LTD protection",
+      "Attract and retain top talent"
+    ]
+  }
+];
+
+const BUSINESS_SOLUTIONS: Service[] = [
+  {
+    id: "custom-benefits",
+    name: "Custom Benefits Packages",
+    shortDesc: "Tailored employee benefits that attract and retain top talent - 70% of workers change jobs for better perks",
+    features: [
+      "Health, dental, and vision insurance bundles",
+      "401(k) and retirement plan options",
+      "Flexible spending accounts (FSA/HSA)",
+      "Telehealth and mental health services",
+      "Student loan assistance programs",
+      "Financial wellness counseling"
+    ],
+    benefits: [
+      "Compete with larger companies for talent",
+      "Reduce turnover costs",
+      "Tax advantages for employer contributions",
+      "Strengthen your employer brand"
+    ]
+  },
+  {
+    id: "key-person",
+    name: "Key Person Insurance",
+    shortDesc: "Protect your business from the loss of critical team members with 5-10x salary coverage",
+    features: [
+      "Life and/or disability coverage options",
+      "Term (10-30 years) or permanent policy structures",
+      "Can serve as SBA loan collateral",
+      "Buy-sell agreement funding",
+      "Cash value accumulation with permanent policies"
+    ],
+    benefits: [
+      "Financial cushion during transition periods",
+      "Fund recruitment and training of replacements",
+      "Pay off business debts if needed",
+      "Tax-free death benefit to the business"
+    ]
+  },
+  {
+    id: "business-overhead",
+    name: "Business Overhead Expense",
+    shortDesc: "Keep your business running during owner disability with $1,000-$25,000/month in covered expenses",
+    features: [
+      "Covers rent, utilities, employee salaries",
+      "12-24 month benefit periods",
+      "30-90 day elimination periods",
+      "Equipment leases and insurance premiums",
+      "Tax-deductible premiums",
+      "Substitute salary rider available"
+    ],
+    benefits: [
+      "Maintain business operations during disability",
+      "Protect employee jobs and client relationships",
+      "Preserve business value and reputation",
+      "Return to a functional business after recovery"
+    ]
+  },
+  {
+    id: "employee-education",
+    name: "Employee Education Programs",
+    shortDesc: "Financial literacy and benefits education for your workforce to maximize participation",
+    features: [
+      "Benefits enrollment education sessions",
+      "Retirement planning workshops",
+      "Financial wellness seminars",
+      "One-on-one employee consultations",
+      "Digital learning resources"
+    ],
+    benefits: [
+      "Higher benefits participation rates",
+      "Reduced HR burden for benefits questions",
+      "Improved employee financial wellness",
+      "Better retirement preparedness"
+    ]
+  }
+];
+
+const FUTURE_SOLUTIONS: Service[] = [
+  {
+    id: "life-insurance-review",
+    name: "Life Insurance Review",
+    shortDesc: "Annual policy audit - over 65% of reviews reveal opportunities for improvement",
+    features: [
+      "Complete policy inventory and analysis",
+      "Beneficiary designation verification",
+      "Cash value and performance review",
+      "Insurance company financial health check",
+      "Tax-free 1035 exchange evaluation"
+    ],
+    benefits: [
+      "Ensure policies perform as intended",
+      "Avoid policy lapses from underfunding",
+      "Update beneficiaries after life changes",
+      "Potentially reduce premiums or increase coverage"
+    ]
+  },
+  {
+    id: "retirement-planning",
+    name: "Retirement Planning",
+    shortDesc: "401(k), IRA, and pension strategies with SECURE 2.0 tax credits covering 100% of startup costs",
+    features: [
+      "Solo 401(k) for self-employed ($23,500 + employer contributions)",
+      "Safe Harbor 401(k) to skip nondiscrimination testing",
+      "Profit-sharing up to 25% of compensation",
+      "SECURE 2.0 tax credits (up to $5,000/year for 3 years)",
+      "Age 60-63 enhanced catch-up contributions ($11,250)"
+    ],
+    benefits: [
+      "Tax deductions on employer contributions",
+      "Attract and retain quality employees",
+      "Maximize personal retirement savings",
+      "Build wealth with tax-deferred growth"
+    ]
+  },
+  {
+    id: "estate-planning",
+    name: "Estate Planning",
+    shortDesc: "Protect and transfer wealth with $13.99M federal estate tax exemption strategies",
+    features: [
+      "Revocable and irrevocable trust structures",
+      "Life insurance trusts (ILIT) to exclude proceeds",
+      "Grantor retained trusts (GRAT/GRUT)",
+      "Family limited partnerships for discounted transfers",
+      "Annual gifting strategies ($19,000/recipient)"
+    ],
+    benefits: [
+      "Minimize or eliminate estate taxes",
+      "Avoid probate delays and costs",
+      "Protect assets from creditors",
+      "Ensure wishes are followed if incapacitated"
+    ]
+  },
+  {
+    id: "succession-planning",
+    name: "Succession Planning",
+    shortDesc: "Ensure smooth business transition - only 30% of businesses have formal plans",
+    features: [
+      "Business valuation and KPI assessment",
+      "Successor identification and development",
+      "Buy-sell agreement drafting and funding",
+      "Tax-efficient transfer strategies",
+      "Life insurance for estate equalization"
+    ],
+    benefits: [
+      "Maximize business value at transition",
+      "Minimize tax impact of ownership transfer",
+      "Ensure business continuity",
+      "Protect family relationships"
+    ]
+  }
+];
+
+const categoryInfo: Record<ServiceCategory, { title: string; services: Service[]; icon: React.ReactNode }> = {
+  planning: { title: "Planning Solutions", services: PLANNING_SOLUTIONS, icon: <Shield className="w-5 h-5" /> },
+  disability: { title: "Disability Solutions", services: DISABILITY_SOLUTIONS, icon: <Heart className="w-5 h-5" /> },
+  business: { title: "Business Solutions", services: BUSINESS_SOLUTIONS, icon: <Briefcase className="w-5 h-5" /> },
+  future: { title: "Future Solutions", services: FUTURE_SOLUTIONS, icon: <TrendingUp className="w-5 h-5" /> }
+};
 
 export default function Insurance() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [tcpaConsent, setTcpaConsent] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<ServiceCategory>("planning");
+  const [expandedService, setExpandedService] = useState<string | null>(null);
   useScrollToTopOnChange(submitted);
   
   const [formData, setFormData] = useState({
@@ -61,7 +334,7 @@ export default function Insurance() {
     },
     onSuccess: () => {
       setSubmitted(true);
-      toast({ title: "Request Submitted!", description: "We'll contact you within 24 hours. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails." });
+      toast({ title: "Request Submitted!", description: "We'll contact you within 24 hours." });
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -99,18 +372,20 @@ export default function Insurance() {
     { id: "home", label: "Home Insurance", icon: Home },
   ];
 
+  const currentCategory = categoryInfo[activeCategory];
+
   if (submitted) {
     return (
       <Layout>
-        <div className="min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-brand-navy to-brand-navy/90 py-20">
+        <div className="min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-slate-900 to-brand-navy py-20">
           <div className="text-center text-white max-w-lg mx-auto px-4">
             <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-6" />
             <h1 className="text-4xl font-display mb-4">Request Received!</h1>
             <p className="text-xl text-gray-300 mb-6">
-              Thank you for your interest. You may be eligible for savings on insurance. Our team will contact you within 24 hours to discuss your options. You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
+              Thank you for your interest. Our team will contact you within 24 hours to discuss your options.
             </p>
             <p className="text-sm text-gray-400">
-              Potential savings vary by individual circumstances
+              You may opt out at any time by replying STOP to texts or clicking unsubscribe in emails.
             </p>
           </div>
         </div>
@@ -120,25 +395,26 @@ export default function Insurance() {
 
   return (
     <Layout>
-      {/* Patriotic Banner */}
-      <div className="h-2 bg-gradient-to-r from-brand-red via-white to-brand-navy"></div>
+      <div className="h-1 bg-gradient-to-r from-amber-500 via-slate-600 to-amber-500"></div>
       
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-brand-red via-brand-navy to-brand-navy text-white py-12 sm:py-16 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:20px_20px]"></div>
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-brand-navy text-white py-16 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:24px_24px]"></div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Shield className="w-12 h-12 text-white" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 border border-amber-500/30 rounded-full text-amber-400 text-sm font-medium mb-6">
+            <Star className="w-4 h-4" />
+            Navigator Elite Financial Services
           </div>
-          <h1 className="text-3xl sm:text-5xl font-display mb-4">Save 20-40% on All Insurance</h1>
-          <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto mb-6">
-            NavigatorUSA's provider-direct insurance model eliminates middleman commissions, 
-            passing the savings directly to you and your business.
+          <h1 className="text-4xl sm:text-5xl font-display mb-4">
+            Comprehensive Insurance & <span className="text-amber-400">Financial Planning</span>
+          </h1>
+          <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+            Fortune 500-level protection strategies for veterans, professionals, and business owners. 
+            Provider-direct model delivering 20-40% savings with enhanced coverage.
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
             <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
               <CheckCircle className="w-4 h-4 text-green-400" />
-              <span>No Agent Commissions</span>
+              <span>A+ Rated Carriers</span>
             </div>
             <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
               <CheckCircle className="w-4 h-4 text-green-400" />
@@ -146,43 +422,149 @@ export default function Insurance() {
             </div>
             <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
               <CheckCircle className="w-4 h-4 text-green-400" />
-              <span>Enhanced Coverage</span>
+              <span>$45K+ Avg. Annual Savings</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12 bg-slate-900">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <DollarSign className="w-6 h-6 text-green-600" />
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-display text-white mb-2">Our Solutions Portfolio</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Comprehensive financial protection across every stage of life and business
+            </p>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            {(Object.keys(categoryInfo) as ServiceCategory[]).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => {
+                  setActiveCategory(cat);
+                  setExpandedService(null);
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                  activeCategory === cat
+                    ? "bg-amber-500 text-slate-900"
+                    : "bg-white/10 text-gray-300 hover:bg-white/20"
+                }`}
+                data-testid={`button-category-${cat}`}
+              >
+                {categoryInfo[cat].icon}
+                <span>{categoryInfo[cat].title}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="max-w-4xl mx-auto space-y-4">
+            {currentCategory.services.map((service) => (
+              <div
+                key={service.id}
+                className="bg-slate-800/50 rounded-xl border border-white/10 overflow-hidden hover:border-amber-500/30 transition-colors"
+                data-testid={`card-service-${service.id}`}
+              >
+                <div 
+                  className="p-5 cursor-pointer flex items-center justify-between"
+                  onClick={() => setExpandedService(expandedService === service.id ? null : service.id)}
+                >
+                  <div>
+                    <h3 className="text-lg font-bold text-white">{service.name}</h3>
+                    <p className="text-sm text-gray-400 mt-1">{service.shortDesc}</p>
+                  </div>
+                  <ChevronRight 
+                    className={`w-5 h-5 text-amber-400 transition-transform flex-shrink-0 ml-4 ${
+                      expandedService === service.id ? "rotate-90" : ""
+                    }`}
+                  />
+                </div>
+
+                {expandedService === service.id && (
+                  <div className="px-5 pb-5 border-t border-white/10 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-slate-900/50 rounded-lg p-4">
+                        <h4 className="font-bold text-amber-400 mb-3 flex items-center gap-2 text-sm">
+                          <CheckCircle className="w-4 h-4" />
+                          Key Features
+                        </h4>
+                        <ul className="space-y-2">
+                          {service.features.map((feature, idx) => (
+                            <li key={idx} className="text-sm text-gray-300 flex items-start gap-2">
+                              <span className="text-amber-400 mt-0.5">•</span>
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="bg-slate-900/50 rounded-lg p-4">
+                        <h4 className="font-bold text-green-400 mb-3 flex items-center gap-2 text-sm">
+                          <TrendingUp className="w-4 h-4" />
+                          Benefits
+                        </h4>
+                        <ul className="space-y-2">
+                          {service.benefits.map((benefit, idx) => (
+                            <li key={idx} className="text-sm text-gray-300 flex items-start gap-2">
+                              <span className="text-green-400 mt-0.5">•</span>
+                              {benefit}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <h3 className="font-bold text-lg text-brand-navy mb-2">Proven Cost Savings</h3>
-              <p className="text-gray-600 text-sm">Our commissionless model has demonstrated annual savings exceeding $45,000 for medical practices alone.</p>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <Link href="/planning-solutions">
+              <Button variant="outline" className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10">
+                View All Solutions in Detail
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 bg-slate-800">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            <div className="bg-slate-900/50 p-6 rounded-xl border border-white/10">
+              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
+                <DollarSign className="w-6 h-6 text-green-400" />
+              </div>
+              <h3 className="font-bold text-lg text-white mb-2">$45K+ Savings</h3>
+              <p className="text-gray-400 text-sm">Annual savings demonstrated for medical practices through our provider-direct model.</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-blue-600" />
+            <div className="bg-slate-900/50 p-6 rounded-xl border border-white/10">
+              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-blue-400" />
               </div>
-              <h3 className="font-bold text-lg text-brand-navy mb-2">Tailored Solutions</h3>
-              <p className="text-gray-600 text-sm">We craft custom financial strategies for consumers, business owners, and professionals.</p>
+              <h3 className="font-bold text-lg text-white mb-2">Tailored Solutions</h3>
+              <p className="text-gray-400 text-sm">Custom financial strategies for consumers, business owners, and professionals.</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-purple-600" />
+            <div className="bg-slate-900/50 p-6 rounded-xl border border-white/10">
+              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4">
+                <Shield className="w-6 h-6 text-purple-400" />
               </div>
-              <h3 className="font-bold text-lg text-brand-navy mb-2">Enhanced Coverage</h3>
-              <p className="text-gray-600 text-sm">Direct provider relationships mean better coverage terms and lower premiums.</p>
+              <h3 className="font-bold text-lg text-white mb-2">A+ Rated Carriers</h3>
+              <p className="text-gray-400 text-sm">Direct relationships with Fortune 500 insurers for superior coverage.</p>
+            </div>
+            <div className="bg-slate-900/50 p-6 rounded-xl border border-white/10">
+              <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center mb-4">
+                <Star className="w-6 h-6 text-amber-400" />
+              </div>
+              <h3 className="font-bold text-lg text-white mb-2">34+ Years</h3>
+              <p className="text-gray-400 text-sm">Decades of experience in insurance and financial planning.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Form Section */}
-      <section className="py-12 sm:py-16 bg-white">
+      <section className="py-12 sm:py-16 bg-white" id="quote-form">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8">
@@ -191,7 +573,6 @@ export default function Insurance() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* User Type Selection */}
               <div>
                 <Label className="text-brand-navy font-semibold mb-3 block">I am a... *</Label>
                 <div className="grid grid-cols-3 gap-3">
@@ -218,7 +599,6 @@ export default function Insurance() {
                 </div>
               </div>
 
-              {/* Intent Type Selection */}
               <div>
                 <Label className="text-brand-navy font-semibold mb-3 block">I want to... *</Label>
                 <div className="grid grid-cols-3 gap-3">
@@ -244,7 +624,6 @@ export default function Insurance() {
                 </div>
               </div>
 
-              {/* Insurance Types */}
               <div>
                 <Label className="text-brand-navy font-semibold mb-3 block">Insurance Types (select all that apply) *</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -267,7 +646,6 @@ export default function Insurance() {
                 </div>
               </div>
 
-              {/* Contact Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName" className="text-gray-700">First Name *</Label>
@@ -316,7 +694,6 @@ export default function Insurance() {
                 </div>
               </div>
 
-              {/* Business-specific fields */}
               {formData.userType === "business" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -390,8 +767,7 @@ export default function Insurance() {
         </div>
       </section>
 
-      {/* Navigator Insurance Direct Carriers Section */}
-      <section className="py-12 bg-brand-navy text-white">
+      <section className="py-12 bg-slate-900 text-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-2xl sm:text-3xl font-display mb-3">Navigator Insurance Partner Network</h2>
@@ -401,11 +777,10 @@ export default function Insurance() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
-            {/* Sun Life - #1 by AUM */}
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border-2 border-brand-gold">
+            <div className="bg-white/10 rounded-xl p-5 backdrop-blur border-2 border-amber-500">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-brand-gold">Sun Life Financial</h3>
-                <span className="bg-brand-gold text-brand-navy text-xs font-bold px-2 py-1 rounded">#1 AUM</span>
+                <h3 className="font-bold text-xl text-amber-400">Sun Life Financial</h3>
+                <span className="bg-amber-500 text-slate-900 text-xs font-bold px-2 py-1 rounded">#1 AUM</span>
               </div>
               <div className="text-sm space-y-2">
                 <div className="grid grid-cols-2 gap-2">
@@ -413,15 +788,13 @@ export default function Insurance() {
                   <p><span className="text-gray-400">Est:</span> 1865</p>
                 </div>
                 <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$1.54 Trillion</span></p>
-                <p><span className="text-gray-400">Global Reach:</span> 15+ countries</p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">159+ years of financial strength. Leading dental, vision & life coverage. One of the world's largest financial services companies.</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">159+ years of financial strength. Leading dental, vision & life coverage.</p>
               </div>
             </div>
             
-            {/* Principal Financial - #2 by AUM */}
             <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-brand-gold">Principal Financial</h3>
+                <h3 className="font-bold text-xl text-amber-400">Principal Financial</h3>
                 <span className="bg-white/20 text-white text-xs font-bold px-2 py-1 rounded">#2 AUM</span>
               </div>
               <div className="text-sm space-y-2">
@@ -430,15 +803,13 @@ export default function Insurance() {
                   <p><span className="text-gray-400">S&P:</span> A+</p>
                 </div>
                 <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$781 Billion</span></p>
-                <p><span className="text-gray-400">Fortune 500:</span> Yes | <span className="text-gray-400">Est:</span> 1879</p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Fortune 500 company. #11 on JUST 100 list. Serves 68M+ customers globally. 146 years of trusted service.</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Fortune 500 company. Serves 68M+ customers globally.</p>
               </div>
             </div>
             
-            {/* Symetra */}
             <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-brand-gold">Symetra Financial</h3>
+                <h3 className="font-bold text-xl text-amber-400">Symetra Financial</h3>
                 <span className="bg-blue-500/30 text-blue-200 text-xs font-bold px-2 py-1 rounded">Low Complaints</span>
               </div>
               <div className="text-sm space-y-2">
@@ -447,32 +818,28 @@ export default function Insurance() {
                   <p><span className="text-gray-400">Est:</span> 1957</p>
                 </div>
                 <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$68.4 Billion</span></p>
-                <p><span className="text-gray-400">Customers:</span> 2.1M+ | <span className="text-gray-400">Staff:</span> 2,600+</p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Backed by Sumitomo Life (Japan) with combined $318B assets. Below-average complaint ratio. Fast 18-min approvals.</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Backed by Sumitomo Life (Japan). Fast 18-min approvals.</p>
               </div>
             </div>
             
-            {/* The Hartford */}
             <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-brand-gold">The Hartford</h3>
+                <h3 className="font-bold text-xl text-amber-400">The Hartford</h3>
                 <span className="bg-red-500/30 text-red-200 text-xs font-bold px-2 py-1 rounded">Oldest US Insurer</span>
               </div>
               <div className="text-sm space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <p><span className="text-gray-400">AM Best:</span> <span className="text-green-400 font-semibold">A+ Superior</span></p>
-                  <p><span className="text-gray-400">S&P:</span> A+ | Moody's: A1</p>
+                  <p><span className="text-gray-400">S&P:</span> A+</p>
                 </div>
                 <p><span className="text-gray-400">Revenue:</span> <span className="text-white font-bold">$26.5 Billion</span></p>
-                <p><span className="text-gray-400">Fortune 500:</span> #166 | <span className="text-gray-400">Est:</span> 1810</p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">America's oldest insurer - 215+ years. #1 combined disability provider. AARP exclusive partner for 25+ years. ROE: 16.7%.</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">America's oldest insurer - 215+ years. #1 combined disability provider.</p>
               </div>
             </div>
             
-            {/* UNUM */}
             <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-brand-gold">UNUM Group</h3>
+                <h3 className="font-bold text-xl text-amber-400">UNUM Group</h3>
                 <span className="bg-purple-500/30 text-purple-200 text-xs font-bold px-2 py-1 rounded">Disability Leader</span>
               </div>
               <div className="text-sm space-y-2">
@@ -481,15 +848,13 @@ export default function Insurance() {
                   <p><span className="text-gray-400">Fitch:</span> A Stable</p>
                 </div>
                 <p><span className="text-gray-400">Revenue:</span> <span className="text-white font-bold">$12.9 Billion</span></p>
-                <p><span className="text-gray-400">Fortune 500:</span> Yes | <span className="text-gray-400">Est:</span> 1848</p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">3rd largest US disability insurer. 38M+ beneficiaries. First US disability insurer (1939). World's Most Ethical Company.</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">3rd largest US disability insurer. 38M+ beneficiaries.</p>
               </div>
             </div>
             
-            {/* The Standard */}
             <div className="bg-white/10 rounded-xl p-5 backdrop-blur border border-white/20">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-xl text-brand-gold">The Standard</h3>
+                <h3 className="font-bold text-xl text-amber-400">The Standard</h3>
                 <span className="bg-green-500/30 text-green-200 text-xs font-bold px-2 py-1 rounded">95+ Yr A Rating</span>
               </div>
               <div className="text-sm space-y-2">
@@ -498,15 +863,14 @@ export default function Insurance() {
                   <p><span className="text-gray-400">Est:</span> 1906</p>
                 </div>
                 <p><span className="text-gray-400">Assets:</span> <span className="text-white font-bold">$25+ Billion</span></p>
-                <p><span className="text-gray-400">Revenue:</span> $2.2B | <span className="text-gray-400">States:</span> 49 + DC</p>
-                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Only 8 insurers have held A rating for 95+ consecutive years. Backed by Meiji Yasuda ($312B assets). Group disability specialist.</p>
+                <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">Only 8 insurers have held A rating for 95+ consecutive years.</p>
               </div>
             </div>
           </div>
           
           <div className="text-center mt-10">
             <div className="inline-flex items-center gap-3 bg-white/5 rounded-full px-6 py-3">
-              <span className="text-brand-gold font-bold">Navigator Insurance</span>
+              <span className="text-amber-400 font-bold">Navigator Insurance</span>
               <span className="text-gray-400">|</span>
               <span className="text-gray-300 text-sm">Provider-Direct Model = 20-40% Savings</span>
             </div>
