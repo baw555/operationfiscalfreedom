@@ -337,6 +337,13 @@ export default function Home() {
               Skip
             </button>
           )}
+          
+          {/* Flag Banner visible when video is minimized */}
+          {!videoFullscreen && (
+            <div className="absolute bottom-0 left-0 right-0 z-10">
+              <FlagBanner />
+            </div>
+          )}
         </section>
       )}
 
