@@ -34,6 +34,7 @@ The database supports various functionalities including user management (`users`
 - **VSO Portal Replication Pattern**: A pattern for creating branded, individualized contract management portals for Veterans Service Officers, including seed data, custom routing, and unique branding.
 - **Planning Solutions (`/planning-solutions`)**: Comprehensive insurance and financial planning services organized into six categories.
 - **Claims Navigator (`/claims-navigator`)**: A personalized task management system for VA Disability or SSDI claims, allowing veterans to build and track their cases. It features a wizard flow, personalized task generation, and controlled sharing with vendors.
+- **Vendor Portal (`/vendor-portal`)**: A secure, scoped portal for vendors to access shared veteran cases. Features passwordless magic-link authentication via email (15-minute expiry), 7-day sessions stored in localStorage, role-based permissions (view/comment/upload), and session-based API authorization.
 
 ## External Dependencies
 - **PostgreSQL**: Primary database.
