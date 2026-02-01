@@ -1109,6 +1109,101 @@ export default function MasterPortal() {
                     </div>
                   </div>
                 </div>
+
+                <div className="mt-8 pt-6 border-t border-white/10">
+                  <h3 className="font-bold text-white text-lg mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-green-400" />
+                    All Products/Services - Commission Breakdown ($100,000 Deal)
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Shows total commission pool and payout distribution for each product/service based on a $100,000 deal with 3 uplines
+                  </p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-brand-navy/50">
+                        <tr className="border-b border-white/20">
+                          <th className="py-3 px-3 text-left text-white font-bold">Product/Service</th>
+                          <th className="py-3 px-3 text-center text-white font-bold">Gross Rate</th>
+                          <th className="py-3 px-3 text-center text-white font-bold">Commission Pool</th>
+                          <th className="py-3 px-3 text-center text-green-400 font-bold">Producer (72%)</th>
+                          <th className="py-3 px-3 text-center text-blue-400 font-bold">Uplines (3%)</th>
+                          <th className="py-3 px-3 text-center text-amber-400 font-bold">Recruiter (2.5%)</th>
+                          <th className="py-3 px-3 text-center text-gray-400 font-bold">House (22.5%)</th>
+                          <th className="py-3 px-3 text-center text-white font-bold">Total to Reps</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { name: "Private Reinsurance eR3", rate: 70 },
+                          { name: "Private Reinsurance eR2", rate: 70 },
+                          { name: "FICA Tips Tax Credit", rate: 70 },
+                          { name: "Tax Recovery", rate: 70 },
+                          { name: "Tax Resolution Services", rate: 55 },
+                          { name: "ICC Logistics", rate: 18 },
+                        ].map((product) => {
+                          const dealAmount = 100000;
+                          const pool = dealAmount * (product.rate / 100);
+                          const producerPay = pool * 0.72;
+                          const uplinesPay = pool * 0.03;
+                          const recruiterPay = pool * 0.025;
+                          const housePay = pool * 0.225;
+                          const totalToReps = producerPay + uplinesPay + recruiterPay;
+                          return (
+                            <tr key={product.name} className="border-b border-white/10 hover:bg-white/5">
+                              <td className="py-3 px-3 text-white font-medium">{product.name}</td>
+                              <td className="py-3 px-3 text-center text-amber-400 font-bold">{product.rate}%</td>
+                              <td className="py-3 px-3 text-center text-white font-bold">${pool.toLocaleString()}</td>
+                              <td className="py-3 px-3 text-center text-green-400">${producerPay.toLocaleString()}</td>
+                              <td className="py-3 px-3 text-center text-blue-400">${uplinesPay.toLocaleString()}</td>
+                              <td className="py-3 px-3 text-center text-amber-400">${recruiterPay.toLocaleString()}</td>
+                              <td className="py-3 px-3 text-center text-gray-400">${housePay.toLocaleString()}</td>
+                              <td className="py-3 px-3 text-center">
+                                <span className="text-green-400 font-bold">${totalToReps.toLocaleString()}</span>
+                                <span className="text-gray-500 text-xs block">({((totalToReps / pool) * 100).toFixed(1)}% of pool)</span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot className="bg-black/30">
+                        <tr className="border-t-2 border-white/20">
+                          <td colSpan={7} className="py-3 px-3 text-right text-gray-300 font-medium">
+                            Total to Sales Reps (Producer + Uplines + Recruiter):
+                          </td>
+                          <td className="py-3 px-3 text-center text-green-400 font-bold text-lg">
+                            77.5%
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colSpan={7} className="py-2 px-3 text-right text-gray-400">
+                            House Retention:
+                          </td>
+                          <td className="py-2 px-3 text-center text-gray-400 font-bold">
+                            22.5%
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                      <div className="text-green-400 font-bold text-2xl">77.5%</div>
+                      <div className="text-sm text-gray-400">Goes to Sales Reps</div>
+                      <div className="text-xs text-gray-500 mt-1">Producer + Uplines + Recruiter</div>
+                    </div>
+                    <div className="bg-gray-500/10 border border-gray-500/30 rounded-lg p-4">
+                      <div className="text-gray-300 font-bold text-2xl">22.5%</div>
+                      <div className="text-sm text-gray-400">Goes to House</div>
+                      <div className="text-xs text-gray-500 mt-1">Navigator USA Operations</div>
+                    </div>
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                      <div className="text-amber-400 font-bold text-2xl">100%</div>
+                      <div className="text-sm text-gray-400">Total Allocation</div>
+                      <div className="text-xs text-gray-500 mt-1">Every dollar accounted for</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </TabsContent>
