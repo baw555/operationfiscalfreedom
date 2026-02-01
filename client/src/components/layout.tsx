@@ -258,7 +258,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1 min-w-[160px]",
                   location.startsWith("/fin-ops") || location.startsWith("/merchant") || location.startsWith("/my-locker") || location.startsWith("/shipping") || location.startsWith("/logistics") || location.startsWith("/best-practices") || location.startsWith("/veteran-led-tax") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  <CyclingText texts={["Fin-Ops", "Veteran Logistics", "Insurance Savings", "Tax Solutions"]} interval={3000} offset={2000} /> <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
+                  <CyclingText texts={["Fin-Ops", "Veteran Logistics", "Tax Solutions"]} interval={3000} offset={2000} /> <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
               </button>
               {finOpsOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
