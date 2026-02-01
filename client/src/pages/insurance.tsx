@@ -400,10 +400,6 @@ export default function Insurance() {
       <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-brand-navy text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:24px_24px]"></div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 border border-amber-500/30 rounded-full text-amber-400 text-sm font-medium mb-6">
-            <Star className="w-4 h-4" />
-            Navigator Elite Financial Services
-          </div>
           <h1 className="text-4xl sm:text-5xl font-display mb-4">
             Comprehensive Insurance & <span className="text-amber-400">Financial Planning</span>
           </h1>
@@ -427,6 +423,19 @@ export default function Insurance() {
           </div>
         </div>
       </section>
+
+      <div className="bg-amber-500 py-3 overflow-hidden">
+        <div className="animate-marquee whitespace-nowrap flex">
+          <span className="text-slate-900 font-bold text-lg mx-8">WE ARE DIRECT TO 70+ CARRIERS, INSURERS & REINSURERS - SAVE ON ANY INSURANCE</span>
+          <span className="text-slate-900 font-bold text-lg mx-8">★</span>
+          <span className="text-slate-900 font-bold text-lg mx-8">WE ARE DIRECT TO 70+ CARRIERS, INSURERS & REINSURERS - SAVE ON ANY INSURANCE</span>
+          <span className="text-slate-900 font-bold text-lg mx-8">★</span>
+          <span className="text-slate-900 font-bold text-lg mx-8">WE ARE DIRECT TO 70+ CARRIERS, INSURERS & REINSURERS - SAVE ON ANY INSURANCE</span>
+          <span className="text-slate-900 font-bold text-lg mx-8">★</span>
+          <span className="text-slate-900 font-bold text-lg mx-8">WE ARE DIRECT TO 70+ CARRIERS, INSURERS & REINSURERS - SAVE ON ANY INSURANCE</span>
+          <span className="text-slate-900 font-bold text-lg mx-8">★</span>
+        </div>
+      </div>
 
       <section className="py-12 bg-slate-900">
         <div className="container mx-auto px-4">

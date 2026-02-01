@@ -209,6 +209,19 @@
   }
 }
 
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
 /* Ranger Tab Shining Letter Animation - Red/White/Blue patriotic cycle */
 @keyframes rangerShine {
   0%, 3% {
