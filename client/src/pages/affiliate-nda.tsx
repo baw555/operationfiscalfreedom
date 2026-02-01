@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, FileSignature, CheckCircle, AlertTriangle, Camera, Upload, X, RefreshCw } from "lucide-react";
+import { Shield, FileSignature, CheckCircle, AlertTriangle, Camera, Upload, X, RefreshCw, ArrowLeft } from "lucide-react";
 
 export default function AffiliateNda() {
   const [, setLocation] = useLocation();
@@ -523,6 +523,14 @@ export default function AffiliateNda() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-navy to-brand-navy/90 py-12 px-4">
       <div className="max-w-3xl mx-auto">
+        <button
+          onClick={() => window.history.back()}
+          className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-4 group"
+          data-testid="button-back"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm">Back</span>
+        </button>
         <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
           <div className="bg-brand-navy p-6 text-center">
             <Shield className="w-16 h-16 text-white mx-auto mb-4" />

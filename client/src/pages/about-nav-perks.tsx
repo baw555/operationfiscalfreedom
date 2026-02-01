@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { Link } from "wouter";
-import { Shield, MessageSquare, Video, FileSignature, CheckCircle, Star, Lock, Award, Users, Zap, DollarSign, Brain, Mic, Film, Heart, ChevronRight, BadgeCheck, ShieldCheck, Clock, Globe, ChevronLeft } from "lucide-react";
+import { Shield, MessageSquare, Video, FileSignature, CheckCircle, Star, Lock, Award, Users, Zap, DollarSign, Brain, Mic, Film, Heart, ChevronRight, BadgeCheck, ShieldCheck, Clock, Globe, ChevronLeft, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import operatorAiScreenshot from "@/assets/images/operator-ai-screenshot.png";
@@ -83,6 +83,14 @@ export default function AboutNavPerks() {
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-600/80 via-amber-500/60 to-amber-600/80" />
         
         <div className="container mx-auto px-6 relative z-10">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 group"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm">Back</span>
+          </button>
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-2 mb-6">
               <Star className="w-4 h-4 text-amber-500" />

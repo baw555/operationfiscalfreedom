@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Layout } from "@/components/layout";
-import { Calculator, DollarSign, Users, Building2, Info } from "lucide-react";
+import { Calculator, DollarSign, Users, Building2, Info, ArrowLeft } from "lucide-react";
 
 /**
  * COMP MODEL (Simplified):
@@ -63,6 +63,14 @@ export default function CompPlan() {
     <Layout>
       <div className="bg-gradient-to-b from-brand-navy to-brand-navy/90 text-white py-12">
         <div className="container mx-auto px-4">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-4 group"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm">Back</span>
+          </button>
           <div className="flex items-center gap-4 mb-4">
             <Calculator className="w-12 h-12" />
             <div>

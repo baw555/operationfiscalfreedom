@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { FileText, DollarSign, Users, Building2, ChevronDown, ChevronUp, CheckCircle, Shield, Award, Target, TrendingUp } from "lucide-react";
+import { FileText, DollarSign, Users, Building2, ChevronDown, ChevronUp, CheckCircle, Shield, Award, Target, TrendingUp, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -131,6 +131,14 @@ export default function ScheduleA() {
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-600/80 via-amber-500/60 to-amber-600/80" />
         
         <div className="container mx-auto px-4 relative z-10">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 group"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm">Back</span>
+          </button>
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-lg bg-slate-700/50 border border-slate-600 flex items-center justify-center">
               <FileText className="w-8 h-8 text-amber-500" />
