@@ -4052,6 +4052,92 @@ export async function registerRoutes(
     }
   });
 
+  // Download Schedule A as PDF
+  app.get("/api/schedule-a/download", requireAuth, async (req, res) => {
+    try {
+      const signature = await storage.getScheduleASignatureByUserId(req.session.userId!);
+      if (!signature) {
+        return res.status(404).json({ message: "No signed Schedule A found" });
+      }
+
+      const signedDate = new Date(signature.signedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Schedule A - Commission Distribution Agreement</title>
+          <style>
+            body { font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+            h1 { text-align: center; font-size: 18px; margin-bottom: 5px; }
+            h2 { text-align: center; font-size: 14px; font-weight: normal; margin-bottom: 30px; }
+            .section { margin-bottom: 20px; }
+            .section-title { font-weight: bold; }
+            .signature-block { margin-top: 60px; display: flex; justify-content: space-between; }
+            .signature-line { width: 45%; }
+            .signature-line p { margin: 5px 0; }
+            .signature-line .line { border-bottom: 1px solid #000; height: 30px; margin-bottom: 5px; }
+            .signature-line .label { font-size: 12px; color: #666; }
+            @media print { body { margin: 0; padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          <h1>SCHEDULE A - COMMISSION DISTRIBUTION AGREEMENT</h1>
+          <h2>Navigator USA Corp<br>Effective Date: ${signedDate}</h2>
+          
+          <div class="section">
+            <p><span class="section-title">1. PARTIES.</span> This Schedule A Commission Distribution Agreement ("Agreement") is entered into between Navigator USA Corp ("Company") and the undersigned Affiliate ("Affiliate").</p>
+          </div>
+          
+          <div class="section">
+            <p><span class="section-title">2. COMMISSION STRUCTURE.</span> Affiliate will receive commissions as outlined in the Company's compensation plan. Commission rates are determined by the Company and may vary by service type. Affiliate agrees to refer to the current compensation plan for specific rates.</p>
+          </div>
+          
+          <div class="section">
+            <p><span class="section-title">3. ADDITIONAL INCOME OPPORTUNITIES.</span> Affiliate may also earn commissions from additional revenue streams including but not limited to referral programs, volume bonuses, and promotional incentives as determined by the Company.</p>
+          </div>
+          
+          <div class="section">
+            <p><span class="section-title">4. PAYMENT TERMS.</span> Commissions are paid according to the Company's standard payment schedule. The Company reserves the right to withhold payment pending verification of sales and compliance with all applicable terms.</p>
+          </div>
+          
+          <div class="section">
+            <p><span class="section-title">5. ACKNOWLEDGMENT.</span> By signing below, Affiliate acknowledges that they have read, understand, and agree to the commission structure outlined in this Schedule A.</p>
+          </div>
+          
+          <div class="section">
+            <p><span class="section-title">6. MODIFICATIONS.</span> The Company reserves the right to modify this commission structure with reasonable notice. Continued participation after such notice constitutes acceptance of any modifications.</p>
+          </div>
+          
+          <div class="signature-block">
+            <div class="signature-line">
+              <div class="line">${signature.affiliateName}</div>
+              <p class="label">Affiliate Signature</p>
+              <p style="font-size: 12px;">${signature.affiliateEmail}</p>
+            </div>
+            <div class="signature-line">
+              <div class="line">${signedDate}</div>
+              <p class="label">Date</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `attachment; filename="Schedule_A_${signature.affiliateName.replace(/\s+/g, '_')}.html"`);
+      res.send(htmlContent);
+    } catch (error) {
+      console.error("Error downloading Schedule A:", error);
+      res.status(500).json({ message: "Failed to download Schedule A" });
+    }
+  });
+
   // Insurance Intake Routes
   
   // Public: Submit insurance intake

@@ -8,7 +8,7 @@ import {
   Users, LogOut, FileText, HelpCircle, X, Home, FileSignature, 
   Calculator, DollarSign, CheckCircle, AlertCircle, Clock, 
   ArrowRight, TrendingUp, Building2, Copy, Share2, Send, Plane,
-  Shield, Lock
+  Shield, Lock, Download, Eye
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "wouter";
@@ -177,6 +177,18 @@ export default function AffiliateDashboard() {
     },
     enabled: authSuccess && !!authData?.user, // Wait for auth to be confirmed successful
     retry: 2,
+    staleTime: 30000,
+  });
+
+  // Check Schedule A status - only after auth is confirmed successful
+  const { data: scheduleAStatus } = useQuery<{ signed: boolean; signature: any | null }>({
+    queryKey: ["/api/schedule-a/status"],
+    queryFn: async () => {
+      const res = await fetch("/api/schedule-a/status", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to check Schedule A status");
+      return res.json();
+    },
+    enabled: authSuccess && !!authData?.user,
     staleTime: 30000,
   });
 
@@ -636,20 +648,20 @@ export default function AffiliateDashboard() {
                   </div>
                   <ArrowRight className="w-5 h-5 ml-auto text-gray-400" />
                 </button>
-                <Link 
-                  href="/schedule-a"
+                <button
+                  onClick={() => setMainTab("contracts")}
                   className="flex items-center gap-3 p-4 rounded-lg border-2 border-gray-200 hover:border-brand-navy hover:bg-gray-50 transition-colors text-left"
-                  data-testid="action-schedule-a"
+                  data-testid="action-contracts"
                 >
-                  <div className="p-2 rounded-full bg-green-600 text-white">
-                    <DollarSign className="w-5 h-5" />
+                  <div className="p-2 rounded-full bg-slate-700 text-white">
+                    <FileSignature className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-bold text-brand-navy">View Schedule A</p>
-                    <p className="text-sm text-gray-500">Service rates & commissions</p>
+                    <p className="font-bold text-brand-navy">View Contracts</p>
+                    <p className="text-sm text-gray-500">Agreements & documents</p>
                   </div>
                   <ArrowRight className="w-5 h-5 ml-auto text-gray-400" />
-                </Link>
+                </button>
                 <button
                   onClick={() => setShowVsoModal(true)}
                   className="flex items-center gap-3 p-4 rounded-lg border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 transition-colors text-left"
@@ -703,88 +715,168 @@ export default function AffiliateDashboard() {
         {/* ===== CONTRACTS TAB ===== */}
         {mainTab === "contracts" && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-brand-navy mb-4 flex items-center gap-2">
-                <FileSignature className="w-6 h-6" />
-                Required Agreements
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Review and sign the required agreements to activate your affiliate account and access all services.
-              </p>
-
-              {pendingContracts.length === 0 && signedCount > 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-green-600 mb-2">All Contracts Signed!</h3>
-                  <p className="text-gray-600">You've completed all required agreements. View your signed contracts below.</p>
-                </div>
-              ) : pendingContracts.length === 0 && signedCount === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No contracts available at this time.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {pendingContracts.map((contract: any) => (
-                    <div key={contract.id} className="border rounded-lg p-4 hover:border-brand-navy transition-colors" data-testid={`pending-contract-${contract.id}`}>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-bold text-brand-navy">{contract.name}</h4>
-                          <p className="text-sm text-gray-500">
-                            {contract.companyName} • Version {contract.version}
-                          </p>
-                          {contract.serviceName && (
-                            <p className="text-sm text-gray-600 mt-1">
-                              Service: {contract.serviceName} • {contract.grossCommissionPct}% gross
-                            </p>
-                          )}
+            {/* Schedule A - Commission Agreement */}
+            <div className="bg-white rounded-xl shadow-lg border-2 border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                  <FileText className="w-6 h-6 text-amber-400" />
+                  Schedule A - Commission Distribution Agreement
+                </h2>
+              </div>
+              <div className="p-6">
+                {scheduleAStatus?.signed ? (
+                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                        <CheckCircle className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-green-800">Agreement Signed</p>
+                        <p className="text-sm text-green-600">
+                          Signed by {scheduleAStatus.signature?.affiliateName} on{" "}
+                          {scheduleAStatus.signature?.signedAt 
+                            ? format(new Date(scheduleAStatus.signature.signedAt), "MMM d, yyyy")
+                            : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Link href="/schedule-a">
+                        <Button variant="outline" size="sm" className="border-green-300 text-green-700 hover:bg-green-50">
+                          <Eye className="w-4 h-4 mr-2" />
+                          View
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="border-green-300 text-green-700 hover:bg-green-50"
+                        onClick={() => window.open('/api/schedule-a/download', '_blank')}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center animate-pulse">
+                          <AlertCircle className="w-6 h-6 text-red-600" />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
-                            <Clock className="w-3 h-3 inline mr-1" />
-                            Pending
-                          </span>
+                        <div>
+                          <p className="font-bold text-red-800">Action Required</p>
+                          <p className="text-sm text-red-600">
+                            Please review and sign the Schedule A Commission Distribution Agreement to continue.
+                          </p>
                         </div>
                       </div>
-                      <div className="mt-4">
-                        <Link href="/sign-contract">
-                          <Button className="bg-brand-red hover:bg-brand-red/90" data-testid={`sign-contract-${contract.id}`}>
+                      <div className="flex items-center gap-2">
+                        <Link href="/schedule-a">
+                          <Button variant="outline" size="sm" className="border-slate-300">
+                            <Eye className="w-4 h-4 mr-2" />
+                            Preview
+                          </Button>
+                        </Link>
+                        <Link href="/schedule-a">
+                          <Button className="bg-red-600 hover:bg-red-700 text-white font-bold">
                             <FileSignature className="w-4 h-4 mr-2" />
-                            Review & Sign
+                            Sign Now
                           </Button>
                         </Link>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Signed Contracts */}
-            {signedCount > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-bold text-brand-navy mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  Signed Agreements ({signedCount})
-                </h3>
-                <div className="space-y-3">
-                  {signedAgreements.map((agreement: any) => {
-                    const template = contractTemplates.find((t: any) => t.id === agreement.contractTemplateId);
-                    return (
-                      <div key={agreement.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200" data-testid={`signed-agreement-${agreement.id}`}>
-                        <div>
-                          <p className="font-medium text-green-800">{template?.name || 'Agreement'}</p>
-                          <p className="text-sm text-green-600">
-                            Signed {format(new Date(agreement.signedAt), "MMM d, yyyy")}
-                          </p>
-                        </div>
-                        <CheckCircle className="w-6 h-6 text-green-500" />
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Other Required Agreements */}
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                  <FileSignature className="w-6 h-6 text-amber-400" />
+                  Service Agreements
+                </h2>
               </div>
-            )}
+              <div className="p-6">
+                {pendingContracts.length === 0 && signedCount === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No additional service agreements at this time.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Pending Contracts */}
+                    {pendingContracts.map((contract: any) => (
+                      <div key={contract.id} className="border-2 border-yellow-200 rounded-lg p-4 bg-yellow-50" data-testid={`pending-contract-${contract.id}`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                              <Clock className="w-5 h-5 text-yellow-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-slate-800">{contract.name}</h4>
+                              <p className="text-sm text-slate-500">
+                                {contract.companyName} • Version {contract.version}
+                              </p>
+                              {contract.serviceName && (
+                                <p className="text-sm text-slate-600 mt-1">
+                                  Service: {contract.serviceName}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
+                              Pending
+                            </span>
+                            <Link href="/sign-contract">
+                              <Button className="bg-brand-red hover:bg-brand-red/90" size="sm" data-testid={`sign-contract-${contract.id}`}>
+                                <FileSignature className="w-4 h-4 mr-2" />
+                                Sign
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Signed Contracts */}
+                    {signedAgreements.map((agreement: any) => {
+                      const template = contractTemplates.find((t: any) => t.id === agreement.contractTemplateId);
+                      return (
+                        <div key={agreement.id} className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200" data-testid={`signed-agreement-${agreement.id}`}>
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-green-800">{template?.name || 'Agreement'}</p>
+                              <p className="text-sm text-green-600">
+                                Signed {format(new Date(agreement.signedAt), "MMM d, yyyy")}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="border-green-300 text-green-700 hover:bg-green-50"
+                              onClick={() => window.open(`/api/csu/signed-agreements/${agreement.id}/pdf/public`, '_blank')}
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download PDF
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

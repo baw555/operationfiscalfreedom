@@ -1,28 +1,18 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { FileText, DollarSign, Users, Building2, CheckCircle, Shield, Award, Target, TrendingUp, ArrowLeft, AlertTriangle } from "lucide-react";
+import { FileText, CheckCircle, Shield, ArrowLeft, AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 
-interface ContractTemplate {
-  id: number;
-  name: string;
-  serviceName: string | null;
-  grossCommissionPct: number | null;
-  contractType: string;
-  isActive: string;
-}
-
 interface ScheduleASignature {
   id: number;
   affiliateName: string;
   affiliateEmail: string;
   signedAt: string;
-  acknowledgedUplineCount: number;
 }
 
 interface SignatureStatus {
@@ -38,18 +28,11 @@ export default function ScheduleA() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Signature form state
   const [signatureName, setSignatureName] = useState("");
   const [signatureDate, setSignatureDate] = useState(new Date().toISOString().split('T')[0]);
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const producerPct = 0.75; // Your commission rate
-
-  const { data: templates = [] } = useQuery<ContractTemplate[]>({
-    queryKey: ["/api/contracts/templates"],
-  });
 
   const { data: authData } = useQuery<AuthData>({
     queryKey: ["/api/auth/me"],
@@ -60,7 +43,6 @@ export default function ScheduleA() {
     enabled: !!authData?.user,
   });
 
-  // Initialize canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -82,7 +64,6 @@ export default function ScheduleA() {
     ctx.strokeRect(0, 0, rect.width, rect.height);
   }, []);
 
-  // Drawing handlers
   const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -185,20 +166,6 @@ export default function ScheduleA() {
 
   const canSign = signatureName.trim().length >= 2 && hasDrawnSignature && signatureDate;
 
-  const serviceContracts = useMemo(() => 
-    templates.filter(t => t.contractType === "service" && t.grossCommissionPct),
-    [templates]
-  );
-
-  const calculateDistribution = (grossPct: number) => {
-    const pool = grossPct / 100;
-    return {
-      producer: pool * producerPct,
-    };
-  };
-
-  const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
-
   const todayFormatted = new Date().toLocaleDateString("en-US", { 
     year: "numeric", 
     month: "long", 
@@ -207,7 +174,6 @@ export default function ScheduleA() {
 
   return (
     <Layout>
-      {/* Hero Section */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5" style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
@@ -246,88 +212,8 @@ export default function ScheduleA() {
       <div className="bg-slate-50 min-h-screen">
         <div className="container mx-auto px-4 py-10 max-w-4xl">
           
-          {/* Your Commission Rate */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden mb-8">
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 text-center">
-              <Award className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-              <div className="text-slate-400 text-sm uppercase tracking-wider mb-2">Your Commission Rate</div>
-              <div className="text-6xl font-bold text-amber-400 mb-2">{pct(producerPct)}</div>
-              <div className="text-slate-400 text-sm">of gross commission on every closed deal</div>
-            </div>
-          </div>
-
-          {/* Your Earnings by Contract */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden mb-8">
-            <div className="bg-slate-800 px-6 py-4 flex items-center gap-3">
-              <Target className="w-5 h-5 text-amber-500" />
-              <h2 className="text-lg font-semibold text-white">Your Earnings by Contract Type</h2>
-            </div>
-
-            {serviceContracts.length === 0 ? (
-              <div className="p-12 text-center">
-                <FileText className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                <p className="text-slate-500">No service contracts available yet.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100">
-                {serviceContracts.map((contract) => {
-                  const dist = calculateDistribution(contract.grossCommissionPct || 0);
-                  
-                  return (
-                    <div key={contract.id} className="flex items-center justify-between px-6 py-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                          <DollarSign className="w-5 h-5 text-slate-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-slate-800">{contract.serviceName || contract.name}</h3>
-                          <p className="text-sm text-slate-500">Gross Rate: {contract.grossCommissionPct}%</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs text-slate-500 uppercase tracking-wider">You Receive</div>
-                        <div className="text-2xl font-bold text-amber-600">{pct(dist.producer)}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Additional Income Streams - Simplified */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden mb-8">
-            <div className="bg-slate-800 px-6 py-4 flex items-center gap-3">
-              <TrendingUp className="w-5 h-5 text-amber-500" />
-              <h2 className="text-lg font-semibold text-white">Additional Income Streams</h2>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                  <DollarSign className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-                  <div className="font-semibold text-slate-800">vGift Cards</div>
-                  <div className="text-2xl font-bold text-slate-700 my-2">~5%</div>
-                  <div className="text-xs text-slate-500">Per Gift Card Sold</div>
-                </div>
-                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                  <Users className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-                  <div className="font-semibold text-slate-800">My Locker</div>
-                  <div className="text-2xl font-bold text-slate-700 my-2">20%</div>
-                  <div className="text-xs text-slate-500">Of Gross Profit</div>
-                </div>
-                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                  <Building2 className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-                  <div className="font-semibold text-slate-800">Merchant Processing</div>
-                  <div className="text-2xl font-bold text-slate-700 my-2">20%</div>
-                  <div className="text-xs text-slate-500">Of NET Revenue (Residual)</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Contract Agreement Section */}
-          <div className="bg-white rounded-lg border-2 border-red-500 shadow-lg overflow-hidden">
-            <div className="bg-red-600 px-6 py-4 flex items-center gap-3">
+          <div className="bg-white rounded-lg border-2 border-slate-300 shadow-lg overflow-hidden">
+            <div className={`px-6 py-4 flex items-center gap-3 ${signatureStatus?.signed ? 'bg-green-600' : 'bg-red-600'}`}>
               {signatureStatus?.signed ? (
                 <>
                   <CheckCircle className="w-5 h-5 text-white" />
@@ -343,29 +229,109 @@ export default function ScheduleA() {
             
             <div className="p-6">
               {signatureStatus?.signed ? (
-                <div className="flex items-center gap-4 p-5 bg-green-50 border border-green-200 rounded-lg" data-testid="schedule-a-signed-status">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 p-5 bg-green-50 border border-green-200 rounded-lg" data-testid="schedule-a-signed-status">
+                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-green-800" data-testid="text-schedule-a-signed">Schedule A Agreement Signed</p>
+                      <p className="text-sm text-green-600">
+                        Signed by {signatureStatus.signature?.affiliateName} on{" "}
+                        {signatureStatus.signature?.signedAt 
+                          ? new Date(signatureStatus.signature.signedAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : 'N/A'}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="border-green-300 text-green-700 hover:bg-green-50"
+                      onClick={() => window.open('/api/schedule-a/download', '_blank')}
+                      data-testid="button-download-schedule-a"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
                   </div>
-                  <div>
-                    <p className="font-semibold text-green-800" data-testid="text-schedule-a-signed">Schedule A Agreement Signed</p>
-                    <p className="text-sm text-green-600">
-                      Signed by {signatureStatus.signature?.affiliateName} on{" "}
-                      {signatureStatus.signature?.signedAt 
-                        ? new Date(signatureStatus.signature.signedAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
-                        : 'N/A'}
+                  
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
+                    <h3 className="text-center font-bold text-lg text-slate-800 mb-4">
+                      SCHEDULE A - COMMISSION DISTRIBUTION AGREEMENT
+                    </h3>
+                    <p className="text-center text-sm text-slate-600 mb-6">
+                      Navigator USA Corp<br />
+                      Effective Date: {signatureStatus.signature?.signedAt 
+                        ? new Date(signatureStatus.signature.signedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                        : todayFormatted}
                     </p>
+                    
+                    <div className="prose prose-sm max-w-none text-slate-700 space-y-4">
+                      <p>
+                        <strong>1. PARTIES.</strong> This Schedule A Commission Distribution Agreement ("Agreement") 
+                        is entered into between Navigator USA Corp ("Company") and the undersigned Affiliate ("Affiliate").
+                      </p>
+                      
+                      <p>
+                        <strong>2. COMMISSION STRUCTURE.</strong> Affiliate will receive commissions as outlined in the 
+                        Company's compensation plan. Commission rates are determined by the Company and may vary by 
+                        service type. Affiliate agrees to refer to the current compensation plan for specific rates.
+                      </p>
+                      
+                      <p>
+                        <strong>3. ADDITIONAL INCOME OPPORTUNITIES.</strong> Affiliate may also earn commissions from 
+                        additional revenue streams including but not limited to referral programs, volume bonuses, 
+                        and promotional incentives as determined by the Company.
+                      </p>
+                      
+                      <p>
+                        <strong>4. PAYMENT TERMS.</strong> Commissions are paid according to the Company's standard 
+                        payment schedule. The Company reserves the right to withhold payment pending verification 
+                        of sales and compliance with all applicable terms.
+                      </p>
+                      
+                      <p>
+                        <strong>5. ACKNOWLEDGMENT.</strong> By signing below, Affiliate acknowledges that they have 
+                        read, understand, and agree to the commission structure outlined in this Schedule A.
+                      </p>
+                      
+                      <p>
+                        <strong>6. MODIFICATIONS.</strong> The Company reserves the right to modify this commission 
+                        structure with reasonable notice. Continued participation after such notice constitutes 
+                        acceptance of any modifications.
+                      </p>
+                    </div>
+                    
+                    <div className="mt-8 pt-6 border-t border-slate-300">
+                      <div className="grid grid-cols-2 gap-8">
+                        <div>
+                          <p className="text-sm text-slate-500 mb-2">Affiliate Signature</p>
+                          <div className="border-b-2 border-slate-400 pb-1 mb-1">
+                            <span className="font-bold text-slate-800">{signatureStatus.signature?.affiliateName}</span>
+                          </div>
+                          <p className="text-xs text-slate-500">{signatureStatus.signature?.affiliateEmail}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 mb-2">Date</p>
+                          <div className="border-b-2 border-slate-400 pb-1">
+                            <span className="font-bold text-slate-800">
+                              {signatureStatus.signature?.signedAt 
+                                ? new Date(signatureStatus.signature.signedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                                : 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : authData?.user ? (
                 <div className="space-y-6">
-                  {/* Embedded Contract */}
                   <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 max-h-96 overflow-y-auto">
                     <h3 className="text-center font-bold text-lg text-slate-800 mb-4">
                       SCHEDULE A - COMMISSION DISTRIBUTION AGREEMENT
@@ -382,19 +348,16 @@ export default function ScheduleA() {
                       </p>
                       
                       <p>
-                        <strong>2. YOUR COMMISSION RATE.</strong> Affiliate will receive <strong>{pct(producerPct)}</strong> of 
-                        the gross commission pool on every closed deal. This rate applies to all service contracts 
-                        facilitated by Affiliate.
+                        <strong>2. COMMISSION STRUCTURE.</strong> Affiliate will receive commissions as outlined in the 
+                        Company's compensation plan. Commission rates are determined by the Company and may vary by 
+                        service type. Affiliate agrees to refer to the current compensation plan for specific rates.
                       </p>
                       
                       <p>
-                        <strong>3. ADDITIONAL INCOME OPPORTUNITIES.</strong> Affiliate may also earn commissions from:
+                        <strong>3. ADDITIONAL INCOME OPPORTUNITIES.</strong> Affiliate may also earn commissions from 
+                        additional revenue streams including but not limited to referral programs, volume bonuses, 
+                        and promotional incentives as determined by the Company.
                       </p>
-                      <ul className="list-disc pl-6 space-y-1">
-                        <li>vGift Cards: Approximately 5% per gift card sold</li>
-                        <li>My Locker (Print-on-Demand): 20% of gross profit</li>
-                        <li>Merchant Processing: 20% of NET revenue (residual income)</li>
-                      </ul>
                       
                       <p>
                         <strong>4. PAYMENT TERMS.</strong> Commissions are paid according to the Company's standard 
@@ -415,7 +378,6 @@ export default function ScheduleA() {
                     </div>
                   </div>
 
-                  {/* Signature Form */}
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
                     <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                       <Shield className="w-5 h-5 text-amber-600" />
