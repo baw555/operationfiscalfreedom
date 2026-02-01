@@ -278,41 +278,52 @@ export default function ScheduleA() {
                       </p>
                       
                       <p>
-                        <strong>2. COMMISSION POOL.</strong> For each service sale, the Company receives a gross 
-                        commission from the service provider. The commission rate varies by service type. This 
-                        gross commission forms the "Commission Pool" from which Affiliates are paid.
+                        <strong>2. GROSS COMMISSION.</strong> For each service sale, the Company receives a gross 
+                        commission from the service provider. The commission rate varies by product/service type. 
+                        This gross commission is distributed according to the structure below.
                       </p>
                       
                       <p>
-                        <strong>3. PRODUCER COMMISSION.</strong> The Producer (Affiliate who closes the sale) 
-                        receives <strong>69%</strong> of the Commission Pool as base compensation. Additionally, 
-                        Producers receive <strong>+1% for each empty upline level</strong> (maximum 6 levels). 
-                        A solo Producer with no uplines receives <strong>75%</strong> of the Commission Pool.
+                        <strong>3. HOUSE SHARE.</strong> The Company ("House") retains <strong>22.5%</strong> of 
+                        the gross commission for operational costs and administrative services. This amount is fixed.
                       </p>
                       
                       <p>
-                        <strong>4. OVERRIDE COMPENSATION.</strong> Affiliates earn <strong>1%</strong> of the 
-                        Commission Pool for each level they are above the Producer in the organization structure, 
-                        up to 6 levels deep.
+                        <strong>4. RECRUITER BOUNTY.</strong> <strong>2.5%</strong> of the gross commission is paid 
+                        to the Affiliate who recruited the Producer (the rep who made the sale).
                       </p>
                       
                       <p>
-                        <strong>5. RECRUITER BOUNTY.</strong> A <strong>2.5%</strong> bounty is paid to the 
-                        Affiliate who recruited the Producer, when applicable.
+                        <strong>5. PRODUCER & UPLINE COMMISSION.</strong> The remaining <strong>75%</strong> is 
+                        distributed between the Producer and their Uplines (if any):
+                      </p>
+                      <ul className="list-disc ml-6 space-y-1">
+                        <li><strong>Solo Producer (0 uplines):</strong> Producer gets all 75%</li>
+                        <li><strong>1 upline:</strong> Producer 74% + Upline 1% = 75%</li>
+                        <li><strong>2 uplines:</strong> Producer 73% + Uplines 2% = 75%</li>
+                        <li><strong>3 uplines:</strong> Producer 72% + Uplines 3% = 75%</li>
+                        <li><strong>4 uplines:</strong> Producer 71% + Uplines 4% = 75%</li>
+                        <li><strong>5 uplines:</strong> Producer 70% + Uplines 5% = 75%</li>
+                        <li><strong>6 uplines:</strong> Producer 69% + Uplines 6% = 75%</li>
+                      </ul>
+                      
+                      <p>
+                        <strong>6. COMPRESSION.</strong> When upline positions are empty, that 1% per empty slot 
+                        compresses to the Producer (not to the House). This rewards Producers who build shorter chains.
                       </p>
                       
                       <p>
-                        <strong>6. PAYMENT TERMS.</strong> Commissions are paid according to the Company's standard 
+                        <strong>7. PAYMENT TERMS.</strong> Commissions are paid according to the Company's standard 
                         payment schedule following verification of sales and compliance with all applicable terms.
                       </p>
                       
                       <p>
-                        <strong>7. ACKNOWLEDGMENT.</strong> By signing below, Affiliate acknowledges that they have 
+                        <strong>8. ACKNOWLEDGMENT.</strong> By signing below, Affiliate acknowledges that they have 
                         read, understand, and agree to the commission structure outlined in this Schedule A.
                       </p>
                       
                       <p>
-                        <strong>8. MODIFICATIONS.</strong> The Company reserves the right to modify this commission 
+                        <strong>9. MODIFICATIONS.</strong> The Company reserves the right to modify this commission 
                         structure with reasonable notice. Continued participation constitutes acceptance of any modifications.
                       </p>
                     </div>
@@ -358,41 +369,52 @@ export default function ScheduleA() {
                       </p>
                       
                       <p>
-                        <strong>2. COMMISSION POOL.</strong> For each service sale, the Company receives a gross 
-                        commission from the service provider. The commission rate varies by service type. This 
-                        gross commission forms the "Commission Pool" from which Affiliates are paid.
+                        <strong>2. GROSS COMMISSION.</strong> For each service sale, the Company receives a gross 
+                        commission from the service provider. The commission rate varies by product/service type. 
+                        This gross commission is distributed according to the structure below.
                       </p>
                       
                       <p>
-                        <strong>3. PRODUCER COMMISSION.</strong> The Producer (Affiliate who closes the sale) 
-                        receives <strong>69%</strong> of the Commission Pool as base compensation. Additionally, 
-                        Producers receive <strong>+1% for each empty upline level</strong> (maximum 6 levels). 
-                        A solo Producer with no uplines receives <strong>75%</strong> of the Commission Pool.
+                        <strong>3. HOUSE SHARE.</strong> The Company ("House") retains <strong>22.5%</strong> of 
+                        the gross commission for operational costs and administrative services. This amount is fixed.
                       </p>
                       
                       <p>
-                        <strong>4. OVERRIDE COMPENSATION.</strong> Affiliates earn <strong>1%</strong> of the 
-                        Commission Pool for each level they are above the Producer in the organization structure, 
-                        up to 6 levels deep.
+                        <strong>4. RECRUITER BOUNTY.</strong> <strong>2.5%</strong> of the gross commission is paid 
+                        to the Affiliate who recruited the Producer (the rep who made the sale).
                       </p>
                       
                       <p>
-                        <strong>5. RECRUITER BOUNTY.</strong> A <strong>2.5%</strong> bounty is paid to the 
-                        Affiliate who recruited the Producer, when applicable.
+                        <strong>5. PRODUCER & UPLINE COMMISSION.</strong> The remaining <strong>75%</strong> is 
+                        distributed between the Producer and their Uplines (if any):
+                      </p>
+                      <ul className="list-disc ml-6 space-y-1">
+                        <li><strong>Solo Producer (0 uplines):</strong> Producer gets all 75%</li>
+                        <li><strong>1 upline:</strong> Producer 74% + Upline 1% = 75%</li>
+                        <li><strong>2 uplines:</strong> Producer 73% + Uplines 2% = 75%</li>
+                        <li><strong>3 uplines:</strong> Producer 72% + Uplines 3% = 75%</li>
+                        <li><strong>4 uplines:</strong> Producer 71% + Uplines 4% = 75%</li>
+                        <li><strong>5 uplines:</strong> Producer 70% + Uplines 5% = 75%</li>
+                        <li><strong>6 uplines:</strong> Producer 69% + Uplines 6% = 75%</li>
+                      </ul>
+                      
+                      <p>
+                        <strong>6. COMPRESSION.</strong> When upline positions are empty, that 1% per empty slot 
+                        compresses to the Producer (not to the House). This rewards Producers who build shorter chains.
                       </p>
                       
                       <p>
-                        <strong>6. PAYMENT TERMS.</strong> Commissions are paid according to the Company's standard 
+                        <strong>7. PAYMENT TERMS.</strong> Commissions are paid according to the Company's standard 
                         payment schedule following verification of sales and compliance with all applicable terms.
                       </p>
                       
                       <p>
-                        <strong>7. ACKNOWLEDGMENT.</strong> By signing below, Affiliate acknowledges that they have 
+                        <strong>8. ACKNOWLEDGMENT.</strong> By signing below, Affiliate acknowledges that they have 
                         read, understand, and agree to the commission structure outlined in this Schedule A.
                       </p>
                       
                       <p>
-                        <strong>8. MODIFICATIONS.</strong> The Company reserves the right to modify this commission 
+                        <strong>9. MODIFICATIONS.</strong> The Company reserves the right to modify this commission 
                         structure with reasonable notice. Continued participation constitutes acceptance of any modifications.
                       </p>
                     </div>

@@ -3400,57 +3400,68 @@ export async function registerRoutes(
   // ===== COMMISSION CALCULATION API =====
 
   // Calculate commission breakdown for a sale
+  // CORRECT MODEL:
+  // - House: 22.5% (fixed)
+  // - Recruiter: 2.5% (fixed bounty for whoever brought in the rep)
+  // - Producer: 69% base + 1% for each empty upline slot (up to 75% solo)
+  // - Each upline: 1% each (max 6 uplines)
+  // - Compression: empty upline slots go to producer, NOT house
   app.post("/api/commission/calculate", async (req, res) => {
     try {
-      const { grossRevenue, recruiterExists = true, l2Active = true, l3Active = true, l4Active = true, l5Active = true } = req.body;
+      const { 
+        grossCommission,  // The gross commission pool (e.g., 18% of deal for logistics)
+        uplineCount = 0,  // Number of active uplines (0-6)
+        hasRecruiter = true
+      } = req.body;
       
-      const gross = Math.max(0, Number(grossRevenue) || 0);
+      const pool = Math.max(0, Number(grossCommission) || 0);
+      const uplines = Math.max(0, Math.min(6, Number(uplineCount) || 0));
+      const emptyUplines = 6 - uplines;
       
-      const pct = {
-        recruiter: 0.025,
-        l1: 0.67,
-        l2: 0.035,
-        l3: 0.020,
-        l4: 0.012,
-        l5: 0.008,
-        l6: 0.005,
-      };
-
-      const recruiterPay = recruiterExists ? Math.round(gross * pct.recruiter * 100) : 0;
-      const l1Pay = Math.round(gross * pct.l1 * 100);
+      // Fixed percentages
+      const HOUSE_PCT = 0.225;      // 22.5% always goes to house
+      const RECRUITER_PCT = 0.025;  // 2.5% recruiter bounty
+      const PRODUCER_BASE = 0.69;   // 69% base for producer
+      const UPLINE_EACH = 0.01;     // 1% per upline level
       
-      const l2Base = Math.round(gross * pct.l2 * 100);
-      const l3Base = Math.round(gross * pct.l3 * 100);
-      const l4Base = Math.round(gross * pct.l4 * 100);
-      const l5Base = Math.round(gross * pct.l5 * 100);
-      const l6Base = Math.round(gross * pct.l6 * 100);
-
-      const l2Pay = l2Active ? l2Base : 0;
-      const l3Pay = l3Active ? l3Base : 0;
-      const l4Pay = l4Active ? l4Base : 0;
-      const l5Pay = l5Active ? l5Base : 0;
-
-      const compressedToL6 =
-        (l2Active ? 0 : l2Base) +
-        (l3Active ? 0 : l3Base) +
-        (l4Active ? 0 : l4Base) +
-        (l5Active ? 0 : l5Base);
-
-      const l6Pay = l6Base + compressedToL6;
+      // Calculate payouts (in cents)
+      const housePay = Math.round(pool * HOUSE_PCT * 100);
+      const recruiterPay = hasRecruiter ? Math.round(pool * RECRUITER_PCT * 100) : 0;
+      
+      // Producer gets base + compression from empty upline slots
+      const compressionPct = emptyUplines * UPLINE_EACH;
+      const producerPct = PRODUCER_BASE + compressionPct;
+      const producerPay = Math.round(pool * producerPct * 100);
+      
+      // Each active upline gets 1%
+      const uplinePayEach = Math.round(pool * UPLINE_EACH * 100);
+      const totalUplinePay = uplinePayEach * uplines;
+      
+      // Build upline breakdown
+      const uplineBreakdown = Array.from({ length: uplines }, (_, i) => ({
+        level: i + 1,
+        pay: uplinePayEach,
+        pct: UPLINE_EACH * 100
+      }));
 
       res.json({
-        grossRevenue: gross,
-        grossRevenueCents: Math.round(gross * 100),
-        recruiterBounty: recruiterPay,
-        l1Commission: l1Pay,
-        l2Commission: l2Pay,
-        l3Commission: l3Pay,
-        l4Commission: l4Pay,
-        l5Commission: l5Pay,
-        l6Commission: l6Pay,
-        compressedToL6: compressedToL6,
-        totalPaid: recruiterPay + l1Pay + l2Pay + l3Pay + l4Pay + l5Pay + l6Pay,
-        houseAllocation: l1Pay + l2Pay + l3Pay + l4Pay + l5Pay + l6Pay,
+        grossCommission: pool,
+        grossCommissionCents: Math.round(pool * 100),
+        housePay,
+        housePct: HOUSE_PCT * 100,
+        recruiterPay,
+        recruiterPct: RECRUITER_PCT * 100,
+        producerPay,
+        producerPct: producerPct * 100,
+        producerBase: PRODUCER_BASE * 100,
+        compressionPct: compressionPct * 100,
+        uplineCount: uplines,
+        uplinePayEach,
+        totalUplinePay,
+        uplineBreakdown,
+        totalPaid: housePay + recruiterPay + producerPay + totalUplinePay,
+        // Verification: should always equal 100%
+        totalPct: (HOUSE_PCT + RECRUITER_PCT + producerPct + (uplines * UPLINE_EACH)) * 100
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to calculate commissions" });
@@ -3558,6 +3569,198 @@ export async function registerRoutes(
       res.json(allCommissions);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch commissions" });
+    }
+  });
+
+  // Send commission spreadsheet email
+  app.post("/api/admin/send-commission-spreadsheet", requireAdmin, async (req, res) => {
+    try {
+      const { getResendClient } = await import("./resendClient");
+      const { client, fromEmail } = await getResendClient();
+      
+      const emailTo = req.body.email || "bradweitma@gmail.com";
+      
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Navigator USA Commission Structure</title>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+            h1 { color: #1A365D; text-align: center; }
+            h2 { color: #E21C3D; margin-top: 30px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th { background: #1A365D; color: white; padding: 12px 8px; text-align: center; font-size: 12px; }
+            td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #ddd; font-size: 13px; }
+            tr:hover { background: #f5f5f5; }
+            .highlight { background: #FEF3C7; }
+            .producer { color: #059669; font-weight: bold; }
+            .house { color: #6B7280; }
+            .recruiter { color: #D97706; }
+            .upline { color: #2563EB; }
+            .note { background: #EFF6FF; border: 1px solid #BFDBFE; padding: 15px; border-radius: 8px; margin: 20px 0; }
+            .fixed-box { background: #FEF3C7; border: 1px solid #F59E0B; padding: 15px; border-radius: 8px; margin: 20px 0; }
+            .example { background: #F3F4F6; border: 1px solid #D1D5DB; padding: 15px; border-radius: 8px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <h1>Navigator USA Commission Structure</h1>
+          <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            All percentages are of <strong style="color: #D97706;">GROSS COMMISSION</strong> (not gross revenue)
+          </p>
+          
+          <div class="fixed-box">
+            <h3 style="margin-top: 0; color: #D97706;">Fixed Allocations (Every Sale)</h3>
+            <table>
+              <tr>
+                <td><strong>House (Navigator USA)</strong></td>
+                <td><strong>22.5%</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Recruiter Bounty</strong></td>
+                <td><strong>2.5%</strong></td>
+              </tr>
+            </table>
+          </div>
+          
+          <h2>Commission Breakdown by Position</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Position</th>
+                <th>Uplines Above</th>
+                <th>Producer Gets</th>
+                <th>Uplines Get (1% each)</th>
+                <th>Recruiter</th>
+                <th>House</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="highlight">
+                <td><strong>E7 - SFC (Solo)</strong></td>
+                <td>0</td>
+                <td class="producer">75%</td>
+                <td class="upline">0%</td>
+                <td class="recruiter">2.5%</td>
+                <td class="house">22.5%</td>
+                <td><strong>100%</strong></td>
+              </tr>
+              <tr>
+                <td>E6 - SSG</td>
+                <td>1</td>
+                <td class="producer">74%</td>
+                <td class="upline">1%</td>
+                <td class="recruiter">2.5%</td>
+                <td class="house">22.5%</td>
+                <td><strong>100%</strong></td>
+              </tr>
+              <tr>
+                <td>E5 - SGT</td>
+                <td>2</td>
+                <td class="producer">73%</td>
+                <td class="upline">2%</td>
+                <td class="recruiter">2.5%</td>
+                <td class="house">22.5%</td>
+                <td><strong>100%</strong></td>
+              </tr>
+              <tr>
+                <td>E4 - SPC</td>
+                <td>3</td>
+                <td class="producer">72%</td>
+                <td class="upline">3%</td>
+                <td class="recruiter">2.5%</td>
+                <td class="house">22.5%</td>
+                <td><strong>100%</strong></td>
+              </tr>
+              <tr>
+                <td>E3 - PFC</td>
+                <td>4</td>
+                <td class="producer">71%</td>
+                <td class="upline">4%</td>
+                <td class="recruiter">2.5%</td>
+                <td class="house">22.5%</td>
+                <td><strong>100%</strong></td>
+              </tr>
+              <tr>
+                <td>E2 - PV2</td>
+                <td>5</td>
+                <td class="producer">70%</td>
+                <td class="upline">5%</td>
+                <td class="recruiter">2.5%</td>
+                <td class="house">22.5%</td>
+                <td><strong>100%</strong></td>
+              </tr>
+              <tr>
+                <td>E1 - PVT</td>
+                <td>6</td>
+                <td class="producer">69%</td>
+                <td class="upline">6%</td>
+                <td class="recruiter">2.5%</td>
+                <td class="house">22.5%</td>
+                <td><strong>100%</strong></td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="note">
+            <h3 style="margin-top: 0; color: #2563EB;">Key Points</h3>
+            <ul>
+              <li><strong>Compression:</strong> Empty upline slots go to the Producer (not House)</li>
+              <li><strong>69% Base:</strong> Every producer starts with 69% minimum</li>
+              <li><strong>+1% per empty slot:</strong> Solo producers get 75% (69% + 6%)</li>
+              <li><strong>House fixed:</strong> 22.5% always goes to Navigator USA</li>
+              <li><strong>Recruiter:</strong> 2.5% to whoever brought in the rep</li>
+            </ul>
+          </div>
+          
+          <div class="example">
+            <h3 style="margin-top: 0; color: #374151;">Example Calculation</h3>
+            <p><strong>Scenario:</strong> $100,000 logistics deal × 18% commission rate = <span style="color: #D97706; font-weight: bold;">$18,000 commission pool</span></p>
+            <p>Producer has 3 uplines above them:</p>
+            <table>
+              <tr>
+                <td class="producer">Producer (72%)</td>
+                <td class="producer"><strong>$12,960</strong></td>
+              </tr>
+              <tr>
+                <td class="upline">3 Uplines (1% each)</td>
+                <td class="upline"><strong>$540</strong> ($180 × 3)</td>
+              </tr>
+              <tr>
+                <td class="recruiter">Recruiter (2.5%)</td>
+                <td class="recruiter"><strong>$450</strong></td>
+              </tr>
+              <tr>
+                <td class="house">House (22.5%)</td>
+                <td class="house"><strong>$4,050</strong></td>
+              </tr>
+              <tr style="background: #D1FAE5;">
+                <td><strong>Total</strong></td>
+                <td><strong>$18,000</strong></td>
+              </tr>
+            </table>
+          </div>
+          
+          <p style="text-align: center; color: #666; margin-top: 40px; font-size: 12px;">
+            Navigator USA Commission Structure | Generated ${new Date().toLocaleDateString()}
+          </p>
+        </body>
+        </html>
+      `;
+      
+      await client.emails.send({
+        from: fromEmail,
+        to: emailTo,
+        subject: "Navigator USA Commission Structure Breakdown",
+        html: htmlContent
+      });
+      
+      res.json({ success: true, message: `Commission spreadsheet sent to ${emailTo}` });
+    } catch (error) {
+      console.error("Error sending commission spreadsheet:", error);
+      res.status(500).json({ message: "Failed to send commission spreadsheet email" });
     }
   });
 
@@ -4188,31 +4391,44 @@ export async function registerRoutes(
           </div>
           
           <div class="section">
-            <p><span class="section-title">2. COMMISSION POOL.</span> For each service sale, the Company receives a gross commission from the service provider. The commission rate varies by service type. This gross commission forms the "Commission Pool" from which Affiliates are paid.</p>
+            <p><span class="section-title">2. GROSS COMMISSION.</span> For each service sale, the Company receives a gross commission from the service provider. The commission rate varies by product/service type. This gross commission is distributed according to the structure below.</p>
           </div>
           
           <div class="section">
-            <p><span class="section-title">3. PRODUCER COMMISSION.</span> The Producer (Affiliate who closes the sale) receives <strong>69%</strong> of the Commission Pool as base compensation. Additionally, Producers receive <strong>+1% for each empty upline level</strong> (maximum 6 levels). A solo Producer with no uplines receives <strong>75%</strong> of the Commission Pool.</p>
+            <p><span class="section-title">3. HOUSE SHARE.</span> The Company ("House") retains <strong>22.5%</strong> of the gross commission for operational costs and administrative services. This amount is fixed.</p>
           </div>
           
           <div class="section">
-            <p><span class="section-title">4. OVERRIDE COMPENSATION.</span> Affiliates earn <strong>1%</strong> of the Commission Pool for each level they are above the Producer in the organization structure, up to 6 levels deep.</p>
+            <p><span class="section-title">4. RECRUITER BOUNTY.</span> <strong>2.5%</strong> of the gross commission is paid to the Affiliate who recruited the Producer (the rep who made the sale).</p>
           </div>
           
           <div class="section">
-            <p><span class="section-title">5. RECRUITER BOUNTY.</span> A <strong>2.5%</strong> bounty is paid to the Affiliate who recruited the Producer, when applicable.</p>
+            <p><span class="section-title">5. PRODUCER & UPLINE COMMISSION.</span> The remaining <strong>75%</strong> is distributed between the Producer and their Uplines (if any):</p>
+            <ul style="margin-left: 20px;">
+              <li>Solo Producer (0 uplines): Producer gets all 75%</li>
+              <li>1 upline: Producer 74% + Upline 1% = 75%</li>
+              <li>2 uplines: Producer 73% + Uplines 2% = 75%</li>
+              <li>3 uplines: Producer 72% + Uplines 3% = 75%</li>
+              <li>4 uplines: Producer 71% + Uplines 4% = 75%</li>
+              <li>5 uplines: Producer 70% + Uplines 5% = 75%</li>
+              <li>6 uplines: Producer 69% + Uplines 6% = 75%</li>
+            </ul>
           </div>
           
           <div class="section">
-            <p><span class="section-title">6. PAYMENT TERMS.</span> Commissions are paid according to the Company's standard payment schedule following verification of sales and compliance with all applicable terms.</p>
+            <p><span class="section-title">6. COMPRESSION.</span> When upline positions are empty, that 1% per empty slot compresses to the Producer (not to the House).</p>
           </div>
           
           <div class="section">
-            <p><span class="section-title">7. ACKNOWLEDGMENT.</span> By signing below, Affiliate acknowledges that they have read, understand, and agree to the commission structure outlined in this Schedule A.</p>
+            <p><span class="section-title">7. PAYMENT TERMS.</span> Commissions are paid according to the Company's standard payment schedule following verification of sales and compliance with all applicable terms.</p>
           </div>
           
           <div class="section">
-            <p><span class="section-title">8. MODIFICATIONS.</span> The Company reserves the right to modify this commission structure with reasonable notice. Continued participation constitutes acceptance of any modifications.</p>
+            <p><span class="section-title">8. ACKNOWLEDGMENT.</span> By signing below, Affiliate acknowledges that they have read, understand, and agree to the commission structure outlined in this Schedule A.</p>
+          </div>
+          
+          <div class="section">
+            <p><span class="section-title">9. MODIFICATIONS.</span> The Company reserves the right to modify this commission structure with reasonable notice. Continued participation constitutes acceptance of any modifications.</p>
           </div>
           
           <div class="signature-block">

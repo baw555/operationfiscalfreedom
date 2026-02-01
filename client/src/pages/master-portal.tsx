@@ -617,6 +617,10 @@ export default function MasterPortal() {
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Sales & Referrals
               </TabsTrigger>
+              <TabsTrigger value="commission" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
+                <DollarSign className="w-4 h-4 mr-2" />
+                Commission Breakdown
+              </TabsTrigger>
               <TabsTrigger value="files" className="data-[state=active]:bg-brand-red data-[state=active]:text-white text-gray-400">
                 <FolderOpen className="w-4 h-4 mr-2" />
                 Documents
@@ -962,6 +966,151 @@ export default function MasterPortal() {
                 <DataTable title="Sales Transactions" icon={<TrendingUp className="w-5 h-5 text-green-400" />} data={salesData} columns={["affiliateId", "opportunityId", "amount", "status", "createdAt"]} />
               </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          {/* Commission Breakdown Tab */}
+          <TabsContent value="commission" className="mt-6">
+            <div className="space-y-6">
+              <div className="bg-black/20 rounded-lg border border-white/10 p-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
+                  <DollarSign className="w-6 h-6 text-amber-400" />
+                  Commission Structure Breakdown
+                </h2>
+                <p className="text-gray-400 mb-6">
+                  All percentages are of <strong className="text-amber-400">GROSS COMMISSION</strong> (not gross revenue). 
+                  Commission rates vary by product/service type.
+                </p>
+                
+                <div className="bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/30 rounded-lg p-4 mb-6">
+                  <h3 className="font-bold text-amber-400 mb-2">Fixed Allocations</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">House (Navigator USA)</span>
+                      <span className="font-bold text-white">22.5%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Recruiter Bounty</span>
+                      <span className="font-bold text-white">2.5%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-brand-navy/50">
+                      <tr className="border-b border-white/20">
+                        <th className="py-3 px-4 text-left text-white font-bold">Position</th>
+                        <th className="py-3 px-4 text-center text-white font-bold">Uplines</th>
+                        <th className="py-3 px-4 text-center text-white font-bold">Producer Gets</th>
+                        <th className="py-3 px-4 text-center text-white font-bold">Uplines Get (1% each)</th>
+                        <th className="py-3 px-4 text-center text-white font-bold">Recruiter</th>
+                        <th className="py-3 px-4 text-center text-white font-bold">House</th>
+                        <th className="py-3 px-4 text-center text-white font-bold">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { uplines: 0, rank: "E7 - SFC", desc: "Solo (no uplines)" },
+                        { uplines: 1, rank: "E6 - SSG", desc: "1 upline above" },
+                        { uplines: 2, rank: "E5 - SGT", desc: "2 uplines above" },
+                        { uplines: 3, rank: "E4 - SPC", desc: "3 uplines above" },
+                        { uplines: 4, rank: "E3 - PFC", desc: "4 uplines above" },
+                        { uplines: 5, rank: "E2 - PV2", desc: "5 uplines above" },
+                        { uplines: 6, rank: "E1 - PVT", desc: "6 uplines above" },
+                      ].map(({ uplines, rank, desc }) => {
+                        const producerPct = 69 + (6 - uplines);
+                        const uplinePct = uplines * 1;
+                        return (
+                          <tr key={uplines} className="border-b border-white/10 hover:bg-white/5">
+                            <td className="py-3 px-4">
+                              <span className="text-white font-medium">{rank}</span>
+                              <span className="text-gray-400 text-xs block">{desc}</span>
+                            </td>
+                            <td className="py-3 px-4 text-center text-gray-300">{uplines}</td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="text-green-400 font-bold">{producerPct}%</span>
+                              {uplines < 6 && <span className="text-gray-500 text-xs block">(69% + {6-uplines}% compression)</span>}
+                            </td>
+                            <td className="py-3 px-4 text-center text-blue-400">{uplinePct}%</td>
+                            <td className="py-3 px-4 text-center text-amber-400">2.5%</td>
+                            <td className="py-3 px-4 text-center text-gray-300">22.5%</td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="text-white font-bold">{producerPct + uplinePct + 2.5 + 22.5}%</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-6 bg-brand-navy/30 rounded-lg p-4">
+                  <h3 className="font-bold text-white mb-2">Key Points</h3>
+                  <ul className="text-sm text-gray-300 space-y-1">
+                    <li>• <strong className="text-amber-400">Compression:</strong> Empty upline slots go to the Producer (not House)</li>
+                    <li>• <strong className="text-amber-400">69% Base:</strong> Every producer starts with 69% minimum</li>
+                    <li>• <strong className="text-amber-400">+1% per empty slot:</strong> Solo producers get 75% (69% + 6%)</li>
+                    <li>• <strong className="text-amber-400">House fixed:</strong> 22.5% always goes to Navigator USA</li>
+                    <li>• <strong className="text-amber-400">Recruiter:</strong> 2.5% to whoever brought in the rep</li>
+                  </ul>
+                </div>
+
+                <div className="mt-6 flex gap-4">
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/admin/send-commission-spreadsheet", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          credentials: "include",
+                          body: JSON.stringify({ email: "bradweitma@gmail.com" })
+                        });
+                        if (res.ok) {
+                          alert("Commission spreadsheet sent to bradweitma@gmail.com");
+                        } else {
+                          alert("Failed to send email");
+                        }
+                      } catch (e) {
+                        alert("Failed to send email");
+                      }
+                    }}
+                    className="bg-amber-500 hover:bg-amber-600 text-white"
+                    data-testid="button-send-commission-email"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Email Spreadsheet to Brad
+                  </Button>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <h3 className="font-bold text-white mb-3">Example Calculation</h3>
+                  <div className="bg-black/30 rounded-lg p-4 text-sm">
+                    <p className="text-gray-300 mb-2">
+                      <strong>Scenario:</strong> $100,000 logistics deal × 18% commission rate = <span className="text-amber-400">$18,000 commission pool</span>
+                    </p>
+                    <p className="text-gray-300 mb-2">Producer has 3 uplines above them:</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                      <div className="bg-green-500/10 border border-green-500/30 rounded p-2">
+                        <div className="text-green-400 font-bold">$12,960</div>
+                        <div className="text-xs text-gray-400">Producer (72%)</div>
+                      </div>
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2">
+                        <div className="text-blue-400 font-bold">$540</div>
+                        <div className="text-xs text-gray-400">Uplines (3 × 1%)</div>
+                      </div>
+                      <div className="bg-amber-500/10 border border-amber-500/30 rounded p-2">
+                        <div className="text-amber-400 font-bold">$450</div>
+                        <div className="text-xs text-gray-400">Recruiter (2.5%)</div>
+                      </div>
+                      <div className="bg-gray-500/10 border border-gray-500/30 rounded p-2">
+                        <div className="text-gray-300 font-bold">$4,050</div>
+                        <div className="text-xs text-gray-400">House (22.5%)</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Documents Tab */}
