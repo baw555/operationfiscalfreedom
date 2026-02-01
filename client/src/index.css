@@ -24,24 +24,27 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  /* NavigatorUSA Brand Colors - INTENSE Patriotic Palette */
-  --color-brand-red: hsl(352 84% 50%);
-  --color-brand-navy: hsl(216 72% 18%);
-  --color-brand-blue: hsl(216 85% 45%);
+  /* NavigatorUSA Brand Colors - Fortune 500 Military Contractor Palette */
+  --color-brand-red: hsl(0 72% 45%);
+  --color-brand-navy: hsl(220 45% 12%);
+  --color-brand-blue: hsl(215 50% 35%);
   --color-brand-white: hsl(0 0% 100%);
-  --color-brand-black: hsl(216 50% 8%);
-  --color-brand-silver: hsl(210 20% 85%);
-  --color-brand-gold: hsl(45 100% 50%);
-  --color-brand-green: hsl(145 63% 42%);
-  --color-brand-khaki: hsl(210 20% 75%);
+  --color-brand-black: hsl(220 30% 6%);
+  --color-brand-silver: hsl(220 10% 75%);
+  --color-brand-gold: hsl(43 74% 49%);
+  --color-brand-green: hsl(152 45% 38%);
+  --color-brand-khaki: hsl(220 8% 65%);
+  --color-brand-slate: hsl(220 15% 25%);
+  --color-brand-steel: hsl(220 12% 45%);
+  --color-brand-charcoal: hsl(220 20% 15%);
 
-  --font-display: "Bebas Neue", sans-serif;
-  --font-stencil: "Black Ops One", cursive;
-  --font-body: "Montserrat", sans-serif;
-  --font-ui: "Roboto Condensed", sans-serif;
+  --font-display: "Inter", "Helvetica Neue", sans-serif;
+  --font-stencil: "Inter", sans-serif;
+  --font-body: "Inter", "Helvetica Neue", sans-serif;
+  --font-ui: "Inter", sans-serif;
 
-  --radius-sm: 0.125rem;
-  --radius-md: 0.25rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
 }
 
