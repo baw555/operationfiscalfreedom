@@ -649,9 +649,47 @@ export default function NavalIntelligence() {
                       <div className="space-y-4">
                         {/* Prompt Input */}
                         <div>
-                          <Label htmlFor="prompt" className="text-base font-semibold">
-                            {activeTab.includes("video") ? "Describe your video" : "Describe your music"}
-                          </Label>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="prompt" className="text-base font-semibold">
+                              {activeTab.includes("video") ? "Describe your video" : "Describe your music"}
+                            </Label>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (!prompt.trim()) {
+                                  toast({
+                                    title: "Enter a prompt first",
+                                    description: "Write a basic description, then click enhance to improve it.",
+                                  });
+                                  return;
+                                }
+                                const enhancements = activeTab.includes("video") ? [
+                                  "cinematic lighting, professional quality, 4K resolution, slow motion",
+                                  "dramatic composition, emotional atmosphere, golden hour lighting",
+                                  "patriotic theme, honoring service, smooth camera movement",
+                                  "detailed textures, vibrant colors, studio quality footage"
+                                ] : [
+                                  "emotional crescendo, rich orchestration, professional mixing",
+                                  "patriotic brass section, stirring strings, powerful drums",
+                                  "uplifting melody, harmonious arrangement, studio quality",
+                                  "inspiring anthem, full orchestra, dramatic dynamics"
+                                ];
+                                const randomEnhancement = enhancements[Math.floor(Math.random() * enhancements.length)];
+                                setPrompt(prev => `${prev.trim()}, ${randomEnhancement}`);
+                                toast({
+                                  title: "Prompt Enhanced",
+                                  description: "Added professional quality suggestions to your prompt.",
+                                });
+                              }}
+                              className="text-brand-blue hover:text-brand-navy"
+                              data-testid="button-enhance-prompt"
+                            >
+                              <Sparkles className="w-4 h-4 mr-1" />
+                              Enhance
+                            </Button>
+                          </div>
                           <Textarea
                             id="prompt"
                             placeholder={
@@ -663,7 +701,7 @@ export default function NavalIntelligence() {
                             }
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
-                            className="mt-2 min-h-[120px]"
+                            className="mt-2 min-h-[120px] border-2 focus:border-brand-blue transition-colors"
                             data-testid="input-prompt"
                           />
                           {selectedTemplate && (
@@ -679,6 +717,9 @@ export default function NavalIntelligence() {
                               </Button>
                             </p>
                           )}
+                          <p className="text-xs text-gray-400 mt-1">
+                            Tip: Click "Enhance" to add professional quality suggestions to your prompt
+                          </p>
                         </div>
 
                         {/* Video-specific options */}
