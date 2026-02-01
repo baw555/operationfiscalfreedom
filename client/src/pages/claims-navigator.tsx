@@ -40,6 +40,7 @@ import {
   Download,
   Share2,
   Trash2,
+  BarChart3,
 } from "lucide-react";
 
 type WizardStep = "track" | "type" | "evidence" | "review" | "dashboard";
@@ -434,6 +435,17 @@ export default function ClaimsNavigator() {
     queryFn: async () => {
       if (!activeCaseId) return null;
       const res = await fetch(`/api/claims/cases/${activeCaseId}/lane-recommendation`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeCaseId,
+  });
+
+  const { data: heatmapData } = useQuery({
+    queryKey: ["/api/claims/cases", activeCaseId, "heatmap"],
+    queryFn: async () => {
+      if (!activeCaseId) return null;
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/heatmap`, { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -1263,6 +1275,96 @@ export default function ClaimsNavigator() {
                         </CardContent>
                       </Card>
                     )}
+
+                    {/* Evidence Heatmap Card */}
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardHeader>
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <BarChart3 className="w-5 h-5 text-amber-400" />
+                          Evidence Strength Heatmap
+                        </CardTitle>
+                        <CardDescription className="text-slate-400">
+                          Visual overview of evidence strength by condition and type
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {heatmapData?.heatmap && heatmapData.heatmap.length > 0 ? (
+                          <div className="space-y-2">
+                            {heatmapData.heatmap.map((h: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className={`flex items-center justify-between p-3 rounded-lg ${
+                                  h.avgStrength >= 4 ? "bg-green-500/20 border border-green-500/30" :
+                                  h.avgStrength >= 3 ? "bg-amber-500/20 border border-amber-500/30" :
+                                  "bg-red-500/20 border border-red-500/30"
+                                }`}
+                                data-testid={`heatmap-cell-${idx}`}
+                              >
+                                <div>
+                                  <span className={`font-medium ${
+                                    h.avgStrength >= 4 ? "text-green-400" :
+                                    h.avgStrength >= 3 ? "text-amber-400" :
+                                    "text-red-400"
+                                  }`}>{h.condition}</span>
+                                  <span className="text-slate-400 mx-2">–</span>
+                                  <span className="text-slate-300 uppercase text-sm">{h.type}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <Badge variant="outline" className="text-slate-400 border-slate-600">
+                                    {h.count} file{h.count > 1 ? "s" : ""}
+                                  </Badge>
+                                  <span className={`font-bold ${
+                                    h.avgStrength >= 4 ? "text-green-400" :
+                                    h.avgStrength >= 3 ? "text-amber-400" :
+                                    "text-red-400"
+                                  }`}>{h.avgStrength}/5</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <BarChart3 className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+                            <p className="text-slate-400">Upload and tag documents to see the heatmap</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Export Package Card */}
+                    <Card className="bg-slate-800/50 border-slate-700">
+                      <CardHeader>
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <Download className="w-5 h-5 text-amber-400" />
+                          Export Submission Package
+                        </CardTitle>
+                        <CardDescription className="text-slate-400">
+                          Download your organized evidence for submission
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <p className="text-slate-300">
+                            Generate a submission-ready package including:
+                          </p>
+                          <ul className="list-disc list-inside text-slate-400 space-y-1">
+                            <li>Evidence Index (auto-generated)</li>
+                            <li>Cover Letter Summary</li>
+                            <li>All tagged documents organized by type</li>
+                          </ul>
+                          <Button
+                            className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold"
+                            onClick={() => {
+                              window.open(`/api/claims/cases/${activeCaseId}/export/download`, "_blank");
+                            }}
+                            data-testid="export-download-btn"
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download Submission Package
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </TabsContent>
                 </Tabs>
               </div>

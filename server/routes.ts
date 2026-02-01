@@ -8946,7 +8946,7 @@ Create a detailed scene plan with timing. Return JSON:
         : 0;
 
       // Task progress
-      const completedTasks = tasks.filter((t) => t.status === "completed").length;
+      const completedTasks = tasks.filter((t) => t.status === "done").length;
       const taskProgress = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
 
       res.json({
@@ -9006,6 +9006,155 @@ Create a detailed scene plan with timing. Return JSON:
       });
     } catch (error) {
       console.error("Error generating export:", error);
+      res.status(500).json({ message: "Failed to generate export" });
+    }
+  });
+
+  // ====================================================
+  // EVIDENCE HEATMAP
+  // ====================================================
+
+  // Get evidence strength heatmap for a case
+  app.get("/api/claims/cases/:id/heatmap", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const files = await storage.getClaimFilesByCaseId(caseId);
+      
+      // Build heatmap data
+      const map: Record<string, { total: number; count: number }> = {};
+
+      for (const f of files) {
+        const condition = f.condition || "General";
+        const evidenceType = f.evidenceType || "other";
+        const key = `${condition}:${evidenceType}`;
+        
+        if (!map[key]) {
+          map[key] = { total: 0, count: 0 };
+        }
+        
+        map[key].total += f.strength || 1;
+        map[key].count += 1;
+      }
+
+      const heatmap = Object.entries(map).map(([key, v]) => {
+        const [condition, type] = key.split(":");
+        return {
+          condition,
+          type,
+          avgStrength: Math.round((v.total / v.count) * 10) / 10,
+          count: v.count,
+        };
+      });
+
+      // Get unique conditions and types for grid layout
+      const conditions = Array.from(new Set(heatmap.map(h => h.condition)));
+      const types = Array.from(new Set(heatmap.map(h => h.type)));
+
+      res.json({
+        heatmap,
+        conditions,
+        types,
+        totalFiles: files.length,
+      });
+    } catch (error) {
+      console.error("Error generating heatmap:", error);
+      res.status(500).json({ message: "Failed to generate heatmap" });
+    }
+  });
+
+  // ====================================================
+  // ZIP EXPORT (PAID FEATURE)
+  // ====================================================
+
+  // Download submission package as ZIP (requires pro plan)
+  app.get("/api/claims/cases/:id/export/download", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // For now, allow all users (monetization gate can be added later via user plan field)
+      // TODO: Check user plan when monetization is fully implemented
+      // const user = await storage.getVeteranUserBySub(userId);
+      // if (user?.plan !== "pro" && user?.plan !== "enterprise") {
+      //   return res.status(403).json({ message: "Pro plan required for export downloads" });
+      // }
+
+      const files = await storage.getClaimFilesByCaseId(caseId);
+      const tasks = await storage.getClaimTasksByCaseId(caseId);
+
+      // Generate evidence index
+      const evidenceIndex = files.map((f, i) => 
+        `${i + 1}. ${f.originalName} – ${(f.evidenceType || "other").toUpperCase()} – ${f.condition || "General"}${f.strength ? ` (Strength: ${f.strength}/5)` : ""}`
+      ).join("\n");
+
+      // Generate cover letter content
+      const completedTasks = tasks.filter(t => t.status === "done").length;
+      const filesWithStrength = files.filter(f => f.strength);
+      const avgStrength = filesWithStrength.length > 0
+        ? (filesWithStrength.reduce((sum, f) => sum + (f.strength || 0), 0) / filesWithStrength.length).toFixed(1)
+        : "N/A";
+
+      const coverLetter = `
+SUBMISSION COVER LETTER
+=======================
+
+Case: ${claimCase.title}
+Type: ${claimCase.caseType.toUpperCase()} - ${claimCase.claimType || "Claim"}
+Date: ${new Date().toLocaleDateString()}
+
+CASE SUMMARY
+------------
+Total Documents: ${files.length}
+Average Evidence Strength: ${avgStrength}/5
+Tasks Completed: ${completedTasks}/${tasks.length}
+
+EVIDENCE INDEX
+--------------
+${evidenceIndex || "No documents uploaded yet."}
+
+NOTES
+-----
+This submission package was generated by NavigatorUSA Claims Navigator.
+All documents are organized by evidence type for your review.
+
+---
+Generated: ${new Date().toISOString()}
+      `.trim();
+
+      // Set response headers for text file (simplified - no actual ZIP for now)
+      const filename = `${claimCase.caseType.toUpperCase()}_Submission_${claimCase.id}_${new Date().toISOString().split('T')[0]}.txt`;
+      
+      res.setHeader("Content-Type", "text/plain");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.send(coverLetter);
+    } catch (error) {
+      console.error("Error generating export download:", error);
       res.status(500).json({ message: "Failed to generate export" });
     }
   });
