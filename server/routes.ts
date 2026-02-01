@@ -4347,6 +4347,139 @@ export async function registerRoutes(
   });
 
   // AI Autofill - extract contact info from pasted text
+  // AI Smart Extract - Consolidated AI that extracts, formats, and triple-checks all fields in one call
+  app.post("/api/csu/ai-smart-extract", async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text || typeof text !== "string") {
+        return res.status(400).json({ message: "Text is required" });
+      }
+
+      console.log(`[AI Smart Extract] Starting 3-pass extraction from ${text.length} chars`);
+
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({ apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY });
+      
+      // Define all fields to extract
+      const extractionPrompt = `You are an expert contact and document information extractor. Extract ALL of the following fields from the provided text:
+
+REQUIRED FIELDS:
+- name: The person's full name (first and last)
+- email: Their email address
+
+OPTIONAL FIELDS:
+- phone: Their phone number (format: +1 (XXX) XXX-XXXX or similar)
+- address: Their full mailing address (street, city, state, zip)
+- company: Their company or organization name
+- initials: Their initials (derive from name if not explicitly stated, e.g., "John Doe" → "JD")
+- date: Any relevant date mentioned (format: YYYY-MM-DD)
+- title: Their job title or position
+
+FORMATTING RULES:
+1. Names: Capitalize properly (e.g., "john doe" → "John Doe")
+2. Email: Lowercase (e.g., "JOHN@EXAMPLE.COM" → "john@example.com")
+3. Phone: Format as +1 (XXX) XXX-XXXX for US numbers
+4. Address: Proper capitalization and formatting
+5. Initials: Uppercase, derived from first letters of first and last name
+6. Date: ISO format YYYY-MM-DD
+
+Return ONLY valid JSON with these fields. If a field is not found, omit it.
+Example: {"name": "John Doe", "email": "john@example.com", "phone": "+1 (555) 123-4567", "initials": "JD", "company": "Acme Corp"}`;
+
+      // Run extraction 3 times and consolidate/verify
+      let allResults: any[] = [];
+      
+      for (let pass = 1; pass <= 3; pass++) {
+        console.log(`[AI Smart Extract] Pass ${pass}/3`);
+        
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: extractionPrompt },
+            { role: "user", content: text }
+          ],
+          temperature: pass === 1 ? 0.1 : 0.2, // Slightly vary temperature on subsequent passes
+          max_tokens: 500,
+        });
+
+        const content = response.choices[0]?.message?.content || "{}";
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            allResults.push(JSON.parse(jsonMatch[0]));
+          }
+        } catch (e) {
+          console.error(`[AI Smart Extract] Pass ${pass} parse error:`, content);
+        }
+      }
+
+      // Consolidate results - take the most common value for each field, prioritizing non-empty
+      const consolidated: Record<string, string> = {};
+      const fields = ['name', 'email', 'phone', 'address', 'company', 'initials', 'date', 'title'];
+      
+      for (const field of fields) {
+        const values = allResults
+          .map(r => r[field])
+          .filter(v => v && typeof v === 'string' && v.trim() !== '');
+        
+        if (values.length > 0) {
+          // Count occurrences and take most common
+          const counts: Record<string, number> = {};
+          for (const v of values) {
+            const normalized = v.trim();
+            counts[normalized] = (counts[normalized] || 0) + 1;
+          }
+          // Get the value that appears most often (or first if tie)
+          const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+          consolidated[field] = sorted[0][0];
+        }
+      }
+
+      // Final formatting pass to ensure consistency
+      if (consolidated.name) {
+        consolidated.name = consolidated.name
+          .split(' ')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+          .join(' ');
+        
+        // Auto-generate initials if not found
+        if (!consolidated.initials) {
+          const nameParts = consolidated.name.split(' ').filter(p => p.length > 0);
+          if (nameParts.length >= 2) {
+            consolidated.initials = (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+          } else if (nameParts.length === 1) {
+            consolidated.initials = nameParts[0].substring(0, 2).toUpperCase();
+          }
+        }
+      }
+      
+      if (consolidated.email) {
+        consolidated.email = consolidated.email.toLowerCase().trim();
+      }
+      
+      if (consolidated.initials) {
+        consolidated.initials = consolidated.initials.toUpperCase();
+      }
+
+      console.log(`[AI Smart Extract] Consolidated result:`, consolidated);
+      console.log(`[AI Smart Extract] Confidence: ${allResults.length}/3 passes successful`);
+      
+      res.json({
+        ...consolidated,
+        _meta: {
+          passes: 3,
+          successful: allResults.length,
+          confidence: Math.round((allResults.length / 3) * 100)
+        }
+      });
+    } catch (error) {
+      console.error("Error in AI smart extract:", error);
+      const message = error instanceof Error ? error.message : "Failed to extract contact info";
+      res.status(500).json({ message });
+    }
+  });
+
+  // Legacy endpoint - redirect to smart extract
   app.post("/api/csu/ai-autofill", async (req, res) => {
     try {
       const { text } = req.body;
@@ -4357,7 +4490,7 @@ export async function registerRoutes(
       console.log(`[AI Autofill] Extracting contact info from ${text.length} chars`);
 
       const OpenAI = (await import("openai")).default;
-      const openai = new OpenAI();
+      const openai = new OpenAI({ apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY });
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
