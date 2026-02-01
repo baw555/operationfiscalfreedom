@@ -2161,5 +2161,43 @@ export const insertCaseDeadlineSchema = createInsertSchema(caseDeadlines).omit({
 export type InsertCaseDeadline = z.infer<typeof insertCaseDeadlineSchema>;
 export type CaseDeadline = typeof caseDeadlines.$inferSelect;
 
+// ==========================================
+// VENDOR MAGIC LINK AUTH
+// ==========================================
+
+// Vendor Magic Links - Passwordless email authentication for vendors
+export const vendorMagicLinks = pgTable("vendor_magic_links", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertVendorMagicLinkSchema = createInsertSchema(vendorMagicLinks).omit({
+  id: true,
+  used: true,
+  createdAt: true,
+});
+export type InsertVendorMagicLink = z.infer<typeof insertVendorMagicLinkSchema>;
+export type VendorMagicLink = typeof vendorMagicLinks.$inferSelect;
+
+// Vendor Sessions - Active login sessions for vendors
+export const vendorSessions = pgTable("vendor_sessions", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  sessionToken: text("session_token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertVendorSessionSchema = createInsertSchema(vendorSessions).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertVendorSession = z.infer<typeof insertVendorSessionSchema>;
+export type VendorSession = typeof vendorSessions.$inferSelect;
+
 // Replit Auth tables (for veteran users)
 export * from "./models/auth";

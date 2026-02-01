@@ -67,7 +67,9 @@ import {
   caseNotes, type CaseNote, type InsertCaseNote,
   caseDeadlines, type CaseDeadline, type InsertCaseDeadline,
   caseShares, type CaseShare, type InsertCaseShare,
-  evidenceRequirements, type EvidenceRequirement
+  evidenceRequirements, type EvidenceRequirement,
+  vendorMagicLinks, type VendorMagicLink, type InsertVendorMagicLink,
+  vendorSessions, type VendorSession, type InsertVendorSession
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -479,6 +481,16 @@ export interface IStorage {
 
   // ClaimFile updates for evidence fields
   updateClaimFileEvidence(id: number, updates: { evidenceType?: string; condition?: string; strength?: number }): Promise<ClaimFile | undefined>;
+
+  // Vendor Magic Link Auth
+  createVendorMagicLink(data: InsertVendorMagicLink): Promise<VendorMagicLink>;
+  getVendorMagicLinkByToken(token: string): Promise<VendorMagicLink | undefined>;
+  markMagicLinkUsed(id: number): Promise<void>;
+  createVendorSession(data: InsertVendorSession): Promise<VendorSession>;
+  getVendorSessionByToken(token: string): Promise<VendorSession | undefined>;
+  deleteVendorSession(token: string): Promise<void>;
+  deleteExpiredMagicLinks(): Promise<void>;
+  deleteExpiredVendorSessions(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2550,6 +2562,54 @@ export class DatabaseStorage implements IStorage {
       .where(eq(claimFiles.id, id))
       .returning();
     return updated;
+  }
+
+  // Vendor Magic Link Auth
+  async createVendorMagicLink(data: InsertVendorMagicLink): Promise<VendorMagicLink> {
+    const [link] = await db.insert(vendorMagicLinks).values(data).returning();
+    return link;
+  }
+
+  async getVendorMagicLinkByToken(token: string): Promise<VendorMagicLink | undefined> {
+    const [link] = await db.select().from(vendorMagicLinks)
+      .where(and(
+        eq(vendorMagicLinks.token, token),
+        eq(vendorMagicLinks.used, false),
+        gt(vendorMagicLinks.expiresAt, new Date())
+      ));
+    return link;
+  }
+
+  async markMagicLinkUsed(id: number): Promise<void> {
+    await db.update(vendorMagicLinks)
+      .set({ used: true })
+      .where(eq(vendorMagicLinks.id, id));
+  }
+
+  async createVendorSession(data: InsertVendorSession): Promise<VendorSession> {
+    const [session] = await db.insert(vendorSessions).values(data).returning();
+    return session;
+  }
+
+  async getVendorSessionByToken(token: string): Promise<VendorSession | undefined> {
+    const [session] = await db.select().from(vendorSessions)
+      .where(and(
+        eq(vendorSessions.sessionToken, token),
+        gt(vendorSessions.expiresAt, new Date())
+      ));
+    return session;
+  }
+
+  async deleteVendorSession(token: string): Promise<void> {
+    await db.delete(vendorSessions).where(eq(vendorSessions.sessionToken, token));
+  }
+
+  async deleteExpiredMagicLinks(): Promise<void> {
+    await db.delete(vendorMagicLinks).where(lt(vendorMagicLinks.expiresAt, new Date()));
+  }
+
+  async deleteExpiredVendorSessions(): Promise<void> {
+    await db.delete(vendorSessions).where(lt(vendorSessions.expiresAt, new Date()));
   }
 }
 
