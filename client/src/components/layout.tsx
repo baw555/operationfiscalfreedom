@@ -6,6 +6,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import logoImage from "@assets/Navigaor_USA_Logo_396x86_1767699671480.png";
 import logoStacked from "@assets/NavStar-Stacked_(2)_1769496493964.png";
 import { RangerTabSVG } from "@/components/ranger-tab-svg";
+import { CostSavingsWidget } from "@/components/cost-savings-widget";
 
 const animatedTextStyles = `
   @keyframes letterWave {
@@ -505,6 +506,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         )}
       </header>
+
+      {/* Cost Savings Widget */}
+      <CostSavingsWidget />
 
       {/* Main Content */}
       <main className="flex-1 page-fade-in">
