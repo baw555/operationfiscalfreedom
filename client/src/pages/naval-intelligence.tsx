@@ -16,7 +16,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { 
   Video, 
   Music, 
-  Film, 
+  Film,
+  Share2,
+  Copy, 
   Wand2, 
   Download, 
   Play, 
@@ -198,6 +200,16 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
                   </Button>
                 </a>
               )}
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  const url = window.location.origin + (generation.generatedVideoUrl || generation.generatedMusicUrl);
+                  navigator.clipboard.writeText(url);
+                }}
+                className="shrink-0"
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </DialogContent>
