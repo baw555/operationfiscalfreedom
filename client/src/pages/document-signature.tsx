@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { VeteranAuthGate } from "@/components/veteran-auth-gate";
+import { RangerAuthGate } from "@/components/ranger-auth-gate";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -582,7 +582,7 @@ export default function DocumentSignature() {
   };
 
   return (
-    <VeteranAuthGate serviceName="RANGER Document Signing">
+    <RangerAuthGate>
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent" />
@@ -2522,6 +2522,6 @@ Example: 'John Doe from Acme Corp - john@acme.com, 555-123-4567, 123 Main St, Ch
         </DialogContent>
       </Dialog>
     </Layout>
-    </VeteranAuthGate>
+    </RangerAuthGate>
   );
 }
