@@ -6949,6 +6949,22 @@ Example response: {"name": "John Doe", "email": "john@example.com", "phone": "55
         return res.status(400).json({ message: "Message is required" });
       }
 
+      // ========================================
+      // CONTENT FILTER - Check for restricted topics
+      // ========================================
+      const { checkContentRestrictions, postProcessResponse, CORE_SYSTEM_PROMPT } = await import("./contentFilter");
+      const filterResult = checkContentRestrictions(message);
+      
+      // Hard block on restricted topics
+      if (filterResult.blocked) {
+        return res.json({
+          response: filterResult.message,
+          model: "content-filter",
+          memoryMode,
+          blocked: true,
+        });
+      }
+
       // Build context based on preset
       const presetContexts: Record<string, string> = {
         general: "You are a helpful AI assistant for veteran families. Be respectful, professional, and supportive.",
@@ -6960,9 +6976,9 @@ Example response: {"name": "John Doe", "email": "john@example.com", "phone": "55
 
       const systemContext = presetContexts[preset] || presetContexts.general;
 
-      // Build messages for OpenAI
+      // Build messages for OpenAI - INJECT CORE SYSTEM PROMPT
       const messages: Array<{ role: string; content: string }> = [
-        { role: "system", content: `${systemContext}\n\nYou are Operator AI, part of the Q Branch AI suite for NavigatorUSA. You help veteran families with their questions and tasks. Be helpful, concise, and professional.` },
+        { role: "system", content: `${CORE_SYSTEM_PROMPT}\n\n${systemContext}\n\nYou are Operator AI, part of the Q Branch AI suite for NavigatorUSA. You help veteran families with their questions and tasks. Be helpful, concise, and professional.` },
       ];
 
       // Memory Mode Logic:
@@ -7039,7 +7055,10 @@ Example response: {"name": "John Doe", "email": "john@example.com", "phone": "55
       }
 
       const data = await response.json();
-      const aiResponse = data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
+      let aiResponse = data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
+
+      // POST-PROCESS: Add legal disclaimer if this was a legal question
+      aiResponse = postProcessResponse(aiResponse, filterResult);
 
       // CRITICAL: Only store if memoryMode is NOT "stateless"
       if (memoryMode !== "stateless" && sessionId) {
