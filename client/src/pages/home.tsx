@@ -471,9 +471,10 @@ export default function Home() {
           <HeroMontage isActive={showContent} audioRef={montageAudioRef} />
 
           <div className="container relative z-10 px-3 sm:px-4 py-10 sm:py-20 text-center max-w-5xl mx-auto">
-            <h1 className="font-display text-white mb-4 sm:mb-6 leading-none animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
-              <span className="block text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight drop-shadow-2xl">GEAR UP</span>
-              <span className="block text-brand-gold text-3xl sm:text-5xl md:text-6xl lg:text-7xl mt-2 tracking-wide">IN 2026 AND BEYOND</span>
+            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-white mb-1 sm:mb-2 leading-none animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+              GEAR UP
+              <br />
+              <span className="text-brand-red text-2xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight">in 2026 and Beyond</span>
             </h1>
 
             {/* Animated Flag Banner with Free Services */}

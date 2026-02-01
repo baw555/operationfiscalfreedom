@@ -1,11 +1,11 @@
 import { Star } from "lucide-react";
 
 export function FlagBanner() {
-  const insuranceCarriers = "MUTUAL OF OMAHA • PRUDENTIAL • TRANSAMERICA • NATIONWIDE • GUARDIAN • PRINCIPAL • CIGNA • AETNA • METLIFE • LINCOLN FINANCIAL • JOHN HANCOCK • AMERITAS • UNUM • STANDARD • AFLAC • STATE FARM • ALLSTATE • TRAVELERS • LIBERTY MUTUAL • HARTFORD";
+  const marqueeText = "ALL VETERANS GET FREE JOB TRAINING • FREE DOCUMENT SIGNING SOFTWARE • GENERATE AI • OPERATOR AI THAT DOESN'T CENSOR - WE DON'T STORE - TRACK YOU • SAVE ON INSURANCE • GET WORK • GET PAID FOR REFERRING FELLOW VETERANS AND FAMILY";
   
   return (
     <div className="w-full max-w-6xl mx-auto my-6 sm:my-8 px-4">
-      {/* Fortune 500 Style Scrolling Insurance Carriers Bar */}
+      {/* Fortune 500 Style Scrolling Marquee Bar */}
       <div className="relative overflow-hidden rounded-lg shadow-2xl">
         {/* Top accent line */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-gold via-yellow-400 to-brand-gold z-10" />
@@ -25,21 +25,21 @@ export function FlagBanner() {
             <div className="marquee-container flex whitespace-nowrap">
               <div className="marquee-content animate-marquee flex items-center">
                 <span className="text-white font-display text-sm sm:text-base md:text-lg lg:text-xl tracking-wider px-8">
-                  {insuranceCarriers}
+                  {marqueeText}
                 </span>
                 <span className="text-brand-gold mx-4">★</span>
                 <span className="text-white font-display text-sm sm:text-base md:text-lg lg:text-xl tracking-wider px-8">
-                  {insuranceCarriers}
+                  {marqueeText}
                 </span>
                 <span className="text-brand-gold mx-4">★</span>
               </div>
               <div className="marquee-content animate-marquee flex items-center" aria-hidden="true">
                 <span className="text-white font-display text-sm sm:text-base md:text-lg lg:text-xl tracking-wider px-8">
-                  {insuranceCarriers}
+                  {marqueeText}
                 </span>
                 <span className="text-brand-gold mx-4">★</span>
                 <span className="text-white font-display text-sm sm:text-base md:text-lg lg:text-xl tracking-wider px-8">
-                  {insuranceCarriers}
+                  {marqueeText}
                 </span>
                 <span className="text-brand-gold mx-4">★</span>
               </div>
