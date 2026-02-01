@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
@@ -88,11 +89,13 @@ interface AiTemplate {
   videoPrompt?: string;
   musicPrompt?: string;
   musicGenre?: string;
+  suggestedLyrics?: string;
   thumbnailUrl?: string;
   usageCount: number;
 }
 
 function GenerationCard({ generation }: { generation: AiGeneration }) {
+  const [isPlaying, setIsPlaying] = useState(false);
   const typeInfo = GENERATION_TYPES[generation.type as GenerationType] || GENERATION_TYPES["text-to-video"];
   const Icon = typeInfo.icon;
   
@@ -110,36 +113,95 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
     failed: XCircle
   }[generation.status] || Clock;
 
+  const hasVideo = generation.status === 'completed' && generation.generatedVideoUrl;
+  const hasMusic = generation.status === 'completed' && generation.generatedMusicUrl;
+
   return (
     <Card className="overflow-hidden border-brand-navy/20 hover:shadow-lg transition-shadow" data-testid={`card-generation-${generation.id}`}>
-      <div className="relative aspect-video bg-gradient-to-br from-brand-navy to-brand-blue">
-        {generation.thumbnailUrl ? (
-          <img src={generation.thumbnailUrl} alt={generation.prompt} className="w-full h-full object-cover" />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Icon className="w-16 h-16 text-white/30" />
+      <Dialog>
+        <DialogTrigger asChild>
+          <div className="relative aspect-video bg-gradient-to-br from-brand-navy to-brand-blue cursor-pointer group">
+            {hasVideo ? (
+              <video 
+                src={generation.generatedVideoUrl} 
+                className="w-full h-full object-cover"
+                muted
+                loop
+                onMouseEnter={(e) => e.currentTarget.play()}
+                onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+              />
+            ) : generation.thumbnailUrl ? (
+              <img src={generation.thumbnailUrl} alt={generation.prompt} className="w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Icon className="w-16 h-16 text-white/30" />
+              </div>
+            )}
+            <div className="absolute top-2 left-2">
+              <Badge className={`${typeInfo.color} text-white`}>
+                <Icon className="w-3 h-3 mr-1" />
+                {typeInfo.label}
+              </Badge>
+            </div>
+            <div className="absolute top-2 right-2">
+              <Badge className={`${statusColors[generation.status as keyof typeof statusColors]} text-white`}>
+                <StatusIcon className={`w-3 h-3 mr-1 ${generation.status === 'processing' ? 'animate-spin' : ''}`} />
+                {generation.status}
+              </Badge>
+            </div>
+            {hasVideo && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                  <Play className="w-7 h-7 text-brand-navy ml-1" />
+                </div>
+              </div>
+            )}
           </div>
-        )}
-        <div className="absolute top-2 left-2">
-          <Badge className={`${typeInfo.color} text-white`}>
-            <Icon className="w-3 h-3 mr-1" />
-            {typeInfo.label}
-          </Badge>
-        </div>
-        <div className="absolute top-2 right-2">
-          <Badge className={`${statusColors[generation.status as keyof typeof statusColors]} text-white`}>
-            <StatusIcon className={`w-3 h-3 mr-1 ${generation.status === 'processing' ? 'animate-spin' : ''}`} />
-            {generation.status}
-          </Badge>
-        </div>
-        {generation.status === 'completed' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
-            <Button size="icon" variant="secondary" className="rounded-full">
-              <Play className="w-6 h-6" />
-            </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+          <DialogHeader className="p-4 bg-brand-navy text-white">
+            <DialogTitle className="flex items-center gap-2">
+              <Icon className="w-5 h-5" />
+              {typeInfo.label} Preview
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+            {hasVideo && (
+              <video 
+                src={generation.generatedVideoUrl} 
+                controls 
+                autoPlay
+                className="w-full rounded-lg shadow-lg"
+              />
+            )}
+            {hasMusic && (
+              <audio 
+                src={generation.generatedMusicUrl} 
+                controls 
+                autoPlay
+                className="w-full"
+              />
+            )}
+            <p className="mt-4 text-sm text-gray-600">{generation.prompt}</p>
+            <div className="flex gap-2 mt-4">
+              {hasVideo && (
+                <a href={generation.generatedVideoUrl} download className="flex-1">
+                  <Button className="w-full bg-brand-navy hover:bg-brand-navy/90">
+                    <Download className="w-4 h-4 mr-2" /> Download Video
+                  </Button>
+                </a>
+              )}
+              {hasMusic && (
+                <a href={generation.generatedMusicUrl} download className="flex-1">
+                  <Button className="w-full bg-brand-navy hover:bg-brand-navy/90">
+                    <Download className="w-4 h-4 mr-2" /> Download Music
+                  </Button>
+                </a>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </DialogContent>
+      </Dialog>
       <CardContent className="p-4">
         <p className="text-sm text-gray-700 line-clamp-2 mb-2">{generation.prompt}</p>
         <div className="flex items-center justify-between text-xs text-gray-500">
@@ -166,6 +228,12 @@ function GenerationCard({ generation }: { generation: AiGeneration }) {
         )}
         {generation.status === 'failed' && generation.errorMessage && (
           <p className="text-xs text-red-500 mt-2">{generation.errorMessage}</p>
+        )}
+        {generation.status === 'processing' && (
+          <div className="mt-3">
+            <Progress value={45} className="h-2" />
+            <p className="text-xs text-blue-600 mt-1 animate-pulse">Generating your content...</p>
+          </div>
         )}
       </CardContent>
     </Card>

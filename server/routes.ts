@@ -6489,19 +6489,33 @@ export async function registerRoutes(
   // ==========================================
 
   // Get all AI generations for the gallery
+  // Shows sample/demo content plus user's own generations
   app.get("/api/ai/gallery", async (req, res) => {
     try {
       const sessionId = req.sessionID || req.headers['x-session-id'] as string;
       
+      // Get all completed generations as sample content (public demo)
+      const allGenerations = await storage.getAllAiGenerations(20);
+      const sampleGenerations = allGenerations.filter(g => 
+        g.status === 'completed' && !g.userId && !g.sessionId
+      );
+      
+      let userGenerations: any[] = [];
       if (req.session.userId) {
-        const generations = await storage.getAiGenerationsByUser(req.session.userId);
-        return res.json(generations);
+        userGenerations = await storage.getAiGenerationsByUser(req.session.userId);
       } else if (sessionId) {
-        const generations = await storage.getAiGenerationsBySession(sessionId);
-        return res.json(generations);
+        userGenerations = await storage.getAiGenerationsBySession(sessionId);
       }
       
-      res.json([]);
+      // Combine user generations with sample content, removing duplicates
+      const seenIds = new Set<number>();
+      const combined = [...userGenerations, ...sampleGenerations].filter(g => {
+        if (seenIds.has(g.id)) return false;
+        seenIds.add(g.id);
+        return true;
+      });
+      
+      res.json(combined);
     } catch (error) {
       console.error("Error fetching AI gallery:", error);
       res.status(500).json({ message: "Failed to fetch gallery" });
