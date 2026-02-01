@@ -102,7 +102,7 @@ const finOpsSubItems = [
 
 const freeVetSoftwareSubItems = [
   { name: "About Nav Perks", href: "/about-nav-perks" },
-  { name: "Operator AI", href: "/operator-ai" },
+  { name: "C-AI", href: "/operator-ai" },
   { name: "Video & Music Gen", href: "/naval-intelligence" },
   { name: "RANGER: Free Document Signature", href: "/document-signature" },
   { name: "Claims Navigator", href: "/claims-navigator" },

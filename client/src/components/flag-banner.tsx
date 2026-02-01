@@ -137,7 +137,7 @@ export function FlagBanner() {
             >
               <span className="flex items-center">
                 <Lock className="w-4 h-4 mr-2" />
-                Operator AI (Censorless - Private)
+                C-AI (Censorless - Private)
               </span>
               <span className="text-xs text-gray-400">Partner Only</span>
             </DropdownMenuItem>
