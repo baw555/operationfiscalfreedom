@@ -1951,3 +1951,6 @@ export const insertPipelineArtifactSchema = createInsertSchema(pipelineArtifacts
 });
 export type InsertPipelineArtifact = z.infer<typeof insertPipelineArtifactSchema>;
 export type PipelineArtifact = typeof pipelineArtifacts.$inferSelect;
+
+// Replit Auth tables (for veteran users)
+export * from "./models/auth";
