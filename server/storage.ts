@@ -66,7 +66,8 @@ import {
   claimFiles, type ClaimFile, type InsertClaimFile,
   caseNotes, type CaseNote, type InsertCaseNote,
   caseDeadlines, type CaseDeadline, type InsertCaseDeadline,
-  caseShares, type CaseShare, type InsertCaseShare
+  caseShares, type CaseShare, type InsertCaseShare,
+  evidenceRequirements, type EvidenceRequirement
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -470,6 +471,13 @@ export interface IStorage {
   getCaseShareById(id: number): Promise<CaseShare | undefined>;
   upsertCaseShare(data: InsertCaseShare): Promise<CaseShare>;
   deleteCaseShare(id: number): Promise<void>;
+
+  // Evidence Requirements
+  getEvidenceRequirements(track: string, purpose: string): Promise<EvidenceRequirement[]>;
+  getAllEvidenceRequirements(): Promise<EvidenceRequirement[]>;
+
+  // ClaimFile updates for evidence fields
+  updateClaimFileEvidence(id: number, updates: { evidenceType?: string; condition?: string; strength?: number }): Promise<ClaimFile | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2513,6 +2521,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCaseShare(id: number): Promise<void> {
     await db.delete(caseShares).where(eq(caseShares.id, id));
+  }
+
+  // Evidence Requirements
+  async getEvidenceRequirements(track: string, purpose: string): Promise<EvidenceRequirement[]> {
+    return db.select().from(evidenceRequirements)
+      .where(and(
+        eq(evidenceRequirements.track, track),
+        eq(evidenceRequirements.purpose, purpose)
+      ))
+      .orderBy(evidenceRequirements.priority);
+  }
+
+  async getAllEvidenceRequirements(): Promise<EvidenceRequirement[]> {
+    return db.select().from(evidenceRequirements)
+      .orderBy(evidenceRequirements.track, evidenceRequirements.purpose, evidenceRequirements.priority);
+  }
+
+  // ClaimFile evidence updates
+  async updateClaimFileEvidence(id: number, updates: { evidenceType?: string; condition?: string; strength?: number }): Promise<ClaimFile | undefined> {
+    const [updated] = await db.update(claimFiles)
+      .set(updates)
+      .where(eq(claimFiles.id, id))
+      .returning();
+    return updated;
   }
 }
 

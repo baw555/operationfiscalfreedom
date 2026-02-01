@@ -1,0 +1,177 @@
+OVERVIEW: THE FIVE FEATURES (HOW THEY FIT TOGETHER)
+
+These are not separate ideas. They form one loop:
+
+Document completeness warnings
+
+Evidence tagging + strength scoring
+
+VA lane recommendation logic
+
+Vendor performance metrics
+
+Export packages (submission-ready bundles)
+
+Flow:
+
+Files → Tags → Completeness → Strength → Lane Recommendation → Export
+                    ↑
+                Vendor actions measured
+
+
+We’ll build them in this order because that’s how reality works.
+
+STAGE 1 — DOCUMENT COMPLETENESS WARNINGS
+
+(“What’s missing before you even think about filing”)
+
+1.1 Define required evidence (VA-focused MVP)
+
+Create a rules table, not hardcoded logic.
+
+Prisma: EvidenceRequirement
+model EvidenceRequirement {
+  id        String   @id @default(uuid())
+  track     String   // VA | SSDI
+  purpose   String   // new_claim | increase | appeal
+  type      String   // medical | lay | nexus | exam
+  label     String
+  required  Boolean  @default(true)
+}
+
+
+Seed example data (run once):
+
+await prisma.evidenceRequirement.createMany({
+  data: [
+    { track: "VA", purpose: "new_claim", type: "medical", label: "Current diagnosis" },
+    { track: "VA", purpose: "new_claim", type: "lay", label: "Personal statement" },
+    { track: "VA", purpose: "new_claim", type: "nexus", label: "Service connection opinion" },
+  ]
+});
+
+1.2 Backend completeness checker
+
+src/lib/completeness.ts
+
+export function checkCompleteness({
+  requirements,
+  files
+}: {
+  requirements: any[];
+  files: any[];
+}) {
+  const presentTypes = new Set(files.map(f => f.evidenceType));
+
+  return requirements.map(r => ({
+    ...r,
+    status: presentTypes.has(r.type) ? "present" : "missing"
+  }));
+}
+
+
+Output becomes a warning panel, not legal advice.
+
+STAGE 2 — EVIDENCE STRENGTH SCORING
+
+(“Not just do you have it — how strong is it?”)
+
+2.1 Extend File model
+model File {
+  id            String   @id @default(uuid())
+  caseId        String
+  filename      String
+  evidenceType  String   // medical | lay | nexus | exam
+  condition     String?
+  strength      Int?     // 1–5
+  createdAt     DateTime @default(now())
+}
+
+2.2 Evidence scoring logic (deterministic, explainable)
+
+src/lib/evidenceScoring.ts
+
+export function scoreFile(file: any) {
+  let score = 1;
+
+  if (file.evidenceType === "medical") score += 1;
+  if (file.evidenceType === "nexus") score += 2;
+  if (file.condition) score += 1;
+
+  return Math.min(score, 5);
+}
+
+
+On upload:
+
+strength: scoreFile({ evidenceType, condition })
+
+2.3 Aggregate strength per condition
+export function conditionStrength(files: any[]) {
+  const map: Record<string, number[]> = {};
+
+  files.forEach(f => {
+    if (!f.condition) return;
+    map[f.condition] ||= [];
+    map[f.condition].push(f.strength || 1);
+  });
+
+  return Object.entries(map).map(([condition, scores]) => ({
+    condition,
+    avgStrength: scores.reduce((a,b)=>a+b,0) / scores.length
+  }));
+}
+
+
+This feeds lane recommendations.
+
+STAGE 3 — VA LANE RECOMMENDATION LOGIC
+
+(This is where your platform starts making decisions)
+
+3.1 Rule-based engine (transparent)
+
+src/lib/laneSelector.ts
+
+export function recommendLane({
+  hasNewEvidence,
+  strengthAvg
+}: {
+  hasNewEvidence: boolean;
+  strengthAvg: number;
+}) {
+  if (hasNewEvidence && strengthAvg >= 3.5) {
+    return {
+      lane: "Supplemental Claim",
+      reason: "New and relevant evidence present"
+    };
+  }
+
+  if (!hasNewEvidence && strengthAvg >= 3) {
+    return {
+      lane: "Higher-Level Review",
+      reason: "Record appears strong; no new evidence required"
+    };
+  }
+
+  return {
+    lane: "Board Appeal",
+    reason: "Complex or weak evidentiary posture"
+  };
+}
+
+
+Key point
+You are not telling them what to do.
+You are showing why a lane fits their evidence posture.
+
+STAGE 4 — VENDOR PERFORMANCE METRICS
+
+(Quietly powerful, monetizable, defensible)
+
+4.1 Track vendor actions
+
+Extend Note and File:
+
+authorType String // veteran | vendor
+authorId   String?

@@ -2045,8 +2045,33 @@ export const claimFiles = pgTable("claim_files", {
   storageUrl: text("storage_url").notNull(),
   category: text("category"), // medical_records, service_records, statements, etc.
   notes: text("notes"),
+  // Evidence fields for completeness and strength scoring
+  evidenceType: text("evidence_type"), // medical | lay | nexus | exam
+  condition: text("condition"), // The condition this evidence relates to
+  strength: integer("strength"), // 1-5 strength score
+  // Vendor tracking
+  authorType: text("author_type").default("veteran"), // veteran | vendor
+  authorId: text("author_id"), // ID of the uploader (vendor email if vendor)
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Evidence Requirements - Rules for document completeness
+export const evidenceRequirements = pgTable("evidence_requirements", {
+  id: serial("id").primaryKey(),
+  track: text("track").notNull(), // VA | SSDI
+  purpose: text("purpose").notNull(), // new_claim | increase | appeal
+  evidenceType: text("evidence_type").notNull(), // medical | lay | nexus | exam
+  label: text("label").notNull(),
+  description: text("description"),
+  required: boolean("required").default(true).notNull(),
+  priority: integer("priority").default(1), // For ordering
+});
+
+export const insertEvidenceRequirementSchema = createInsertSchema(evidenceRequirements).omit({
+  id: true,
+});
+export type InsertEvidenceRequirement = z.infer<typeof insertEvidenceRequirementSchema>;
+export type EvidenceRequirement = typeof evidenceRequirements.$inferSelect;
 
 export const insertClaimFileSchema = createInsertSchema(claimFiles).omit({
   id: true,

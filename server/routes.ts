@@ -8507,5 +8507,267 @@ Create a detailed scene plan with timing. Return JSON:
     }
   });
 
+  // ====================================================
+  // EVIDENCE & COMPLETENESS ENDPOINTS
+  // ====================================================
+
+  // Get evidence requirements for a track/purpose
+  app.get("/api/claims/evidence-requirements", async (req, res) => {
+    try {
+      const { track, purpose } = req.query;
+      if (track && purpose) {
+        const requirements = await storage.getEvidenceRequirements(
+          track as string,
+          purpose as string
+        );
+        res.json(requirements);
+      } else {
+        const all = await storage.getAllEvidenceRequirements();
+        res.json(all);
+      }
+    } catch (error) {
+      console.error("Error fetching evidence requirements:", error);
+      res.status(500).json({ message: "Failed to fetch requirements" });
+    }
+  });
+
+  // Get completeness analysis for a case
+  app.get("/api/claims/cases/:id/completeness", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Map claim type to purpose
+      const purposeMap: Record<string, string> = {
+        new: "new_claim",
+        increase: "increase",
+        appeal: "appeal",
+        apply: "apply",
+        reconsideration: "appeal",
+        alj: "appeal",
+      };
+      const purpose = purposeMap[claimCase.claimType] || "new_claim";
+      const track = claimCase.caseType.toUpperCase();
+
+      const requirements = await storage.getEvidenceRequirements(track, purpose);
+      const files = await storage.getClaimFilesByCaseId(caseId);
+
+      // Check completeness
+      const filesByType = files.reduce((acc, file) => {
+        if (file.evidenceType) {
+          acc[file.evidenceType] = (acc[file.evidenceType] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      const results = requirements.map((req) => ({
+        requirement: req,
+        status: filesByType[req.evidenceType] ? "present" : "missing",
+        matchingFiles: filesByType[req.evidenceType] || 0,
+      }));
+
+      const required = results.filter((r) => r.requirement.required);
+      const present = required.filter((r) => r.status === "present");
+      const percentComplete = required.length > 0
+        ? Math.round((present.length / required.length) * 100)
+        : 100;
+
+      res.json({
+        results,
+        stats: {
+          totalRequired: required.length,
+          completedRequired: present.length,
+          percentComplete,
+          missingRequired: required.filter((r) => r.status === "missing"),
+        },
+      });
+    } catch (error) {
+      console.error("Error checking completeness:", error);
+      res.status(500).json({ message: "Failed to check completeness" });
+    }
+  });
+
+  // Get evidence strength analysis for a case
+  app.get("/api/claims/cases/:id/strength", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const files = await storage.getClaimFilesByCaseId(caseId);
+
+      // Calculate condition strengths
+      const conditionMap: Record<string, number[]> = {};
+      files.forEach((f) => {
+        if (!f.condition) return;
+        conditionMap[f.condition] ||= [];
+        conditionMap[f.condition].push(f.strength || 1);
+      });
+
+      const conditionStrengths = Object.entries(conditionMap).map(([condition, scores]) => ({
+        condition,
+        avgStrength: scores.reduce((a, b) => a + b, 0) / scores.length,
+        fileCount: scores.length,
+        maxStrength: Math.max(...scores),
+      }));
+
+      // Overall strength
+      const filesWithStrength = files.filter((f) => f.strength);
+      const overallStrength = filesWithStrength.length > 0
+        ? filesWithStrength.reduce((sum, f) => sum + (f.strength || 0), 0) / filesWithStrength.length
+        : 0;
+
+      // Check for nexus letter
+      const hasNexusLetter = files.some((f) => f.evidenceType === "nexus");
+
+      res.json({
+        overallStrength,
+        conditionStrengths,
+        hasNexusLetter,
+        totalFiles: files.length,
+        scoredFiles: filesWithStrength.length,
+      });
+    } catch (error) {
+      console.error("Error calculating strength:", error);
+      res.status(500).json({ message: "Failed to calculate strength" });
+    }
+  });
+
+  // Get lane recommendation for a case
+  app.get("/api/claims/cases/:id/lane-recommendation", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const caseId = parseInt(req.params.id);
+      if (isNaN(caseId)) {
+        return res.status(400).json({ message: "Invalid case ID" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Only VA cases get lane recommendations
+      if (claimCase.caseType !== "va") {
+        return res.json({ applicable: false, reason: "Lane recommendations only apply to VA claims" });
+      }
+
+      const files = await storage.getClaimFilesByCaseId(caseId);
+
+      // Calculate strength
+      const filesWithStrength = files.filter((f) => f.strength);
+      const strengthAvg = filesWithStrength.length > 0
+        ? filesWithStrength.reduce((sum, f) => sum + (f.strength || 0), 0) / filesWithStrength.length
+        : 0;
+
+      // Check for new evidence (files uploaded recently or marked as new)
+      const hasNewEvidence = files.length > 0;
+      const hasNexusLetter = files.some((f) => f.evidenceType === "nexus");
+
+      // Recommend lane
+      let lane: string;
+      let reason: string;
+      let confidence: "high" | "medium" | "low";
+
+      if (hasNewEvidence && strengthAvg >= 3.5) {
+        lane = "Supplemental Claim";
+        reason = "New and relevant evidence present with strong evidentiary support";
+        confidence = hasNexusLetter ? "high" : "medium";
+      } else if (hasNewEvidence && strengthAvg >= 2.5 && strengthAvg < 3.5) {
+        lane = "Supplemental Claim";
+        reason = "New evidence available; consider strengthening medical documentation";
+        confidence = "medium";
+      } else if (!hasNewEvidence && strengthAvg >= 3) {
+        lane = "Higher-Level Review";
+        reason = "Record appears strong; reviewing for clear and unmistakable error may be appropriate";
+        confidence = strengthAvg >= 4 ? "high" : "medium";
+      } else {
+        lane = "Board Appeal";
+        reason = "Complex evidentiary posture may benefit from Board-level review";
+        confidence = "low";
+      }
+
+      res.json({
+        applicable: true,
+        lane,
+        reason,
+        confidence,
+        strengthAvg,
+        hasNewEvidence,
+        hasNexusLetter,
+      });
+    } catch (error) {
+      console.error("Error getting lane recommendation:", error);
+      res.status(500).json({ message: "Failed to get recommendation" });
+    }
+  });
+
+  // Update file evidence metadata
+  app.patch("/api/claims/files/:id/evidence", async (req, res) => {
+    try {
+      const userId = getVeteranUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const fileId = parseInt(req.params.id);
+      if (isNaN(fileId)) {
+        return res.status(400).json({ message: "Invalid file ID" });
+      }
+
+      const { evidenceType, condition } = req.body;
+      
+      // Calculate strength based on evidence type and condition
+      let strength = 1;
+      if (evidenceType === "medical") strength += 1;
+      if (evidenceType === "nexus") strength += 2;
+      if (evidenceType === "exam") strength += 2;
+      if (condition) strength += 1;
+      strength = Math.min(strength, 5);
+
+      const updated = await storage.updateClaimFileEvidence(fileId, {
+        evidenceType,
+        condition,
+        strength,
+      });
+
+      if (!updated) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating file evidence:", error);
+      res.status(500).json({ message: "Failed to update file" });
+    }
+  });
+
   return httpServer;
 }
