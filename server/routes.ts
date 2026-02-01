@@ -7498,7 +7498,7 @@ Respond with JSON:
         prompt: enhancedPrompt,
         n: 1,
         size,
-        quality: quality === "hd" ? "hd" : "standard",
+        quality: quality === "hd" ? "high" : "medium",
       });
 
       const imageData = response.data?.[0];
@@ -7543,7 +7543,7 @@ Respond with JSON:
       const openai = new OpenAI();
 
       const response = await openai.audio.speech.create({
-        model: "gpt-4o-mini-tts",
+        model: "tts-1",
         voice: voice || "alloy",
         input: text,
         speed: speed || 1.0,
