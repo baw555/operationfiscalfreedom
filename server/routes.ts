@@ -8488,8 +8488,17 @@ Create a detailed scene plan with timing. Return JSON:
         return res.status(400).json({ message: "Invalid share ID" });
       }
 
-      // We need to verify the user owns the case this share belongs to
-      // For now, delete directly (in production, add ownership check)
+      // Verify the user owns the case this share belongs to
+      const share = await storage.getCaseShareById(shareId);
+      if (!share) {
+        return res.status(404).json({ message: "Share not found" });
+      }
+
+      const claimCase = await storage.getClaimCaseById(share.caseId);
+      if (!claimCase || claimCase.veteranUserId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
       await storage.deleteCaseShare(shareId);
       res.json({ ok: true });
     } catch (error) {

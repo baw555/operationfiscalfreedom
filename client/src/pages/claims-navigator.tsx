@@ -82,6 +82,14 @@ interface CaseNote {
   createdAt: string;
 }
 
+interface CaseShare {
+  id: number;
+  caseId: number;
+  email: string;
+  role: "view" | "comment" | "upload";
+  createdAt: string;
+}
+
 interface ClaimFile {
   id: number;
   filename: string;
@@ -320,6 +328,8 @@ export default function ClaimsNavigator() {
   const [activeCaseId, setActiveCaseId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("tasks");
   const [newNote, setNewNote] = useState("");
+  const [shareEmail, setShareEmail] = useState("");
+  const [shareRole, setShareRole] = useState<"view" | "comment" | "upload">("view");
 
 
   const { data: myCases, isLoading: casesLoading } = useQuery({
@@ -384,6 +394,47 @@ export default function ClaimsNavigator() {
       return res.json() as Promise<ClaimFile[]>;
     },
     enabled: !!activeCaseId,
+  });
+
+  const { data: caseShares } = useQuery({
+    queryKey: ["/api/claims/cases", activeCaseId, "shares"],
+    queryFn: async () => {
+      if (!activeCaseId) return [];
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/shares`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json() as Promise<CaseShare[]>;
+    },
+    enabled: !!activeCaseId,
+  });
+
+  const createShareMutation = useMutation({
+    mutationFn: async ({ email, role }: { email: string; role: string }) => {
+      const res = await apiRequest("POST", `/api/claims/cases/${activeCaseId}/shares`, { email, role });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Access Granted", description: "Vendor has been invited to view this case." });
+      setShareEmail("");
+      setShareRole("view");
+      queryClient.invalidateQueries({ queryKey: ["/api/claims/cases", activeCaseId, "shares"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to share case", variant: "destructive" });
+    },
+  });
+
+  const deleteShareMutation = useMutation({
+    mutationFn: async (shareId: number) => {
+      const res = await apiRequest("DELETE", `/api/claims/shares/${shareId}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Access Removed", description: "Vendor access has been revoked." });
+      queryClient.invalidateQueries({ queryKey: ["/api/claims/cases", activeCaseId, "shares"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to remove access", variant: "destructive" });
+    },
   });
 
   const createCaseMutation = useMutation({
@@ -846,24 +897,91 @@ export default function ClaimsNavigator() {
 
                         <div className="mb-6">
                           <Label className="text-white mb-2 block">Invite Someone</Label>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <Input
                               type="email"
                               placeholder="Enter email address..."
-                              className="bg-slate-700 border-slate-600 text-white flex-1"
+                              value={shareEmail}
+                              onChange={(e) => setShareEmail(e.target.value)}
+                              className="bg-slate-700 border-slate-600 text-white flex-1 min-w-[200px]"
                               data-testid="share-email-input"
                             />
-                            <Button className="bg-amber-500 hover:bg-amber-600 text-black" data-testid="share-invite-btn">
-                              <Users className="w-4 h-4 mr-2" />
+                            <select
+                              value={shareRole}
+                              onChange={(e) => setShareRole(e.target.value as "view" | "comment" | "upload")}
+                              className="bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
+                              data-testid="share-role-select"
+                            >
+                              <option value="view">View Only</option>
+                              <option value="comment">View + Comment</option>
+                              <option value="upload">View + Upload</option>
+                            </select>
+                            <Button 
+                              onClick={() => {
+                                if (shareEmail.trim()) {
+                                  createShareMutation.mutate({ email: shareEmail.trim(), role: shareRole });
+                                }
+                              }}
+                              disabled={!shareEmail.trim() || createShareMutation.isPending}
+                              className="bg-amber-500 hover:bg-amber-600 text-black" 
+                              data-testid="share-invite-btn"
+                            >
+                              {createShareMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              ) : (
+                                <Users className="w-4 h-4 mr-2" />
+                              )}
                               Invite
                             </Button>
                           </div>
                         </div>
 
-                        <div className="text-center py-8">
-                          <Users className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-                          <p className="text-slate-400">No one else has access to this case</p>
-                        </div>
+                        {caseShares && caseShares.length > 0 ? (
+                          <div className="space-y-3">
+                            <h4 className="text-white font-medium">People with Access</h4>
+                            {caseShares.map((share) => (
+                              <div 
+                                key={share.id} 
+                                className="flex items-center justify-between bg-slate-700/50 rounded-lg p-3"
+                                data-testid={`share-item-${share.id}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center">
+                                    <Users className="w-4 h-4 text-slate-300" />
+                                  </div>
+                                  <div>
+                                    <p className="text-white text-sm">{share.email}</p>
+                                    <Badge variant="outline" className={
+                                      share.role === "upload" ? "border-green-500 text-green-400" :
+                                      share.role === "comment" ? "border-blue-500 text-blue-400" :
+                                      "border-slate-500 text-slate-400"
+                                    }>
+                                      {share.role === "view" && <Eye className="w-3 h-3 mr-1" />}
+                                      {share.role === "comment" && <MessageSquare className="w-3 h-3 mr-1" />}
+                                      {share.role === "upload" && <Upload className="w-3 h-3 mr-1" />}
+                                      {share.role === "view" ? "View Only" : share.role === "comment" ? "Can Comment" : "Can Upload"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteShareMutation.mutate(share.id)}
+                                  disabled={deleteShareMutation.isPending}
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                                  data-testid={`share-remove-${share.id}`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <Users className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+                            <p className="text-slate-400">No one else has access to this case</p>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </TabsContent>

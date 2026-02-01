@@ -467,6 +467,7 @@ export interface IStorage {
   // Claims Navigator - Case Shares
   getCaseSharesByCaseId(caseId: number): Promise<CaseShare[]>;
   getCaseShareByEmail(caseId: number, email: string): Promise<CaseShare | undefined>;
+  getCaseShareById(id: number): Promise<CaseShare | undefined>;
   upsertCaseShare(data: InsertCaseShare): Promise<CaseShare>;
   deleteCaseShare(id: number): Promise<void>;
 }
@@ -2503,6 +2504,11 @@ export class DatabaseStorage implements IStorage {
     }
     const [created] = await db.insert(caseShares).values(data).returning();
     return created;
+  }
+
+  async getCaseShareById(id: number): Promise<CaseShare | undefined> {
+    const [share] = await db.select().from(caseShares).where(eq(caseShares.id, id));
+    return share;
   }
 
   async deleteCaseShare(id: number): Promise<void> {
