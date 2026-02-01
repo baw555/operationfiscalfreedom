@@ -249,7 +249,8 @@ const stepExecutors: Record<string, StepExecutor> = {
           body: JSON.stringify({
             model: "tts-1",
             input: inputParams.text || pipeline.userIntent,
-            voice: inputParams.voice || "nova",
+            voice: ["nova", "shimmer", "echo", "onyx", "fable", "alloy", "ash", "sage", "coral"].includes(inputParams.voice) 
+              ? inputParams.voice : "nova",
             speed: inputParams.speed || 1.0,
           }),
         });
