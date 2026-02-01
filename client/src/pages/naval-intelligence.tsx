@@ -921,6 +921,125 @@ export default function NavalIntelligence() {
           </div>
         </section>
 
+        {/* Model Registry - Showing the AI Router */}
+        <section className="py-12 bg-gradient-to-br from-gray-900 via-brand-navy to-gray-900">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-display text-white mb-3">AI Model Router</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">
+                This is orchestration, not magic. Each task is routed to the optimal model for maximum quality.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-purple-500/30 hover:border-purple-400/50 transition-all group" data-testid="model-text-reasoning">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-white text-sm mb-1">Text Reasoning</h3>
+                <p className="text-xs text-gray-400 mb-2">Scene planning, scripts</p>
+                <Badge className="bg-purple-500/20 text-purple-300 text-xs">GPT-4o</Badge>
+              </div>
+              
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-pink-500/30 hover:border-pink-400/50 transition-all group" data-testid="model-image-gen">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <Image className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-white text-sm mb-1">Image Generation</h3>
+                <p className="text-xs text-gray-400 mb-2">Thumbnails, frames</p>
+                <Badge className="bg-pink-500/20 text-pink-300 text-xs">GPT Image</Badge>
+              </div>
+              
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-green-500/30 hover:border-green-400/50 transition-all group" data-testid="model-tts">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <Mic className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-white text-sm mb-1">Text to Speech</h3>
+                <p className="text-xs text-gray-400 mb-2">Narration, voiceover</p>
+                <Badge className="bg-green-500/20 text-green-300 text-xs">GPT Audio</Badge>
+              </div>
+              
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-orange-500/30 hover:border-orange-400/50 transition-all group" data-testid="model-music">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <Music className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-white text-sm mb-1">Music Generation</h3>
+                <p className="text-xs text-gray-400 mb-2">Background tracks</p>
+                <Badge className="bg-orange-500/20 text-orange-300 text-xs">Suno V5</Badge>
+              </div>
+              
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-blue-500/30 hover:border-blue-400/50 transition-all group" data-testid="model-video">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <Video className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-white text-sm mb-1">Video Generation</h3>
+                <p className="text-xs text-gray-400 mb-2">Full video creation</p>
+                <Badge className="bg-blue-500/20 text-blue-300 text-xs">Veo 3.1</Badge>
+              </div>
+              
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-red-500/30 hover:border-red-400/50 transition-all group" data-testid="model-fusion">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-brand-red flex items-center justify-center mb-3 group-hover:scale-110 transition-transform animate-pulse">
+                  <Workflow className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-white text-sm mb-1">Fusion Pipeline</h3>
+                <p className="text-xs text-gray-400 mb-2">Multi-model chains</p>
+                <Badge className="bg-red-500/20 text-red-300 text-xs">Orchestrated</Badge>
+              </div>
+            </div>
+
+            {/* Example Fusion Flow */}
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-brand-gold" />
+                Example Fusion Pipeline: Images + Audio → Movie
+              </h3>
+              <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4" data-testid="fusion-pipeline-example">
+                <div className="flex flex-col items-center p-3 bg-gray-900/50 rounded-xl border border-gray-700/50" data-testid="pipeline-step-upload">
+                  <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                  <span className="text-xs text-gray-400">Upload</span>
+                  <span className="text-xs text-white font-medium">Images + Audio</span>
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-500 hidden md:block" />
+                <div className="flex flex-col items-center p-3 bg-purple-900/30 rounded-xl border border-purple-500/30" data-testid="pipeline-step-scene-planner">
+                  <Brain className="w-6 h-6 text-purple-400 mb-1" />
+                  <span className="text-xs text-gray-400">Step 1</span>
+                  <span className="text-xs text-white font-medium">Scene Planner</span>
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-500 hidden md:block" />
+                <div className="flex flex-col items-center p-3 bg-cyan-900/30 rounded-xl border border-cyan-500/30" data-testid="pipeline-step-frame-timing">
+                  <Clock className="w-6 h-6 text-cyan-400 mb-1" />
+                  <span className="text-xs text-gray-400">Step 2</span>
+                  <span className="text-xs text-white font-medium">Frame Timing</span>
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-500 hidden md:block" />
+                <div className="flex flex-col items-center p-3 bg-blue-900/30 rounded-xl border border-blue-500/30" data-testid="pipeline-step-video-generator">
+                  <Video className="w-6 h-6 text-blue-400 mb-1" />
+                  <span className="text-xs text-gray-400">Step 3</span>
+                  <span className="text-xs text-white font-medium">Video Generator</span>
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-500 hidden md:block" />
+                <div className="flex flex-col items-center p-3 bg-green-900/30 rounded-xl border border-green-500/30" data-testid="pipeline-step-audio-sync">
+                  <FileAudio className="w-6 h-6 text-green-400 mb-1" />
+                  <span className="text-xs text-gray-400">Step 4</span>
+                  <span className="text-xs text-white font-medium">Audio Sync</span>
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-500 hidden md:block" />
+                <div className="flex flex-col items-center p-3 bg-orange-900/30 rounded-xl border border-orange-500/30" data-testid="pipeline-step-render">
+                  <Settings2 className="w-6 h-6 text-orange-400 mb-1" />
+                  <span className="text-xs text-gray-400">Step 5</span>
+                  <span className="text-xs text-white font-medium">Render</span>
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-500 hidden md:block" />
+                <div className="flex flex-col items-center p-3 bg-brand-gold/20 rounded-xl border border-brand-gold/50" data-testid="pipeline-step-download">
+                  <Download className="w-6 h-6 text-brand-gold mb-1" />
+                  <span className="text-xs text-gray-400">Output</span>
+                  <span className="text-xs text-white font-medium">Download</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Active Generations Banner */}
         {activeGenerations.length > 0 && (
           <div className="bg-blue-50 border-b border-blue-200 py-3" role="status" aria-live="polite">
