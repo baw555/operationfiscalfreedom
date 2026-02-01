@@ -110,7 +110,6 @@ const businessSubItems = [
   { name: "Business Overview", href: "/businesses" },
   { name: "Veteran Logistics", href: "/shipping" },
   { name: "Cost Savings / Services", href: "/job-placement" },
-  { name: "Insurance Savings", href: "/insurance" },
   { name: "Tax Solutions", href: "/veteran-led-tax" },
 ];
 
@@ -128,7 +127,6 @@ const disabilityRatingSubItems = [
 const finOpsSubItems = [
   { name: "Fin-Ops Hub", href: "/fin-ops" },
   { name: "Veteran Logistics", href: "/shipping" },
-  { name: "Insurance Savings", href: "/insurance" },
   { name: "Veteran Led Tax Solutions", href: "/veteran-led-tax" },
 ];
 
@@ -330,18 +328,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Planning Solutions Link */}
-            <Link 
-              href="/planning-solutions"
-              className={cn(
-                "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 cursor-pointer whitespace-nowrap",
-                location === "/planning-solutions" ? "text-blue-600 border-blue-500" : "text-brand-navy border-transparent"
-              )} 
-              data-testid="nav-planning-solutions"
-            >
-              Insurance
-            </Link>
-
             {/* Login Link */}
             <Link 
               href="/login"
@@ -520,21 +506,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* Mobile Insurance/Planning Solutions Link */}
-            <div className={cn("border-l-4", location === "/planning-solutions" ? "border-blue-500" : "border-transparent")}>
-              <Link 
-                href="/planning-solutions"
-                className={cn(
-                  "font-bold uppercase tracking-wider py-3 px-2 w-full text-left flex items-center touch-manipulation min-h-[44px]",
-                  location === "/planning-solutions" ? "text-blue-600" : "text-brand-navy"
-                )}
-                onClick={() => setMobileMenuOpen(false)}
-                data-testid="nav-mobile-planning-solutions"
-              >
-                Insurance
-              </Link>
             </div>
 
             {/* Mobile Login Link */}
