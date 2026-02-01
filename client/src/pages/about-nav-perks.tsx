@@ -151,7 +151,7 @@ export default function AboutNavPerks() {
                   className="w-full h-full object-cover object-top"
                 />
                 <div className="absolute top-4 right-4 bg-blue-500/90 border border-blue-400/30 rounded-full px-3 py-1">
-                  <span className="text-white text-xs font-medium">GPT-4 Powered</span>
+                  <span className="text-white text-xs font-medium">Choose Your AI Plan</span>
                 </div>
               </div>
               <div className="p-6">
