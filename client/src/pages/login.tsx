@@ -1,17 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff, Shield, Lock } from "lucide-react";
 
+const REMEMBER_EMAIL_KEY = "navigatorusa_remembered_email";
+
 export default function Login() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
+    if (savedEmail) {
+      setFormData(prev => ({ ...prev, email: savedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -28,6 +40,11 @@ export default function Login() {
       return response.json();
     },
     onSuccess: (data) => {
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_EMAIL_KEY, formData.email);
+      } else {
+        localStorage.removeItem(REMEMBER_EMAIL_KEY);
+      }
       toast({ title: "Welcome back!" });
       if (data.user.role === "admin" || data.user.role === "master") {
         window.location.href = "/master-portal";
@@ -161,6 +178,21 @@ export default function Login() {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="remember-me" 
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    data-testid="checkbox-remember-me"
+                  />
+                  <label 
+                    htmlFor="remember-me" 
+                    className="text-sm text-slate-600 cursor-pointer select-none"
+                  >
+                    Remember my email
+                  </label>
                 </div>
 
                 <Button 
