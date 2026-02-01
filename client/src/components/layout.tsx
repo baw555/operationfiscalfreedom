@@ -110,6 +110,7 @@ const businessSubItems = [
   { name: "Business Overview", href: "/businesses" },
   { name: "Veteran Logistics", href: "/shipping" },
   { name: "Cost Savings / Services", href: "/job-placement" },
+  { name: "Insurance Savings", href: "/insurance" },
   { name: "Tax Solutions", href: "/veteran-led-tax" },
 ];
 
@@ -127,6 +128,7 @@ const disabilityRatingSubItems = [
 const finOpsSubItems = [
   { name: "Fin-Ops Hub", href: "/fin-ops" },
   { name: "Veteran Logistics", href: "/shipping" },
+  { name: "Insurance Savings", href: "/insurance" },
   { name: "Veteran Led Tax Solutions", href: "/veteran-led-tax" },
 ];
 
@@ -199,7 +201,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1 min-w-[120px]",
                   location === "/about" || location === "/private-doctor" || location.includes("/finops-refer") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  <CyclingText texts={["About", "Mission Act", "Refer & Earn"]} interval={4000} offset={0} /> <ChevronDown className={cn("w-4 h-4 transition-transform", aboutOpen && "rotate-180")} />
+                  <CyclingText texts={["About", "Mission Act", "Refer & Earn"]} interval={12000} offset={0} /> <ChevronDown className={cn("w-4 h-4 transition-transform", aboutOpen && "rotate-180")} />
               </button>
               {aboutOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -225,7 +227,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1 min-w-[160px]",
                   location.startsWith("/disability-rating") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  <CyclingText texts={["VA Rating", "Healthcare", "Disability Benefits"]} interval={3500} offset={1000} /> <ChevronDown className={cn("w-4 h-4 transition-transform", disabilityOpen && "rotate-180")} />
+                  <CyclingText texts={["VA Rating", "Healthcare", "Disability Benefits"]} interval={10500} offset={3000} /> <ChevronDown className={cn("w-4 h-4 transition-transform", disabilityOpen && "rotate-180")} />
               </button>
               {disabilityOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -256,7 +258,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1 min-w-[160px]",
                   location.startsWith("/fin-ops") || location.startsWith("/merchant") || location.startsWith("/my-locker") || location.startsWith("/shipping") || location.startsWith("/logistics") || location.startsWith("/best-practices") || location.startsWith("/veteran-led-tax") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  <CyclingText texts={["Fin-Ops", "Veteran Logistics", "Tax Solutions"]} interval={3000} offset={2000} /> <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
+                  <CyclingText texts={["Fin-Ops", "Veteran Logistics", "Insurance Savings", "Tax Solutions"]} interval={9000} offset={6000} /> <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
               </button>
               {finOpsOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -281,7 +283,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1 min-w-[160px]",
                   location === "/businesses" || location === "/job-placement" ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  <CyclingText texts={["Business", "Cost Savings", "Veteran Logistics", "Tax Solutions"]} interval={3200} offset={500} /> <ChevronDown className={cn("w-4 h-4 transition-transform", businessOpen && "rotate-180")} />
+                  <CyclingText texts={["Business", "Cost Savings", "Insurance Savings", "Veteran Logistics", "Tax Solutions"]} interval={9600} offset={1500} /> <ChevronDown className={cn("w-4 h-4 transition-transform", businessOpen && "rotate-180")} />
               </button>
               {businessOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
