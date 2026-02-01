@@ -1700,3 +1700,147 @@ export const insertOperatorAiMemorySchema = createInsertSchema(operatorAiMemory)
 
 export type InsertOperatorAiMemory = z.infer<typeof insertOperatorAiMemorySchema>;
 export type OperatorAiMemory = typeof operatorAiMemory.$inferSelect;
+
+// ============================================================================
+// AI APPLICATION SCHEMA - Full-stack AI with memory, files, and async jobs
+// ============================================================================
+
+// Memory mode enum: OFF = stateless, SESSION = temp, PERSISTENT = remember forever
+export const memoryModeEnum = pgEnum("memory_mode", ["OFF", "SESSION", "PERSISTENT"]);
+
+// Job types for async media generation
+export const jobTypeEnum = pgEnum("job_type", [
+  "IMAGE_GEN",      // Image generation
+  "AUDIO_TTS",      // Text-to-speech
+  "AUDIO_MUSIC",    // Music generation
+  "VIDEO_GEN",      // Video generation
+  "VIDEO_EDIT",     // Video editing/stitching
+  "FUSION_RENDER",  // Multi-modal fusion (image+audio→video)
+  "DOC_INGEST",     // Document ingestion/OCR
+]);
+
+// Job status for tracking async work
+export const jobStatusEnum = pgEnum("job_status", ["QUEUED", "RUNNING", "DONE", "FAILED"]);
+
+// AI Users - Separate from admin users, supports anonymous
+export const aiUsers = pgTable("ai_users", {
+  id: serial("id").primaryKey(),
+  email: text("email").unique(),                    // Null for anonymous
+  anonDeviceId: text("anon_device_id").unique(),    // Device fingerprint for anonymous users
+  memoryMode: memoryModeEnum("memory_mode").notNull().default("OFF"),
+  displayName: text("display_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastActiveAt: timestamp("last_active_at").defaultNow().notNull(),
+});
+
+export const insertAiUserSchema = createInsertSchema(aiUsers).omit({
+  id: true,
+  createdAt: true,
+  lastActiveAt: true,
+});
+export type InsertAiUser = z.infer<typeof insertAiUserSchema>;
+export type AiUser = typeof aiUsers.$inferSelect;
+
+// AI Sessions - Conversation sessions with memory mode snapshot
+export const aiSessions = pgTable("ai_sessions", {
+  id: serial("id").primaryKey(),
+  sessionToken: text("session_token").notNull().unique(), // UUID token for API access
+  userId: integer("user_id").references(() => aiUsers.id), // Null for totally anonymous
+  memoryModeAtStart: memoryModeEnum("memory_mode_at_start").notNull().default("OFF"),
+  title: text("title"),                             // Auto-generated or user-set session title
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  endedAt: timestamp("ended_at"),                   // When session was explicitly ended
+  lastMessageAt: timestamp("last_message_at"),      // For sorting active sessions
+});
+
+export const insertAiSessionSchema = createInsertSchema(aiSessions).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAiSession = z.infer<typeof insertAiSessionSchema>;
+export type AiSession = typeof aiSessions.$inferSelect;
+
+// AI Messages - Chat history per session
+export const aiMessages = pgTable("ai_messages", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").references(() => aiSessions.id).notNull(),
+  role: text("role").notNull(),                     // "user" | "assistant" | "system"
+  content: text("content").notNull(),               // Message text content
+  attachments: text("attachments"),                 // JSON array of file IDs
+  model: text("model"),                             // Which AI model generated this (for assistant)
+  tokenCount: integer("token_count"),               // Token usage tracking
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAiMessageSchema = createInsertSchema(aiMessages).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAiMessage = z.infer<typeof insertAiMessageSchema>;
+export type AiMessage = typeof aiMessages.$inferSelect;
+
+// AI Files - Uploaded documents, images, audio, video
+export const aiFiles = pgTable("ai_files", {
+  id: serial("id").primaryKey(),
+  ownerUserId: integer("owner_user_id").references(() => aiUsers.id), // Null if anonymous
+  sessionId: integer("session_id").references(() => aiSessions.id),   // Null if persistent file
+  filename: text("filename").notNull(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  storageUrl: text("storage_url").notNull(),        // Where file is stored
+  extractedText: text("extracted_text"),            // OCR/transcription result
+  extractedMetadata: text("extracted_metadata"),    // JSON metadata from file
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"),               // Soft delete for cleanup
+});
+
+export const insertAiFileSchema = createInsertSchema(aiFiles).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAiFile = z.infer<typeof insertAiFileSchema>;
+export type AiFile = typeof aiFiles.$inferSelect;
+
+// AI Memory - Persistent key-value store for user memories
+export const aiMemory = pgTable("ai_memory", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => aiUsers.id).notNull(),
+  key: text("key").notNull(),                       // Short label like "preferred_name", "occupation"
+  value: text("value").notNull(),                   // The remembered value (text or JSON)
+  sourceMessageId: integer("source_message_id").references(() => aiMessages.id), // Which message created this
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertAiMemorySchema = createInsertSchema(aiMemory).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertAiMemory = z.infer<typeof insertAiMemorySchema>;
+export type AiMemory = typeof aiMemory.$inferSelect;
+
+// AI Jobs - Async media generation tasks
+export const aiJobs = pgTable("ai_jobs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => aiUsers.id),
+  sessionId: integer("session_id").references(() => aiSessions.id),
+  jobType: jobTypeEnum("job_type").notNull(),
+  status: jobStatusEnum("status").notNull().default("QUEUED"),
+  input: text("input").notNull(),                   // JSON input parameters
+  output: text("output"),                           // JSON output results (file URLs, etc.)
+  progress: integer("progress").notNull().default(0), // 0-100 progress indicator
+  errorMessage: text("error_message"),              // Error details if FAILED
+  model: text("model"),                             // Which model was used
+  estimatedDuration: integer("estimated_duration"), // Estimated ms to complete
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertAiJobSchema = createInsertSchema(aiJobs).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAiJob = z.infer<typeof insertAiJobSchema>;
+export type AiJob = typeof aiJobs.$inferSelect;

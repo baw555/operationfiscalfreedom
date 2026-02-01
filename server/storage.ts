@@ -51,7 +51,13 @@ import {
   authRateLimits, type AuthRateLimit, type InsertAuthRateLimit,
   aiGenerations, type AiGeneration, type InsertAiGeneration,
   aiTemplates, type AiTemplate, type InsertAiTemplate,
-  operatorAiMemory, type OperatorAiMemory, type InsertOperatorAiMemory
+  operatorAiMemory, type OperatorAiMemory, type InsertOperatorAiMemory,
+  aiUsers, type AiUser, type InsertAiUser,
+  aiSessions, type AiSession, type InsertAiSession,
+  aiMessages, type AiMessage, type InsertAiMessage,
+  aiFiles, type AiFile, type InsertAiFile,
+  aiMemory, type AiMemory, type InsertAiMemory,
+  aiJobs, type AiJob, type InsertAiJob
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -375,6 +381,54 @@ export interface IStorage {
   clearSessionMemory(sessionId: string): Promise<void>;
   clearUserPersistentMemory(userId: number): Promise<void>;
   cleanupExpiredSessions(): Promise<void>;
+
+  // ==========================================================================
+  // AI APPLICATION - Full-stack AI with memory, files, and async jobs
+  // ==========================================================================
+  
+  // AI Users
+  getOrCreateAiUser(email?: string, anonDeviceId?: string): Promise<AiUser>;
+  getAiUser(id: number): Promise<AiUser | undefined>;
+  getAiUserByEmail(email: string): Promise<AiUser | undefined>;
+  updateAiUserMemoryMode(id: number, memoryMode: "OFF" | "SESSION" | "PERSISTENT"): Promise<AiUser | undefined>;
+  deleteAiUser(id: number): Promise<void>;
+
+  // AI Sessions
+  createAiSession(session: InsertAiSession): Promise<AiSession>;
+  getAiSession(id: number): Promise<AiSession | undefined>;
+  getAiSessionByToken(token: string): Promise<AiSession | undefined>;
+  getUserAiSessions(userId: number): Promise<AiSession[]>;
+  endAiSession(id: number): Promise<void>;
+  deleteAiSession(id: number): Promise<void>;
+
+  // AI Messages
+  createAiMessage(message: InsertAiMessage): Promise<AiMessage>;
+  getAiSessionMessages(sessionId: number): Promise<AiMessage[]>;
+  deleteAiSessionMessages(sessionId: number): Promise<void>;
+
+  // AI Files
+  createAiFile(file: InsertAiFile): Promise<AiFile>;
+  getAiFile(id: number): Promise<AiFile | undefined>;
+  getSessionAiFiles(sessionId: number): Promise<AiFile[]>;
+  getUserAiFiles(userId: number): Promise<AiFile[]>;
+  softDeleteAiFile(id: number): Promise<void>;
+  deleteSessionAiFiles(sessionId: number): Promise<void>;
+
+  // AI Memory (persistent key-value)
+  setAiMemory(userId: number, key: string, value: string, sourceMessageId?: number): Promise<AiMemory>;
+  getAiMemory(userId: number, key: string): Promise<AiMemory | undefined>;
+  getAllAiMemories(userId: number): Promise<AiMemory[]>;
+  deleteAiMemory(userId: number, key: string): Promise<void>;
+  clearAllAiMemories(userId: number): Promise<void>;
+
+  // AI Jobs
+  createAiJob(job: InsertAiJob): Promise<AiJob>;
+  getAiJob(id: number): Promise<AiJob | undefined>;
+  getUserAiJobs(userId: number): Promise<AiJob[]>;
+  getSessionAiJobs(sessionId: number): Promise<AiJob[]>;
+  getQueuedAiJobs(): Promise<AiJob[]>;
+  updateAiJobStatus(id: number, status: "QUEUED" | "RUNNING" | "DONE" | "FAILED", output?: string, errorMessage?: string): Promise<AiJob | undefined>;
+  updateAiJobProgress(id: number, progress: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1952,6 +2006,239 @@ export class DatabaseStorage implements IStorage {
         eq(operatorAiMemory.memoryMode, "session"),
         lt(operatorAiMemory.expiresAt, new Date())
       ));
+  }
+
+  // ==========================================================================
+  // AI APPLICATION - Full-stack AI with memory, files, and async jobs
+  // ==========================================================================
+
+  // AI Users
+  async getOrCreateAiUser(email?: string, anonDeviceId?: string): Promise<AiUser> {
+    // Try to find existing user
+    if (email) {
+      const existing = await db.select().from(aiUsers).where(eq(aiUsers.email, email));
+      if (existing[0]) {
+        await db.update(aiUsers).set({ lastActiveAt: new Date() }).where(eq(aiUsers.id, existing[0].id));
+        return existing[0];
+      }
+    }
+    if (anonDeviceId) {
+      const existing = await db.select().from(aiUsers).where(eq(aiUsers.anonDeviceId, anonDeviceId));
+      if (existing[0]) {
+        await db.update(aiUsers).set({ lastActiveAt: new Date() }).where(eq(aiUsers.id, existing[0].id));
+        return existing[0];
+      }
+    }
+    // Create new user
+    const [created] = await db.insert(aiUsers).values({
+      email: email || null,
+      anonDeviceId: anonDeviceId || null,
+      memoryMode: "OFF",
+    }).returning();
+    return created;
+  }
+
+  async getAiUser(id: number): Promise<AiUser | undefined> {
+    const [user] = await db.select().from(aiUsers).where(eq(aiUsers.id, id));
+    return user || undefined;
+  }
+
+  async getAiUserByEmail(email: string): Promise<AiUser | undefined> {
+    const [user] = await db.select().from(aiUsers).where(eq(aiUsers.email, email));
+    return user || undefined;
+  }
+
+  async updateAiUserMemoryMode(id: number, memoryMode: "OFF" | "SESSION" | "PERSISTENT"): Promise<AiUser | undefined> {
+    const [updated] = await db.update(aiUsers)
+      .set({ memoryMode, lastActiveAt: new Date() })
+      .where(eq(aiUsers.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteAiUser(id: number): Promise<void> {
+    await db.delete(aiUsers).where(eq(aiUsers.id, id));
+  }
+
+  // AI Sessions
+  async createAiSession(session: InsertAiSession): Promise<AiSession> {
+    const [created] = await db.insert(aiSessions).values(session).returning();
+    return created;
+  }
+
+  async getAiSession(id: number): Promise<AiSession | undefined> {
+    const [session] = await db.select().from(aiSessions).where(eq(aiSessions.id, id));
+    return session || undefined;
+  }
+
+  async getAiSessionByToken(token: string): Promise<AiSession | undefined> {
+    const [session] = await db.select().from(aiSessions).where(eq(aiSessions.sessionToken, token));
+    return session || undefined;
+  }
+
+  async getUserAiSessions(userId: number): Promise<AiSession[]> {
+    return db.select().from(aiSessions)
+      .where(eq(aiSessions.userId, userId))
+      .orderBy(desc(aiSessions.createdAt));
+  }
+
+  async endAiSession(id: number): Promise<void> {
+    await db.update(aiSessions)
+      .set({ endedAt: new Date() })
+      .where(eq(aiSessions.id, id));
+  }
+
+  async deleteAiSession(id: number): Promise<void> {
+    // Delete messages first, then session
+    await db.delete(aiMessages).where(eq(aiMessages.sessionId, id));
+    await db.delete(aiSessions).where(eq(aiSessions.id, id));
+  }
+
+  // AI Messages
+  async createAiMessage(message: InsertAiMessage): Promise<AiMessage> {
+    const [created] = await db.insert(aiMessages).values(message).returning();
+    // Update session's lastMessageAt
+    await db.update(aiSessions)
+      .set({ lastMessageAt: new Date() })
+      .where(eq(aiSessions.id, message.sessionId));
+    return created;
+  }
+
+  async getAiSessionMessages(sessionId: number): Promise<AiMessage[]> {
+    return db.select().from(aiMessages)
+      .where(eq(aiMessages.sessionId, sessionId))
+      .orderBy(aiMessages.createdAt);
+  }
+
+  async deleteAiSessionMessages(sessionId: number): Promise<void> {
+    await db.delete(aiMessages).where(eq(aiMessages.sessionId, sessionId));
+  }
+
+  // AI Files
+  async createAiFile(file: InsertAiFile): Promise<AiFile> {
+    const [created] = await db.insert(aiFiles).values(file).returning();
+    return created;
+  }
+
+  async getAiFile(id: number): Promise<AiFile | undefined> {
+    const [file] = await db.select().from(aiFiles)
+      .where(and(eq(aiFiles.id, id), isNull(aiFiles.deletedAt)));
+    return file || undefined;
+  }
+
+  async getSessionAiFiles(sessionId: number): Promise<AiFile[]> {
+    return db.select().from(aiFiles)
+      .where(and(eq(aiFiles.sessionId, sessionId), isNull(aiFiles.deletedAt)));
+  }
+
+  async getUserAiFiles(userId: number): Promise<AiFile[]> {
+    return db.select().from(aiFiles)
+      .where(and(eq(aiFiles.ownerUserId, userId), isNull(aiFiles.deletedAt)));
+  }
+
+  async softDeleteAiFile(id: number): Promise<void> {
+    await db.update(aiFiles)
+      .set({ deletedAt: new Date() })
+      .where(eq(aiFiles.id, id));
+  }
+
+  async deleteSessionAiFiles(sessionId: number): Promise<void> {
+    await db.update(aiFiles)
+      .set({ deletedAt: new Date() })
+      .where(eq(aiFiles.sessionId, sessionId));
+  }
+
+  // AI Memory (persistent key-value store)
+  async setAiMemory(userId: number, key: string, value: string, sourceMessageId?: number): Promise<AiMemory> {
+    // Upsert - update if exists, insert if not
+    const existing = await db.select().from(aiMemory)
+      .where(and(eq(aiMemory.userId, userId), eq(aiMemory.key, key)));
+    
+    if (existing[0]) {
+      const [updated] = await db.update(aiMemory)
+        .set({ value, sourceMessageId, updatedAt: new Date() })
+        .where(eq(aiMemory.id, existing[0].id))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db.insert(aiMemory)
+      .values({ userId, key, value, sourceMessageId })
+      .returning();
+    return created;
+  }
+
+  async getAiMemory(userId: number, key: string): Promise<AiMemory | undefined> {
+    const [memory] = await db.select().from(aiMemory)
+      .where(and(eq(aiMemory.userId, userId), eq(aiMemory.key, key)));
+    return memory || undefined;
+  }
+
+  async getAllAiMemories(userId: number): Promise<AiMemory[]> {
+    return db.select().from(aiMemory)
+      .where(eq(aiMemory.userId, userId))
+      .orderBy(aiMemory.key);
+  }
+
+  async deleteAiMemory(userId: number, key: string): Promise<void> {
+    await db.delete(aiMemory)
+      .where(and(eq(aiMemory.userId, userId), eq(aiMemory.key, key)));
+  }
+
+  async clearAllAiMemories(userId: number): Promise<void> {
+    await db.delete(aiMemory).where(eq(aiMemory.userId, userId));
+  }
+
+  // AI Jobs
+  async createAiJob(job: InsertAiJob): Promise<AiJob> {
+    const [created] = await db.insert(aiJobs).values(job).returning();
+    return created;
+  }
+
+  async getAiJob(id: number): Promise<AiJob | undefined> {
+    const [job] = await db.select().from(aiJobs).where(eq(aiJobs.id, id));
+    return job || undefined;
+  }
+
+  async getUserAiJobs(userId: number): Promise<AiJob[]> {
+    return db.select().from(aiJobs)
+      .where(eq(aiJobs.userId, userId))
+      .orderBy(desc(aiJobs.createdAt));
+  }
+
+  async getSessionAiJobs(sessionId: number): Promise<AiJob[]> {
+    return db.select().from(aiJobs)
+      .where(eq(aiJobs.sessionId, sessionId))
+      .orderBy(desc(aiJobs.createdAt));
+  }
+
+  async getQueuedAiJobs(): Promise<AiJob[]> {
+    return db.select().from(aiJobs)
+      .where(eq(aiJobs.status, "QUEUED"))
+      .orderBy(aiJobs.createdAt);
+  }
+
+  async updateAiJobStatus(id: number, status: "QUEUED" | "RUNNING" | "DONE" | "FAILED", output?: string, errorMessage?: string): Promise<AiJob | undefined> {
+    const updates: any = { status };
+    if (status === "RUNNING") updates.startedAt = new Date();
+    if (status === "DONE" || status === "FAILED") {
+      updates.completedAt = new Date();
+      updates.progress = status === "DONE" ? 100 : undefined;
+    }
+    if (output) updates.output = output;
+    if (errorMessage) updates.errorMessage = errorMessage;
+    
+    const [updated] = await db.update(aiJobs)
+      .set(updates)
+      .where(eq(aiJobs.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async updateAiJobProgress(id: number, progress: number): Promise<void> {
+    await db.update(aiJobs)
+      .set({ progress: Math.min(100, Math.max(0, progress)) })
+      .where(eq(aiJobs.id, id));
   }
 }
 
