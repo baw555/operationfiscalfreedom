@@ -74,6 +74,7 @@ const disabilityRatingSubItems = [
 const finOpsSubItems = [
   { name: "Fin-Ops Hub", href: "/fin-ops" },
   { name: "Veteran Logistics", href: "/shipping" },
+  { name: "Insurance Savings", href: "/insurance" },
   { name: "Veteran Led Tax Solutions", href: "/veteran-led-tax" },
 ];
 
