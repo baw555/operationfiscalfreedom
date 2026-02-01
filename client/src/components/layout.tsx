@@ -21,7 +21,31 @@ const animatedTextStyles = `
     animation: veteransGlow 20s ease-in-out infinite;
     animation-delay: 10s;
   }
+  @keyframes yellowFlash {
+    0%, 20% { color: #FCD34D; text-shadow: 0 0 8px #FCD34D, 0 0 16px #F59E0B; }
+    30%, 100% { color: #92400E; text-shadow: none; }
+  }
 `;
+
+function FlashingNavPerks() {
+  const letters = "NAV PERKS".split("");
+  return (
+    <span className="inline-flex font-bold uppercase tracking-wider">
+      {letters.map((letter, index) => (
+        <span
+          key={index}
+          className="inline-block"
+          style={{
+            animation: `yellowFlash 2s ease-in-out infinite`,
+            animationDelay: `${index * 0.15}s`,
+          }}
+        >
+          {letter === " " ? "\u00A0" : letter}
+        </span>
+      ))}
+    </span>
+  );
+}
 
 function AnimatedNavigatorUSA({ variant = "topbar" }: { variant?: "topbar" | "navbar" }) {
   const letters = "NavigatorUSA".split("");
@@ -255,7 +279,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
                   location === "/operator-ai" || location === "/naval-intelligence" || location === "/document-signature" ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )} data-testid="nav-free-vet-software">
-                  Nav Perks <ChevronDown className={cn("w-4 h-4 transition-transform", freeVetSoftwareOpen && "rotate-180")} />
+                  <FlashingNavPerks /> <ChevronDown className={cn("w-4 h-4 transition-transform", freeVetSoftwareOpen && "rotate-180")} />
               </button>
               {freeVetSoftwareOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -437,7 +461,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 onClick={() => setMobileFreeVetSoftwareOpen(!mobileFreeVetSoftwareOpen)}
                 data-testid="nav-mobile-free-vet-software"
               >
-                Nav Perks <ChevronDown className={cn("w-4 h-4 transition-transform", mobileFreeVetSoftwareOpen && "rotate-180")} />
+                <FlashingNavPerks /> <ChevronDown className={cn("w-4 h-4 transition-transform", mobileFreeVetSoftwareOpen && "rotate-180")} />
               </button>
               {mobileFreeVetSoftwareOpen && (
                 <div className="pl-4 pb-2 bg-gradient-to-br from-blue-900 to-blue-950 rounded">
