@@ -277,66 +277,230 @@
   filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
 }
 
-/* Flag Banner Wave Animation */
-.flag-banner-container {
-  perspective: 1000px;
+/* Flag Banner - Elaborate Multi-Layer Wave Animation */
+.flag-container-3d {
+  perspective: 1200px;
   transform-style: preserve-3d;
 }
 
-.flag-banner {
-  animation: flag-wave 6s ease-in-out infinite;
+/* Individual flag layers with staggered animations */
+.flag-layer {
   transform-origin: left center;
+  backface-visibility: hidden;
 }
 
-@keyframes flag-wave {
+.flag-layer-back {
+  animation: flag-wave-back 10s ease-in-out infinite;
+  z-index: 1;
+}
+
+.flag-layer-mid {
+  animation: flag-wave-mid 8s ease-in-out infinite;
+  animation-delay: -2s;
+  z-index: 2;
+}
+
+.flag-layer-front {
+  animation: flag-wave-front 6s ease-in-out infinite;
+  animation-delay: -1s;
+  z-index: 3;
+}
+
+/* Back layer - largest, slowest wave */
+@keyframes flag-wave-back {
+  0%, 100% {
+    transform: rotateY(0deg) rotateZ(0deg) skewX(0deg) translateX(0);
+  }
+  20% {
+    transform: rotateY(4deg) rotateZ(1deg) skewX(2deg) translateX(3px);
+  }
+  40% {
+    transform: rotateY(-2deg) rotateZ(-0.5deg) skewX(-1deg) translateX(-2px);
+  }
+  60% {
+    transform: rotateY(3deg) rotateZ(0.8deg) skewX(1.5deg) translateX(4px);
+  }
+  80% {
+    transform: rotateY(-1deg) rotateZ(-0.3deg) skewX(-0.5deg) translateX(-1px);
+  }
+}
+
+/* Middle layer - medium wave */
+@keyframes flag-wave-mid {
+  0%, 100% {
+    transform: rotateY(0deg) rotateZ(0deg) skewX(0deg) translateX(0);
+  }
+  25% {
+    transform: rotateY(3deg) rotateZ(0.7deg) skewX(1.5deg) translateX(2px);
+  }
+  50% {
+    transform: rotateY(-1.5deg) rotateZ(-0.4deg) skewX(-0.8deg) translateX(-1px);
+  }
+  75% {
+    transform: rotateY(2deg) rotateZ(0.5deg) skewX(1deg) translateX(3px);
+  }
+}
+
+/* Front layer - subtle, quick wave */
+@keyframes flag-wave-front {
   0%, 100% {
     transform: rotateY(0deg) rotateZ(0deg) skewX(0deg);
   }
   25% {
-    transform: rotateY(2deg) rotateZ(0.5deg) skewX(1deg);
+    transform: rotateY(1.5deg) rotateZ(0.4deg) skewX(0.8deg);
   }
   50% {
-    transform: rotateY(-1deg) rotateZ(-0.3deg) skewX(-0.5deg);
+    transform: rotateY(-0.8deg) rotateZ(-0.2deg) skewX(-0.4deg);
   }
   75% {
-    transform: rotateY(1.5deg) rotateZ(0.3deg) skewX(0.5deg);
+    transform: rotateY(1deg) rotateZ(0.3deg) skewX(0.5deg);
   }
 }
 
-/* Flag shimmer effect - light catching on fabric */
-.flag-shimmer {
-  animation: flag-shimmer 4s ease-in-out infinite;
+/* Animated fold highlight - sweeping light effect */
+.flag-fold-highlight {
   background: linear-gradient(
-    90deg,
+    105deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.4) 45%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 55%,
+    transparent 60%,
     transparent 100%
   );
-  background-size: 200% 100%;
+  background-size: 300% 100%;
+  animation: fold-sweep 5s ease-in-out infinite;
 }
 
-@keyframes flag-shimmer {
+.flag-fold-highlight-2 {
+  background: linear-gradient(
+    75deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 35%,
+    rgba(255, 255, 255, 0.5) 40%,
+    rgba(255, 255, 255, 0.3) 45%,
+    transparent 50%,
+    transparent 100%
+  );
+  background-size: 400% 100%;
+  animation: fold-sweep-2 7s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+@keyframes fold-sweep {
   0% {
-    background-position: 200% 0;
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.6;
+    background-position: 150% 0;
   }
   100% {
-    background-position: -200% 0;
-    opacity: 0.3;
+    background-position: -50% 0;
   }
 }
 
-/* Reduced motion preference */
+@keyframes fold-sweep-2 {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* Crease lines that move with the wave */
+.flag-crease-1 {
+  animation: crease-move-1 6s ease-in-out infinite;
+}
+.flag-crease-2 {
+  animation: crease-move-2 8s ease-in-out infinite;
+}
+.flag-crease-3 {
+  animation: crease-move-3 7s ease-in-out infinite;
+}
+
+@keyframes crease-move-1 {
+  0%, 100% { left: 20%; opacity: 0.2; }
+  50% { left: 22%; opacity: 0.35; }
+}
+@keyframes crease-move-2 {
+  0%, 100% { left: 45%; opacity: 0.15; }
+  50% { left: 47%; opacity: 0.3; }
+}
+@keyframes crease-move-3 {
+  0%, 100% { left: 70%; opacity: 0.2; }
+  50% { left: 72%; opacity: 0.35; }
+}
+
+/* Light catching lines */
+.flag-light-1 {
+  animation: light-move-1 6s ease-in-out infinite;
+}
+.flag-light-2 {
+  animation: light-move-2 8s ease-in-out infinite;
+}
+.flag-light-3 {
+  animation: light-move-3 7s ease-in-out infinite;
+}
+
+@keyframes light-move-1 {
+  0%, 100% { left: 15%; opacity: 0.3; }
+  50% { left: 17%; opacity: 0.5; }
+}
+@keyframes light-move-2 {
+  0%, 100% { left: 50%; opacity: 0.2; }
+  50% { left: 52%; opacity: 0.4; }
+}
+@keyframes light-move-3 {
+  0%, 100% { left: 80%; opacity: 0.3; }
+  50% { left: 82%; opacity: 0.5; }
+}
+
+/* Divider pulse */
+.flag-divider-pulse {
+  animation: divider-pulse 3s ease-in-out infinite;
+}
+
+@keyframes divider-pulse {
+  0%, 100% { opacity: 0.8; transform: scaleX(1); }
+  50% { opacity: 1; transform: scaleX(1.05); }
+}
+
+/* Flag pole subtle sway */
+.flag-pole {
+  animation: pole-sway 4s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes pole-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(0.5deg); }
+}
+
+/* Reduced motion preference - show static semi-transparent banner */
 @media (prefers-reduced-motion: reduce) {
-  .flag-banner {
-    animation: none;
+  .flag-layer,
+  .flag-layer-back,
+  .flag-layer-mid,
+  .flag-layer-front {
+    animation: none !important;
     filter: none !important;
   }
-  .flag-shimmer {
-    animation: none;
+  .flag-fold-highlight,
+  .flag-fold-highlight-2 {
+    animation: none !important;
+    background: transparent !important;
+  }
+  .flag-crease-1,
+  .flag-crease-2,
+  .flag-crease-3,
+  .flag-light-1,
+  .flag-light-2,
+  .flag-light-3 {
+    animation: none !important;
+  }
+  .flag-divider-pulse,
+  .flag-pole {
+    animation: none !important;
   }
 }
 
