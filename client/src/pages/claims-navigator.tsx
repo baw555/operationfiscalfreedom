@@ -41,6 +41,13 @@ import {
   Share2,
   Trash2,
   BarChart3,
+  Lightbulb,
+  TrendingUp,
+  Star,
+  ClipboardList,
+  CheckSquare,
+  Zap,
+  User,
 } from "lucide-react";
 
 type WizardStep = "track" | "type" | "evidence" | "review" | "dashboard";
@@ -446,6 +453,50 @@ export default function ClaimsNavigator() {
     queryFn: async () => {
       if (!activeCaseId) return null;
       const res = await fetch(`/api/claims/cases/${activeCaseId}/heatmap`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeCaseId,
+  });
+
+  const { data: suggestionsData } = useQuery({
+    queryKey: ["/api/claims/cases", activeCaseId, "suggestions"],
+    queryFn: async () => {
+      if (!activeCaseId) return null;
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/suggestions`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeCaseId,
+  });
+
+  const { data: vendorScorecardsData } = useQuery({
+    queryKey: ["/api/claims/cases", activeCaseId, "vendor-scorecards"],
+    queryFn: async () => {
+      if (!activeCaseId) return null;
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/vendor-scorecards`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeCaseId,
+  });
+
+  const { data: laneConfidenceData } = useQuery({
+    queryKey: ["/api/claims/cases", activeCaseId, "lane-confidence"],
+    queryFn: async () => {
+      if (!activeCaseId) return null;
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/lane-confidence`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeCaseId,
+  });
+
+  const { data: uploadChecklistData } = useQuery({
+    queryKey: ["/api/claims/cases", activeCaseId, "upload-checklist"],
+    queryFn: async () => {
+      if (!activeCaseId) return null;
+      const res = await fetch(`/api/claims/cases/${activeCaseId}/upload-checklist`, { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
     },
@@ -1330,6 +1381,281 @@ export default function ClaimsNavigator() {
                         )}
                       </CardContent>
                     </Card>
+
+                    {/* Stage 7: Strength Suggestions - Directly below heatmap */}
+                    {suggestionsData?.topSuggestions && suggestionsData.topSuggestions.length > 0 && (
+                      <Card className="bg-slate-800/50 border-slate-700 border-l-4 border-l-amber-500">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-white flex items-center gap-2">
+                            <Lightbulb className="w-5 h-5 text-amber-400" />
+                            What Would Strengthen This Claim?
+                          </CardTitle>
+                          <CardDescription className="text-slate-400">
+                            Actionable suggestions based on your evidence analysis
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            {suggestionsData.topSuggestions.map((s: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className={`flex items-start gap-3 p-3 rounded-lg ${
+                                  s.priority === "high" ? "bg-red-500/10 border border-red-500/30" :
+                                  s.priority === "medium" ? "bg-amber-500/10 border border-amber-500/30" :
+                                  "bg-slate-700/30 border border-slate-600"
+                                }`}
+                                data-testid={`suggestion-${idx}`}
+                              >
+                                <div className={`mt-0.5 ${
+                                  s.priority === "high" ? "text-red-400" :
+                                  s.priority === "medium" ? "text-amber-400" :
+                                  "text-slate-400"
+                                }`}>
+                                  <Zap className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Badge variant="outline" className={`text-xs ${
+                                      s.priority === "high" ? "border-red-500 text-red-400" :
+                                      s.priority === "medium" ? "border-amber-500 text-amber-400" :
+                                      "border-slate-500 text-slate-400"
+                                    }`}>
+                                      {s.priority}
+                                    </Badge>
+                                    <span className="text-slate-500 text-xs uppercase">{s.type} evidence</span>
+                                  </div>
+                                  <p className="text-slate-300 text-sm">{s.text}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Stage 9: Enhanced Lane Confidence with Reasoning */}
+                    {laneConfidenceData?.recommendation && (
+                      <Card className="bg-slate-800/50 border-slate-700">
+                        <CardHeader>
+                          <CardTitle className="text-white flex items-center gap-2">
+                            <Target className="w-5 h-5 text-blue-400" />
+                            VA Lane Recommendation
+                          </CardTitle>
+                          <CardDescription className="text-slate-400">
+                            Decision support based on your evidence profile
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                              <div>
+                                <p className="text-blue-400 font-bold text-lg">
+                                  {laneConfidenceData.recommendation.laneDisplayName}
+                                </p>
+                                <p className="text-slate-400 text-sm">
+                                  {laneConfidenceData.recommendation.laneDescription}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-3xl font-bold text-blue-400">
+                                  {laneConfidenceData.recommendation.confidence}%
+                                </p>
+                                <p className="text-xs text-slate-500">Confidence</p>
+                              </div>
+                            </div>
+
+                            <div className="bg-slate-700/30 rounded-lg p-4">
+                              <p className="text-slate-400 text-sm font-medium mb-2">Why this recommendation:</p>
+                              <ul className="space-y-1">
+                                {laneConfidenceData.recommendation.reasoning.map((r: string, idx: number) => (
+                                  <li key={idx} className="flex items-center gap-2 text-sm text-slate-300">
+                                    <Check className="w-3 h-3 text-green-400 flex-shrink-0" />
+                                    {r}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {laneConfidenceData.recommendation.alternativeLane && (
+                              <div className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
+                                <div>
+                                  <p className="text-slate-400 text-xs">Alternative option:</p>
+                                  <p className="text-slate-300">{laneConfidenceData.recommendation.alternativeLaneDisplayName}</p>
+                                </div>
+                                <Badge variant="outline" className="border-slate-500 text-slate-400">
+                                  {laneConfidenceData.recommendation.alternativeConfidence}% confidence
+                                </Badge>
+                              </div>
+                            )}
+
+                            <div className="grid grid-cols-3 gap-2 pt-2">
+                              <div className="bg-slate-700/50 rounded-lg p-2 text-center">
+                                <p className="text-lg font-bold text-white">{laneConfidenceData.factors.strengthAvg}</p>
+                                <p className="text-xs text-slate-400">Strength</p>
+                              </div>
+                              <div className="bg-slate-700/50 rounded-lg p-2 text-center">
+                                <p className="text-lg font-bold text-white">{laneConfidenceData.factors.completenessPct}%</p>
+                                <p className="text-xs text-slate-400">Complete</p>
+                              </div>
+                              <div className="bg-slate-700/50 rounded-lg p-2 text-center">
+                                <p className="text-lg font-bold text-white">{laneConfidenceData.factors.hasNexusLetter ? "Yes" : "No"}</p>
+                                <p className="text-xs text-slate-400">Nexus</p>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Stage 8: Vendor Scorecards */}
+                    {vendorScorecardsData?.scorecards && vendorScorecardsData.scorecards.length > 0 && (
+                      <Card className="bg-slate-800/50 border-slate-700">
+                        <CardHeader>
+                          <CardTitle className="text-white flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-green-400" />
+                            Vendor Performance
+                          </CardTitle>
+                          <CardDescription className="text-slate-400">
+                            Track who's actively helping your case
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            {vendorScorecardsData.scorecards.map((v: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className={`p-4 rounded-lg border ${
+                                  v.rating === "excellent" ? "bg-green-500/10 border-green-500/30" :
+                                  v.rating === "good" ? "bg-blue-500/10 border-blue-500/30" :
+                                  v.rating === "fair" ? "bg-amber-500/10 border-amber-500/30" :
+                                  "bg-slate-700/30 border-slate-600"
+                                }`}
+                                data-testid={`vendor-scorecard-${idx}`}
+                              >
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <User className="w-4 h-4 text-slate-400" />
+                                    <span className="text-white font-medium">{v.vendorEmail}</span>
+                                  </div>
+                                  <Badge className={`${
+                                    v.rating === "excellent" ? "bg-green-500" :
+                                    v.rating === "good" ? "bg-blue-500" :
+                                    v.rating === "fair" ? "bg-amber-500" :
+                                    "bg-slate-500"
+                                  }`}>
+                                    {v.rating.replace("_", " ")}
+                                  </Badge>
+                                </div>
+                                <div className="grid grid-cols-4 gap-2 text-center">
+                                  <div>
+                                    <p className="text-lg font-bold text-white">{v.uploads}</p>
+                                    <p className="text-xs text-slate-400">Uploads</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-lg font-bold text-white">{v.notes}</p>
+                                    <p className="text-xs text-slate-400">Notes</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-lg font-bold text-white">{v.avgResponseHours || "-"}</p>
+                                    <p className="text-xs text-slate-400">Avg Hrs</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-lg font-bold text-white">{v.score}</p>
+                                    <p className="text-xs text-slate-400">Score</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Stage 10: VA.gov Upload Checklist */}
+                    {uploadChecklistData?.checklist && uploadChecklistData.checklist.items.length > 0 && (
+                      <Card className="bg-slate-800/50 border-slate-700">
+                        <CardHeader>
+                          <CardTitle className="text-white flex items-center gap-2">
+                            <ClipboardList className="w-5 h-5 text-amber-400" />
+                            VA.gov Upload Checklist
+                          </CardTitle>
+                          <CardDescription className="text-slate-400">
+                            Step-by-step guide for submitting to VA.gov
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-3 gap-2 mb-4">
+                              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2 text-center">
+                                <p className="text-lg font-bold text-red-400">{uploadChecklistData.checklist.summary.required}</p>
+                                <p className="text-xs text-slate-400">Required</p>
+                              </div>
+                              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2 text-center">
+                                <p className="text-lg font-bold text-amber-400">{uploadChecklistData.checklist.summary.recommended}</p>
+                                <p className="text-xs text-slate-400">Recommended</p>
+                              </div>
+                              <div className="bg-slate-700/50 rounded-lg p-2 text-center">
+                                <p className="text-lg font-bold text-slate-400">{uploadChecklistData.checklist.summary.optional}</p>
+                                <p className="text-xs text-slate-400">Optional</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                              {uploadChecklistData.checklist.items.map((item: any) => (
+                                <div
+                                  key={item.step}
+                                  className={`flex items-start gap-3 p-3 rounded-lg ${
+                                    item.priority === "required" ? "bg-red-500/5 border border-red-500/20" :
+                                    item.priority === "recommended" ? "bg-amber-500/5 border border-amber-500/20" :
+                                    "bg-slate-700/20 border border-slate-600"
+                                  }`}
+                                  data-testid={`checklist-item-${item.step}`}
+                                >
+                                  <CheckSquare className={`w-5 h-5 mt-0.5 ${
+                                    item.priority === "required" ? "text-red-400" :
+                                    item.priority === "recommended" ? "text-amber-400" :
+                                    "text-slate-500"
+                                  }`} />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-slate-500 text-xs">Step {item.step}</span>
+                                      <Badge variant="outline" className={`text-xs ${
+                                        item.priority === "required" ? "border-red-500 text-red-400" :
+                                        item.priority === "recommended" ? "border-amber-500 text-amber-400" :
+                                        "border-slate-500 text-slate-400"
+                                      }`}>
+                                        {item.priority}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-white text-sm truncate">{item.filename}</p>
+                                    <p className="text-slate-400 text-xs">{item.note}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+                              onClick={() => {
+                                const text = uploadChecklistData.textVersion;
+                                const blob = new Blob([text], { type: "text/plain" });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = "va-upload-checklist.txt";
+                                a.click();
+                                URL.revokeObjectURL(url);
+                              }}
+                              data-testid="download-checklist-btn"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download Checklist as Text
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
 
                     {/* Export Package Card */}
                     <Card className="bg-slate-800/50 border-slate-700">
