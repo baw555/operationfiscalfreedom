@@ -296,7 +296,7 @@ export default function AboutNavPerks() {
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <span className="text-slate-500 text-xs">*Free for members, low cost otherwise</span>
+                  <span className="text-slate-500 text-xs">*Free for active members, low cost otherwise</span>
                 </div>
               </div>
 
@@ -333,14 +333,14 @@ export default function AboutNavPerks() {
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <span className="text-slate-500 text-xs">*Free for members, low cost otherwise</span>
+                  <span className="text-slate-500 text-xs">*Free for active members, low cost otherwise</span>
                 </div>
               </div>
 
               {/* VA & SSDI Tool Comparison */}
               <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
-                  FREE
+                  LOW COST
                 </div>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
@@ -365,12 +365,12 @@ export default function AboutNavPerks() {
                   <div className="border-t border-slate-700 pt-3 mt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-white font-semibold">Nav Tool</span>
-                      <span className="text-green-400 font-bold text-xl">$0</span>
+                      <span className="text-green-400 font-bold text-xl">Free*</span>
                     </div>
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <span className="text-green-400 text-sm font-medium">Save thousands</span>
+                  <span className="text-slate-500 text-xs">*Free for active members, low cost otherwise</span>
                 </div>
               </div>
             </div>
