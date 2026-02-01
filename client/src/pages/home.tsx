@@ -1,19 +1,13 @@
 import { Layout } from "@/components/layout";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, ChevronDown, Pause, Play, Volume2 } from "lucide-react";
+import { Check, ArrowRight, Shield, DollarSign, Users, BarChart, Award, Briefcase, Star, Heart, Stethoscope, Sparkles, Pause, Play, Volume2 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 import { HeroMontage } from "@/components/hero-montage";
-import { RangerTabSVG } from "@/components/ranger-tab-svg";
+import { FlagBanner } from "@/components/flag-banner";
 
 export default function Home() {
   const [introStarted, setIntroStarted] = useState(false);
@@ -483,22 +477,9 @@ export default function Home() {
               <span className="text-brand-red text-2xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight">in 2026 and Beyond</span>
             </h1>
 
-            {/* Ranger Tab Banner */}
-            <div className="w-full max-w-4xl mx-auto my-6 sm:my-8 px-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150">
-              <div className="relative bg-gradient-to-r from-brand-navy/80 via-brand-blue/60 to-brand-navy/80 backdrop-blur-sm border border-brand-gold/30 rounded-xl px-4 sm:px-8 py-4 sm:py-6 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-gold/10 to-transparent animate-pulse"></div>
-                <p className="text-center text-lg sm:text-2xl md:text-3xl relative z-10 text-white font-display">
-                  All Veterans Get FREE RANGER: Document Signing Software
-                </p>
-                <div className="text-center mt-3">
-                  <a
-                    href="/ranger-tab-signup"
-                    data-testid="link-ranger-tab-signup"
-                  >
-                    <RangerTabSVG size="lg" />
-                  </a>
-                </div>
-              </div>
+            {/* Animated Flag Banner with Free Services */}
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150">
+              <FlagBanner />
             </div>
 
 
@@ -612,34 +593,6 @@ export default function Home() {
                   </>
                 )}
               </Button>
-            </div>
-
-            <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 w-full max-w-xl mx-auto px-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="w-full h-14 sm:h-16 text-lg sm:text-xl font-display bg-brand-red hover:bg-brand-red/90 text-white shadow-lg shadow-brand-red/30 border-2 border-white/20">
-                    Free Member Services
-                    <ChevronDown className="ml-2 h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[calc(100vw-2rem)] max-w-80 mx-2 bg-white border-2 border-brand-navy/20 shadow-2xl" align="center">
-                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
-                    <Link href="/apply-website">Get Free Business Website</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
-                    <Link href="/apply-startup-grant">Apply for Startup Grant</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-red/10 hover:text-brand-red">
-                    <Link href="/private-doctor">VA Too Slow? Private Doctor</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer py-3 text-base font-semibold text-brand-navy hover:bg-brand-blue/10 hover:text-brand-blue">
-                    <Link href="/new-home-furniture">New Home Furniture Assistance</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <p className="text-gray-300 text-xs sm:text-sm mt-4 text-center">
-                Click above to access all free member services
-              </p>
             </div>
           </div>
         </section>
