@@ -80,10 +80,6 @@ export default function Transparency() {
                     <span className="text-gray-400">Accounting Period</span>
                     <span className="font-semibold">December 31</span>
                   </div>
-                  <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                    <span className="text-gray-400">DLN</span>
-                    <span className="font-mono text-sm">26053560003723</span>
-                  </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400">IRS Contact</span>
                     <span className="font-semibold">877-829-5500</span>
