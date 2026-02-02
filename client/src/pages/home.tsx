@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
+import militaryHandsTogether from "@/assets/military-hands-together.png";
 import { HeroMontage } from "@/components/hero-montage";
 import { FlagBanner } from "@/components/flag-banner";
 
@@ -273,12 +274,20 @@ export default function Home() {
       {/* Intro Video with Audio */}
       {!introPlayed && (
         <section className={cn(
-          "relative flex items-center justify-center overflow-hidden bg-black transition-all duration-500",
+          "relative flex items-center justify-center overflow-hidden transition-all duration-500",
           videoFullscreen ? "min-h-[100vh]" : "min-h-[50vh] py-8"
-        )}>
+        )}
+        style={{
+          backgroundImage: `url(${militaryHandsTogether})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+        >
+          <div className="absolute inset-0 bg-black/60" />
           <video
             ref={introVideoRef}
             src="/videos/intro-video.mp4"
+            poster={militaryHandsTogether}
             playsInline
             preload="auto"
             onEnded={handleIntroEnded}
@@ -294,7 +303,7 @@ export default function Home() {
           {!introStarted && (
             <div 
               onClick={startIntro}
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center cursor-pointer bg-black"
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center cursor-pointer"
             >
               <div className="text-center px-4">
                 <div className={cn(
