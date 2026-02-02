@@ -7,32 +7,34 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 import militaryHandsTogether from "@/assets/military-hands-together.jpg";
-import bgMemorial from "@/assets/bg-memorial.png";
 import bgCarrier from "@/assets/bg-carrier.png";
 import bgRibbons from "@/assets/bg-ribbons.png";
 import bgParatroopers from "@/assets/bg-paratroopers.png";
-import bgSoldiersSunset from "@/assets/bg-soldiers-sunset.png";
 import bgVeteranFamily from "@/assets/bg-veteran-family.png";
 import bgHonorGuard from "@/assets/bg-honor-guard.jpg";
 import bgSalute from "@/assets/bg-salute.jpg";
 import bgCarrierHQ from "@/assets/bg-carrier-hq.jpg";
 import bgSoldiersTactical from "@/assets/bg-soldiers-tactical.jpg";
 import bgHelicopter from "@/assets/bg-helicopter.jpg";
+import bgReunion from "@/assets/bg-reunion.jpg";
+import bgProudVeteran from "@/assets/bg-proud-veteran.jpg";
+import bgFamilyHug from "@/assets/bg-family-hug.jpg";
 import { HeroMontage } from "@/components/hero-montage";
 import { FlagBanner } from "@/components/flag-banner";
 
 const SLIDESHOW_IMAGES = [
+  bgReunion,
+  bgProudVeteran,
+  bgFamilyHug,
+  bgSoldiersTactical,
   bgHonorGuard,
   bgSalute,
   bgCarrierHQ,
-  bgSoldiersTactical,
   bgHelicopter,
   militaryHandsTogether,
-  bgMemorial,
   bgCarrier,
   bgRibbons,
   bgParatroopers,
-  bgSoldiersSunset,
   bgVeteranFamily,
 ];
 
