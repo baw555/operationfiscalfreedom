@@ -679,7 +679,7 @@ export default function Home() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
             <div>
-              <h2 className="text-2xl sm:text-4xl md:text-5xl mb-4 sm:mb-6">Why NavigatorUSA Exists</h2>
+              <h2 className="text-2xl sm:text-4xl md:text-5xl mb-4 sm:mb-6">Why <span style={{ fontFamily: 'Roboto, sans-serif', fontWeight: 700 }}>NAVIGATOR</span><span style={{ fontFamily: 'Roboto, sans-serif', fontWeight: 300 }}>USA</span> Exists</h2>
               <div className="w-16 h-1 bg-brand-red mb-6" />
               <div className="space-y-4 sm:space-y-6">
                 <div className="flex gap-3 sm:gap-4">
