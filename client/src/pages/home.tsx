@@ -7,8 +7,24 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 import militaryHandsTogether from "@/assets/military-hands-together.jpg";
+import bgMemorial from "@/assets/bg-memorial.png";
+import bgCarrier from "@/assets/bg-carrier.png";
+import bgRibbons from "@/assets/bg-ribbons.png";
+import bgParatroopers from "@/assets/bg-paratroopers.png";
+import bgSoldiersSunset from "@/assets/bg-soldiers-sunset.png";
+import bgVeteranFamily from "@/assets/bg-veteran-family.png";
 import { HeroMontage } from "@/components/hero-montage";
 import { FlagBanner } from "@/components/flag-banner";
+
+const SLIDESHOW_IMAGES = [
+  militaryHandsTogether,
+  bgMemorial,
+  bgCarrier,
+  bgRibbons,
+  bgParatroopers,
+  bgSoldiersSunset,
+  bgVeteranFamily,
+];
 
 export default function Home() {
   const [introStarted, setIntroStarted] = useState(false);
@@ -30,6 +46,70 @@ export default function Home() {
     someoneImg?: string;
     answerCallImg?: string;
   }>({});
+
+  // Slideshow state for video background
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [nextSlideIndex, setNextSlideIndex] = useState(1);
+  const [slideOpacity, setSlideOpacity] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const slideshowRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Shuffle array function
+  const shuffleArray = useCallback((array: string[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, []);
+
+  const [shuffledImages, setShuffledImages] = useState<string[]>(() => 
+    shuffleArray(SLIDESHOW_IMAGES)
+  );
+
+  // Slideshow effect - only runs when video hasn't started
+  useEffect(() => {
+    if (introStarted || introPlayed) {
+      if (slideshowRef.current) {
+        clearTimeout(slideshowRef.current);
+      }
+      return;
+    }
+
+    const runSlideshow = () => {
+      // Start fade out (3 seconds)
+      setIsTransitioning(true);
+      setSlideOpacity(0);
+      
+      setTimeout(() => {
+        // After fade out, switch to next image
+        setCurrentSlideIndex(prev => {
+          const next = (prev + 1) % shuffledImages.length;
+          // Reshuffle when we've gone through all images
+          if (next === 0) {
+            setShuffledImages(shuffleArray(SLIDESHOW_IMAGES));
+          }
+          return next;
+        });
+        
+        // Start fade in (2 seconds)
+        setTimeout(() => {
+          setSlideOpacity(1);
+          setIsTransitioning(false);
+        }, 100);
+      }, 3000);
+    };
+
+    // Set interval for slideshow (10 seconds display + 3s fade out + 2s fade in = 15s total)
+    slideshowRef.current = setTimeout(runSlideshow, 10000);
+
+    return () => {
+      if (slideshowRef.current) {
+        clearTimeout(slideshowRef.current);
+      }
+    };
+  }, [introStarted, introPlayed, currentSlideIndex, shuffledImages, shuffleArray]);
 
   useEffect(() => {
     Promise.all([
@@ -277,17 +357,37 @@ export default function Home() {
           "relative flex items-center justify-center overflow-hidden transition-all duration-500",
           videoFullscreen ? "min-h-[100vh]" : "min-h-[50vh] py-8"
         )}
-        style={{
-          backgroundImage: `url(${militaryHandsTogether})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
         >
-          <div className="absolute inset-0 bg-black/60" />
+          {/* Slideshow Background - only shows when video hasn't started */}
+          {!introStarted && (
+            <>
+              <div 
+                className="absolute inset-0 bg-cover bg-center"
+                style={{
+                  backgroundImage: `url(${shuffledImages[currentSlideIndex]})`,
+                  opacity: slideOpacity,
+                  transition: isTransitioning 
+                    ? 'opacity 3s ease-out' 
+                    : 'opacity 2s ease-in',
+                }}
+              />
+              <div className="absolute inset-0 bg-black/50" />
+            </>
+          )}
+          
+          {/* Static background when video is playing */}
+          {introStarted && (
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${shuffledImages[0]})` }}
+            />
+          )}
+          
+          <div className="absolute inset-0 bg-black/40" />
           <video
             ref={introVideoRef}
             src="/videos/intro-video.mp4"
-            poster={militaryHandsTogether}
+            poster={shuffledImages[currentSlideIndex]}
             playsInline
             preload="auto"
             onEnded={handleIntroEnded}
