@@ -105,7 +105,7 @@ const finOpsSubItems = [
 const freeVetSoftwareSubItems = [
   { name: "ABOUT NAV TOOLS", href: "/about-nav-perks" },
   { name: "OPERATOR: AI", href: "/operator-ai" },
-  { name: "Naval Intel", href: "/naval-intelligence" },
+  { name: "NAVAL INTEL", href: "/naval-intelligence" },
   { name: "RANGER: Free Document Signature", href: "/document-signature" },
   { name: "VA/SSDI CSO NAVIGATOR", href: "/claims-navigator" },
 ];

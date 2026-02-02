@@ -182,7 +182,7 @@ export default function AboutNavPerks() {
                         <Video className="w-6 h-6 text-purple-600" />
                       </div>
                       <div>
-                        <div className="font-semibold text-slate-800">Naval Intel</div>
+                        <div className="font-semibold text-slate-800">NAVAL INTEL</div>
                         <div className="text-sm text-slate-500">AI Media Creation</div>
                       </div>
                       <CheckCircle className="w-5 h-5 text-green-500 ml-auto" />
@@ -312,7 +312,7 @@ export default function AboutNavPerks() {
                   <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
                     <Video className="w-5 h-5 text-purple-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">Naval Intel</h3>
+                  <h3 className="text-lg font-semibold text-white">NAVAL INTEL</h3>
                 </div>
                 <p className="text-slate-400 text-sm mb-4">AI Media Generation</p>
                 <div className="space-y-3">
@@ -330,7 +330,7 @@ export default function AboutNavPerks() {
                   </div>
                   <div className="border-t border-slate-700 pt-3 mt-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-white font-semibold">Naval Intel</span>
+                      <span className="text-white font-semibold">NAVAL INTEL</span>
                       <span className="text-green-400 font-bold text-xl">Free*</span>
                     </div>
                   </div>
@@ -512,7 +512,7 @@ export default function AboutNavPerks() {
                 <div className="p-8 flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-4">
                     <Video className="w-8 h-8 text-purple-500" />
-                    <h3 className="text-2xl font-semibold text-slate-800">Naval Intel</h3>
+                    <h3 className="text-2xl font-semibold text-slate-800">NAVAL INTEL</h3>
                   </div>
                   <p className="text-slate-600 mb-6">
                     Naval Intelligence media orchestration. Transform documents into audio, create video montages, and generate AI content.
@@ -1054,7 +1054,7 @@ export default function AboutNavPerks() {
               <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
                 <h3 className="font-semibold text-slate-800 mb-2">What does Nav Perks cost?</h3>
                 <p className="text-slate-600">
-                  RANGER is completely free for all veterans. Operator AI and Naval Intel are no cost for active members and available at low cost for veterans who want AI tools that don't censor, track, or store their data. This is our way of giving back to those who served.
+                  RANGER is completely free for all veterans. Operator AI and NAVAL INTEL are no cost for active members and available at low cost for veterans who want AI tools that don't censor, track, or store their data. This is our way of giving back to those who served.
                 </p>
               </div>
 
