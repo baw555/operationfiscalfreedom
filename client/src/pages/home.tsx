@@ -11,26 +11,10 @@ import bgCarrier from "@/assets/bg-carrier.png";
 import bgRibbons from "@/assets/bg-ribbons.png";
 import bgParatroopers from "@/assets/bg-paratroopers.png";
 import bgVeteranFamily from "@/assets/bg-veteran-family.png";
-import bgHonorGuard from "@/assets/bg-honor-guard.jpg";
-import bgSalute from "@/assets/bg-salute.jpg";
-import bgCarrierHQ from "@/assets/bg-carrier-hq.jpg";
-import bgSoldiersTactical from "@/assets/bg-soldiers-tactical.jpg";
-import bgHelicopter from "@/assets/bg-helicopter.jpg";
-import bgReunion from "@/assets/bg-reunion.jpg";
-import bgProudVeteran from "@/assets/bg-proud-veteran.jpg";
-import bgFamilyHug from "@/assets/bg-family-hug.jpg";
 import { HeroMontage } from "@/components/hero-montage";
 import { FlagBanner } from "@/components/flag-banner";
 
 const SLIDESHOW_IMAGES = [
-  bgReunion,
-  bgProudVeteran,
-  bgFamilyHug,
-  bgSoldiersTactical,
-  bgHonorGuard,
-  bgSalute,
-  bgCarrierHQ,
-  bgHelicopter,
   militaryHandsTogether,
   bgCarrier,
   bgRibbons,
