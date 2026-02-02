@@ -104,26 +104,28 @@ export function FlagBanner() {
         .glow-blue { color: #2563eb; animation: blueGlow 2s ease-in-out infinite; animation-delay: 1s; }
         .glow-black { color: #1a1a1a; animation: blackGlow 2s ease-in-out infinite; animation-delay: 1.5s; }
       `}} />
-      <div className="bg-white py-3 sm:py-4 overflow-hidden mb-2">
+
+      {/* Military Motivation Marquee - In the margin space above navy bar */}
+      <div className="overflow-hidden py-1 mb-1">
         <div className="military-marquee-container">
           {[0, 1].map((i) => (
             <div key={i} className="military-marquee-content" aria-hidden={i === 1}>
-              <span className="glow-red font-display text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-widest px-8">
+              <span className="glow-red font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4">
                 FOR YOUR BROTHERS
               </span>
-              <span className="text-brand-gold text-2xl mx-6">★</span>
-              <span className="glow-white font-display text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-widest px-8" style={{ WebkitTextStroke: '1px #1a365d' }}>
+              <span className="text-brand-gold text-sm mx-3">★</span>
+              <span className="glow-white font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4" style={{ WebkitTextStroke: '0.5px #1a365d' }}>
                 FOR YOUR SISTERS
               </span>
-              <span className="text-brand-gold text-2xl mx-6">★</span>
-              <span className="glow-blue font-display text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-widest px-8">
+              <span className="text-brand-gold text-sm mx-3">★</span>
+              <span className="glow-blue font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4">
                 YOU DON'T HAVE PERMISSION TO FAIL
               </span>
-              <span className="text-brand-gold text-2xl mx-6">★</span>
-              <span className="glow-black font-display text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-widest px-8">
+              <span className="text-brand-gold text-sm mx-3">★</span>
+              <span className="glow-black font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4">
                 YOU FAIL WHEN WE TELL YOU TO FAIL
               </span>
-              <span className="text-brand-gold text-2xl mx-6">★</span>
+              <span className="text-brand-gold text-sm mx-3">★</span>
             </div>
           ))}
         </div>
