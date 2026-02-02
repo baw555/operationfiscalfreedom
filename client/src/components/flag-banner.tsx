@@ -138,11 +138,11 @@ export function FlagBanner() {
               </span>
               <span className="text-brand-gold text-sm mx-3">★</span>
               <span className="glow-camo font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4">
-                YOU DON'T HAVE PERMISSION TO FAIL
+                YOU FAIL WHEN WE TELL YOU TO FAIL
               </span>
               <span className="text-brand-gold text-sm mx-3">★</span>
               <span className="glow-yellow font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4">
-                YOU FAIL WHEN WE TELL YOU TO FAIL
+                YOU DON'T HAVE PERMISSION TO FAIL
               </span>
               <span className="text-brand-gold text-sm mx-3">★</span>
             </div>
