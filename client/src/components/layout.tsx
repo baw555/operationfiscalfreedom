@@ -29,7 +29,7 @@ const animatedTextStyles = `
 `;
 
 function FlashingNavPerks() {
-  const letters = "FREE / LOW COST SOFT".split("");
+  const letters = "FREE SOFT*".split("");
   return (
     <span className="inline-flex font-bold uppercase tracking-wider">
       {letters.map((letter, index) => (
@@ -599,6 +599,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="max-w-4xl mx-auto text-center">
             <p className="text-gray-400 text-xs leading-relaxed">
               <span className="text-yellow-500 font-semibold">Notice:</span> This platform is operating in a live testing environment. Certain features, claims, and deliverables may be incomplete or under development. Content is provided for informational and testing purposes only and does not constitute legal, tax, financial, or medical advice. Use at your own risk.
+            </p>
+            <p className="text-gray-500 text-xs leading-relaxed mt-3">
+              <span className="text-gray-400">*FREE SOFT:</span> "Free" is used for brevity in navigation. Software access is provided at no cost to active participants and partners. Availability, features, and pricing are subject to change. Some tools may have usage limits or require qualification.
             </p>
           </div>
         </div>
