@@ -68,6 +68,67 @@ export function FlagBanner() {
   
   return (
     <div className="w-full max-w-6xl mx-auto my-6 sm:my-8 px-4">
+      {/* Military Motivation Marquee - Slower, Left to Right */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes militaryMarquee {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(0%); }
+        }
+        @keyframes redGlow {
+          0%, 100% { text-shadow: 0 0 10px rgba(220, 38, 38, 0.8), 0 0 20px rgba(220, 38, 38, 0.6), 0 0 30px rgba(220, 38, 38, 0.4); }
+          50% { text-shadow: 0 0 20px rgba(220, 38, 38, 1), 0 0 40px rgba(220, 38, 38, 0.8), 0 0 60px rgba(220, 38, 38, 0.6); }
+        }
+        @keyframes whiteGlow {
+          0%, 100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6), 0 0 30px rgba(200, 200, 200, 0.4); }
+          50% { text-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 0 40px rgba(255, 255, 255, 0.9), 0 0 60px rgba(255, 255, 255, 0.7); }
+        }
+        @keyframes blueGlow {
+          0%, 100% { text-shadow: 0 0 10px rgba(37, 99, 235, 0.8), 0 0 20px rgba(37, 99, 235, 0.6), 0 0 30px rgba(37, 99, 235, 0.4); }
+          50% { text-shadow: 0 0 20px rgba(37, 99, 235, 1), 0 0 40px rgba(37, 99, 235, 0.8), 0 0 60px rgba(37, 99, 235, 0.6); }
+        }
+        @keyframes blackGlow {
+          0%, 100% { text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(30, 30, 30, 0.7), 0 0 30px rgba(50, 50, 50, 0.5), 0 0 5px rgba(255,255,255,0.3); }
+          50% { text-shadow: 0 0 15px rgba(0, 0, 0, 1), 0 0 30px rgba(30, 30, 30, 0.9), 0 0 45px rgba(50, 50, 50, 0.7), 0 0 8px rgba(255,255,255,0.5); }
+        }
+        .military-marquee-container {
+          display: flex;
+          white-space: nowrap;
+        }
+        .military-marquee-content {
+          animation: militaryMarquee 40s linear infinite;
+          display: flex;
+          align-items: center;
+        }
+        .glow-red { color: #dc2626; animation: redGlow 2s ease-in-out infinite; }
+        .glow-white { color: #ffffff; animation: whiteGlow 2s ease-in-out infinite; animation-delay: 0.5s; }
+        .glow-blue { color: #2563eb; animation: blueGlow 2s ease-in-out infinite; animation-delay: 1s; }
+        .glow-black { color: #1a1a1a; animation: blackGlow 2s ease-in-out infinite; animation-delay: 1.5s; }
+      `}} />
+      <div className="bg-white py-3 sm:py-4 overflow-hidden mb-2">
+        <div className="military-marquee-container">
+          {[0, 1].map((i) => (
+            <div key={i} className="military-marquee-content" aria-hidden={i === 1}>
+              <span className="glow-red font-display text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-widest px-8">
+                FOR YOUR BROTHERS
+              </span>
+              <span className="text-brand-gold text-2xl mx-6">★</span>
+              <span className="glow-white font-display text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-widest px-8" style={{ WebkitTextStroke: '1px #1a365d' }}>
+                FOR YOUR SISTERS
+              </span>
+              <span className="text-brand-gold text-2xl mx-6">★</span>
+              <span className="glow-blue font-display text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-widest px-8">
+                YOU DON'T HAVE PERMISSION TO FAIL
+              </span>
+              <span className="text-brand-gold text-2xl mx-6">★</span>
+              <span className="glow-black font-display text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-widest px-8">
+                YOU FAIL WHEN WE TELL YOU TO FAIL
+              </span>
+              <span className="text-brand-gold text-2xl mx-6">★</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Fortune 500 Style Scrolling Marquee Bar */}
       <div className="relative overflow-hidden rounded-lg shadow-2xl">
         {/* Top accent line */}
