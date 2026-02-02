@@ -86,9 +86,9 @@ export function FlagBanner() {
           0%, 100% { text-shadow: 0 0 10px rgba(37, 99, 235, 0.8), 0 0 20px rgba(37, 99, 235, 0.6), 0 0 30px rgba(37, 99, 235, 0.4); }
           50% { text-shadow: 0 0 20px rgba(37, 99, 235, 1), 0 0 40px rgba(37, 99, 235, 0.8), 0 0 60px rgba(37, 99, 235, 0.6); }
         }
-        @keyframes blackGlow {
-          0%, 100% { text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(30, 30, 30, 0.7), 0 0 30px rgba(50, 50, 50, 0.5), 0 0 5px rgba(255,255,255,0.3); }
-          50% { text-shadow: 0 0 15px rgba(0, 0, 0, 1), 0 0 30px rgba(30, 30, 30, 0.9), 0 0 45px rgba(50, 50, 50, 0.7), 0 0 8px rgba(255,255,255,0.5); }
+        @keyframes yellowGlow {
+          0%, 100% { text-shadow: 0 0 10px rgba(234, 179, 8, 0.8), 0 0 20px rgba(234, 179, 8, 0.6), 0 0 30px rgba(234, 179, 8, 0.4); }
+          50% { text-shadow: 0 0 20px rgba(234, 179, 8, 1), 0 0 40px rgba(234, 179, 8, 0.8), 0 0 60px rgba(234, 179, 8, 0.6); }
         }
         .military-marquee-container {
           display: flex;
@@ -102,7 +102,7 @@ export function FlagBanner() {
         .glow-red { color: #dc2626; animation: redGlow 2s ease-in-out infinite; }
         .glow-white { color: #ffffff; animation: whiteGlow 2s ease-in-out infinite; animation-delay: 0.5s; }
         .glow-blue { color: #2563eb; animation: blueGlow 2s ease-in-out infinite; animation-delay: 1s; }
-        .glow-black { color: #1a1a1a; animation: blackGlow 2s ease-in-out infinite; animation-delay: 1.5s; }
+        .glow-yellow { color: #eab308; animation: yellowGlow 2s ease-in-out infinite; animation-delay: 1.5s; }
       `}} />
 
       {/* Military Motivation Marquee - In the margin space above navy bar */}
@@ -122,7 +122,7 @@ export function FlagBanner() {
                 YOU DON'T HAVE PERMISSION TO FAIL
               </span>
               <span className="text-brand-gold text-sm mx-3">★</span>
-              <span className="glow-black font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4">
+              <span className="glow-yellow font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4">
                 YOU FAIL WHEN WE TELL YOU TO FAIL
               </span>
               <span className="text-brand-gold text-sm mx-3">★</span>
