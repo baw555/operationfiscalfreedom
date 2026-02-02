@@ -1147,46 +1147,99 @@ export default function NavalIntelligence() {
     <Layout>
       <div className="bg-gradient-to-b from-gray-50 to-white">
         {/* Enhanced Hero Section */}
-        <section className="relative py-20 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy overflow-hidden">
-          {/* Animated background elements */}
-          <div className="absolute inset-0 bg-[url('/patterns/stars.svg')] opacity-10" />
-          <div className="absolute inset-0">
-            <div className="absolute top-20 left-10 w-64 h-64 bg-brand-gold/10 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-10 right-20 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <section className="relative py-20 bg-black overflow-hidden">
+          <style>{`
+            @keyframes navalGrid {
+              0%, 100% { opacity: 0.05; }
+              50% { opacity: 0.1; }
+            }
+            @keyframes radarSweep {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            @keyframes dataStream {
+              0% { transform: translateY(-100%); opacity: 0; }
+              10% { opacity: 1; }
+              90% { opacity: 1; }
+              100% { transform: translateY(100vh); opacity: 0; }
+            }
+            @keyframes navalGlow {
+              0%, 100% { filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5)); }
+              50% { filter: drop-shadow(0 0 40px rgba(139, 92, 246, 0.8)); }
+            }
+            @keyframes titleReveal {
+              0% { clip-path: inset(0 100% 0 0); }
+              100% { clip-path: inset(0 0 0 0); }
+            }
+            .naval-title {
+              background: linear-gradient(135deg, #a855f7 0%, #6366f1 25%, #8b5cf6 50%, #a855f7 75%, #6366f1 100%);
+              background-size: 200% 200%;
+              -webkit-background-clip: text;
+              background-clip: text;
+              -webkit-text-fill-color: transparent;
+              animation: titleReveal 1s ease-out forwards;
+            }
+          `}</style>
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-950/50 via-slate-900 to-indigo-950/50" />
+          <div className="absolute inset-0" style={{
+            backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(139, 92, 246, 0.03) 40px, rgba(139, 92, 246, 0.03) 41px),
+                             repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(139, 92, 246, 0.03) 40px, rgba(139, 92, 246, 0.03) 41px)`,
+            animation: 'navalGrid 4s ease-in-out infinite'
+          }} />
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[150px]" />
+            <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] border border-purple-500/20 rounded-full">
+              <div className="absolute inset-0 rounded-full" style={{ 
+                background: 'conic-gradient(from 0deg, transparent 0deg, rgba(139, 92, 246, 0.3) 30deg, transparent 60deg)',
+                animation: 'radarSweep 4s linear infinite'
+              }} />
+            </div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="absolute w-px h-20 bg-gradient-to-b from-transparent via-purple-400/50 to-transparent"
+                style={{
+                  left: `${20 + i * 15}%`,
+                  animation: `dataStream ${3 + i * 0.5}s linear infinite`,
+                  animationDelay: `${i * 0.3}s`
+                }}
+              />
+            ))}
           </div>
           
           <div className="container mx-auto px-4 relative z-10">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Left: Hero Content */}
               <div className="text-left">
-                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-                  <Sparkles className="w-4 h-4 text-brand-gold animate-pulse" />
-                  <span className="text-white/90 text-sm font-medium">Powered by Google Veo 3.1 & Suno V5</span>
+                <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+                  <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                  <span className="text-purple-300 text-sm font-medium tracking-wider">GOOGLE VEO 3.1 • SUNO V5</span>
                 </div>
-                <h1 className="text-5xl md:text-7xl font-display text-white mb-6 leading-tight">
-                  Naval<br />
-                  <span className="text-brand-gold">Intelligence</span>
+                <h1 className="text-5xl md:text-7xl font-display mb-6 leading-tight">
+                  <span className="text-white">NAVAL</span><br />
+                  <span className="naval-title">INTEL</span>
                 </h1>
-                <p className="text-xl text-white/80 mb-4 max-w-lg">
+                <p className="text-xl text-purple-200/80 mb-4 max-w-lg">
                   State-of-the-art AI video and music creation suite built exclusively for veteran families.
                 </p>
-                <p className="text-lg text-white/60 mb-8 max-w-lg">
+                <p className="text-lg text-purple-300/60 mb-8 max-w-lg">
                   Create stunning tribute videos, memorial content, and original patriotic music in minutes.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button 
-                    size="lg" 
-                    className="bg-brand-gold text-brand-navy hover:bg-brand-gold/90 font-display text-lg px-8"
-                    onClick={() => document.getElementById('create-section')?.scrollIntoView({ behavior: 'smooth' })}
-                    data-testid="button-start-creating"
-                  >
-                    <Wand2 className="w-5 h-5 mr-2" />
-                    Start Creating
-                  </Button>
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl blur opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <Button 
+                      size="lg" 
+                      className="relative bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-display text-lg px-8 border-0"
+                      onClick={() => document.getElementById('create-section')?.scrollIntoView({ behavior: 'smooth' })}
+                      data-testid="button-start-creating"
+                    >
+                      <Wand2 className="w-5 h-5 mr-2" />
+                      Start Creating
+                    </Button>
+                  </div>
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="border-white/30 text-white hover:bg-white/10"
+                    className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:border-purple-400"
                     onClick={() => document.getElementById('gallery-section')?.scrollIntoView({ behavior: 'smooth' })}
                     data-testid="button-view-gallery"
                   >
@@ -1196,30 +1249,27 @@ export default function NavalIntelligence() {
                 </div>
               </div>
               
-              {/* Right: Featured Video Showcase */}
               <div className="relative hidden lg:block">
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/50 to-transparent z-10 pointer-events-none" />
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20">
-                  <video 
-                    src="/videos/flag-tribute.mp4" 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline
-                    className="w-full aspect-video object-cover"
-                    aria-label="Featured AI-generated flag tribute video"
-                    data-testid="video-hero-showcase"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 via-indigo-500/20 to-purple-500/20 rounded-3xl blur-2xl" />
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-purple-500/30 bg-slate-900/90">
+                  <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-indigo-900/50 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-4" style={{ animation: 'navalGlow 2s ease-in-out infinite' }}>
+                        <Video className="w-10 h-10 text-white" />
+                      </div>
+                      <p className="text-purple-200 font-medium">AI Video Generation</p>
+                      <p className="text-purple-400/60 text-sm">Create stunning content in minutes</p>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6">
                     <p className="text-white font-medium">Featured Creation</p>
-                    <p className="text-white/70 text-sm">AI-Generated Flag Tribute Video</p>
+                    <p className="text-purple-300/70 text-sm">AI-Generated Tribute Video</p>
                   </div>
                 </div>
-                {/* Floating stats cards */}
-                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl p-4 z-20" data-testid="stat-videos-created">
+                <div className="absolute -bottom-4 -left-4 bg-slate-900/90 border border-purple-500/30 rounded-xl shadow-xl p-4 z-20 backdrop-blur-sm" data-testid="stat-videos-created">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />
+                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-purple-400" aria-hidden="true" />
                     </div>
                     <div>
                       <p className="text-2xl font-bold text-brand-navy" aria-label={`${totalGenerations} videos created`}>{totalGenerations}</p>

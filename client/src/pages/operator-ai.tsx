@@ -232,25 +232,64 @@ export default function OperatorAI() {
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-950 to-gray-900">
         {/* Hero Header */}
-        <section className="relative py-8 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 overflow-hidden">
-          <div className="absolute inset-0 bg-[url('/patterns/circuit.svg')] opacity-5" />
-          <div className="absolute inset-0">
-            <div className="absolute top-10 left-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <section className="relative py-8 bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 overflow-hidden">
+          <style>{`
+            @keyframes gridPulse {
+              0%, 100% { opacity: 0.03; }
+              50% { opacity: 0.08; }
+            }
+            @keyframes scanLine {
+              0% { transform: translateY(-100%); }
+              100% { transform: translateY(100vh); }
+            }
+            @keyframes glowPulse {
+              0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.3); }
+              50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 80px rgba(59, 130, 246, 0.5); }
+            }
+            @keyframes titleShine {
+              0% { background-position: -200% center; }
+              100% { background-position: 200% center; }
+            }
+            .operator-title {
+              background: linear-gradient(90deg, #fff 0%, #60a5fa 25%, #fff 50%, #a78bfa 75%, #fff 100%);
+              background-size: 200% auto;
+              -webkit-background-clip: text;
+              background-clip: text;
+              -webkit-text-fill-color: transparent;
+              animation: titleShine 4s linear infinite;
+            }
+          `}</style>
+          <div className="absolute inset-0" style={{
+            backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(59, 130, 246, 0.03) 50px, rgba(59, 130, 246, 0.03) 51px),
+                             repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(59, 130, 246, 0.03) 50px, rgba(59, 130, 246, 0.03) 51px)`,
+            animation: 'gridPulse 4s ease-in-out infinite'
+          }} />
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-10 left-20 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] animate-pulse" />
+            <div className="absolute bottom-10 right-10 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-[150px]" />
+            <div 
+              className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"
+              style={{ animation: 'scanLine 3s linear infinite' }}
+            />
           </div>
           
           <div className="container mx-auto px-4 relative z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-xl">
-                  <Bot className="w-8 h-8 text-white" />
+                <div 
+                  className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-cyan-500 flex items-center justify-center shadow-2xl relative"
+                  style={{ animation: 'glowPulse 2s ease-in-out infinite' }}
+                >
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-cyan-500 blur-md opacity-50" />
+                  <Bot className="w-9 h-9 text-white relative z-10" />
                 </div>
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-display text-white">
-                    Operator AI
+                  <h1 className="text-3xl md:text-4xl font-display operator-title">
+                    OPERATOR AI
                   </h1>
-                  <p className="text-blue-300 text-sm">
-                    Q Branch Comprehensive AI Command Center
+                  <p className="text-blue-300/80 text-sm font-medium tracking-wider">
+                    Q BRANCH • COMPREHENSIVE AI COMMAND CENTER
                   </p>
                 </div>
               </div>

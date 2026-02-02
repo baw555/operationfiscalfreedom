@@ -585,27 +585,65 @@ export default function DocumentSignature() {
     <RangerAuthGate>
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent" />
+        <style>{`
+          @keyframes rangerGrid {
+            0%, 100% { opacity: 0.02; }
+            50% { opacity: 0.05; }
+          }
+          @keyframes rangerGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.4), 0 0 40px rgba(6, 182, 212, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(6, 182, 212, 0.6), 0 0 80px rgba(6, 182, 212, 0.4); }
+          }
+          @keyframes rangerTitle {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+          @keyframes hologramFlicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+            95% { opacity: 0.9; }
+            96% { opacity: 1; }
+          }
+          .ranger-title {
+            background: linear-gradient(90deg, #06b6d4 0%, #22d3ee 25%, #fff 50%, #22d3ee 75%, #06b6d4 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rangerTitle 3s linear infinite;
+          }
+        `}</style>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent" />
+        <div className="absolute inset-0" style={{
+          backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(6, 182, 212, 0.02) 60px, rgba(6, 182, 212, 0.02) 61px),
+                           repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(6, 182, 212, 0.02) 60px, rgba(6, 182, 212, 0.02) 61px)`,
+          animation: 'rangerGrid 5s ease-in-out infinite'
+        }} />
         
         <div className="relative max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
             
-            {/* Sidebar */}
             <div className="lg:w-72 shrink-0">
               <div className="sticky top-24">
                 <div className="mb-8">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="relative">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30 animate-pulse">
-                        <FileSignature className="w-7 h-7 text-white" />
+                      <div 
+                        className="w-16 h-16 rounded-xl bg-gradient-to-br from-cyan-500 via-teal-500 to-cyan-600 flex items-center justify-center shadow-2xl"
+                        style={{ animation: 'rangerGlow 2s ease-in-out infinite' }}
+                      >
+                        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-500 via-teal-500 to-cyan-600 blur-md opacity-50" />
+                        <FileSignature className="w-8 h-8 text-white relative z-10" />
                       </div>
-                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg animate-pulse">
                         <Sparkles className="w-3 h-3 text-white" />
                       </div>
                     </div>
                     <div>
-                      <h1 className="text-xl font-bold text-white">RANGER</h1>
-                      <p className="text-xs text-gray-400">Enterprise Document Signature</p>
+                      <h1 className="text-2xl font-bold ranger-title">RANGER</h1>
+                      <p className="text-xs text-cyan-400/80 font-medium tracking-wider">ENTERPRISE DOCUMENT SIGNATURE</p>
                       <Badge className="mt-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-500/30 text-[10px]">
                         AI-POWERED
                       </Badge>
