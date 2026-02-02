@@ -21,6 +21,44 @@ export function FlagBanner() {
   const [showLockedDialog, setShowLockedDialog] = useState(false);
   
   const marqueeText = "GROWING # OF WAYS TO EARN $$$ • VETERANS GET FREE JOB TRAINING • SAVE 20-40% ON ALL BUSINESS + PERSONAL INSURANCE - DIRECT TO INSURERS & 70 CARRIERS • REFER & EARN $$$ • GET NO-OUT-OF-POCKET VA DISABILITY RATINGS w/ BEST LAW FIRMS IN US • SPECIALIZED TAX CREDITS FOR BUSINESS • WORK • WORK • WORK • FREE DOCUMENT SIGNING SOFTWARE • GENERATIVE AI • OPERATOR AI (CENSORLESS - PRIVATE)";
+
+  const freeServicesAnimationStyles = `
+    @keyframes patrioticGlow {
+      0%, 100% { 
+        box-shadow: 0 0 20px rgba(220, 38, 38, 0.8), 0 0 40px rgba(220, 38, 38, 0.6), 0 0 60px rgba(220, 38, 38, 0.4), inset 0 0 20px rgba(220, 38, 38, 0.2);
+        border-color: #dc2626;
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 50%, #dc2626 100%);
+      }
+      33% { 
+        box-shadow: 0 0 25px rgba(255, 255, 255, 1), 0 0 50px rgba(255, 255, 255, 0.8), 0 0 75px rgba(255, 255, 255, 0.5), inset 0 0 25px rgba(255, 255, 255, 0.3);
+        border-color: #ffffff;
+        background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 50%, #ffffff 100%);
+      }
+      66% { 
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.8), 0 0 40px rgba(37, 99, 235, 0.6), 0 0 60px rgba(37, 99, 235, 0.4), inset 0 0 20px rgba(37, 99, 235, 0.2);
+        border-color: #2563eb;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #2563eb 100%);
+      }
+    }
+    @keyframes patrioticText {
+      0%, 100% { color: #ffffff; text-shadow: 0 0 10px rgba(255,255,255,0.8); }
+      33% { color: #1a365d; text-shadow: 0 0 10px rgba(0,0,0,0.3); }
+      66% { color: #ffffff; text-shadow: 0 0 10px rgba(255,255,255,0.8); }
+    }
+    @keyframes starPulse {
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(234, 179, 8, 1)); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 15px rgba(234, 179, 8, 1)); transform: scale(1.2); }
+    }
+    .free-services-btn {
+      animation: patrioticGlow 3s ease-in-out infinite;
+    }
+    .free-services-btn span {
+      animation: patrioticText 3s ease-in-out infinite;
+    }
+    .free-services-btn .star-icon {
+      animation: starPulse 1.5s ease-in-out infinite;
+    }
+  `;
   
   const handleLockedClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -80,16 +118,17 @@ export function FlagBanner() {
       </div>
 
       {/* MORE FREE SERVICES Button - Below the bar */}
+      <style dangerouslySetInnerHTML={{ __html: freeServicesAnimationStyles }} />
       <div className="flex justify-center mt-6">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
-              className="h-14 sm:h-16 px-8 sm:px-12 text-lg sm:text-xl font-display bg-gradient-to-r from-brand-red via-red-600 to-brand-red hover:from-red-700 hover:via-red-600 hover:to-red-700 text-white shadow-2xl shadow-brand-red/40 border-2 border-brand-gold transition-all hover:scale-105 uppercase tracking-wider"
+              className="free-services-btn h-14 sm:h-16 px-8 sm:px-12 text-lg sm:text-xl font-display text-white border-4 transition-transform hover:scale-110 uppercase tracking-wider rounded-xl"
               data-testid="button-free-services-dropdown"
             >
-              <Star className="w-5 h-5 mr-2 fill-brand-gold text-brand-gold" />
-              MORE FREE SERVICES
-              <Star className="w-5 h-5 ml-2 fill-brand-gold text-brand-gold" />
+              <Star className="star-icon w-6 h-6 mr-3 fill-brand-gold text-brand-gold" />
+              <span className="font-bold">MORE FREE SERVICES</span>
+              <Star className="star-icon w-6 h-6 ml-3 fill-brand-gold text-brand-gold" />
               <ChevronDown className="ml-3 h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
