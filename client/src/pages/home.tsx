@@ -71,45 +71,21 @@ export default function Home() {
   // Slideshow effect - only runs when video hasn't started
   useEffect(() => {
     if (introStarted || introPlayed) {
-      if (slideshowRef.current) {
-        clearTimeout(slideshowRef.current);
-      }
       return;
     }
 
-    const runSlideshow = () => {
-      // Start fade out (3 seconds)
-      setIsTransitioning(true);
-      setSlideOpacity(0);
+    // Change image every 5 seconds
+    const interval = setInterval(() => {
+      setSlideOpacity(0); // Start fade out
       
       setTimeout(() => {
-        // After fade out, switch to next image
-        setCurrentSlideIndex(prev => {
-          const next = (prev + 1) % shuffledImages.length;
-          // Reshuffle when we've gone through all images
-          if (next === 0) {
-            setShuffledImages(shuffleArray(SLIDESHOW_IMAGES));
-          }
-          return next;
-        });
-        
-        // Start fade in (2 seconds)
-        setTimeout(() => {
-          setSlideOpacity(1);
-          setIsTransitioning(false);
-        }, 100);
-      }, 3000);
-    };
+        setCurrentSlideIndex(prev => (prev + 1) % SLIDESHOW_IMAGES.length);
+        setSlideOpacity(1); // Fade back in
+      }, 500); // Quick switch after fade out
+    }, 5000);
 
-    // Set interval for slideshow (10 seconds display + 3s fade out + 2s fade in = 15s total)
-    slideshowRef.current = setTimeout(runSlideshow, 10000);
-
-    return () => {
-      if (slideshowRef.current) {
-        clearTimeout(slideshowRef.current);
-      }
-    };
-  }, [introStarted, introPlayed, currentSlideIndex, shuffledImages, shuffleArray]);
+    return () => clearInterval(interval);
+  }, [introStarted, introPlayed]);
 
   useEffect(() => {
     Promise.all([
@@ -362,13 +338,10 @@ export default function Home() {
           {!introStarted && (
             <>
               <div 
-                className="absolute inset-0 bg-cover bg-center"
+                className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
                 style={{
-                  backgroundImage: `url(${shuffledImages[currentSlideIndex]})`,
+                  backgroundImage: `url(${SLIDESHOW_IMAGES[currentSlideIndex]})`,
                   opacity: slideOpacity,
-                  transition: isTransitioning 
-                    ? 'opacity 3s ease-out' 
-                    : 'opacity 2s ease-in',
                 }}
               />
               <div className="absolute inset-0 bg-black/50" />
@@ -379,7 +352,7 @@ export default function Home() {
           {introStarted && (
             <div 
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${shuffledImages[0]})` }}
+              style={{ backgroundImage: `url(${SLIDESHOW_IMAGES[0]})` }}
             />
           )}
           
@@ -387,7 +360,7 @@ export default function Home() {
           <video
             ref={introVideoRef}
             src="/videos/intro-video.mp4"
-            poster={shuffledImages[currentSlideIndex]}
+            poster={SLIDESHOW_IMAGES[currentSlideIndex]}
             playsInline
             preload="auto"
             onEnded={handleIntroEnded}
