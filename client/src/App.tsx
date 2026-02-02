@@ -193,6 +193,9 @@ const ClaimsNavigator = lazy(() => import("@/pages/claims-navigator"));
 // Vendor Portal - Scoped read-only/limited access for shared cases
 const VendorPortal = lazy(() => import("@/pages/vendor-portal"));
 
+// Email Signature Generator
+const EmailSignature = lazy(() => import("@/pages/email-signature"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -376,6 +379,9 @@ function Router() {
         <Route path="/document-signature" component={DocumentSignature} />
         <Route path="/claims-navigator" component={ClaimsNavigator} />
         <Route path="/vendor-portal" component={VendorPortal} />
+        
+        {/* Tools */}
+        <Route path="/email-signature" component={EmailSignature} />
         
         <Route component={NotFound} />
       </Switch>

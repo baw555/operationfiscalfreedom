@@ -196,23 +196,23 @@ export default function EmailSignature() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center mb-12">
+      <div className="min-h-screen bg-slate-900 md:bg-gradient-to-br md:from-slate-900 md:via-slate-800 md:to-slate-900">
+        <div className="container mx-auto px-4 py-8 md:py-12">
+          <div className="text-center mb-8 md:mb-12">
             <div className="inline-flex items-center gap-2 mb-4">
-              <Sparkles className="h-8 w-8 text-blue-400 animate-pulse" />
-              <h1 className="text-4xl md:text-5xl font-bold text-white">
+              <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-blue-400 md:animate-pulse" />
+              <h1 className="text-3xl md:text-5xl font-bold text-white">
                 Email Signature Generator
               </h1>
-              <Sparkles className="h-8 w-8 text-blue-400 animate-pulse" />
+              <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-blue-400 hidden md:block md:animate-pulse" />
             </div>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-              Create a professional, animated email signature for Gmail in seconds
+            <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto px-2">
+              Create a professional email signature for Gmail in seconds
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
-            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur">
+          <div className="grid lg:grid-cols-2 gap-6 md:gap-8 max-w-7xl mx-auto">
+            <Card className="bg-slate-800/50 border-slate-700 md:backdrop-blur">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Palette className="h-5 w-5 text-blue-400" />
@@ -477,7 +477,7 @@ export default function EmailSignature() {
               <Button
                 onClick={copyToClipboard}
                 size="lg"
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-6 text-lg font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full bg-blue-600 md:bg-gradient-to-r md:from-blue-600 md:to-blue-500 hover:bg-blue-700 md:hover:from-blue-700 md:hover:to-blue-600 text-white py-4 md:py-6 text-base md:text-lg font-semibold"
                 data-testid="button-copy"
               >
                 {copied ? (
@@ -525,60 +525,60 @@ function SignaturePreview({ data }: { data: SignatureData }) {
 
   if (template === "modern") {
     return (
-      <div className="flex items-start gap-4 animate-in slide-in-from-left duration-500">
+      <div className="flex items-start gap-3 md:gap-4">
         <div 
-          className="shrink-0 border-r-4 pr-4 transition-all duration-300"
+          className="shrink-0 border-r-4 pr-3 md:pr-4"
           style={{ borderColor: primaryColor }}
         >
           {photoUrl ? (
             <img 
               src={photoUrl} 
               alt={fullName}
-              className="w-20 h-20 rounded-full object-cover ring-2 ring-offset-2 transition-all duration-300 hover:scale-105"
-              style={{ ringColor: secondaryColor }}
+              className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover"
+              style={{ boxShadow: `0 0 0 2px ${secondaryColor}` }}
             />
           ) : (
             <div 
-              className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold transition-all duration-300 hover:scale-105 animate-pulse"
+              className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-white text-xl md:text-2xl font-bold"
               style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
             >
               {initials}
             </div>
           )}
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1 md:space-y-2 min-w-0">
           <div 
-            className="text-lg font-bold transition-colors duration-300"
+            className="text-base md:text-lg font-bold"
             style={{ color: primaryColor }}
           >
             {fullName}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-xs md:text-sm text-gray-600">
             {jobTitle}{company && ` | ${company}`}
           </div>
           <div className="text-xs space-y-1 text-gray-700">
             {email && (
-              <div className="flex items-center gap-2 hover:translate-x-1 transition-transform">
+              <div className="flex items-center gap-2">
                 <span style={{ color: secondaryColor }}>✉</span>
-                <a href={`mailto:${email}`} className="hover:underline">{email}</a>
+                <a href={`mailto:${email}`} className="hover:underline truncate">{email}</a>
               </div>
             )}
             {phone && (
-              <div className="flex items-center gap-2 hover:translate-x-1 transition-transform">
+              <div className="flex items-center gap-2">
                 <span style={{ color: secondaryColor }}>📱</span>
                 <span>{phone}</span>
               </div>
             )}
             {website && (
-              <div className="flex items-center gap-2 hover:translate-x-1 transition-transform">
+              <div className="flex items-center gap-2">
                 <span style={{ color: secondaryColor }}>🌐</span>
-                <a href={`https://${website}`} style={{ color: secondaryColor }} className="hover:underline">{website}</a>
+                <a href={`https://${website}`} style={{ color: secondaryColor }} className="hover:underline truncate">{website}</a>
               </div>
             )}
             {address && (
-              <div className="flex items-center gap-2 hover:translate-x-1 transition-transform">
+              <div className="flex items-center gap-2">
                 <span style={{ color: secondaryColor }}>📍</span>
-                <span className="text-gray-500">{address}</span>
+                <span className="text-gray-500 truncate">{address}</span>
               </div>
             )}
           </div>
@@ -590,21 +590,21 @@ function SignaturePreview({ data }: { data: SignatureData }) {
 
   if (template === "classic") {
     return (
-      <div className="animate-in fade-in duration-500">
+      <div>
         <div 
-          className="text-xl font-bold border-b-2 pb-2 mb-2 transition-all duration-300"
+          className="text-lg md:text-xl font-bold border-b-2 pb-2 mb-2"
           style={{ color: primaryColor, borderColor: secondaryColor }}
         >
           {fullName}
         </div>
-        <div className="text-sm italic text-gray-600 mb-3">
+        <div className="text-xs md:text-sm italic text-gray-600 mb-3">
           {jobTitle}{company && `, ${company}`}
         </div>
         <div className="text-xs text-gray-600 space-y-1">
-          {email && <div>Email: <a href={`mailto:${email}`} style={{ color: primaryColor }}>{email}</a></div>}
+          {email && <div>Email: <a href={`mailto:${email}`} style={{ color: primaryColor }} className="break-all">{email}</a></div>}
           {phone && <div>Phone: <a href={`tel:${phone}`} style={{ color: primaryColor }}>{phone}</a></div>}
-          {website && <div>Web: <a href={`https://${website}`} style={{ color: primaryColor }}>{website}</a></div>}
-          {address && <div>{address}</div>}
+          {website && <div>Web: <a href={`https://${website}`} style={{ color: primaryColor }} className="break-all">{website}</a></div>}
+          {address && <div className="break-words">{address}</div>}
         </div>
         <SocialIcons linkedin={linkedin} twitter={twitter} instagram={instagram} facebook={facebook} />
       </div>
@@ -613,16 +613,16 @@ function SignaturePreview({ data }: { data: SignatureData }) {
 
   if (template === "minimal") {
     return (
-      <div className="animate-in fade-in duration-500">
-        <div className="font-semibold" style={{ color: primaryColor }}>{fullName}</div>
+      <div>
+        <div className="font-semibold text-sm md:text-base" style={{ color: primaryColor }}>{fullName}</div>
         <div className="text-xs text-gray-500 mb-2">
           {jobTitle}{company && ` · ${company}`}
         </div>
-        <div className="text-xs text-gray-600">
+        <div className="text-xs text-gray-600 flex flex-wrap gap-1">
           {[email, phone, website].filter(Boolean).map((item, i, arr) => (
             <span key={i}>
-              {item === email ? <a href={`mailto:${email}`} style={{ color: secondaryColor }}>{email}</a> : 
-               item === website ? <a href={`https://${website}`} style={{ color: secondaryColor }}>{website}</a> : 
+              {item === email ? <a href={`mailto:${email}`} style={{ color: secondaryColor }} className="break-all">{email}</a> : 
+               item === website ? <a href={`https://${website}`} style={{ color: secondaryColor }} className="break-all">{website}</a> : 
                item}
               {i < arr.length - 1 && " | "}
             </span>
@@ -635,17 +635,17 @@ function SignaturePreview({ data }: { data: SignatureData }) {
   // Bold template
   return (
     <div 
-      className="p-4 rounded-lg text-white animate-in zoom-in duration-500"
+      className="p-3 md:p-4 rounded-lg text-white"
       style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
     >
-      <div className="text-xl font-bold mb-1">{fullName}</div>
-      <div className="text-sm opacity-90 mb-3">
+      <div className="text-lg md:text-xl font-bold mb-1">{fullName}</div>
+      <div className="text-xs md:text-sm opacity-90 mb-3">
         {jobTitle}{company && ` | ${company}`}
       </div>
       <div className="text-xs opacity-85 space-y-1">
-        {email && <div>✉ <a href={`mailto:${email}`} className="text-white hover:underline">{email}</a></div>}
+        {email && <div className="break-all">✉ <a href={`mailto:${email}`} className="text-white hover:underline">{email}</a></div>}
         {phone && <div>📱 {phone}</div>}
-        {website && <div>🌐 <a href={`https://${website}`} className="text-white hover:underline">{website}</a></div>}
+        {website && <div className="break-all">🌐 <a href={`https://${website}`} className="text-white hover:underline">{website}</a></div>}
       </div>
     </div>
   );
@@ -658,23 +658,23 @@ function SocialIcons({ linkedin, twitter, instagram, facebook }: { linkedin?: st
   return (
     <div className="flex gap-2 mt-2">
       {linkedin && (
-        <a href={`https://linkedin.com/in/${linkedin}`} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-110">
-          <Linkedin className="h-5 w-5 text-[#0077b5]" />
+        <a href={`https://linkedin.com/in/${linkedin}`} target="_blank" rel="noopener noreferrer">
+          <Linkedin className="h-4 w-4 md:h-5 md:w-5 text-[#0077b5]" />
         </a>
       )}
       {twitter && (
-        <a href={`https://twitter.com/${twitter}`} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-110">
-          <Twitter className="h-5 w-5 text-[#1da1f2]" />
+        <a href={`https://twitter.com/${twitter}`} target="_blank" rel="noopener noreferrer">
+          <Twitter className="h-4 w-4 md:h-5 md:w-5 text-[#1da1f2]" />
         </a>
       )}
       {instagram && (
-        <a href={`https://instagram.com/${instagram}`} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-110">
-          <Instagram className="h-5 w-5 text-[#e4405f]" />
+        <a href={`https://instagram.com/${instagram}`} target="_blank" rel="noopener noreferrer">
+          <Instagram className="h-4 w-4 md:h-5 md:w-5 text-[#e4405f]" />
         </a>
       )}
       {facebook && (
-        <a href={`https://facebook.com/${facebook}`} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-110">
-          <Facebook className="h-5 w-5 text-[#1877f2]" />
+        <a href={`https://facebook.com/${facebook}`} target="_blank" rel="noopener noreferrer">
+          <Facebook className="h-4 w-4 md:h-5 md:w-5 text-[#1877f2]" />
         </a>
       )}
     </div>
