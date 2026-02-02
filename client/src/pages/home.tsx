@@ -7,18 +7,22 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
 import militaryHandsTogether from "@/assets/military-hands-together.jpg";
+import bgMemorial from "@/assets/bg-memorial.png";
 import bgCarrier from "@/assets/bg-carrier.png";
 import bgRibbons from "@/assets/bg-ribbons.png";
 import bgParatroopers from "@/assets/bg-paratroopers.png";
+import bgSoldiersSunset from "@/assets/bg-soldiers-sunset.png";
 import bgVeteranFamily from "@/assets/bg-veteran-family.png";
 import { HeroMontage } from "@/components/hero-montage";
 import { FlagBanner } from "@/components/flag-banner";
 
 const SLIDESHOW_IMAGES = [
   militaryHandsTogether,
+  bgMemorial,
   bgCarrier,
   bgRibbons,
   bgParatroopers,
+  bgSoldiersSunset,
   bgVeteranFamily,
 ];
 
