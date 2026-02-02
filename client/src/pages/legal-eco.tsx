@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Scale, FileText, Shield, Briefcase, Users, Phone, ArrowRight, ExternalLink, Zap, Globe, Award, CheckCircle2, Building2, Gavel, Star, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import legalNetworkHero from "@/assets/legal-network-hero.png";
 
 const practiceAreas = [
@@ -28,12 +28,187 @@ const stats = [
   { value: "24/7", label: "Availability", icon: Zap },
 ];
 
+function KatanaIntro({ onComplete }: { onComplete: () => void }) {
+  const [phase, setPhase] = useState<'home' | 'slash' | 'split' | 'done'>('home');
+
+  useEffect(() => {
+    const timer1 = setTimeout(() => setPhase('slash'), 800);
+    const timer2 = setTimeout(() => setPhase('split'), 1200);
+    const timer3 = setTimeout(() => {
+      setPhase('done');
+      onComplete();
+    }, 2200);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, [onComplete]);
+
+  if (phase === 'done') return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] overflow-hidden">
+      <style>{`
+        @keyframes katanaSlash {
+          0% { transform: translateY(-100%) rotate(-45deg); opacity: 0; }
+          20% { opacity: 1; }
+          100% { transform: translateY(150%) rotate(-45deg); opacity: 1; }
+        }
+        @keyframes slashTrail {
+          0% { height: 0; opacity: 1; }
+          100% { height: 200vh; opacity: 0.8; }
+        }
+        @keyframes leftFall {
+          0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateX(-100%) rotate(-15deg); opacity: 0; }
+        }
+        @keyframes rightFall {
+          0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateX(100%) rotate(15deg); opacity: 0; }
+        }
+        @keyframes sparkle {
+          0%, 100% { opacity: 0; transform: scale(0); }
+          50% { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+
+      {phase === 'home' && (
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy">
+          <div className="container mx-auto px-4 py-20">
+            <div className="text-center">
+              <h1 className="text-4xl sm:text-6xl font-display text-white mb-4">NavigatorUSA</h1>
+              <p className="text-xl text-gray-300">Veterans' Family Resources</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(phase === 'slash' || phase === 'split') && (
+        <>
+          <div 
+            className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy"
+            style={{
+              clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)',
+              animation: phase === 'split' ? 'leftFall 0.8s ease-in forwards' : 'none',
+            }}
+          >
+            <div className="container mx-auto px-4 py-20">
+              <div className="text-center">
+                <h1 className="text-4xl sm:text-6xl font-display text-white mb-4">NavigatorUSA</h1>
+                <p className="text-xl text-gray-300">Veterans' Family Resources</p>
+              </div>
+            </div>
+          </div>
+
+          <div 
+            className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy"
+            style={{
+              clipPath: 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)',
+              animation: phase === 'split' ? 'rightFall 0.8s ease-in forwards' : 'none',
+            }}
+          >
+            <div className="container mx-auto px-4 py-20">
+              <div className="text-center">
+                <h1 className="text-4xl sm:text-6xl font-display text-white mb-4">NavigatorUSA</h1>
+                <p className="text-xl text-gray-300">Veterans' Family Resources</p>
+              </div>
+            </div>
+          </div>
+
+          {phase === 'slash' && (
+            <>
+              <div 
+                className="absolute left-1/2 top-0 w-1 bg-gradient-to-b from-transparent via-white to-transparent"
+                style={{
+                  animation: 'slashTrail 0.4s ease-out forwards',
+                  boxShadow: '0 0 30px 10px rgba(255,255,255,0.8), 0 0 60px 20px rgba(100,200,255,0.5)',
+                }}
+              />
+              <div 
+                className="absolute w-64 h-4"
+                style={{
+                  left: '50%',
+                  top: '0',
+                  marginLeft: '-128px',
+                  background: 'linear-gradient(90deg, transparent, #fff, #64b5f6, #fff, transparent)',
+                  animation: 'katanaSlash 0.4s ease-out forwards',
+                  boxShadow: '0 0 40px 15px rgba(255,255,255,0.9)',
+                }}
+              />
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-2 bg-white rounded-full"
+                  style={{
+                    left: `${45 + Math.random() * 10}%`,
+                    top: `${Math.random() * 100}%`,
+                    animation: `sparkle 0.6s ease-out ${i * 0.05}s forwards`,
+                    boxShadow: '0 0 10px 5px rgba(255,255,255,0.8)',
+                  }}
+                />
+              ))}
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function LegalEco() {
   const [isHovered, setIsHovered] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+  const [introComplete, setIntroComplete] = useState(false);
+
+  useEffect(() => {
+    if (introComplete) {
+      setTimeout(() => setShowContent(true), 100);
+    }
+  }, [introComplete]);
 
   return (
     <Layout>
-      <div className="min-h-screen bg-black relative overflow-hidden">
+      {!introComplete && <KatanaIntro onComplete={() => setIntroComplete(true)} />}
+      
+      <div className={`min-h-screen bg-black relative overflow-hidden transition-opacity duration-500 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+        <style>{`
+          @keyframes swordShine {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+          @keyframes glisten {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 5px rgba(100, 200, 255, 0.3)); }
+            50% { filter: brightness(1.3) drop-shadow(0 0 20px rgba(100, 200, 255, 0.8)); }
+          }
+          @keyframes sparkleText {
+            0%, 100% { text-shadow: 0 0 5px rgba(255,255,255,0.5), 0 0 10px rgba(100,200,255,0.3); }
+            25% { text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 30px rgba(100,200,255,0.6), 0 0 45px rgba(100,200,255,0.4); }
+            50% { text-shadow: 0 0 5px rgba(255,255,255,0.5), 0 0 10px rgba(100,200,255,0.3); }
+            75% { text-shadow: 0 0 20px rgba(255,255,255,0.9), 0 0 40px rgba(100,200,255,0.7), 0 0 60px rgba(100,200,255,0.5); }
+          }
+          .sword-text {
+            background: linear-gradient(
+              90deg,
+              #ffffff 0%,
+              #64b5f6 15%,
+              #ffffff 30%,
+              #90caf9 45%,
+              #ffffff 50%,
+              #64b5f6 55%,
+              #ffffff 70%,
+              #90caf9 85%,
+              #ffffff 100%
+            );
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: swordShine 3s linear infinite, glisten 2s ease-in-out infinite;
+          }
+        `}</style>
+
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950/30 to-slate-900" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent" />
         <div className="absolute inset-0 opacity-30">
@@ -49,9 +224,12 @@ export default function LegalEco() {
               <Zap className="w-4 h-4 text-blue-400" />
               <span className="text-blue-400 text-sm font-medium tracking-wider uppercase">Powered by 33CC</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-display text-white mb-4 tracking-tight">
-              <span className="bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">LEGAL ECO</span>
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-display mb-4 tracking-tight">
+              <span className="sword-text">LEGAL ECO</span>
             </h1>
+            <p className="text-xl sm:text-2xl text-white font-display mb-4" style={{ animation: 'sparkleText 4s ease-in-out infinite' }}>
+              Cut Through The Non-Sense & Get The Best of the Best!
+            </p>
             <div className="w-32 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent mx-auto mb-6" />
             <p className="text-xl text-blue-200/80 max-w-3xl mx-auto leading-relaxed">
               Access the nation's most elite network of <span className="text-white font-semibold">300+ top-tier law firms</span> across every practice area. 
