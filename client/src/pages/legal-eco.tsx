@@ -29,17 +29,19 @@ const stats = [
 ];
 
 function KatanaIntro({ onComplete }: { onComplete: () => void }) {
-  const [phase, setPhase] = useState<'home' | 'slash' | 'split' | 'done'>('home');
+  const [phase, setPhase] = useState<'home' | 'ready' | 'slash' | 'split' | 'done'>('home');
 
   useEffect(() => {
-    const timer1 = setTimeout(() => setPhase('slash'), 1500);
-    const timer2 = setTimeout(() => setPhase('split'), 2200);
+    const timer0 = setTimeout(() => setPhase('ready'), 1000);
+    const timer1 = setTimeout(() => setPhase('slash'), 1800);
+    const timer2 = setTimeout(() => setPhase('split'), 2400);
     const timer3 = setTimeout(() => {
       setPhase('done');
       onComplete();
-    }, 3500);
+    }, 3800);
 
     return () => {
+      clearTimeout(timer0);
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
@@ -51,44 +53,54 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
       <style>{`
-        @keyframes katanaSwing {
+        @keyframes swordEnter {
           0% { 
-            transform: translate(-50%, -120%) rotate(-60deg);
+            transform: translate(100vw, -50%) rotate(45deg) scale(0.5);
             opacity: 0;
           }
-          10% { opacity: 1; }
           100% { 
-            transform: translate(-50%, 120vh) rotate(-60deg);
+            transform: translate(0, -50%) rotate(0deg) scale(1);
             opacity: 1;
+          }
+        }
+        @keyframes swordSlice {
+          0% { 
+            transform: translate(0, -50%) rotate(0deg);
+          }
+          15% {
+            transform: translate(-5%, -50%) rotate(-15deg);
+          }
+          100% { 
+            transform: translate(0, 150vh) rotate(0deg);
           }
         }
         @keyframes slashLine {
           0% { 
-            height: 0;
+            clip-path: inset(100% 0 0 0);
             opacity: 1;
           }
           100% { 
-            height: 200vh;
+            clip-path: inset(0 0 0 0);
             opacity: 1;
           }
         }
         @keyframes leftFall {
           0% { 
-            transform: translateX(0) rotate(0deg) translateZ(0);
+            transform: perspective(1000px) translateX(0) rotateY(0deg) rotateZ(0deg);
             opacity: 1;
           }
           100% { 
-            transform: translateX(-120%) rotate(-20deg) translateZ(-100px);
+            transform: perspective(1000px) translateX(-60%) rotateY(45deg) rotateZ(-10deg);
             opacity: 0;
           }
         }
         @keyframes rightFall {
           0% { 
-            transform: translateX(0) rotate(0deg) translateZ(0);
+            transform: perspective(1000px) translateX(0) rotateY(0deg) rotateZ(0deg);
             opacity: 1;
           }
           100% { 
-            transform: translateX(120%) rotate(20deg) translateZ(-100px);
+            transform: perspective(1000px) translateX(60%) rotateY(-45deg) rotateZ(10deg);
             opacity: 0;
           }
         }
@@ -99,17 +111,42 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
           }
           100% { 
             opacity: 0;
-            transform: scale(1) translate(var(--tx), var(--ty));
+            transform: scale(1.5) translate(var(--tx), var(--ty));
           }
         }
         @keyframes flashBang {
-          0%, 100% { opacity: 0; }
-          50% { opacity: 0.8; }
+          0% { opacity: 0; }
+          10% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        @keyframes screenShake {
+          0%, 100% { transform: translate(0, 0); }
+          10% { transform: translate(-10px, -5px); }
+          20% { transform: translate(10px, 5px); }
+          30% { transform: translate(-8px, 4px); }
+          40% { transform: translate(8px, -4px); }
+          50% { transform: translate(-5px, 2px); }
+          60% { transform: translate(5px, -2px); }
+          70% { transform: translate(-3px, 1px); }
+          80% { transform: translate(3px, -1px); }
+          90% { transform: translate(-1px, 0px); }
+        }
+        @keyframes slashGlow {
+          0% { opacity: 0; filter: blur(0px); }
+          20% { opacity: 1; filter: blur(2px); }
+          100% { opacity: 0; filter: blur(20px); }
+        }
+        @keyframes bladeGlint {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 1; }
         }
       `}</style>
 
-      {phase === 'home' && (
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy">
+      {(phase === 'home' || phase === 'ready') && (
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy"
+          style={{ animation: phase === 'ready' ? 'none' : 'none' }}
+        >
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzNDQ1NSIgb3BhY2l0eT0iMC4yIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
           <div className="flex items-center justify-center min-h-screen">
             <div className="text-center">
@@ -124,6 +161,47 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
               </div>
             </div>
           </div>
+          
+          {phase === 'ready' && (
+            <svg 
+              className="absolute"
+              width="400" 
+              height="60" 
+              viewBox="0 0 400 60"
+              style={{
+                right: '-400px',
+                top: '50%',
+                animation: 'swordEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+                filter: 'drop-shadow(0 0 30px rgba(255,255,255,0.8))',
+              }}
+            >
+              <defs>
+                <linearGradient id="bladeGradientReady" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#c0c0c0" />
+                  <stop offset="30%" stopColor="#ffffff" />
+                  <stop offset="50%" stopColor="#e8f4fc" />
+                  <stop offset="70%" stopColor="#ffffff" />
+                  <stop offset="100%" stopColor="#a0a0a0" />
+                </linearGradient>
+                <linearGradient id="bladeEdge" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ffffff" />
+                  <stop offset="50%" stopColor="#64b5f6" />
+                  <stop offset="100%" stopColor="#ffffff" />
+                </linearGradient>
+              </defs>
+              <path d="M 50 30 L 380 25 L 395 30 L 380 35 L 50 30" fill="url(#bladeGradientReady)" />
+              <line x1="60" y1="30" x2="370" y2="30" stroke="url(#bladeEdge)" strokeWidth="1" style={{ animation: 'bladeGlint 0.5s ease-in-out infinite' }} />
+              <rect x="40" y="22" width="15" height="16" rx="2" fill="#8B4513" />
+              <ellipse cx="48" cy="30" rx="4" ry="12" fill="#DAA520" stroke="#B8860B" strokeWidth="1" />
+              <rect x="0" y="24" width="42" height="12" rx="3" fill="#2d2d2d" />
+              <g>
+                {[8, 16, 24, 32].map((x) => (
+                  <line key={x} x1={x} y1="24" x2={x} y2="36" stroke="#1a1a1a" strokeWidth="2" />
+                ))}
+              </g>
+              <ellipse cx="0" cy="30" rx="4" ry="6" fill="#DAA520" />
+            </svg>
+          )}
         </div>
       )}
 
@@ -172,73 +250,94 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
           {phase === 'slash' && (
             <>
               <div 
-                className="absolute left-1/2 top-0 w-2"
+                className="absolute inset-0"
+                style={{ animation: 'screenShake 0.5s ease-out' }}
+              />
+              <div 
+                className="absolute left-1/2 top-0 h-full w-8"
                 style={{
-                  marginLeft: '-1px',
-                  animation: 'slashLine 0.5s ease-out forwards',
-                  background: 'linear-gradient(180deg, transparent 0%, #fff 10%, #64b5f6 50%, #fff 90%, transparent 100%)',
-                  boxShadow: '0 0 40px 15px rgba(255,255,255,0.9), 0 0 80px 30px rgba(100,181,246,0.6)',
+                  marginLeft: '-16px',
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(100,181,246,0.3) 30%, rgba(255,255,255,0.9) 48%, #64b5f6 50%, rgba(255,255,255,0.9) 52%, rgba(100,181,246,0.3) 70%, transparent 100%)',
+                  animation: 'slashLine 0.4s ease-out forwards',
+                  boxShadow: '0 0 60px 30px rgba(255,255,255,0.8), 0 0 120px 60px rgba(100,181,246,0.5)',
+                }}
+              />
+              <div 
+                className="absolute left-1/2 top-0 h-full w-32"
+                style={{
+                  marginLeft: '-64px',
+                  background: 'linear-gradient(90deg, transparent, rgba(100,181,246,0.4), transparent)',
+                  animation: 'slashGlow 0.8s ease-out forwards',
                 }}
               />
               <svg 
                 className="absolute"
-                width="300" 
-                height="80" 
-                viewBox="0 0 300 80"
+                width="80" 
+                height="500" 
+                viewBox="0 0 80 500"
                 style={{
                   left: '50%',
-                  top: '0',
-                  marginLeft: '-150px',
-                  animation: 'katanaSwing 0.6s ease-out forwards',
-                  filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.9)) drop-shadow(0 0 40px rgba(100,181,246,0.8))',
+                  top: '-200px',
+                  marginLeft: '-40px',
+                  animation: 'swordSlice 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
+                  filter: 'drop-shadow(0 0 30px rgba(255,255,255,1)) drop-shadow(0 0 60px rgba(100,181,246,0.9))',
                 }}
               >
                 <defs>
-                  <linearGradient id="bladeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#1a1a2e" />
-                    <stop offset="20%" stopColor="#e0e0e0" />
-                    <stop offset="40%" stopColor="#ffffff" />
-                    <stop offset="50%" stopColor="#64b5f6" />
-                    <stop offset="60%" stopColor="#ffffff" />
-                    <stop offset="80%" stopColor="#e0e0e0" />
-                    <stop offset="100%" stopColor="#c0c0c0" />
+                  <linearGradient id="bladeGradientV" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#a0a0a0" />
+                    <stop offset="20%" stopColor="#e8e8e8" />
+                    <stop offset="35%" stopColor="#ffffff" />
+                    <stop offset="50%" stopColor="#b8d4e8" />
+                    <stop offset="65%" stopColor="#ffffff" />
+                    <stop offset="80%" stopColor="#e8e8e8" />
+                    <stop offset="100%" stopColor="#a0a0a0" />
                   </linearGradient>
-                  <linearGradient id="handleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#2d2d2d" />
-                    <stop offset="50%" stopColor="#1a1a1a" />
-                    <stop offset="100%" stopColor="#2d2d2d" />
+                  <linearGradient id="bladeShine" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="transparent" />
+                    <stop offset="45%" stopColor="rgba(255,255,255,0.8)" />
+                    <stop offset="50%" stopColor="#ffffff" />
+                    <stop offset="55%" stopColor="rgba(255,255,255,0.8)" />
+                    <stop offset="100%" stopColor="transparent" />
+                  </linearGradient>
+                  <linearGradient id="handleGradientV" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#1a1a1a" />
+                    <stop offset="50%" stopColor="#2d2d2d" />
+                    <stop offset="100%" stopColor="#1a1a1a" />
                   </linearGradient>
                 </defs>
-                <rect x="70" y="35" width="230" height="10" rx="1" fill="url(#bladeGradient)" />
-                <polygon points="300,35 300,45 310,40" fill="url(#bladeGradient)" />
-                <rect x="60" y="30" width="15" height="20" rx="2" fill="#8B4513" />
-                <rect x="55" y="32" width="8" height="16" rx="1" fill="#654321" />
-                <ellipse cx="68" cy="40" rx="3" ry="10" fill="#FFD700" />
-                <rect x="5" y="33" width="55" height="14" rx="3" fill="url(#handleGradient)" />
-                <line x1="15" y1="33" x2="15" y2="47" stroke="#444" strokeWidth="1" />
-                <line x1="25" y1="33" x2="25" y2="47" stroke="#444" strokeWidth="1" />
-                <line x1="35" y1="33" x2="35" y2="47" stroke="#444" strokeWidth="1" />
-                <line x1="45" y1="33" x2="45" y2="47" stroke="#444" strokeWidth="1" />
-                <rect x="70" y="38" width="200" height="2" fill="rgba(255,255,255,0.6)" />
+                <path d="M 35 0 L 45 0 L 47 350 L 40 365 L 33 350 L 35 0" fill="url(#bladeGradientV)" />
+                <rect x="36" y="0" width="2" height="340" fill="url(#bladeShine)" opacity="0.7" />
+                <rect x="42" y="0" width="1" height="340" fill="rgba(100,181,246,0.5)" />
+                <rect x="25" y="365" width="30" height="12" rx="2" fill="#8B4513" />
+                <ellipse cx="40" cy="377" rx="20" ry="6" fill="#DAA520" stroke="#B8860B" strokeWidth="1" />
+                <rect x="30" y="383" width="20" height="80" rx="4" fill="url(#handleGradientV)" />
+                {[390, 405, 420, 435, 450].map((y) => (
+                  <line key={y} x1="30" y1={y} x2="50" y2={y} stroke="#1a1a1a" strokeWidth="2" />
+                ))}
+                <ellipse cx="40" cy="463" rx="10" ry="5" fill="#DAA520" />
               </svg>
               <div 
                 className="absolute inset-0 bg-white"
                 style={{
-                  animation: 'flashBang 0.3s ease-out forwards',
+                  animation: 'flashBang 0.4s ease-out forwards',
                   pointerEvents: 'none',
                 }}
               />
-              {[...Array(20)].map((_, i) => (
+              {[...Array(30)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute w-3 h-3 bg-white rounded-full"
+                  className="absolute rounded-full"
                   style={{
                     left: '50%',
-                    top: `${20 + i * 4}%`,
-                    '--tx': `${(Math.random() - 0.5) * 200}px`,
-                    '--ty': `${(Math.random() - 0.5) * 100}px`,
-                    animation: `sparkBurst 0.8s ease-out ${i * 0.03}s forwards`,
-                    boxShadow: '0 0 15px 8px rgba(255,255,255,0.9), 0 0 30px 15px rgba(100,181,246,0.6)',
+                    top: `${5 + i * 3}%`,
+                    width: `${4 + Math.random() * 8}px`,
+                    height: `${4 + Math.random() * 8}px`,
+                    background: i % 3 === 0 ? '#64b5f6' : '#ffffff',
+                    '--tx': `${(Math.random() - 0.5) * 400}px`,
+                    '--ty': `${(Math.random() - 0.5) * 150}px`,
+                    animation: `sparkBurst 1s ease-out ${i * 0.02}s forwards`,
+                    boxShadow: `0 0 ${10 + Math.random() * 20}px ${5 + Math.random() * 10}px ${i % 3 === 0 ? 'rgba(100,181,246,0.9)' : 'rgba(255,255,255,0.9)'}`,
                   } as React.CSSProperties}
                 />
               ))}
