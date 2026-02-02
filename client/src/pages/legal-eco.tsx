@@ -29,22 +29,24 @@ const stats = [
 ];
 
 function KatanaIntro({ onComplete }: { onComplete: () => void }) {
-  const [phase, setPhase] = useState<'home' | 'ready' | 'slash' | 'split' | 'done'>('home');
+  const [phase, setPhase] = useState<'home' | 'ready' | 'charge' | 'slash' | 'split' | 'done'>('home');
 
   useEffect(() => {
-    const timer0 = setTimeout(() => setPhase('ready'), 1000);
-    const timer1 = setTimeout(() => setPhase('slash'), 1800);
-    const timer2 = setTimeout(() => setPhase('split'), 2400);
-    const timer3 = setTimeout(() => {
+    const timer0 = setTimeout(() => setPhase('ready'), 800);
+    const timer1 = setTimeout(() => setPhase('charge'), 1600);
+    const timer2 = setTimeout(() => setPhase('slash'), 2200);
+    const timer3 = setTimeout(() => setPhase('split'), 2700);
+    const timer4 = setTimeout(() => {
       setPhase('done');
       onComplete();
-    }, 3800);
+    }, 4200);
 
     return () => {
       clearTimeout(timer0);
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
+      clearTimeout(timer4);
     };
   }, [onComplete]);
 
@@ -55,23 +57,44 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
       <style>{`
         @keyframes swordEnter {
           0% { 
-            transform: translate(100vw, -50%) rotate(45deg) scale(0.5);
+            transform: translate(150vw, -50%) rotate(45deg) scale(0.3);
             opacity: 0;
+            filter: blur(10px);
+          }
+          60% {
+            filter: blur(0px);
+          }
+          80% { 
+            transform: translate(-10%, -50%) rotate(-5deg) scale(1.1);
+            opacity: 1;
           }
           100% { 
             transform: translate(0, -50%) rotate(0deg) scale(1);
             opacity: 1;
           }
         }
-        @keyframes swordSlice {
+        @keyframes swordCharge {
           0% { 
-            transform: translate(0, -50%) rotate(0deg);
+            filter: drop-shadow(0 0 30px rgba(255,100,100,0.8)) drop-shadow(0 0 60px rgba(255,50,50,0.6));
           }
-          15% {
-            transform: translate(-5%, -50%) rotate(-15deg);
+          50% { 
+            filter: drop-shadow(0 0 60px rgba(255,255,255,1)) drop-shadow(0 0 120px rgba(100,181,246,1)) drop-shadow(0 0 200px rgba(255,50,50,0.8));
+            transform: translate(0, -50%) scale(1.05);
           }
           100% { 
-            transform: translate(0, 150vh) rotate(0deg);
+            filter: drop-shadow(0 0 100px rgba(255,255,255,1)) drop-shadow(0 0 200px rgba(100,181,246,1));
+            transform: translate(0, -50%) scale(1);
+          }
+        }
+        @keyframes swordSlice {
+          0% { 
+            transform: translate(0, -100%) rotate(0deg);
+          }
+          10% {
+            transform: translate(-3%, -100%) rotate(-20deg);
+          }
+          100% { 
+            transform: translate(0, 200vh) rotate(5deg);
           }
         }
         @keyframes slashLine {
@@ -86,22 +109,32 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
         }
         @keyframes leftFall {
           0% { 
-            transform: perspective(1000px) translateX(0) rotateY(0deg) rotateZ(0deg);
+            transform: perspective(2000px) translateX(0) rotateY(0deg) rotateZ(0deg) translateZ(0);
             opacity: 1;
+            filter: brightness(1);
+          }
+          50% {
+            filter: brightness(1.5);
           }
           100% { 
-            transform: perspective(1000px) translateX(-60%) rotateY(45deg) rotateZ(-10deg);
+            transform: perspective(2000px) translateX(-80%) rotateY(60deg) rotateZ(-15deg) translateZ(-500px);
             opacity: 0;
+            filter: brightness(0.5);
           }
         }
         @keyframes rightFall {
           0% { 
-            transform: perspective(1000px) translateX(0) rotateY(0deg) rotateZ(0deg);
+            transform: perspective(2000px) translateX(0) rotateY(0deg) rotateZ(0deg) translateZ(0);
             opacity: 1;
+            filter: brightness(1);
+          }
+          50% {
+            filter: brightness(1.5);
           }
           100% { 
-            transform: perspective(1000px) translateX(60%) rotateY(-45deg) rotateZ(10deg);
+            transform: perspective(2000px) translateX(80%) rotateY(-60deg) rotateZ(15deg) translateZ(-500px);
             opacity: 0;
+            filter: brightness(0.5);
           }
         }
         @keyframes sparkBurst {
@@ -111,46 +144,82 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
           }
           100% { 
             opacity: 0;
-            transform: scale(1.5) translate(var(--tx), var(--ty));
+            transform: scale(2) translate(var(--tx), var(--ty));
           }
+        }
+        @keyframes electricArc {
+          0%, 100% { opacity: 0; }
+          10%, 30%, 50%, 70%, 90% { opacity: 1; }
+          20%, 40%, 60%, 80% { opacity: 0.3; }
         }
         @keyframes flashBang {
           0% { opacity: 0; }
-          10% { opacity: 1; }
+          5% { opacity: 1; }
+          15% { opacity: 0.8; }
+          25% { opacity: 1; }
           100% { opacity: 0; }
         }
         @keyframes screenShake {
-          0%, 100% { transform: translate(0, 0); }
-          10% { transform: translate(-10px, -5px); }
-          20% { transform: translate(10px, 5px); }
-          30% { transform: translate(-8px, 4px); }
-          40% { transform: translate(8px, -4px); }
-          50% { transform: translate(-5px, 2px); }
-          60% { transform: translate(5px, -2px); }
-          70% { transform: translate(-3px, 1px); }
-          80% { transform: translate(3px, -1px); }
-          90% { transform: translate(-1px, 0px); }
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          5% { transform: translate(-20px, -10px) rotate(-1deg); }
+          10% { transform: translate(20px, 10px) rotate(1deg); }
+          15% { transform: translate(-15px, 8px) rotate(-0.5deg); }
+          20% { transform: translate(15px, -8px) rotate(0.5deg); }
+          25% { transform: translate(-12px, 5px) rotate(-0.3deg); }
+          30% { transform: translate(12px, -5px) rotate(0.3deg); }
+          40% { transform: translate(-8px, 3px); }
+          50% { transform: translate(8px, -3px); }
+          60% { transform: translate(-5px, 2px); }
+          70% { transform: translate(5px, -2px); }
+          80% { transform: translate(-2px, 1px); }
+          90% { transform: translate(2px, -1px); }
         }
         @keyframes slashGlow {
           0% { opacity: 0; filter: blur(0px); }
-          20% { opacity: 1; filter: blur(2px); }
-          100% { opacity: 0; filter: blur(20px); }
+          10% { opacity: 1; filter: blur(0px); }
+          30% { opacity: 1; filter: blur(5px); }
+          100% { opacity: 0; filter: blur(40px); }
         }
         @keyframes bladeGlint {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 1; }
         }
+        @keyframes energyPulse {
+          0% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.5); opacity: 0.4; }
+          100% { transform: scale(2); opacity: 0; }
+        }
+        @keyframes shockwave {
+          0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+        }
+        @keyframes bloodMoon {
+          0% { background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0) 0%, transparent 50%); }
+          50% { background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0.3) 0%, transparent 70%); }
+          100% { background: radial-gradient(circle at 50% 50%, rgba(255,0,0,0) 0%, transparent 50%); }
+        }
+        @keyframes chargeParticle {
+          0% { transform: translate(var(--startX), var(--startY)) scale(0); opacity: 0; }
+          50% { opacity: 1; }
+          100% { transform: translate(0, 0) scale(1); opacity: 0; }
+        }
       `}</style>
 
-      {(phase === 'home' || phase === 'ready') && (
+      {(phase === 'home' || phase === 'ready' || phase === 'charge') && (
         <div 
-          className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy"
-          style={{ animation: phase === 'ready' ? 'none' : 'none' }}
+          className="absolute inset-0 bg-gradient-to-br from-black via-slate-900 to-black"
         >
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzNDQ1NSIgb3BhY2l0eT0iMC4yIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
+          
+          {phase === 'charge' && (
+            <div className="absolute inset-0" style={{ animation: 'bloodMoon 0.6s ease-in-out infinite' }} />
+          )}
+          
           <div className="flex items-center justify-center min-h-screen">
             <div className="text-center">
-              <h1 className="text-5xl sm:text-7xl font-display text-white mb-4 tracking-tight">
+              <h1 className="text-6xl sm:text-8xl font-display text-white mb-4 tracking-tight" style={{
+                textShadow: phase === 'charge' ? '0 0 30px rgba(255,100,100,0.8), 0 0 60px rgba(255,50,50,0.5)' : 'none'
+              }}>
                 <span className="text-brand-red">NAVIGATOR</span>
                 <span className="font-light">USA</span>
               </h1>
@@ -162,45 +231,83 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
             </div>
           </div>
           
-          {phase === 'ready' && (
-            <svg 
-              className="absolute"
-              width="400" 
-              height="60" 
-              viewBox="0 0 400 60"
-              style={{
-                right: '-400px',
-                top: '50%',
-                animation: 'swordEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
-                filter: 'drop-shadow(0 0 30px rgba(255,255,255,0.8))',
-              }}
-            >
-              <defs>
-                <linearGradient id="bladeGradientReady" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#c0c0c0" />
-                  <stop offset="30%" stopColor="#ffffff" />
-                  <stop offset="50%" stopColor="#e8f4fc" />
-                  <stop offset="70%" stopColor="#ffffff" />
-                  <stop offset="100%" stopColor="#a0a0a0" />
-                </linearGradient>
-                <linearGradient id="bladeEdge" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff" />
-                  <stop offset="50%" stopColor="#64b5f6" />
-                  <stop offset="100%" stopColor="#ffffff" />
-                </linearGradient>
-              </defs>
-              <path d="M 50 30 L 380 25 L 395 30 L 380 35 L 50 30" fill="url(#bladeGradientReady)" />
-              <line x1="60" y1="30" x2="370" y2="30" stroke="url(#bladeEdge)" strokeWidth="1" style={{ animation: 'bladeGlint 0.5s ease-in-out infinite' }} />
-              <rect x="40" y="22" width="15" height="16" rx="2" fill="#8B4513" />
-              <ellipse cx="48" cy="30" rx="4" ry="12" fill="#DAA520" stroke="#B8860B" strokeWidth="1" />
-              <rect x="0" y="24" width="42" height="12" rx="3" fill="#2d2d2d" />
-              <g>
-                {[8, 16, 24, 32].map((x) => (
-                  <line key={x} x1={x} y1="24" x2={x} y2="36" stroke="#1a1a1a" strokeWidth="2" />
-                ))}
-              </g>
-              <ellipse cx="0" cy="30" rx="4" ry="6" fill="#DAA520" />
-            </svg>
+          {(phase === 'ready' || phase === 'charge') && (
+            <>
+              <svg 
+                className="absolute"
+                width="500" 
+                height="80" 
+                viewBox="0 0 500 80"
+                style={{
+                  right: phase === 'ready' ? '-500px' : '10%',
+                  top: '50%',
+                  animation: phase === 'ready' 
+                    ? 'swordEnter 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' 
+                    : 'swordCharge 0.5s ease-in-out infinite',
+                  filter: 'drop-shadow(0 0 40px rgba(255,255,255,1)) drop-shadow(0 0 80px rgba(100,181,246,0.8))',
+                }}
+              >
+                <defs>
+                  <linearGradient id="bladeGradientReady" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#909090" />
+                    <stop offset="15%" stopColor="#d0d0d0" />
+                    <stop offset="30%" stopColor="#ffffff" />
+                    <stop offset="50%" stopColor="#b8e0fc" />
+                    <stop offset="70%" stopColor="#ffffff" />
+                    <stop offset="85%" stopColor="#d0d0d0" />
+                    <stop offset="100%" stopColor="#909090" />
+                  </linearGradient>
+                  <linearGradient id="bladeEdge" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#ffffff" />
+                    <stop offset="50%" stopColor="#64b5f6" />
+                    <stop offset="100%" stopColor="#ffffff" />
+                  </linearGradient>
+                  <linearGradient id="energyGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="rgba(255,50,50,0.8)" />
+                    <stop offset="50%" stopColor="rgba(255,255,255,1)" />
+                    <stop offset="100%" stopColor="rgba(100,181,246,0.8)" />
+                  </linearGradient>
+                  <filter id="bladeGlow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <path d="M 60 40 L 470 32 L 495 40 L 470 48 L 60 40" fill="url(#bladeGradientReady)" filter="url(#bladeGlow)" />
+                <path d="M 70 40 L 460 35 L 475 40 L 460 45 L 70 40" fill="url(#energyGlow)" opacity={phase === 'charge' ? "0.6" : "0"} style={{ animation: phase === 'charge' ? 'bladeGlint 0.2s ease-in-out infinite' : 'none' }} />
+                <line x1="80" y1="40" x2="450" y2="40" stroke="url(#bladeEdge)" strokeWidth="2" style={{ animation: 'bladeGlint 0.3s ease-in-out infinite' }} />
+                <rect x="45" y="28" width="20" height="24" rx="3" fill="#5D3A1A" />
+                <ellipse cx="55" cy="40" rx="6" ry="18" fill="#FFD700" stroke="#DAA520" strokeWidth="2" />
+                <rect x="0" y="30" width="48" height="20" rx="4" fill="linear-gradient(90deg, #1a1a1a 0%, #3d3d3d 50%, #1a1a1a 100%)" />
+                <rect x="0" y="30" width="48" height="20" rx="4" fill="#2d2d2d" />
+                <g>
+                  {[8, 18, 28, 38].map((x) => (
+                    <line key={x} x1={x} y1="30" x2={x} y2="50" stroke="#1a1a1a" strokeWidth="3" />
+                  ))}
+                </g>
+                <ellipse cx="0" cy="40" rx="6" ry="10" fill="#FFD700" />
+                <circle cx="0" cy="40" r="4" fill="#FF4444" style={{ animation: phase === 'charge' ? 'energyPulse 0.3s ease-out infinite' : 'none' }} />
+              </svg>
+              
+              {phase === 'charge' && [...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white"
+                  style={{
+                    width: '4px',
+                    height: '4px',
+                    right: `${15 + Math.random() * 30}%`,
+                    top: `${40 + (Math.random() - 0.5) * 30}%`,
+                    '--startX': `${(Math.random() - 0.5) * 200}px`,
+                    '--startY': `${(Math.random() - 0.5) * 200}px`,
+                    animation: `chargeParticle 0.5s ease-out ${i * 0.03}s infinite`,
+                    boxShadow: '0 0 10px 5px rgba(100,181,246,0.8)',
+                  } as React.CSSProperties}
+                />
+              ))}
+            </>
           )}
         </div>
       )}
@@ -208,17 +315,22 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
       {(phase === 'slash' || phase === 'split') && (
         <>
           <div 
-            className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy"
+            className="absolute inset-0"
+            style={{ animation: 'screenShake 0.8s ease-out' }}
+          />
+          
+          <div 
+            className="absolute inset-0 bg-gradient-to-br from-black via-slate-900 to-black"
             style={{
               clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)',
-              animation: phase === 'split' ? 'leftFall 1s ease-in forwards' : 'none',
+              animation: phase === 'split' ? 'leftFall 1.2s ease-in forwards' : 'none',
               transformOrigin: 'top center',
             }}
           >
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzNDQ1NSIgb3BhY2l0eT0iMC4yIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
             <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
-                <h1 className="text-5xl sm:text-7xl font-display text-white mb-4 tracking-tight">
+                <h1 className="text-6xl sm:text-8xl font-display text-white mb-4 tracking-tight">
                   <span className="text-brand-red">NAVIGATOR</span>
                   <span className="font-light">USA</span>
                 </h1>
@@ -228,17 +340,17 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
           </div>
 
           <div 
-            className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy"
+            className="absolute inset-0 bg-gradient-to-br from-black via-slate-900 to-black"
             style={{
               clipPath: 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)',
-              animation: phase === 'split' ? 'rightFall 1s ease-in forwards' : 'none',
+              animation: phase === 'split' ? 'rightFall 1.2s ease-in forwards' : 'none',
               transformOrigin: 'top center',
             }}
           >
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzNDQ1NSIgb3BhY2l0eT0iMC4yIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
             <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
-                <h1 className="text-5xl sm:text-7xl font-display text-white mb-4 tracking-tight">
+                <h1 className="text-6xl sm:text-8xl font-display text-white mb-4 tracking-tight">
                   <span className="text-brand-red">NAVIGATOR</span>
                   <span className="font-light">USA</span>
                 </h1>
@@ -249,96 +361,178 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
 
           {phase === 'slash' && (
             <>
+              {/* Multiple shockwave rings */}
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={`shockwave-${i}`}
+                  className="absolute rounded-full border-4 border-white/50"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    width: '100px',
+                    height: '100px',
+                    animation: `shockwave 1s ease-out ${i * 0.15}s forwards`,
+                  }}
+                />
+              ))}
+              
+              {/* Main slash line - triple layered */}
               <div 
-                className="absolute inset-0"
-                style={{ animation: 'screenShake 0.5s ease-out' }}
-              />
-              <div 
-                className="absolute left-1/2 top-0 h-full w-8"
+                className="absolute left-1/2 top-0 h-full w-4"
                 style={{
-                  marginLeft: '-16px',
-                  background: 'linear-gradient(90deg, transparent 0%, rgba(100,181,246,0.3) 30%, rgba(255,255,255,0.9) 48%, #64b5f6 50%, rgba(255,255,255,0.9) 52%, rgba(100,181,246,0.3) 70%, transparent 100%)',
-                  animation: 'slashLine 0.4s ease-out forwards',
-                  boxShadow: '0 0 60px 30px rgba(255,255,255,0.8), 0 0 120px 60px rgba(100,181,246,0.5)',
+                  marginLeft: '-8px',
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,50,50,0.5) 20%, rgba(255,255,255,1) 48%, #ffffff 50%, rgba(255,255,255,1) 52%, rgba(100,181,246,0.5) 80%, transparent 100%)',
+                  animation: 'slashLine 0.3s ease-out forwards',
+                  boxShadow: '0 0 100px 50px rgba(255,255,255,1), 0 0 200px 100px rgba(100,181,246,0.8), 0 0 300px 150px rgba(255,50,50,0.5)',
                 }}
               />
               <div 
-                className="absolute left-1/2 top-0 h-full w-32"
+                className="absolute left-1/2 top-0 h-full w-16"
                 style={{
-                  marginLeft: '-64px',
-                  background: 'linear-gradient(90deg, transparent, rgba(100,181,246,0.4), transparent)',
-                  animation: 'slashGlow 0.8s ease-out forwards',
+                  marginLeft: '-32px',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,100,100,0.6), rgba(255,255,255,0.9), rgba(100,181,246,0.6), transparent)',
+                  animation: 'slashLine 0.35s ease-out forwards',
                 }}
               />
+              <div 
+                className="absolute left-1/2 top-0 h-full w-48"
+                style={{
+                  marginLeft: '-96px',
+                  background: 'linear-gradient(90deg, transparent, rgba(100,181,246,0.3), transparent)',
+                  animation: 'slashGlow 1s ease-out forwards',
+                }}
+              />
+              
+              {/* Massive vertical katana sword */}
               <svg 
                 className="absolute"
-                width="80" 
-                height="500" 
-                viewBox="0 0 80 500"
+                width="120" 
+                height="600" 
+                viewBox="0 0 120 600"
                 style={{
                   left: '50%',
-                  top: '-200px',
-                  marginLeft: '-40px',
-                  animation: 'swordSlice 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
-                  filter: 'drop-shadow(0 0 30px rgba(255,255,255,1)) drop-shadow(0 0 60px rgba(100,181,246,0.9))',
+                  top: '-300px',
+                  marginLeft: '-60px',
+                  animation: 'swordSlice 0.4s cubic-bezier(0.1, 0.1, 0.25, 1) forwards',
+                  filter: 'drop-shadow(0 0 50px rgba(255,255,255,1)) drop-shadow(0 0 100px rgba(100,181,246,1)) drop-shadow(0 0 150px rgba(255,50,50,0.8))',
                 }}
               >
                 <defs>
                   <linearGradient id="bladeGradientV" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#a0a0a0" />
-                    <stop offset="20%" stopColor="#e8e8e8" />
-                    <stop offset="35%" stopColor="#ffffff" />
-                    <stop offset="50%" stopColor="#b8d4e8" />
-                    <stop offset="65%" stopColor="#ffffff" />
-                    <stop offset="80%" stopColor="#e8e8e8" />
-                    <stop offset="100%" stopColor="#a0a0a0" />
+                    <stop offset="0%" stopColor="#808080" />
+                    <stop offset="15%" stopColor="#c0c0c0" />
+                    <stop offset="30%" stopColor="#ffffff" />
+                    <stop offset="50%" stopColor="#a8d8ff" />
+                    <stop offset="70%" stopColor="#ffffff" />
+                    <stop offset="85%" stopColor="#c0c0c0" />
+                    <stop offset="100%" stopColor="#808080" />
                   </linearGradient>
                   <linearGradient id="bladeShine" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stopColor="transparent" />
-                    <stop offset="45%" stopColor="rgba(255,255,255,0.8)" />
+                    <stop offset="40%" stopColor="rgba(255,255,255,0.9)" />
                     <stop offset="50%" stopColor="#ffffff" />
-                    <stop offset="55%" stopColor="rgba(255,255,255,0.8)" />
+                    <stop offset="60%" stopColor="rgba(255,255,255,0.9)" />
                     <stop offset="100%" stopColor="transparent" />
                   </linearGradient>
-                  <linearGradient id="handleGradientV" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#1a1a1a" />
-                    <stop offset="50%" stopColor="#2d2d2d" />
-                    <stop offset="100%" stopColor="#1a1a1a" />
+                  <linearGradient id="bladeEnergy" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="rgba(255,100,100,0.8)" />
+                    <stop offset="50%" stopColor="rgba(255,255,255,1)" />
+                    <stop offset="100%" stopColor="rgba(100,181,246,0.8)" />
                   </linearGradient>
+                  <linearGradient id="handleGradientV" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#0a0a0a" />
+                    <stop offset="50%" stopColor="#2d2d2d" />
+                    <stop offset="100%" stopColor="#0a0a0a" />
+                  </linearGradient>
+                  <filter id="swordGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
                 </defs>
-                <path d="M 35 0 L 45 0 L 47 350 L 40 365 L 33 350 L 35 0" fill="url(#bladeGradientV)" />
-                <rect x="36" y="0" width="2" height="340" fill="url(#bladeShine)" opacity="0.7" />
-                <rect x="42" y="0" width="1" height="340" fill="rgba(100,181,246,0.5)" />
-                <rect x="25" y="365" width="30" height="12" rx="2" fill="#8B4513" />
-                <ellipse cx="40" cy="377" rx="20" ry="6" fill="#DAA520" stroke="#B8860B" strokeWidth="1" />
-                <rect x="30" y="383" width="20" height="80" rx="4" fill="url(#handleGradientV)" />
-                {[390, 405, 420, 435, 450].map((y) => (
-                  <line key={y} x1="30" y1={y} x2="50" y2={y} stroke="#1a1a1a" strokeWidth="2" />
+                {/* Main blade */}
+                <path d="M 50 0 L 70 0 L 75 420 L 60 450 L 45 420 L 50 0" fill="url(#bladeGradientV)" filter="url(#swordGlow)" />
+                {/* Energy core */}
+                <path d="M 55 10 L 65 10 L 68 400 L 60 420 L 52 400 L 55 10" fill="url(#bladeEnergy)" opacity="0.5" />
+                {/* Center shine line */}
+                <rect x="58" y="0" width="4" height="400" fill="url(#bladeShine)" opacity="0.9" />
+                {/* Edge highlights */}
+                <rect x="52" y="0" width="1" height="400" fill="rgba(255,100,100,0.6)" />
+                <rect x="67" y="0" width="1" height="400" fill="rgba(100,181,246,0.6)" />
+                {/* Tsuba (guard) */}
+                <rect x="35" y="450" width="50" height="18" rx="3" fill="#5D3A1A" />
+                <ellipse cx="60" cy="468" rx="30" ry="10" fill="#FFD700" stroke="#DAA520" strokeWidth="2" />
+                <ellipse cx="60" cy="468" rx="20" ry="6" fill="#B8860B" />
+                {/* Handle */}
+                <rect x="45" y="478" width="30" height="100" rx="6" fill="url(#handleGradientV)" />
+                {[490, 510, 530, 550, 570].map((y) => (
+                  <line key={y} x1="45" y1={y} x2="75" y2={y} stroke="#0a0a0a" strokeWidth="4" />
                 ))}
-                <ellipse cx="40" cy="463" rx="10" ry="5" fill="#DAA520" />
+                {/* Pommel */}
+                <ellipse cx="60" cy="580" rx="15" ry="8" fill="#FFD700" />
+                <circle cx="60" cy="580" r="6" fill="#FF4444" />
               </svg>
+              
+              {/* Multiple flash bangs */}
               <div 
                 className="absolute inset-0 bg-white"
                 style={{
-                  animation: 'flashBang 0.4s ease-out forwards',
+                  animation: 'flashBang 0.5s ease-out forwards',
                   pointerEvents: 'none',
                 }}
               />
-              {[...Array(30)].map((_, i) => (
+              <div 
+                className="absolute inset-0"
+                style={{
+                  background: 'radial-gradient(circle at 50% 50%, rgba(100,181,246,0.5) 0%, transparent 50%)',
+                  animation: 'flashBang 0.8s ease-out 0.1s forwards',
+                  pointerEvents: 'none',
+                }}
+              />
+              
+              {/* MASSIVE spark explosion - 60 particles */}
+              {[...Array(60)].map((_, i) => {
+                const colors = ['#ffffff', '#64b5f6', '#ff6666', '#ffff00', '#00ff88'];
+                const color = colors[i % colors.length];
+                const size = 4 + Math.random() * 12;
+                return (
+                  <div
+                    key={i}
+                    className="absolute rounded-full"
+                    style={{
+                      left: '50%',
+                      top: `${2 + i * 1.6}%`,
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      background: color,
+                      '--tx': `${(Math.random() - 0.5) * 600}px`,
+                      '--ty': `${(Math.random() - 0.5) * 300}px`,
+                      animation: `sparkBurst 1.2s ease-out ${i * 0.015}s forwards`,
+                      boxShadow: `0 0 ${15 + Math.random() * 30}px ${8 + Math.random() * 15}px ${color}`,
+                    } as React.CSSProperties}
+                  />
+                );
+              })}
+              
+              {/* Electric arcs along the slash */}
+              {[...Array(8)].map((_, i) => (
                 <div
-                  key={i}
-                  className="absolute rounded-full"
+                  key={`arc-${i}`}
+                  className="absolute"
                   style={{
                     left: '50%',
-                    top: `${5 + i * 3}%`,
-                    width: `${4 + Math.random() * 8}px`,
-                    height: `${4 + Math.random() * 8}px`,
-                    background: i % 3 === 0 ? '#64b5f6' : '#ffffff',
-                    '--tx': `${(Math.random() - 0.5) * 400}px`,
-                    '--ty': `${(Math.random() - 0.5) * 150}px`,
-                    animation: `sparkBurst 1s ease-out ${i * 0.02}s forwards`,
-                    boxShadow: `0 0 ${10 + Math.random() * 20}px ${5 + Math.random() * 10}px ${i % 3 === 0 ? 'rgba(100,181,246,0.9)' : 'rgba(255,255,255,0.9)'}`,
-                  } as React.CSSProperties}
+                    top: `${10 + i * 10}%`,
+                    width: '4px',
+                    height: '60px',
+                    marginLeft: `${(Math.random() - 0.5) * 40}px`,
+                    background: 'linear-gradient(180deg, transparent, #64b5f6, #ffffff, #64b5f6, transparent)',
+                    transform: `rotate(${(Math.random() - 0.5) * 30}deg)`,
+                    animation: `electricArc 0.3s ease-out ${i * 0.05}s`,
+                    boxShadow: '0 0 20px 10px rgba(100,181,246,0.8)',
+                  }}
                 />
               ))}
             </>
