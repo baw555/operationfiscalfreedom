@@ -522,17 +522,7 @@ export default function Home() {
 
 
             <div className="flex flex-col items-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
-              <div className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-brand-red text-white shadow-lg shadow-brand-red/30">
-                <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
-                <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-wider">NAVIGATOR USA ELITE</span>
-                <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
-              </div>
-              <Link href="/master-portal">
-                <button className="mt-3 px-6 py-2 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-display text-sm sm:text-base tracking-wider rounded-full shadow-lg shadow-brand-gold/30 transition-all hover:scale-105 uppercase">
-                  Master Hub
-                </button>
-              </Link>
-              <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest mt-2 uppercase shimmer-text">Navy SEAL Owned and Operated</p>
+              <p className="text-white/90 font-display text-sm sm:text-lg md:text-xl tracking-widest uppercase shimmer-text">Navy SEAL Owned and Operated</p>
             </div>
             
             {/* Four Pillars with General Stars */}
