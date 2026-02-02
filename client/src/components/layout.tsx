@@ -29,7 +29,7 @@ const animatedTextStyles = `
 `;
 
 function FlashingNavPerks() {
-  const letters = "NAV PERKS".split("");
+  const letters = "FREE / LOW COST SOFT".split("");
   return (
     <span className="inline-flex font-bold uppercase tracking-wider">
       {letters.map((letter, index) => (
@@ -274,7 +274,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Nav Perks - AI Suite Dropdown */}
+            {/* Free / Low Cost Soft - AI Suite Dropdown */}
             <div className="relative" onMouseEnter={() => setFreeVetSoftwareOpen(true)} onMouseLeave={() => setFreeVetSoftwareOpen(false)}>
               <button className={cn(
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
@@ -452,7 +452,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <div className="h-px bg-brand-navy/20 my-2" />
 
-            {/* Mobile Nav Perks Dropdown */}
+            {/* Mobile Free / Low Cost Soft Dropdown */}
             <div className={cn("border-l-4", mobileFreeVetSoftwareOpen ? "border-blue-500" : "border-transparent")}>
               <button 
                 className={cn(
