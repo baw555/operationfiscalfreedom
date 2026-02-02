@@ -594,6 +594,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
         </div>
+        {/* Platform Status Disclaimer */}
+        <div className="border-t border-white/10 pt-6 pb-4 mb-20">
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="text-gray-400 text-xs leading-relaxed">
+              <span className="text-yellow-500 font-semibold">Notice:</span> This platform is operating in a live testing environment. Certain features, claims, and deliverables may be incomplete or under development. Content is provided for informational and testing purposes only and does not constitute legal, tax, financial, or medical advice. Use at your own risk.
+            </p>
+          </div>
+        </div>
+
         {/* Large Logo - Absolutely positioned bottom left */}
         <img 
           src={logoStacked} 

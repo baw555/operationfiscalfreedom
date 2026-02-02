@@ -1,0 +1,95 @@
+Platform Status & Testing Disclaimer (Recommended Primary Version)
+
+Platform Status Notice – Live Testing Environment
+
+This platform is currently operating in a live testing and phased-deployment environment. While certain services, workflows, and deliverables are active and may be provided in real time, not all features, claims, analyses, calculations, automations, or outputs are finalized, validated, or complete at this time.
+
+Use of this platform constitutes acknowledgment that:
+
+Certain tools, data outputs, recommendations, or reports may be in development, partially implemented, under review, or subject to change
+
+Some claims, analyses, or deliverables may be preliminary, incomplete, or pending further verification
+
+System behavior, calculations, integrations, or results may evolve as testing, validation, and compliance review continues
+
+No representation is made that all services or outputs are final, exhaustive, or suitable for reliance without independent professional review
+
+No Professional Advice / Reliance Disclaimer
+
+The platform and its content are provided for testing, evaluation, and informational purposes only.
+
+Nothing on this platform constitutes, or should be relied upon as:
+
+Legal advice
+
+Tax advice
+
+Accounting advice
+
+Medical advice
+
+Financial or investment advice
+
+All users are solely responsible for consulting qualified, licensed professionals of their choosing before acting on any information, analysis, or output generated through this platform.
+
+Claims-in-Progress & Verification Disclaimer
+
+Certain claims, filings, analyses, calculations, or submissions referenced on this platform may be:
+
+In progress
+
+Under review
+
+Awaiting documentation
+
+Pending third-party validation
+
+Subject to eligibility determinations by governmental or regulatory authorities
+
+No guarantee is made regarding outcomes, approvals, eligibility, accuracy, timing, or acceptance by any authority, agency, carrier, court, or regulator.
+
+Limitation of Liability (Testing Environment)
+
+To the fullest extent permitted by law, the platform operators, affiliates, partners, and contributors disclaim all liability arising from:
+
+Use of a testing or pre-final system
+
+Reliance on preliminary or incomplete outputs
+
+Errors, omissions, delays, or system changes during testing
+
+Decisions made prior to final verification or professional review
+
+Use of the platform is entirely voluntary and at the user’s own risk during this testing phase.
+
+Acknowledgment of Use
+
+By accessing or using this platform, you acknowledge and agree that:
+
+You understand the platform is in active testing and phased rollout
+
+You accept that not all features or claims are finalized
+
+You assume full responsibility for any actions taken based on platform outputs
+
+You waive reliance on the platform as a substitute for licensed professional advice
+
+Optional Short Version (Footer / Modal)
+
+Notice: This platform is operating in a live testing environment. Certain features, claims, and deliverables may be incomplete or under development. Content is provided for informational and testing purposes only and does not constitute legal, tax, financial, or medical advice. Use at your own risk.
+
+Strong recommendation (important)
+
+Use this disclaimer in three places, not one:
+
+Landing page footer
+
+User onboarding / click-through acknowledgment
+
+Inside the dashboard near outputs or reports
+
+If you want, next I can:
+
+Tighten this further for tax + legal specifically
+
+Add a click-to-accept acknowledgment clause
