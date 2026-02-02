@@ -32,12 +32,12 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
   const [phase, setPhase] = useState<'home' | 'slash' | 'split' | 'done'>('home');
 
   useEffect(() => {
-    const timer1 = setTimeout(() => setPhase('slash'), 800);
-    const timer2 = setTimeout(() => setPhase('split'), 1200);
+    const timer1 = setTimeout(() => setPhase('slash'), 1500);
+    const timer2 = setTimeout(() => setPhase('split'), 2200);
     const timer3 = setTimeout(() => {
       setPhase('done');
       onComplete();
-    }, 2200);
+    }, 3500);
 
     return () => {
       clearTimeout(timer1);
@@ -49,37 +49,79 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
   if (phase === 'done') return null;
 
   return (
-    <div className="fixed inset-0 z-[100] overflow-hidden">
+    <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
       <style>{`
-        @keyframes katanaSlash {
-          0% { transform: translateY(-100%) rotate(-45deg); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translateY(150%) rotate(-45deg); opacity: 1; }
+        @keyframes katanaSwing {
+          0% { 
+            transform: translate(-50%, -120%) rotate(-60deg);
+            opacity: 0;
+          }
+          10% { opacity: 1; }
+          100% { 
+            transform: translate(-50%, 120vh) rotate(-60deg);
+            opacity: 1;
+          }
         }
-        @keyframes slashTrail {
-          0% { height: 0; opacity: 1; }
-          100% { height: 200vh; opacity: 0.8; }
+        @keyframes slashLine {
+          0% { 
+            height: 0;
+            opacity: 1;
+          }
+          100% { 
+            height: 200vh;
+            opacity: 1;
+          }
         }
         @keyframes leftFall {
-          0% { transform: translateX(0) rotate(0deg); opacity: 1; }
-          100% { transform: translateX(-100%) rotate(-15deg); opacity: 0; }
+          0% { 
+            transform: translateX(0) rotate(0deg) translateZ(0);
+            opacity: 1;
+          }
+          100% { 
+            transform: translateX(-120%) rotate(-20deg) translateZ(-100px);
+            opacity: 0;
+          }
         }
         @keyframes rightFall {
-          0% { transform: translateX(0) rotate(0deg); opacity: 1; }
-          100% { transform: translateX(100%) rotate(15deg); opacity: 0; }
+          0% { 
+            transform: translateX(0) rotate(0deg) translateZ(0);
+            opacity: 1;
+          }
+          100% { 
+            transform: translateX(120%) rotate(20deg) translateZ(-100px);
+            opacity: 0;
+          }
         }
-        @keyframes sparkle {
-          0%, 100% { opacity: 0; transform: scale(0); }
-          50% { opacity: 1; transform: scale(1); }
+        @keyframes sparkBurst {
+          0% { 
+            opacity: 1;
+            transform: scale(0) translate(0, 0);
+          }
+          100% { 
+            opacity: 0;
+            transform: scale(1) translate(var(--tx), var(--ty));
+          }
+        }
+        @keyframes flashBang {
+          0%, 100% { opacity: 0; }
+          50% { opacity: 0.8; }
         }
       `}</style>
 
       {phase === 'home' && (
         <div className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy">
-          <div className="container mx-auto px-4 py-20">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzNDQ1NSIgb3BhY2l0eT0iMC4yIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
+          <div className="flex items-center justify-center min-h-screen">
             <div className="text-center">
-              <h1 className="text-4xl sm:text-6xl font-display text-white mb-4">NavigatorUSA</h1>
+              <h1 className="text-5xl sm:text-7xl font-display text-white mb-4 tracking-tight">
+                <span className="text-brand-red">NAVIGATOR</span>
+                <span className="font-light">USA</span>
+              </h1>
               <p className="text-xl text-gray-300">Veterans' Family Resources</p>
+              <div className="mt-8 flex justify-center gap-4">
+                <div className="w-32 h-12 bg-brand-red/20 rounded-lg animate-pulse" />
+                <div className="w-32 h-12 bg-blue-500/20 rounded-lg animate-pulse" />
+              </div>
             </div>
           </div>
         </div>
@@ -91,12 +133,17 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
             className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy"
             style={{
               clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)',
-              animation: phase === 'split' ? 'leftFall 0.8s ease-in forwards' : 'none',
+              animation: phase === 'split' ? 'leftFall 1s ease-in forwards' : 'none',
+              transformOrigin: 'top center',
             }}
           >
-            <div className="container mx-auto px-4 py-20">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzNDQ1NSIgb3BhY2l0eT0iMC4yIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
+            <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
-                <h1 className="text-4xl sm:text-6xl font-display text-white mb-4">NavigatorUSA</h1>
+                <h1 className="text-5xl sm:text-7xl font-display text-white mb-4 tracking-tight">
+                  <span className="text-brand-red">NAVIGATOR</span>
+                  <span className="font-light">USA</span>
+                </h1>
                 <p className="text-xl text-gray-300">Veterans' Family Resources</p>
               </div>
             </div>
@@ -106,12 +153,17 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
             className="absolute inset-0 bg-gradient-to-br from-brand-navy via-slate-800 to-brand-navy"
             style={{
               clipPath: 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)',
-              animation: phase === 'split' ? 'rightFall 0.8s ease-in forwards' : 'none',
+              animation: phase === 'split' ? 'rightFall 1s ease-in forwards' : 'none',
+              transformOrigin: 'top center',
             }}
           >
-            <div className="container mx-auto px-4 py-20">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzNDQ1NSIgb3BhY2l0eT0iMC4yIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
+            <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
-                <h1 className="text-4xl sm:text-6xl font-display text-white mb-4">NavigatorUSA</h1>
+                <h1 className="text-5xl sm:text-7xl font-display text-white mb-4 tracking-tight">
+                  <span className="text-brand-red">NAVIGATOR</span>
+                  <span className="font-light">USA</span>
+                </h1>
                 <p className="text-xl text-gray-300">Veterans' Family Resources</p>
               </div>
             </div>
@@ -120,33 +172,74 @@ function KatanaIntro({ onComplete }: { onComplete: () => void }) {
           {phase === 'slash' && (
             <>
               <div 
-                className="absolute left-1/2 top-0 w-1 bg-gradient-to-b from-transparent via-white to-transparent"
+                className="absolute left-1/2 top-0 w-2"
                 style={{
-                  animation: 'slashTrail 0.4s ease-out forwards',
-                  boxShadow: '0 0 30px 10px rgba(255,255,255,0.8), 0 0 60px 20px rgba(100,200,255,0.5)',
+                  marginLeft: '-1px',
+                  animation: 'slashLine 0.5s ease-out forwards',
+                  background: 'linear-gradient(180deg, transparent 0%, #fff 10%, #64b5f6 50%, #fff 90%, transparent 100%)',
+                  boxShadow: '0 0 40px 15px rgba(255,255,255,0.9), 0 0 80px 30px rgba(100,181,246,0.6)',
                 }}
               />
-              <div 
-                className="absolute w-64 h-4"
+              <svg 
+                className="absolute"
+                width="300" 
+                height="80" 
+                viewBox="0 0 300 80"
                 style={{
                   left: '50%',
                   top: '0',
-                  marginLeft: '-128px',
-                  background: 'linear-gradient(90deg, transparent, #fff, #64b5f6, #fff, transparent)',
-                  animation: 'katanaSlash 0.4s ease-out forwards',
-                  boxShadow: '0 0 40px 15px rgba(255,255,255,0.9)',
+                  marginLeft: '-150px',
+                  animation: 'katanaSwing 0.6s ease-out forwards',
+                  filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.9)) drop-shadow(0 0 40px rgba(100,181,246,0.8))',
+                }}
+              >
+                <defs>
+                  <linearGradient id="bladeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#1a1a2e" />
+                    <stop offset="20%" stopColor="#e0e0e0" />
+                    <stop offset="40%" stopColor="#ffffff" />
+                    <stop offset="50%" stopColor="#64b5f6" />
+                    <stop offset="60%" stopColor="#ffffff" />
+                    <stop offset="80%" stopColor="#e0e0e0" />
+                    <stop offset="100%" stopColor="#c0c0c0" />
+                  </linearGradient>
+                  <linearGradient id="handleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#2d2d2d" />
+                    <stop offset="50%" stopColor="#1a1a1a" />
+                    <stop offset="100%" stopColor="#2d2d2d" />
+                  </linearGradient>
+                </defs>
+                <rect x="70" y="35" width="230" height="10" rx="1" fill="url(#bladeGradient)" />
+                <polygon points="300,35 300,45 310,40" fill="url(#bladeGradient)" />
+                <rect x="60" y="30" width="15" height="20" rx="2" fill="#8B4513" />
+                <rect x="55" y="32" width="8" height="16" rx="1" fill="#654321" />
+                <ellipse cx="68" cy="40" rx="3" ry="10" fill="#FFD700" />
+                <rect x="5" y="33" width="55" height="14" rx="3" fill="url(#handleGradient)" />
+                <line x1="15" y1="33" x2="15" y2="47" stroke="#444" strokeWidth="1" />
+                <line x1="25" y1="33" x2="25" y2="47" stroke="#444" strokeWidth="1" />
+                <line x1="35" y1="33" x2="35" y2="47" stroke="#444" strokeWidth="1" />
+                <line x1="45" y1="33" x2="45" y2="47" stroke="#444" strokeWidth="1" />
+                <rect x="70" y="38" width="200" height="2" fill="rgba(255,255,255,0.6)" />
+              </svg>
+              <div 
+                className="absolute inset-0 bg-white"
+                style={{
+                  animation: 'flashBang 0.3s ease-out forwards',
+                  pointerEvents: 'none',
                 }}
               />
-              {[...Array(12)].map((_, i) => (
+              {[...Array(20)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute w-2 h-2 bg-white rounded-full"
+                  className="absolute w-3 h-3 bg-white rounded-full"
                   style={{
-                    left: `${45 + Math.random() * 10}%`,
-                    top: `${Math.random() * 100}%`,
-                    animation: `sparkle 0.6s ease-out ${i * 0.05}s forwards`,
-                    boxShadow: '0 0 10px 5px rgba(255,255,255,0.8)',
-                  }}
+                    left: '50%',
+                    top: `${20 + i * 4}%`,
+                    '--tx': `${(Math.random() - 0.5) * 200}px`,
+                    '--ty': `${(Math.random() - 0.5) * 100}px`,
+                    animation: `sparkBurst 0.8s ease-out ${i * 0.03}s forwards`,
+                    boxShadow: '0 0 15px 8px rgba(255,255,255,0.9), 0 0 30px 15px rgba(100,181,246,0.6)',
+                  } as React.CSSProperties}
                 />
               ))}
             </>
