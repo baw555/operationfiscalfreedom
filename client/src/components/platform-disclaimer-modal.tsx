@@ -48,54 +48,24 @@ export function PlatformDisclaimerModal() {
         </DialogHeader>
 
         <ScrollArea className="max-h-[50vh] pr-4">
-          <div className="space-y-4 text-sm text-gray-600">
+          <div className="space-y-3 text-sm text-gray-600">
             <p>
-              This platform is currently operating in a <strong>live testing and phased-deployment environment</strong>. While certain services, workflows, and deliverables are active and may be provided in real time, not all features, claims, analyses, calculations, automations, or outputs are finalized, validated, or complete at this time.
+              This platform is in <strong>live testing</strong>. Not all features or outputs are finalized.
             </p>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-gray-800 mb-2">Use of this platform constitutes acknowledgment that:</h4>
-              <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                <li>Certain tools, data outputs, recommendations, or reports may be in development, partially implemented, under review, or subject to change</li>
-                <li>Some claims, analyses, or deliverables may be preliminary, incomplete, or pending further verification</li>
-                <li>System behavior, calculations, integrations, or results may evolve as testing, validation, and compliance review continues</li>
-                <li>No representation is made that all services or outputs are final, exhaustive, or suitable for reliance without independent professional review</li>
-              </ul>
-            </div>
-
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <h4 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
+            <div className="bg-red-50 p-3 rounded-lg border border-red-200">
+              <h4 className="font-semibold text-red-800 mb-1 flex items-center gap-2">
                 <Shield className="w-4 h-4" />
-                No Professional Advice / Reliance Disclaimer
+                Not Professional Advice
               </h4>
-              <p className="text-red-700 mb-2">
-                The platform and its content are provided for testing, evaluation, and informational purposes only.
-              </p>
-              <p className="text-red-700 font-medium">
-                Nothing on this platform constitutes, or should be relied upon as: Legal advice, Tax advice, Accounting advice, Medical advice, or Financial/Investment advice.
-              </p>
-              <p className="text-red-700 mt-2">
-                All users are solely responsible for consulting qualified, licensed professionals of their choosing before acting on any information, analysis, or output generated through this platform.
+              <p className="text-red-700 text-xs">
+                Nothing here constitutes legal, tax, medical, or financial advice. Consult licensed professionals before acting on any platform outputs.
               </p>
             </div>
 
-            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-              <h4 className="font-semibold text-amber-800 mb-2">Claims-in-Progress & Verification Disclaimer</h4>
-              <p className="text-amber-700">
-                Certain claims, filings, analyses, calculations, or submissions referenced on this platform may be: In progress, Under review, Awaiting documentation, Pending third-party validation, or Subject to eligibility determinations by governmental or regulatory authorities.
-              </p>
-              <p className="text-amber-700 mt-2 font-medium">
-                No guarantee is made regarding outcomes, approvals, eligibility, accuracy, timing, or acceptance by any authority, agency, carrier, court, or regulator.
-              </p>
-            </div>
-
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <h4 className="font-semibold text-gray-800 mb-2">Limitation of Liability</h4>
-              <p className="text-gray-600">
-                To the fullest extent permitted by law, the platform operators, affiliates, partners, and contributors disclaim all liability arising from: Use of a testing or pre-final system, Reliance on preliminary or incomplete outputs, Errors, omissions, delays, or system changes during testing, and Decisions made prior to final verification or professional review.
-              </p>
-              <p className="text-gray-600 mt-2 font-medium">
-                Use of the platform is entirely voluntary and at the user's own risk during this testing phase.
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <p className="text-gray-600 text-xs">
+                No guarantees on outcomes. Use is voluntary and at your own risk. Platform operators disclaim liability for testing-phase issues.
               </p>
             </div>
           </div>
@@ -110,7 +80,7 @@ export function PlatformDisclaimerModal() {
               className="mt-0.5"
             />
             <label htmlFor="acknowledge" className="text-sm text-gray-700 cursor-pointer">
-              I understand and acknowledge that this platform is in active testing and phased rollout, I accept that not all features or claims are finalized, I assume full responsibility for any actions taken based on platform outputs, and I waive reliance on the platform as a substitute for licensed professional advice.
+              I understand this platform is in testing and accept responsibility for my use of it.
             </label>
           </div>
 
