@@ -132,10 +132,10 @@ export default function Transparency() {
                       <div className="p-2 bg-blue-500/20 rounded-lg">
                         <GraduationCap className="w-6 h-6 text-blue-400" />
                       </div>
-                      <h3 className="font-semibold text-lg">Free Job Training</h3>
+                      <h3 className="font-semibold text-lg">Free Lineman School, Tools & Work Programs</h3>
                     </div>
                     <p className="text-gray-300 text-sm leading-relaxed">
-                      Veterans and their families receive free job training programs to help them transition into civilian careers and develop new skills.
+                      Veterans and their families receive free lineman school, tools, and other work programs to help them transition into civilian careers and develop new skills.
                     </p>
                   </div>
 
