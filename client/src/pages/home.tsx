@@ -6,7 +6,7 @@ import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import logoStacked from "@assets/NavStar-Stacked_(1)_1767702808393.png";
-import militaryHandsTogether from "@/assets/military-hands-together.png";
+import militaryHandsTogether from "@/assets/military-hands-together.jpg";
 import { HeroMontage } from "@/components/hero-montage";
 import { FlagBanner } from "@/components/flag-banner";
 
