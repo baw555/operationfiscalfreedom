@@ -68,6 +68,7 @@ const DownloadUPSRates = lazy(() => import("@/pages/download-ups-rates"));
 const FinOp = lazy(() => import("@/pages/fin-op"));
 const StressTest = lazy(() => import("@/pages/stress-test"));
 const JobPlacement = lazy(() => import("@/pages/job-placement"));
+const LegalEco = lazy(() => import("@/pages/legal-eco"));
 const PlanningSolutions = lazy(() => import("@/pages/planning-solutions"));
 const HealthcarePage = lazy(() => import("@/pages/healthcare"));
 
@@ -345,6 +346,7 @@ function Router() {
         <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
         <Route path="/stress-test" component={StressTest} />
         <Route path="/job-placement" component={JobPlacement} />
+        <Route path="/legal-eco" component={LegalEco} />
         <Route path="/healthcare" component={HealthcarePage} />
         <Route path="/healthcare/ptsd" component={HealthcarePage} />
         <Route path="/healthcare/exosomes" component={HealthcarePage} />

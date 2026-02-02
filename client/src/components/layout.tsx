@@ -274,6 +274,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
+            {/* Legal Eco */}
+            <Link 
+              href="/legal-eco"
+              className={cn(
+                "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 cursor-pointer whitespace-nowrap",
+                location === "/legal-eco" ? "text-blue-600 border-blue-500" : "text-brand-navy border-transparent"
+              )} 
+              data-testid="nav-legal-eco"
+            >
+              Legal Eco
+            </Link>
+
             {/* Free / Low Cost Soft - AI Suite Dropdown */}
             <div className="relative" onMouseEnter={() => setFreeVetSoftwareOpen(true)} onMouseLeave={() => setFreeVetSoftwareOpen(false)}>
               <button className={cn(
@@ -450,6 +462,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               )}
             </div>
+            <div className="h-px bg-brand-navy/20 my-2" />
+
+            {/* Mobile Legal Eco */}
+            <Link 
+              href="/legal-eco"
+              className={cn(
+                "block font-bold uppercase tracking-wider py-3 px-2 touch-manipulation min-h-[44px] border-l-4",
+                location === "/legal-eco" ? "text-blue-600 border-blue-500" : "text-brand-navy border-transparent"
+              )}
+              onClick={() => setMobileMenuOpen(false)}
+              data-testid="nav-mobile-legal-eco"
+            >
+              Legal Eco
+            </Link>
             <div className="h-px bg-brand-navy/20 my-2" />
 
             {/* Mobile Free / Low Cost Soft Dropdown */}
