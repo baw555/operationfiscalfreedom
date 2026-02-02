@@ -202,7 +202,7 @@ export default function EmailSignature() {
             <div className="inline-flex items-center gap-2 mb-4">
               <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-blue-400 md:animate-pulse" />
               <h1 className="text-3xl md:text-5xl font-bold text-white">
-                Email Signature Generator
+                Animate E-mail Signatures
               </h1>
               <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-blue-400 hidden md:block md:animate-pulse" />
             </div>
