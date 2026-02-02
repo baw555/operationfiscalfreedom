@@ -13,10 +13,20 @@ import bgRibbons from "@/assets/bg-ribbons.png";
 import bgParatroopers from "@/assets/bg-paratroopers.png";
 import bgSoldiersSunset from "@/assets/bg-soldiers-sunset.png";
 import bgVeteranFamily from "@/assets/bg-veteran-family.png";
+import bgHonorGuard from "@/assets/bg-honor-guard.jpg";
+import bgSalute from "@/assets/bg-salute.jpg";
+import bgCarrierHQ from "@/assets/bg-carrier-hq.jpg";
+import bgSoldiersTactical from "@/assets/bg-soldiers-tactical.jpg";
+import bgHelicopter from "@/assets/bg-helicopter.jpg";
 import { HeroMontage } from "@/components/hero-montage";
 import { FlagBanner } from "@/components/flag-banner";
 
 const SLIDESHOW_IMAGES = [
+  bgHonorGuard,
+  bgSalute,
+  bgCarrierHQ,
+  bgSoldiersTactical,
+  bgHelicopter,
   militaryHandsTogether,
   bgMemorial,
   bgCarrier,
