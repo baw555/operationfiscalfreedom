@@ -86,6 +86,20 @@ export function FlagBanner() {
           0%, 100% { text-shadow: 0 0 10px rgba(37, 99, 235, 0.8), 0 0 20px rgba(37, 99, 235, 0.6), 0 0 30px rgba(37, 99, 235, 0.4); }
           50% { text-shadow: 0 0 20px rgba(37, 99, 235, 1), 0 0 40px rgba(37, 99, 235, 0.8), 0 0 60px rgba(37, 99, 235, 0.6); }
         }
+        @keyframes camoGlow {
+          0%, 100% { 
+            text-shadow: 0 0 10px rgba(34, 139, 34, 0.8), 0 0 20px rgba(85, 107, 47, 0.6), 0 0 30px rgba(107, 142, 35, 0.4);
+            color: #228b22;
+          }
+          33% { 
+            text-shadow: 0 0 15px rgba(85, 107, 47, 0.9), 0 0 30px rgba(34, 139, 34, 0.7), 0 0 45px rgba(107, 142, 35, 0.5);
+            color: #556b2f;
+          }
+          66% { 
+            text-shadow: 0 0 12px rgba(107, 142, 35, 0.85), 0 0 25px rgba(85, 107, 47, 0.65), 0 0 40px rgba(34, 139, 34, 0.45);
+            color: #6b8e23;
+          }
+        }
         @keyframes yellowGlow {
           0%, 100% { text-shadow: 0 0 10px rgba(234, 179, 8, 0.8), 0 0 20px rgba(234, 179, 8, 0.6), 0 0 30px rgba(234, 179, 8, 0.4); }
           50% { text-shadow: 0 0 20px rgba(234, 179, 8, 1), 0 0 40px rgba(234, 179, 8, 0.8), 0 0 60px rgba(234, 179, 8, 0.6); }
@@ -102,6 +116,7 @@ export function FlagBanner() {
         .glow-red { color: #dc2626; animation: redGlow 2s ease-in-out infinite; }
         .glow-white { color: #ffffff; animation: whiteGlow 2s ease-in-out infinite; animation-delay: 0.5s; }
         .glow-blue { color: #2563eb; animation: blueGlow 2s ease-in-out infinite; animation-delay: 1s; }
+        .glow-camo { animation: camoGlow 2s ease-in-out infinite; animation-delay: 1.25s; }
         .glow-yellow { color: #eab308; animation: yellowGlow 2s ease-in-out infinite; animation-delay: 1.5s; }
       `}} />
 
@@ -119,6 +134,10 @@ export function FlagBanner() {
               </span>
               <span className="text-brand-gold text-sm mx-3">★</span>
               <span className="glow-blue font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4">
+                FOR EACH OTHER
+              </span>
+              <span className="text-brand-gold text-sm mx-3">★</span>
+              <span className="glow-camo font-display text-xs sm:text-sm font-black uppercase tracking-widest px-4">
                 YOU DON'T HAVE PERMISSION TO FAIL
               </span>
               <span className="text-brand-gold text-sm mx-3">★</span>
