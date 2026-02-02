@@ -227,10 +227,97 @@ export default function OperatorAI() {
     }
   };
 
+  // Classified stamp animation state
+  const [typedText, setTypedText] = useState("");
+  const [showStamp, setShowStamp] = useState(false);
+  const [stampComplete, setStampComplete] = useState(false);
+  const fullText = "OPERATOR: AI - YOUR INFORMATION IS";
+  
+  useEffect(() => {
+    let currentIndex = 0;
+    const typeInterval = setInterval(() => {
+      if (currentIndex <= fullText.length) {
+        setTypedText(fullText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        clearInterval(typeInterval);
+        setTimeout(() => setShowStamp(true), 200);
+        setTimeout(() => setStampComplete(true), 800);
+      }
+    }, 80);
+    return () => clearInterval(typeInterval);
+  }, []);
+
   return (
     <VeteranAuthGate serviceName="Operator AI">
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-950 to-gray-900">
+        {/* Classified Header Animation */}
+        <section className="relative py-6 bg-black border-b-2 border-red-600/50 overflow-hidden">
+          <style>{`
+            @keyframes stampDrop {
+              0% { transform: translateY(-200px) rotate(-15deg) scale(1.5); opacity: 0; }
+              60% { transform: translateY(10px) rotate(5deg) scale(1.1); opacity: 1; }
+              80% { transform: translateY(-5px) rotate(-2deg) scale(1.05); }
+              100% { transform: translateY(0) rotate(-8deg) scale(1); }
+            }
+            @keyframes stampShake {
+              0%, 100% { transform: rotate(-8deg); }
+              25% { transform: rotate(-10deg); }
+              75% { transform: rotate(-6deg); }
+            }
+            @keyframes impactWave {
+              0% { transform: scale(0); opacity: 1; }
+              100% { transform: scale(3); opacity: 0; }
+            }
+            .stamp-text {
+              font-family: 'Impact', 'Haettenschweiler', 'Franklin Gothic Bold', 'Arial Black', sans-serif;
+              text-transform: uppercase;
+            }
+            .typewriter-text {
+              font-family: 'Courier New', 'Courier', monospace;
+              letter-spacing: 0.15em;
+            }
+          `}</style>
+          
+          <div className="container mx-auto px-4 relative">
+            <div className="flex items-center justify-center gap-6 flex-wrap">
+              <h1 className="typewriter-text text-xl md:text-2xl lg:text-3xl font-bold text-white tracking-widest">
+                {typedText}
+                <span className="animate-pulse">|</span>
+              </h1>
+              
+              {showStamp && (
+                <div className="relative">
+                  {/* Impact wave effect */}
+                  {!stampComplete && (
+                    <div 
+                      className="absolute inset-0 border-4 border-red-500 rounded-lg"
+                      style={{ animation: 'impactWave 0.6s ease-out forwards' }}
+                    />
+                  )}
+                  
+                  {/* CLASSIFIED Stamp */}
+                  <div 
+                    className="stamp-text text-4xl md:text-5xl lg:text-6xl font-black px-6 py-2 border-[6px] border-red-600 text-red-600 bg-transparent relative"
+                    style={{ 
+                      animation: showStamp ? 'stampDrop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards' : 'none',
+                      textShadow: '2px 2px 0 rgba(0,0,0,0.3)',
+                      boxShadow: stampComplete ? '4px 4px 0 rgba(0,0,0,0.3)' : 'none'
+                    }}
+                  >
+                    CLASSIFIED
+                    {/* Worn stamp texture overlay */}
+                    <div className="absolute inset-0 opacity-20" style={{
+                      backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)`
+                    }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
         {/* Hero Header */}
         <section className="relative py-8 bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 overflow-hidden">
           <style>{`
