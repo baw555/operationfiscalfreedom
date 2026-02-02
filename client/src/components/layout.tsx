@@ -93,6 +93,7 @@ const aboutSubItems = [
 const disabilityRatingSubItems = [
   { name: "Disability Benefits", href: "/disability-rating" },
   { name: "Healthcare Services", href: "/healthcare" },
+  { name: "VA/SSDI Nav Tool", href: "/claims-navigator" },
 ];
 
 const finOpsSubItems = [
