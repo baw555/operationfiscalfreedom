@@ -630,7 +630,7 @@ export default function Home() {
       <section className="py-12 sm:py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-4xl md:text-5xl text-brand-navy mb-3 sm:mb-4">MISSION OBJECTIVES</h2>
+            <h2 className="text-2xl sm:text-4xl md:text-5xl text-brand-navy mb-3 sm:mb-4">OUR MISSION OBJECTIVES</h2>
             <div className="w-16 sm:w-24 h-1 bg-gradient-to-r from-brand-red via-white to-brand-navy mx-auto mb-4 sm:mb-6" />
             <p className="text-sm sm:text-lg text-gray-600 max-w-3xl mx-auto px-2 mb-4">
               Navigator USA is a trusted community for veterans, their families and all supporters — transforming commerce into care and service.
