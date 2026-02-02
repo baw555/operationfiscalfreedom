@@ -96,7 +96,7 @@ const disabilityRatingSubItems = [
 ];
 
 const finOpsSubItems = [
-  { name: "Fin-Ops Hub", href: "/fin-ops" },
+  { name: "Refer & Earn Hub", href: "/fin-ops" },
   { name: "Veteran Logistics", href: "/shipping" },
   { name: "Veteran Led Tax Solutions", href: "/veteran-led-tax" },
 ];
@@ -228,7 +228,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   "text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors py-2 border-b-4 border-transparent cursor-pointer whitespace-nowrap flex items-center gap-1",
                   location.startsWith("/fin-ops") || location.startsWith("/merchant") || location.startsWith("/my-locker") || location.startsWith("/shipping") || location.startsWith("/logistics") || location.startsWith("/best-practices") || location.startsWith("/veteran-led-tax") ? "text-blue-600 border-blue-500" : "text-brand-navy"
                 )}>
-                  Fin-Ops <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
+                  Refer & Earn <ChevronDown className={cn("w-4 h-4 transition-transform", finOpsOpen && "rotate-180")} />
               </button>
               {finOpsOpen && (
                 <div className="absolute top-full left-0 bg-gradient-to-br from-blue-900 to-blue-950 border-2 border-blue-500 rounded-lg shadow-xl py-2 min-w-[220px] z-50">
@@ -409,7 +409,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 )}
                 onClick={() => setMobileFinOpsOpen(!mobileFinOpsOpen)}
               >
-                Fin-Ops <ChevronDown className={cn("w-4 h-4 transition-transform", mobileFinOpsOpen && "rotate-180")} />
+                Refer & Earn <ChevronDown className={cn("w-4 h-4 transition-transform", mobileFinOpsOpen && "rotate-180")} />
               </button>
               {mobileFinOpsOpen && (
                 <div className="pl-4 pb-2 bg-gray-50 rounded">
@@ -529,7 +529,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <h4 className="font-display text-lg sm:text-xl text-brand-red mb-4 sm:mb-6">Platform</h4>
             <ul className="space-y-1 text-gray-300 text-sm sm:text-base">
               <li><Link href="/get-help" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Free VA Rating Assistance</Link></li>
-              <li><Link href="/fin-ops" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Fin-Ops Marketplace</Link></li>
+              <li><Link href="/fin-ops" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Refer & Earn</Link></li>
               <li><Link href="/planning-solutions" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Planning Solutions</Link></li>
               <li><Link href="/businesses" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Veteran Businesses</Link></li>
               <li><Link href="/resources" className="hover:text-white cursor-pointer touch-manipulation inline-block py-2 min-h-[44px] active:text-brand-red">Resources</Link></li>
