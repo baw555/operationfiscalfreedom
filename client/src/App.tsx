@@ -196,6 +196,9 @@ const VendorPortal = lazy(() => import("@/pages/vendor-portal"));
 // Email Signature Generator
 const EmailSignature = lazy(() => import("@/pages/email-signature"));
 
+// Notification Console
+const NotificationConsole = lazy(() => import("@/pages/notification-console"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -382,6 +385,7 @@ function Router() {
         
         {/* Tools */}
         <Route path="/email-signature" component={EmailSignature} />
+        <Route path="/notification-console" component={NotificationConsole} />
         
         <Route component={NotFound} />
       </Switch>

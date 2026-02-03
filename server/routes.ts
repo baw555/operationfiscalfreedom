@@ -881,6 +881,79 @@ export async function registerRoutes(
     }
   });
 
+  // Get current user info (for notification console)
+  app.get("/api/me", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      });
+    } catch (error) {
+      console.error("Error getting current user:", error);
+      res.status(500).json({ message: "Failed to get user info" });
+    }
+  });
+
+  // Get audit logs (JSON format for admin console)
+  app.get("/api/admin/audit", requireAdmin, async (req, res) => {
+    try {
+      const { getAllAuditLogs } = await import("./auditService");
+      const logs = await getAllAuditLogs();
+      res.json(logs);
+    } catch (error) {
+      console.error("Error getting audit logs:", error);
+      res.status(500).json({ message: "Failed to get audit logs" });
+    }
+  });
+
+  // Test webhook endpoint (admin only)
+  app.post("/api/admin/webhook/test", requireAdmin, async (req, res) => {
+    try {
+      const webhookUrl = process.env.WEBHOOK_EMAIL_URL;
+      if (!webhookUrl) {
+        return res.json({ 
+          success: false, 
+          message: "No webhook URL configured. Set WEBHOOK_EMAIL_URL environment variable." 
+        });
+      }
+      
+      const testPayload = {
+        type: "TEST",
+        timestamp: new Date().toISOString(),
+        message: "Webhook test from NavigatorUSA notification system"
+      };
+      
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(testPayload)
+      });
+      
+      res.json({
+        success: response.ok,
+        status: response.status,
+        webhookUrl: webhookUrl.substring(0, 30) + "...",
+        message: response.ok ? "Webhook test successful" : "Webhook test failed"
+      });
+    } catch (error) {
+      console.error("Error testing webhook:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : "Failed to test webhook" 
+      });
+    }
+  });
+
   // Get all finops referrals (admin/master only)
   app.get("/api/admin/finops-referrals", requireAdmin, logPhiAccess("finops_referrals"), async (req, res) => {
     try {
