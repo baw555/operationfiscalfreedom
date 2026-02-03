@@ -50,6 +50,7 @@ The database supports various functionalities including user management (`users`
   - **Per-user notification preferences** with toggleable events and additional email recipients (max 5)
   - API: `POST /api/affiliate-activity/:type`, `GET /api/admin/affiliate-activities`, `GET/PUT /api/notification-settings`
 - **Email Signature Generator (`/email-signature`)**: Interactive generator with 4 animated templates (Modern, Classic, Minimal, Bold), mobile-friendly preview, and Gmail-compatible output.
+- **Notification Console (`/notification-console`)**: Admin/Affiliate console for managing notification preferences, viewing system health, testing webhooks, and browsing audit logs with CSV export.
 
 ## Queued Enhancements
 - **Platform Extension v3 (Frontend Settings UI + HMAC Webhooks)**:
