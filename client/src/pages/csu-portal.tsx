@@ -1340,16 +1340,22 @@ function EnvelopesPanel({ templates }: { templates: CsuContractTemplate[] }) {
               </div>
               <div>
                 <Label>Template</Label>
-                <Select value={selectedTemplate?.toString() || ""} onValueChange={(v) => setSelectedTemplate(parseInt(v))}>
-                  <SelectTrigger data-testid="select-envelope-template">
-                    <SelectValue placeholder="Select template" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.filter(t => t.isActive).map((t) => (
-                      <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {templates.filter(t => t.isActive).length === 0 ? (
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-700">
+                    No active templates available
+                  </div>
+                ) : (
+                  <Select value={selectedTemplate?.toString() || ""} onValueChange={(v) => setSelectedTemplate(parseInt(v))}>
+                    <SelectTrigger data-testid="select-envelope-template">
+                      <SelectValue placeholder="Select template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.filter(t => t.isActive).map((t) => (
+                        <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
 
@@ -2577,14 +2583,20 @@ export default function CsuPortal() {
   });
   const user = authData?.user;
 
-  const { data: templates = [], refetch: refetchTemplates } = useQuery<CsuContractTemplate[]>({
+  const { data: templates = [], refetch: refetchTemplates, isError: templatesError, isLoading: templatesLoading } = useQuery<CsuContractTemplate[]>({
     queryKey: ["/api/csu/templates"],
     queryFn: async () => {
       const res = await fetch("/api/csu/templates", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch templates");
+      if (!res.ok) {
+        if (res.status === 403) {
+          throw new Error("Session expired or unauthorized. Please log in again.");
+        }
+        throw new Error("Failed to fetch templates");
+      }
       return res.json();
     },
     enabled: !!user,
+    retry: 1,
   });
 
   const { data: contractSends = [] } = useQuery<CsuContractSend[]>({
@@ -3502,21 +3514,41 @@ export default function CsuPortal() {
                       <div className="space-y-6">
                         <div className="space-y-2">
                           <Label htmlFor="template">Contract Template *</Label>
-                          <Select
-                            value={formData.templateId}
-                            onValueChange={(value) => setFormData({ ...formData, templateId: value })}
-                          >
-                            <SelectTrigger data-testid="select-template">
-                              <SelectValue placeholder="Select a contract template" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {templates.map((template) => (
-                                <SelectItem key={template.id} value={template.id.toString()}>
-                                  {template.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {templatesError ? (
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium">Unable to load templates</p>
+                                <p className="text-xs">Your session may have expired. Please log out and log back in.</p>
+                              </div>
+                            </div>
+                          ) : templatesLoading ? (
+                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Loading templates...
+                            </div>
+                          ) : templates.length === 0 ? (
+                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4" />
+                              No templates available. Create one in the Templates tab first.
+                            </div>
+                          ) : (
+                            <Select
+                              value={formData.templateId}
+                              onValueChange={(value) => setFormData({ ...formData, templateId: value })}
+                            >
+                              <SelectTrigger data-testid="select-template">
+                                <SelectValue placeholder="Select a contract template" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {templates.map((template) => (
+                                  <SelectItem key={template.id} value={template.id.toString()}>
+                                    {template.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
