@@ -1,0 +1,214 @@
+/**********************************************************************
+ * ONE-BAR PIPELINE (ASSEMBLY + UPLOAD)
+ * - Persistent outputs
+ * - Checkpointed assembly
+ * - Fail-safe state machine
+ * - Single unified progress bar
+ * - Resume Safely button
+ *********************************************************************/
+
+/* =========================
+   SHARED TYPES
+   ========================= */
+
+type PipelineState =
+  | "IDLE"
+  | "ASSEMBLING"
+  | "ASSEMBLED"
+  | "UPLOADING"
+  | "PUBLISHED"
+  | "FAILED";
+
+interface Checkpoint {
+  manifestId: string;
+  lastCompletedClip: number;
+  totalClips: number;
+  state: PipelineState;
+  updatedAt: number;
+}
+
+/* =========================
+   STATE MACHINE
+   ========================= */
+
+const ALLOWED: Record<PipelineState, PipelineState[]> = {
+  IDLE: ["ASSEMBLING"],
+  ASSEMBLING: ["ASSEMBLED", "FAILED"],
+  ASSEMBLED: ["UPLOADING", "FAILED"],
+  UPLOADING: ["PUBLISHED", "FAILED"],
+  PUBLISHED: [],
+  FAILED: ["ASSEMBLING"]
+};
+
+function assertTransition(from: PipelineState, to: PipelineState) {
+  if (!ALLOWED[from].includes(to)) {
+    throw new Error(`Illegal transition ${from} → ${to}`);
+  }
+}
+
+/* =========================
+   PERSISTENCE
+   ========================= */
+
+import fs from "fs";
+
+const CHECKPOINT = "/data/checkpoints/pipeline.json";
+const OUTPUT_DIR = "/data/outputs";
+
+function loadCheckpoint(): Checkpoint | null {
+  try {
+    return JSON.parse(fs.readFileSync(CHECKPOINT, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function saveCheckpoint(cp: Checkpoint) {
+  fs.writeFileSync(CHECKPOINT, JSON.stringify(cp, null, 2));
+}
+
+/* =========================
+   WORKERS
+   ========================= */
+
+async function assemble(manifestId: string, clips: string[]) {
+  let cp = loadCheckpoint();
+  let start = cp?.state === "ASSEMBLING" ? cp.lastCompletedClip + 1 : 0;
+
+  for (let i = start; i < clips.length; i++) {
+    const out = `${OUTPUT_DIR}/${manifestId}/segment_${i}.mp4`;
+    if (!fs.existsSync(out)) {
+      await renderClip(clips[i], out);
+    }
+    saveCheckpoint({
+      manifestId,
+      lastCompletedClip: i,
+      totalClips: clips.length,
+      state: "ASSEMBLING",
+      updatedAt: Date.now()
+    });
+  }
+
+  saveCheckpoint({
+    manifestId,
+    lastCompletedClip: clips.length - 1,
+    totalClips: clips.length,
+    state: "ASSEMBLED",
+    updatedAt: Date.now()
+  });
+}
+
+async function upload(manifestId: string) {
+  const cp = loadCheckpoint();
+  if (!cp || cp.state !== "ASSEMBLED") {
+    throw new Error("Upload blocked");
+  }
+
+  saveCheckpoint({ ...cp, state: "UPLOADING", updatedAt: Date.now() });
+  await uploadFromPersistent(`${OUTPUT_DIR}/${manifestId}`);
+  saveCheckpoint({ ...cp, state: "PUBLISHED", updatedAt: Date.now() });
+}
+
+export async function resumeSafely(manifestId: string, clips: string[]) {
+  const cp = loadCheckpoint();
+
+  if (!cp || cp.state === "FAILED" || cp.state === "ASSEMBLING") {
+    return assemble(manifestId, clips);
+  }
+
+  if (cp.state === "ASSEMBLED") {
+    return upload(manifestId);
+  }
+}
+
+/* =========================
+   API
+   ========================= */
+
+export async function GET() {
+  const cp = loadCheckpoint();
+  if (!cp) return Response.json({ progress: 0, state: "IDLE" });
+
+  const assemblyPct = (cp.lastCompletedClip + 1) / cp.totalClips;
+  const progress =
+    cp.state === "UPLOADING" || cp.state === "PUBLISHED"
+      ? 0.9 + (cp.state === "PUBLISHED" ? 0.1 : 0)
+      : assemblyPct * 0.9;
+
+  return Response.json({
+    progress: Math.min(progress, 1),
+    state: cp.state
+  });
+}
+
+export async function POST() {
+  await resumeSafely("manifest_123", getFrozenClips());
+  return Response.json({ ok: true });
+}
+
+/* =========================
+   UI — SINGLE BAR
+   ========================= */
+
+import React from "react";
+
+export function PipelineBar() {
+  const [progress, setProgress] = React.useState(0);
+  const [state, setState] = React.useState<PipelineState>("IDLE");
+  const [busy, setBusy] = React.useState(false);
+
+  async function poll() {
+    const r = await fetch("/api/pipeline");
+    const j = await r.json();
+    setProgress(j.progress);
+    setState(j.state);
+  }
+
+  async function resume() {
+    setBusy(true);
+    await fetch("/api/pipeline", { method: "POST" });
+    setBusy(false);
+  }
+
+  React.useEffect(() => {
+    poll();
+    const t = setInterval(poll, 2000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div style={{ width: 420 }}>
+      <div style={{ marginBottom: 6 }}>Status: {state}</div>
+      <div
+        style={{
+          height: 10,
+          background: "#ddd",
+          borderRadius: 6,
+          overflow: "hidden"
+        }}
+      >
+        <div
+          style={{
+            width: `${progress * 100}%`,
+            height: "100%",
+            background: "#2e7d32",
+            transition: "width 0.4s ease"
+          }}
+        />
+      </div>
+      <button
+        onClick={resume}
+        disabled={busy}
+        style={{ marginTop: 10 }}
+      >
+        Resume Safely
+      </button>
+    </div>
+  );
+}
+
+/**********************************************************************
+ * ONE BAR
+ * 0–90%  = assembly
+ * 90–100% = upload/publish
+ *********************************************************************/
