@@ -10,6 +10,7 @@ import { getResendClient } from "./resendClient";
 import twilio from "twilio";
 import Stripe from "stripe";
 import { extractDocumentText, analyzeContractDocument, reformatDocumentText } from "./contractDocumentAnalyzer";
+import { recordAffiliateActivity, ACTIVITY_TYPES, type ActivityType } from "./affiliateActivityService";
 import { TOTP, generateSecret, verifySync, NobleCryptoPlugin, ScureBase32Plugin } from "otplib";
 import * as QRCode from "qrcode";
 import crypto from "crypto";
@@ -663,6 +664,66 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error tracking finops click:", error);
       res.status(500).json({ message: "Failed to track click" });
+    }
+  });
+
+  // ===== AFFILIATE ACTIVITY TRACKING =====
+  
+  const affiliateActivitySchema = z.object({
+    email: z.string().email("Invalid email format"),
+    actorUserId: z.number().optional(),
+    metadata: z.record(z.any()).optional().default({})
+  });
+  
+  // Track affiliate activity event
+  app.post("/api/affiliate-activity/:type", async (req, res) => {
+    try {
+      const type = req.params.type.toUpperCase() as ActivityType;
+      
+      if (!ACTIVITY_TYPES.includes(type as typeof ACTIVITY_TYPES[number])) {
+        return res.status(400).json({ message: "Invalid activity type", validTypes: ACTIVITY_TYPES });
+      }
+      
+      const validation = affiliateActivitySchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors: validation.error.errors 
+        });
+      }
+      
+      const { email, actorUserId, metadata } = validation.data;
+      
+      const result = await recordAffiliateActivity({
+        type,
+        actorEmail: email,
+        actorUserId,
+        metadata
+      });
+      
+      if (result.isDuplicate) {
+        return res.json({ success: true, message: "Duplicate event - already recorded" });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Activity ${type} recorded`,
+        notifiedCount: result.notifiedEmails?.length || 0
+      });
+    } catch (error) {
+      console.error("[affiliate-activity] Error:", error);
+      res.status(500).json({ message: "Failed to record activity" });
+    }
+  });
+
+  // Get all affiliate activities (admin only)
+  app.get("/api/admin/affiliate-activities", requireAdmin, async (req, res) => {
+    try {
+      const activities = await storage.getAllAffiliateActivities();
+      res.json(activities);
+    } catch (error) {
+      console.error("[affiliate-activity] Error fetching activities:", error);
+      res.status(500).json({ message: "Failed to fetch activities" });
     }
   });
 
