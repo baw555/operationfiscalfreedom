@@ -1,0 +1,132 @@
+/**********************************************************************
+ * PHASE 4 — REDIS + SSO + ANALYTICS + RATE LIMIT + SOC-2
+ *********************************************************************/
+
+//////////////////////////////
+// ENV (ADD THESE)
+//////////////////////////////
+/*
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+MAGIC_LINK_SECRET=
+RATE_LIMIT_MAX=100
+RATE_LIMIT_WINDOW=60
+*/
+
+//////////////////////////////
+// src/infra/redis.ts
+//////////////////////////////
+import { Redis } from "@upstash/redis";
+export const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN
+});
+
+//////////////////////////////
+// src/queue/redisQueue.ts
+//////////////////////////////
+export async function enqueueRedis(job) {
+  await redis.lpush("notification-queue", JSON.stringify(job));
+}
+
+export async function popRedis() {
+  return await redis.rpop("notification-queue");
+}
+
+//////////////////////////////
+// src/auth/magicLink.ts
+//////////////////////////////
+import jwt from "jsonwebtoken";
+
+export function createMagicLink(email) {
+  return jwt.sign(
+    { email },
+    process.env.MAGIC_LINK_SECRET,
+    { expiresIn: "15m" }
+  );
+}
+
+export function verifyMagicLink(token) {
+  return jwt.verify(token, process.env.MAGIC_LINK_SECRET);
+}
+
+//////////////////////////////
+// src/auth/routes.ts
+//////////////////////////////
+app.post("/auth/magic", async (req, res) => {
+  const token = createMagicLink(req.body.email);
+  await sendSecondary(
+    req.body.email,
+    "Your Login Link",
+    `<a href="${process.env.APP_URL}/login?token=${token}">Login</a>`
+  );
+  res.send({ ok: true });
+});
+
+app.get("/auth/verify", async (req, res) => {
+  const { email } = verifyMagicLink(req.query.token);
+  const user = await prisma.user.findUnique({ where: { email } });
+  req.session.user = user;
+  res.redirect("/app");
+});
+
+//////////////////////////////
+// src/analytics/affiliate.ts
+//////////////////////////////
+export async function affiliateAnalytics(userId) {
+  const events = await prisma.activity.findMany({
+    where: { actorEmail: { not: null } }
+  });
+
+  return {
+    totalEvents: events.length,
+    byType: events.reduce((a, e) => {
+      a[e.type] = (a[e.type] || 0) + 1;
+      return a;
+    }, {})
+  };
+}
+
+//////////////////////////////
+// src/security/rateLimit.ts
+//////////////////////////////
+export async function rateLimit(req, res, next) {
+  const key = `rl:${req.ip}:${req.path}`;
+  const count = await redis.incr(key);
+
+  if (count === 1)
+    await redis.expire(key, Number(process.env.RATE_LIMIT_WINDOW));
+
+  if (count > Number(process.env.RATE_LIMIT_MAX))
+    return res.status(429).send("Too Many Requests");
+
+  next();
+}
+
+//////////////////////////////
+// src/system/soc2.ts
+//////////////////////////////
+import archiver from "archiver";
+
+app.get("/admin/soc2/export", requireRole("MASTER"), async (req, res) => {
+  const archive = archiver("zip");
+  res.attachment("soc2-evidence.zip");
+  archive.pipe(res);
+
+  archive.append(
+    JSON.stringify(await prisma.notificationAudit.findMany(), null, 2),
+    { name: "audit_logs.json" }
+  );
+
+  archive.append(
+    JSON.stringify(await prisma.user.findMany(), null, 2),
+    { name: "users_rbac.json" }
+  );
+
+  archive.append(
+    JSON.stringify({ encryption: "AES-256-GCM" }),
+    { name: "encryption.json" }
+  );
+
+  archive.finalize();
+});
