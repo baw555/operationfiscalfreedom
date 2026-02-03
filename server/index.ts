@@ -10,6 +10,7 @@ import { startQueueRunner } from "./queueService";
 import { internalServiceAccess } from "./internalAccess";
 
 const app = express();
+app.set("trust proxy", true); // REQUIRED on Replit for secure cookies/sessions
 const httpServer = createServer(app);
 
 declare module "http" {
