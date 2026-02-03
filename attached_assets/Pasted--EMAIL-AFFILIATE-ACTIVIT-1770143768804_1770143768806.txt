@@ -1,0 +1,239 @@
+/**********************************************************************
+ * EMAIL + AFFILIATE ACTIVITY PLATFORM (REPLIT READY)
+ * Stack: Node.js + Express + Prisma + Nodemailer
+ *********************************************************************/
+
+///////////////////////////
+// package.json deps
+///////////////////////////
+// npm install express prisma @prisma/client nodemailer uuid zod
+
+///////////////////////////
+// prisma/schema.prisma
+///////////////////////////
+/*
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  parentId    String?
+  parent      User?    @relation("AffiliateTree", fields: [parentId], references: [id])
+  children    User[]   @relation("AffiliateTree")
+  level       Int
+  createdAt   DateTime @default(now())
+  activities  Activity[]
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  type        String
+  actorEmail String
+  metadata    Json
+  hash        String   @unique
+  createdAt   DateTime @default(now())
+}
+*/
+
+///////////////////////////
+// src/server.js
+///////////////////////////
+import express from "express";
+import { PrismaClient } from "@prisma/client";
+import nodemailer from "nodemailer";
+import { v4 as uuid } from "uuid";
+import crypto from "crypto";
+
+const app = express();
+app.use(express.json());
+const prisma = new PrismaClient();
+
+/* ---------------- EMAIL ---------------- */
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
+
+async function sendEmail(to, subject, html) {
+  await transporter.sendMail({
+    from: `"Activity Bot" <${process.env.SMTP_USER}>`,
+    to,
+    subject,
+    html
+  });
+}
+
+/* ---------------- GUARD RAILS ---------------- */
+function hashEvent(type, actorEmail, metadata) {
+  return crypto
+    .createHash("sha256")
+    .update(type + actorEmail + JSON.stringify(metadata))
+    .digest("hex");
+}
+
+async function getUpline(userId, maxDepth = 6) {
+  let chain = [];
+  let current = await prisma.user.findUnique({ where: { id: userId } });
+  let depth = 0;
+
+  while (current && current.parentId && depth < maxDepth) {
+    const parent = await prisma.user.findUnique({
+      where: { id: current.parentId }
+    });
+    if (!parent) break;
+    chain.push(parent);
+    current = parent;
+    depth++;
+  }
+
+  return chain;
+}
+
+/* ---------------- CORE EVENT PIPELINE ---------------- */
+async function recordActivity({ type, actorEmail, metadata }) {
+  const hash = hashEvent(type, actorEmail, metadata);
+
+  // Idempotency
+  const exists = await prisma.activity.findUnique({ where: { hash } });
+  if (exists) return;
+
+  const activity = await prisma.activity.create({
+    data: {
+      type,
+      actorEmail,
+      metadata,
+      hash
+    }
+  });
+
+  const actor = await prisma.user.findUnique({
+    where: { email: actorEmail }
+  });
+
+  let recipients = new Set();
+  recipients.add(process.env.MASTER_EMAIL);
+
+  if (actor) {
+    recipients.add(actor.email);
+    const upline = await getUpline(actor.id);
+    upline.forEach(u => recipients.add(u.email));
+  }
+
+  const html = `
+    <h3>New Activity: ${type}</h3>
+    <p><strong>Actor:</strong> ${actorEmail}</p>
+    <pre>${JSON.stringify(metadata, null, 2)}</pre>
+  `;
+
+  for (const email of recipients) {
+    await sendEmail(email, `Activity: ${type}`, html);
+  }
+}
+
+/* ---------------- ROUTES ---------------- */
+
+// SITE VISIT
+app.post("/event/visit", async (req, res) => {
+  await recordActivity({
+    type: "SITE_VISIT",
+    actorEmail: req.body.email || "anonymous",
+    metadata: { path: req.body.path }
+  });
+  res.send({ ok: true });
+});
+
+// CONTRACT VIEW
+app.post("/event/contract-view", async (req, res) => {
+  await recordActivity({
+    type: "CONTRACT_VIEW",
+    actorEmail: req.body.email,
+    metadata: { contractId: req.body.contractId }
+  });
+  res.send({ ok: true });
+});
+
+// CONTRACT SIGN
+app.post("/event/contract-sign", async (req, res) => {
+  await recordActivity({
+    type: "CONTRACT_SIGNED",
+    actorEmail: req.body.email,
+    metadata: { contractId: req.body.contractId }
+  });
+  res.send({ ok: true });
+});
+
+// INFO REQUEST
+app.post("/event/info-request", async (req, res) => {
+  await recordActivity({
+    type: "INFO_REQUEST",
+    actorEmail: req.body.email,
+    metadata: { message: req.body.message }
+  });
+  res.send({ ok: true });
+});
+
+// AFFILIATE CLICK
+app.post("/event/affiliate-click", async (req, res) => {
+  await recordActivity({
+    type: "AFFILIATE_CLICK",
+    actorEmail: req.body.email || "anonymous",
+    metadata: { referrer: req.body.referrer }
+  });
+  res.send({ ok: true });
+});
+
+// AFFILIATE SIGNUP (GUARDED)
+app.post("/affiliate/signup", async (req, res) => {
+  const { email, parentEmail } = req.body;
+
+  const parent = parentEmail
+    ? await prisma.user.findUnique({ where: { email: parentEmail } })
+    : null;
+
+  if (parent && parent.level >= 6) {
+    return res.status(400).send({ error: "Max depth exceeded" });
+  }
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      parentId: parent?.id || null,
+      level: parent ? parent.level + 1 : 1
+    }
+  });
+
+  await recordActivity({
+    type: "AFFILIATE_SIGNUP",
+    actorEmail: email,
+    metadata: { parentEmail }
+  });
+
+  res.send({ ok: true, user });
+});
+
+/* ---------------- TEST ROUTE ---------------- */
+app.get("/test/ping", async (_, res) => {
+  await sendEmail(
+    process.env.MASTER_EMAIL,
+    "Test OK",
+    "<p>Email system operational</p>"
+  );
+  res.send({ ok: true });
+});
+
+/* ---------------- START ---------------- */
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
+});
