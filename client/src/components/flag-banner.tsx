@@ -109,7 +109,7 @@ export function FlagBanner() {
           white-space: nowrap;
         }
         .military-marquee-content {
-          animation: militaryMarquee 40s linear infinite;
+          animation: militaryMarquee 120s linear infinite;
           display: flex;
           align-items: center;
         }
@@ -291,7 +291,7 @@ export function FlagBanner() {
         }
         
         .animate-marquee {
-          animation: marquee 40s linear infinite;
+          animation: marquee 120s linear infinite;
         }
         
         .marquee-container:hover .animate-marquee {
