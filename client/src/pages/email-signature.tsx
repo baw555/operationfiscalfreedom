@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+type AnimationType = "none" | "pulse" | "glow" | "gradient" | "typing" | "bounce";
+
 interface SignatureData {
   fullName: string;
   jobTitle: string;
@@ -39,7 +41,18 @@ interface SignatureData {
   primaryColor: string;
   secondaryColor: string;
   template: "modern" | "classic" | "minimal" | "bold";
+  animation: AnimationType;
+  animationSpeed: "slow" | "normal" | "fast";
 }
+
+const animationOptions: { value: AnimationType; label: string; description: string }[] = [
+  { value: "none", label: "None", description: "Static signature" },
+  { value: "pulse", label: "Pulse", description: "Gentle pulsing effect" },
+  { value: "glow", label: "Glow", description: "Glowing highlight" },
+  { value: "gradient", label: "Gradient Flow", description: "Flowing gradient colors" },
+  { value: "typing", label: "Typing", description: "Typewriter effect on name" },
+  { value: "bounce", label: "Bounce", description: "Bouncing elements" },
+];
 
 const colorPresets = [
   { name: "Navy", primary: "#1e3a5f", secondary: "#3b82f6" },
@@ -70,7 +83,9 @@ export default function EmailSignature() {
     photoUrl: "",
     primaryColor: "#1e3a5f",
     secondaryColor: "#3b82f6",
-    template: "modern"
+    template: "modern",
+    animation: "pulse",
+    animationSpeed: "normal"
   });
 
   const updateField = (field: keyof SignatureData, value: string) => {
@@ -221,11 +236,12 @@ export default function EmailSignature() {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="info" className="w-full">
-                  <TabsList className="w-full bg-slate-700/50 mb-6">
+                  <TabsList className="w-full bg-slate-700/50 mb-6 flex-wrap">
                     <TabsTrigger value="info" className="flex-1" data-testid="tab-info">Info</TabsTrigger>
                     <TabsTrigger value="contact" className="flex-1" data-testid="tab-contact">Contact</TabsTrigger>
                     <TabsTrigger value="social" className="flex-1" data-testid="tab-social">Social</TabsTrigger>
                     <TabsTrigger value="style" className="flex-1" data-testid="tab-style">Style</TabsTrigger>
+                    <TabsTrigger value="animate" className="flex-1 text-yellow-400" data-testid="tab-animate">Animate ✨</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="info" className="space-y-4">
@@ -451,6 +467,62 @@ export default function EmailSignature() {
                       </div>
                     </div>
                   </TabsContent>
+
+                  <TabsContent value="animate" className="space-y-6">
+                    <div>
+                      <Label className="text-slate-300 mb-3 block">Animation Effect</Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {animationOptions.map((anim) => (
+                          <button
+                            key={anim.value}
+                            onClick={() => updateField("animation", anim.value)}
+                            className={`p-3 rounded-lg border-2 transition-all text-left ${
+                              data.animation === anim.value
+                                ? "border-yellow-500 bg-yellow-500/20 text-white"
+                                : "border-slate-600 bg-slate-700/30 text-slate-300 hover:border-slate-500"
+                            }`}
+                            data-testid={`animation-${anim.value}`}
+                          >
+                            <div className="font-semibold text-sm">{anim.label}</div>
+                            <div className="text-xs opacity-70">{anim.description}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-slate-300 mb-3 block">Animation Speed</Label>
+                      <div className="flex gap-2">
+                        {(["slow", "normal", "fast"] as const).map((speed) => (
+                          <button
+                            key={speed}
+                            onClick={() => updateField("animationSpeed", speed)}
+                            className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all capitalize ${
+                              data.animationSpeed === speed
+                                ? "border-yellow-500 bg-yellow-500/20 text-white"
+                                : "border-slate-600 bg-slate-700/30 text-slate-300 hover:border-slate-500"
+                            }`}
+                            data-testid={`speed-${speed}`}
+                          >
+                            {speed}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600">
+                      <h4 className="text-yellow-400 font-semibold mb-2 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4" /> Animation Info
+                      </h4>
+                      <p className="text-slate-300 text-sm leading-relaxed">
+                        Animations are visible in the live preview. Gmail signatures support static HTML only, 
+                        but you can use an <strong>animated GIF</strong> as your profile photo for movement in emails!
+                      </p>
+                      <p className="text-slate-400 text-xs mt-2">
+                        Tip: Upload your animated GIF to a hosting service and paste the URL in the Photo field.
+                      </p>
+                    </div>
+                  </TabsContent>
                 </Tabs>
               </CardContent>
             </Card>
@@ -460,7 +532,7 @@ export default function EmailSignature() {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Mail className="h-5 w-5 text-blue-400" />
-                    Live Preview
+                    Live Preview {data.animation !== "none" && <span className="text-yellow-400 text-sm">✨ Animated</span>}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -519,135 +591,250 @@ export default function EmailSignature() {
 }
 
 function SignaturePreview({ data }: { data: SignatureData }) {
-  const { fullName, jobTitle, company, email, phone, website, address, linkedin, twitter, instagram, facebook, photoUrl, primaryColor, secondaryColor, template } = data;
+  const { fullName, jobTitle, company, email, phone, website, address, linkedin, twitter, instagram, facebook, photoUrl, primaryColor, secondaryColor, template, animation, animationSpeed } = data;
   
   const initials = fullName.split(' ').map(n => n[0]).join('').toUpperCase();
+  
+  const speedDuration = {
+    slow: "3s",
+    normal: "1.5s",
+    fast: "0.7s"
+  };
+
+  const getAnimationStyle = (type: string, target: "name" | "avatar" | "border" | "container") => {
+    const duration = speedDuration[animationSpeed];
+    
+    if (animation === "none") return {};
+    
+    if (animation === "pulse") {
+      if (target === "avatar" || target === "name") {
+        return { animation: `pulse ${duration} ease-in-out infinite` };
+      }
+    }
+    
+    if (animation === "glow") {
+      if (target === "name") {
+        return { 
+          animation: `glow ${duration} ease-in-out infinite`,
+          textShadow: `0 0 10px ${primaryColor}, 0 0 20px ${secondaryColor}`
+        };
+      }
+      if (target === "avatar") {
+        return { 
+          animation: `glow ${duration} ease-in-out infinite`,
+          boxShadow: `0 0 15px ${secondaryColor}, 0 0 30px ${primaryColor}`
+        };
+      }
+    }
+    
+    if (animation === "gradient") {
+      if (target === "avatar" || target === "container") {
+        return {
+          background: `linear-gradient(270deg, ${primaryColor}, ${secondaryColor}, ${primaryColor})`,
+          backgroundSize: "400% 400%",
+          animation: `gradientFlow ${duration} ease infinite`
+        };
+      }
+    }
+    
+    if (animation === "bounce") {
+      if (target === "avatar") {
+        return { animation: `bounce ${duration} ease-in-out infinite` };
+      }
+    }
+    
+    if (animation === "typing") {
+      if (target === "name") {
+        return { 
+          animation: `typing ${duration} steps(${fullName.length}) infinite alternate, blink 0.5s step-end infinite`
+        };
+      }
+    }
+    
+    return {};
+  };
+
+  const animationCSS = `
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.9; }
+    }
+    @keyframes glow {
+      0%, 100% { opacity: 1; filter: brightness(1); }
+      50% { opacity: 0.9; filter: brightness(1.2); }
+    }
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    @keyframes blink {
+      50% { border-color: transparent; }
+    }
+  `;
 
   if (template === "modern") {
     return (
-      <div className="flex items-start gap-3 md:gap-4">
-        <div 
-          className="shrink-0 border-r-4 pr-3 md:pr-4"
-          style={{ borderColor: primaryColor }}
-        >
-          {photoUrl ? (
-            <img 
-              src={photoUrl} 
-              alt={fullName}
-              className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover"
-              style={{ boxShadow: `0 0 0 2px ${secondaryColor}` }}
-            />
-          ) : (
-            <div 
-              className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-white text-xl md:text-2xl font-bold"
-              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
-            >
-              {initials}
-            </div>
-          )}
-        </div>
-        <div className="space-y-1 md:space-y-2 min-w-0">
+      <>
+        <style>{animationCSS}</style>
+        <div className="flex items-start gap-3 md:gap-4">
           <div 
-            className="text-base md:text-lg font-bold"
-            style={{ color: primaryColor }}
+            className="shrink-0 border-r-4 pr-3 md:pr-4"
+            style={{ borderColor: primaryColor }}
           >
-            {fullName}
-          </div>
-          <div className="text-xs md:text-sm text-gray-600">
-            {jobTitle}{company && ` | ${company}`}
-          </div>
-          <div className="text-xs space-y-1 text-gray-700">
-            {email && (
-              <div className="flex items-center gap-2">
-                <span style={{ color: secondaryColor }}>✉</span>
-                <a href={`mailto:${email}`} className="hover:underline truncate">{email}</a>
-              </div>
-            )}
-            {phone && (
-              <div className="flex items-center gap-2">
-                <span style={{ color: secondaryColor }}>📱</span>
-                <span>{phone}</span>
-              </div>
-            )}
-            {website && (
-              <div className="flex items-center gap-2">
-                <span style={{ color: secondaryColor }}>🌐</span>
-                <a href={`https://${website}`} style={{ color: secondaryColor }} className="hover:underline truncate">{website}</a>
-              </div>
-            )}
-            {address && (
-              <div className="flex items-center gap-2">
-                <span style={{ color: secondaryColor }}>📍</span>
-                <span className="text-gray-500 truncate">{address}</span>
+            {photoUrl ? (
+              <img 
+                src={photoUrl} 
+                alt={fullName}
+                className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover"
+                style={{ boxShadow: `0 0 0 2px ${secondaryColor}`, ...getAnimationStyle("avatar", "avatar") }}
+              />
+            ) : (
+              <div 
+                className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-white text-xl md:text-2xl font-bold"
+                style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`, ...getAnimationStyle("avatar", "avatar") }}
+              >
+                {initials}
               </div>
             )}
           </div>
-          <SocialIcons linkedin={linkedin} twitter={twitter} instagram={instagram} facebook={facebook} />
+          <div className="space-y-1 md:space-y-2 min-w-0">
+            <div 
+              className={`text-base md:text-lg font-bold ${animation === "typing" ? "overflow-hidden whitespace-nowrap border-r-2" : ""}`}
+              style={{ color: primaryColor, ...getAnimationStyle("name", "name"), borderColor: animation === "typing" ? primaryColor : "transparent" }}
+            >
+              {fullName}
+            </div>
+            <div className="text-xs md:text-sm text-gray-600">
+              {jobTitle}{company && ` | ${company}`}
+            </div>
+            <div className="text-xs space-y-1 text-gray-700">
+              {email && (
+                <div className="flex items-center gap-2">
+                  <span style={{ color: secondaryColor }}>✉</span>
+                  <a href={`mailto:${email}`} className="hover:underline truncate">{email}</a>
+                </div>
+              )}
+              {phone && (
+                <div className="flex items-center gap-2">
+                  <span style={{ color: secondaryColor }}>📱</span>
+                  <span>{phone}</span>
+                </div>
+              )}
+              {website && (
+                <div className="flex items-center gap-2">
+                  <span style={{ color: secondaryColor }}>🌐</span>
+                  <a href={`https://${website}`} style={{ color: secondaryColor }} className="hover:underline truncate">{website}</a>
+                </div>
+              )}
+              {address && (
+                <div className="flex items-center gap-2">
+                  <span style={{ color: secondaryColor }}>📍</span>
+                  <span className="text-gray-500 truncate">{address}</span>
+                </div>
+              )}
+            </div>
+            <SocialIcons linkedin={linkedin} twitter={twitter} instagram={instagram} facebook={facebook} />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (template === "classic") {
     return (
-      <div>
-        <div 
-          className="text-lg md:text-xl font-bold border-b-2 pb-2 mb-2"
-          style={{ color: primaryColor, borderColor: secondaryColor }}
-        >
-          {fullName}
+      <>
+        <style>{animationCSS}</style>
+        <div>
+          <div 
+            className={`text-lg md:text-xl font-bold border-b-2 pb-2 mb-2 ${animation === "typing" ? "overflow-hidden whitespace-nowrap border-r-2" : ""}`}
+            style={{ color: primaryColor, borderColor: secondaryColor, ...getAnimationStyle("name", "name") }}
+          >
+            {fullName}
+          </div>
+          <div className="text-xs md:text-sm italic text-gray-600 mb-3">
+            {jobTitle}{company && `, ${company}`}
+          </div>
+          <div className="text-xs text-gray-600 space-y-1">
+            {email && <div>Email: <a href={`mailto:${email}`} style={{ color: primaryColor }} className="break-all">{email}</a></div>}
+            {phone && <div>Phone: <a href={`tel:${phone}`} style={{ color: primaryColor }}>{phone}</a></div>}
+            {website && <div>Web: <a href={`https://${website}`} style={{ color: primaryColor }} className="break-all">{website}</a></div>}
+            {address && <div className="break-words">{address}</div>}
+          </div>
+          <SocialIcons linkedin={linkedin} twitter={twitter} instagram={instagram} facebook={facebook} />
         </div>
-        <div className="text-xs md:text-sm italic text-gray-600 mb-3">
-          {jobTitle}{company && `, ${company}`}
-        </div>
-        <div className="text-xs text-gray-600 space-y-1">
-          {email && <div>Email: <a href={`mailto:${email}`} style={{ color: primaryColor }} className="break-all">{email}</a></div>}
-          {phone && <div>Phone: <a href={`tel:${phone}`} style={{ color: primaryColor }}>{phone}</a></div>}
-          {website && <div>Web: <a href={`https://${website}`} style={{ color: primaryColor }} className="break-all">{website}</a></div>}
-          {address && <div className="break-words">{address}</div>}
-        </div>
-        <SocialIcons linkedin={linkedin} twitter={twitter} instagram={instagram} facebook={facebook} />
-      </div>
+      </>
     );
   }
 
   if (template === "minimal") {
     return (
-      <div>
-        <div className="font-semibold text-sm md:text-base" style={{ color: primaryColor }}>{fullName}</div>
-        <div className="text-xs text-gray-500 mb-2">
-          {jobTitle}{company && ` · ${company}`}
+      <>
+        <style>{animationCSS}</style>
+        <div>
+          <div 
+            className={`font-semibold text-sm md:text-base ${animation === "typing" ? "overflow-hidden whitespace-nowrap border-r-2" : ""}`}
+            style={{ color: primaryColor, ...getAnimationStyle("name", "name"), borderColor: animation === "typing" ? primaryColor : "transparent" }}
+          >
+            {fullName}
+          </div>
+          <div className="text-xs text-gray-500 mb-2">
+            {jobTitle}{company && ` · ${company}`}
+          </div>
+          <div className="text-xs text-gray-600 flex flex-wrap gap-1">
+            {[email, phone, website].filter(Boolean).map((item, i, arr) => (
+              <span key={i}>
+                {item === email ? <a href={`mailto:${email}`} style={{ color: secondaryColor }} className="break-all">{email}</a> : 
+                 item === website ? <a href={`https://${website}`} style={{ color: secondaryColor }} className="break-all">{website}</a> : 
+                 item}
+                {i < arr.length - 1 && " | "}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="text-xs text-gray-600 flex flex-wrap gap-1">
-          {[email, phone, website].filter(Boolean).map((item, i, arr) => (
-            <span key={i}>
-              {item === email ? <a href={`mailto:${email}`} style={{ color: secondaryColor }} className="break-all">{email}</a> : 
-               item === website ? <a href={`https://${website}`} style={{ color: secondaryColor }} className="break-all">{website}</a> : 
-               item}
-              {i < arr.length - 1 && " | "}
-            </span>
-          ))}
-        </div>
-      </div>
+      </>
     );
   }
 
   // Bold template
   return (
-    <div 
-      className="p-3 md:p-4 rounded-lg text-white"
-      style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
-    >
-      <div className="text-lg md:text-xl font-bold mb-1">{fullName}</div>
-      <div className="text-xs md:text-sm opacity-90 mb-3">
-        {jobTitle}{company && ` | ${company}`}
+    <>
+      <style>{animationCSS}</style>
+      <div 
+        className="p-3 md:p-4 rounded-lg text-white"
+        style={{ 
+          background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+          ...(animation === "gradient" ? { 
+            background: `linear-gradient(270deg, ${primaryColor}, ${secondaryColor}, ${primaryColor})`,
+            backgroundSize: "400% 400%",
+            animation: `gradientFlow ${speedDuration[animationSpeed]} ease infinite`
+          } : {})
+        }}
+      >
+        <div 
+          className={`text-lg md:text-xl font-bold mb-1 ${animation === "typing" ? "overflow-hidden whitespace-nowrap border-r-2 border-white" : ""}`}
+          style={animation !== "gradient" ? getAnimationStyle("name", "name") : {}}
+        >
+          {fullName}
+        </div>
+        <div className="text-xs md:text-sm opacity-90 mb-3">
+          {jobTitle}{company && ` | ${company}`}
+        </div>
+        <div className="text-xs opacity-85 space-y-1">
+          {email && <div className="break-all">✉ <a href={`mailto:${email}`} className="text-white hover:underline">{email}</a></div>}
+          {phone && <div>📱 {phone}</div>}
+          {website && <div className="break-all">🌐 <a href={`https://${website}`} className="text-white hover:underline">{website}</a></div>}
+        </div>
       </div>
-      <div className="text-xs opacity-85 space-y-1">
-        {email && <div className="break-all">✉ <a href={`mailto:${email}`} className="text-white hover:underline">{email}</a></div>}
-        {phone && <div>📱 {phone}</div>}
-        {website && <div className="break-all">🌐 <a href={`https://${website}`} className="text-white hover:underline">{website}</a></div>}
-      </div>
-    </div>
+    </>
   );
 }
 
