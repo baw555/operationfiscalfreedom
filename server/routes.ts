@@ -285,6 +285,11 @@ function requirePermission(permission: Permission) {
 }
 
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  const internalUser = (req as any).user;
+  if (internalUser?.service && (internalUser.role === "master" || internalUser.role === "admin")) {
+    return next();
+  }
+  
   if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
     return res.status(403).json({ message: "Forbidden - Admin access required" });
   }

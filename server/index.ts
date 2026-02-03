@@ -7,6 +7,7 @@ import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { createServer } from "http";
 import path from "path";
 import { startQueueRunner } from "./queueService";
+import { internalServiceAccess } from "./internalAccess";
 
 const app = express();
 const httpServer = createServer(app);
@@ -72,6 +73,9 @@ app.use((req, res, next) => {
 
 // Serve attached_assets folder for uploaded images/files
 app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
+
+// Internal service access middleware (Replit/CI/Test Agent)
+app.use(internalServiceAccess);
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
