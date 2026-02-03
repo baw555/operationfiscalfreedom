@@ -1340,6 +1340,24 @@ export const insertAffiliateActivitySchema = createInsertSchema(affiliateActivit
 export type InsertAffiliateActivity = z.infer<typeof insertAffiliateActivitySchema>;
 export type AffiliateActivity = typeof affiliateActivities.$inferSelect;
 
+// Notification Settings - Per-user email preferences for activity notifications
+export const notificationSettings = pgTable("notification_settings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  enabled: boolean("enabled").default(true).notNull(),
+  emails: text("emails"), // JSON array of additional email addresses (max 5)
+  events: text("events"), // JSON object { EVENT_NAME: true/false }
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
+export type NotificationSettings = typeof notificationSettings.$inferSelect;
+
 // Password Reset Tokens
 export const passwordResetTokens = pgTable("password_reset_tokens", {
   id: serial("id").primaryKey(),

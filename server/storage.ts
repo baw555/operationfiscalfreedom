@@ -70,7 +70,8 @@ import {
   evidenceRequirements, type EvidenceRequirement,
   vendorMagicLinks, type VendorMagicLink, type InsertVendorMagicLink,
   vendorSessions, type VendorSession, type InsertVendorSession,
-  affiliateActivities, type AffiliateActivity, type InsertAffiliateActivity
+  affiliateActivities, type AffiliateActivity, type InsertAffiliateActivity,
+  notificationSettings, type NotificationSettings, type InsertNotificationSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -498,6 +499,12 @@ export interface IStorage {
   getAffiliateActivityByHash(hash: string): Promise<AffiliateActivity | undefined>;
   getAllAffiliateActivities(): Promise<AffiliateActivity[]>;
   getAffiliateActivitiesByActorEmail(email: string): Promise<AffiliateActivity[]>;
+  
+  // Notification Settings
+  getNotificationSettings(userId: number): Promise<NotificationSettings | undefined>;
+  createNotificationSettings(settings: InsertNotificationSettings): Promise<NotificationSettings>;
+  updateNotificationSettings(userId: number, updates: Partial<NotificationSettings>): Promise<NotificationSettings | undefined>;
+  ensureNotificationSettings(userId: number): Promise<NotificationSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2639,6 +2646,47 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(affiliateActivities)
       .where(eq(affiliateActivities.actorEmail, email))
       .orderBy(desc(affiliateActivities.createdAt));
+  }
+
+  // Notification Settings
+  async getNotificationSettings(userId: number): Promise<NotificationSettings | undefined> {
+    const [settings] = await db.select().from(notificationSettings)
+      .where(eq(notificationSettings.userId, userId));
+    return settings;
+  }
+
+  async createNotificationSettings(settings: InsertNotificationSettings): Promise<NotificationSettings> {
+    const [created] = await db.insert(notificationSettings).values(settings).returning();
+    return created;
+  }
+
+  async updateNotificationSettings(userId: number, updates: Partial<NotificationSettings>): Promise<NotificationSettings | undefined> {
+    const [updated] = await db.update(notificationSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(notificationSettings.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  async ensureNotificationSettings(userId: number): Promise<NotificationSettings> {
+    const existing = await this.getNotificationSettings(userId);
+    if (existing) return existing;
+    
+    const defaultEvents = {
+      SITE_VISIT: true,
+      CONTRACT_VIEW: true,
+      CONTRACT_SIGNED: true,
+      INFO_REQUEST: true,
+      AFFILIATE_CLICK: true,
+      AFFILIATE_SIGNUP: true
+    };
+    
+    return this.createNotificationSettings({
+      userId,
+      enabled: true,
+      emails: JSON.stringify([]),
+      events: JSON.stringify(defaultEvents)
+    });
   }
 }
 
