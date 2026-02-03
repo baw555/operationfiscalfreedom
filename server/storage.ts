@@ -69,7 +69,8 @@ import {
   caseShares, type CaseShare, type InsertCaseShare,
   evidenceRequirements, type EvidenceRequirement,
   vendorMagicLinks, type VendorMagicLink, type InsertVendorMagicLink,
-  vendorSessions, type VendorSession, type InsertVendorSession
+  vendorSessions, type VendorSession, type InsertVendorSession,
+  affiliateActivities, type AffiliateActivity, type InsertAffiliateActivity
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -491,6 +492,12 @@ export interface IStorage {
   deleteVendorSession(token: string): Promise<void>;
   deleteExpiredMagicLinks(): Promise<void>;
   deleteExpiredVendorSessions(): Promise<void>;
+  
+  // Affiliate Activity Tracking
+  createAffiliateActivity(activity: InsertAffiliateActivity): Promise<AffiliateActivity>;
+  getAffiliateActivityByHash(hash: string): Promise<AffiliateActivity | undefined>;
+  getAllAffiliateActivities(): Promise<AffiliateActivity[]>;
+  getAffiliateActivitiesByActorEmail(email: string): Promise<AffiliateActivity[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2610,6 +2617,28 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExpiredVendorSessions(): Promise<void> {
     await db.delete(vendorSessions).where(lt(vendorSessions.expiresAt, new Date()));
+  }
+
+  // Affiliate Activity Tracking
+  async createAffiliateActivity(activity: InsertAffiliateActivity): Promise<AffiliateActivity> {
+    const [created] = await db.insert(affiliateActivities).values(activity).returning();
+    return created;
+  }
+
+  async getAffiliateActivityByHash(hash: string): Promise<AffiliateActivity | undefined> {
+    const [activity] = await db.select().from(affiliateActivities)
+      .where(eq(affiliateActivities.hash, hash));
+    return activity;
+  }
+
+  async getAllAffiliateActivities(): Promise<AffiliateActivity[]> {
+    return db.select().from(affiliateActivities).orderBy(desc(affiliateActivities.createdAt));
+  }
+
+  async getAffiliateActivitiesByActorEmail(email: string): Promise<AffiliateActivity[]> {
+    return db.select().from(affiliateActivities)
+      .where(eq(affiliateActivities.actorEmail, email))
+      .orderBy(desc(affiliateActivities.createdAt));
   }
 }
 
