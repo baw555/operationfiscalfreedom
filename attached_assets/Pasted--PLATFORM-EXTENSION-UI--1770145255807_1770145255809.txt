@@ -1,0 +1,230 @@
+/**********************************************************************
+ * PLATFORM EXTENSION: UI + AUDIT + DIGEST + FAILOVER + WEBHOOKS
+ *********************************************************************/
+
+//////////////////////////////
+// prisma/schema.prisma
+//////////////////////////////
+/*
+model NotificationSettings {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  enabled     Boolean  @default(true)
+  emails      String[]
+  events      Json
+  delivery    String   @default("instant") // instant | hourly | daily
+  updatedAt   DateTime @updatedAt
+}
+
+model NotificationAudit {
+  id          String   @id @default(uuid())
+  eventType   String
+  actorEmail  String
+  recipients  String[]
+  delivery    String
+  provider    String
+  success     Boolean
+  error       String?
+  createdAt   DateTime @default(now())
+}
+
+model DigestQueue {
+  id        String   @id @default(uuid())
+  userId    String
+  eventType String
+  payload   Json
+  createdAt DateTime @default(now())
+}
+*/
+
+//////////////////////////////
+// src/email/providers.ts
+//////////////////////////////
+export async function sendPrimary(to, subject, html) {
+  try {
+    await transporter.sendMail({ to, subject, html });
+    return { provider: "primary", success: true };
+  } catch (e) {
+    return { provider: "primary", success: false, error: e.message };
+  }
+}
+
+export async function sendSecondary(to, subject, html) {
+  await fetch(process.env.SECONDARY_EMAIL_WEBHOOK, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ to, subject, html })
+  });
+  return { provider: "secondary", success: true };
+}
+
+//////////////////////////////
+// src/notifications/dispatch.ts
+//////////////////////////////
+async function dispatchEmail({ to, subject, html, audit }) {
+  let result = await sendPrimary(to, subject, html);
+
+  if (!result.success) {
+    result = await sendSecondary(to, subject, html);
+  }
+
+  await prisma.notificationAudit.create({
+    data: {
+      ...audit,
+      provider: result.provider,
+      success: result.success,
+      error: result.error || null
+    }
+  });
+}
+
+//////////////////////////////
+// src/digest/worker.ts
+//////////////////////////////
+setInterval(async () => {
+  const users = await prisma.notificationSettings.findMany({
+    where: { delivery: { in: ["hourly", "daily"] } }
+  });
+
+  for (const settings of users) {
+    const window =
+      settings.delivery === "hourly" ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+
+    const since = new Date(Date.now() - window);
+
+    const events = await prisma.digestQueue.findMany({
+      where: { userId: settings.userId, createdAt: { gte: since } }
+    });
+
+    if (!events.length) continue;
+
+    const html = `
+      <h3>Digest (${settings.delivery})</h3>
+      <pre>${JSON.stringify(events.map(e => e.payload), null, 2)}</pre>
+    `;
+
+    for (const email of settings.emails) {
+      await dispatchEmail({
+        to: email,
+        subject: "Activity Digest",
+        html,
+        audit: {
+          eventType: "DIGEST",
+          actorEmail: email,
+          recipients: [email],
+          delivery: settings.delivery
+        }
+      });
+    }
+
+    await prisma.digestQueue.deleteMany({
+      where: { userId: settings.userId }
+    });
+  }
+}, 60 * 1000);
+
+//////////////////////////////
+// src/webhooks/fire.ts
+//////////////////////////////
+import crypto from "crypto";
+
+export async function fireWebhook(type, payload) {
+  const body = JSON.stringify({ type, payload, ts: Date.now() });
+  const sig = crypto
+    .createHmac("sha256", process.env.WEBHOOK_SECRET)
+    .update(body)
+    .digest("hex");
+
+  await fetch(process.env.WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Signature": sig
+    },
+    body
+  });
+}
+
+//////////////////////////////
+// frontend/NotificationSettings.jsx
+//////////////////////////////
+import { useState, useEffect } from "react";
+
+export default function NotificationSettings({ email }) {
+  const [settings, setSettings] = useState(null);
+  const [newEmail, setNewEmail] = useState("");
+
+  useEffect(() => {
+    fetch(`/me/notifications?email=${email}`)
+      .then(r => r.json())
+      .then(setSettings);
+  }, []);
+
+  function toggleEvent(e) {
+    setSettings({
+      ...settings,
+      events: { ...settings.events, [e]: !settings.events[e] }
+    });
+  }
+
+  function addEmail() {
+    if (!newEmail) return;
+    setSettings({
+      ...settings,
+      emails: [...settings.emails, newEmail]
+    });
+    setNewEmail("");
+  }
+
+  function save() {
+    fetch("/me/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, ...settings })
+    });
+  }
+
+  if (!settings) return null;
+
+  return (
+    <div>
+      <h2>Notifications</h2>
+
+      {Object.keys(settings.events).map(e => (
+        <label key={e}>
+          <input
+            type="checkbox"
+            checked={settings.events[e]}
+            onChange={() => toggleEvent(e)}
+          />
+          {e}
+        </label>
+      ))}
+
+      <h3>Emails</h3>
+      {settings.emails.map(e => (
+        <span key={e}>{e}</span>
+      ))}
+
+      <input
+        value={newEmail}
+        onChange={e => setNewEmail(e.target.value)}
+      />
+      <button onClick={addEmail}>Add</button>
+
+      <h3>Delivery</h3>
+      <select
+        value={settings.delivery}
+        onChange={e =>
+          setSettings({ ...settings, delivery: e.target.value })
+        }
+      >
+        <option value="instant">Instant</option>
+        <option value="hourly">Hourly Digest</option>
+        <option value="daily">Daily Digest</option>
+      </select>
+
+      <button onClick={save}>Save</button>
+    </div>
+  );
+}

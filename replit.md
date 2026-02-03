@@ -52,6 +52,13 @@ The database supports various functionalities including user management (`users`
 
 ## Queued Enhancements
 - **Affiliate Notification Platform v2**: Per-user email lists (max 5 emails) with toggleable event preferences. Users can configure which events they receive notifications for and specify additional email addresses. Includes NotificationSettings model with events JSON field for granular control.
+- **Platform Extension v3 (UI + Audit + Digest + Failover + Webhooks)**:
+  - **Delivery Options**: instant, hourly digest, or daily digest
+  - **Notification Audit Trail**: Tracks all email attempts with provider, success status, and error logging
+  - **Digest Queue System**: Batches events for hourly/daily delivery with automatic cleanup
+  - **Email Failover**: Primary SMTP with secondary webhook fallback
+  - **Webhook Integration**: HMAC-signed webhook dispatch for external integrations
+  - **Frontend Settings UI**: React component for managing notification preferences (toggle events, add emails, select delivery mode)
 
 ## External Dependencies
 - **PostgreSQL**: Primary database.
