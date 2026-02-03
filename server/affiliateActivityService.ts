@@ -73,11 +73,16 @@ async function getUplineRecipientsFromVlt(affiliateEmail: string, affiliateUserI
   
   if (levelIds.length === 0) return [];
   
-  const uplines = await db.select({ email: vltAffiliates.email, userId: vltAffiliates.userId })
+  const uplines = await db.select({ email: vltAffiliates.email })
     .from(vltAffiliates)
     .where(inArray(vltAffiliates.id, levelIds));
   
-  return uplines.map(u => ({ email: u.email, userId: u.userId || undefined }));
+  const recipientPromises = uplines.map(async (u): Promise<RecipientInfo> => {
+    const user = await db.select({ id: users.id }).from(users).where(eq(users.email, u.email)).then(r => r[0]);
+    return { email: u.email, userId: user?.id };
+  });
+  
+  return Promise.all(recipientPromises);
 }
 
 async function shouldNotify(userId: number | undefined, eventType: ActivityType): Promise<{ enabled: boolean; extraEmails: string[] }> {

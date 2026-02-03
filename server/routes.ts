@@ -727,6 +727,76 @@ export async function registerRoutes(
     }
   });
 
+  // Get current user's notification settings
+  app.get("/api/notification-settings", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const settings = await storage.ensureNotificationSettings(userId);
+      res.json({
+        ...settings,
+        emails: settings.emails ? JSON.parse(settings.emails) : [],
+        events: settings.events ? JSON.parse(settings.events) : {}
+      });
+    } catch (error) {
+      console.error("[notification-settings] Error fetching settings:", error);
+      res.status(500).json({ message: "Failed to fetch notification settings" });
+    }
+  });
+
+  // Update notification settings
+  app.put("/api/notification-settings", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { enabled, emails, events } = req.body;
+      
+      // Validate emails (max 5)
+      if (emails !== undefined) {
+        if (!Array.isArray(emails)) {
+          return res.status(400).json({ message: "Emails must be an array" });
+        }
+        if (emails.length > 5) {
+          return res.status(400).json({ message: "Maximum 5 additional emails allowed" });
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        for (const email of emails) {
+          if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: `Invalid email format: ${email}` });
+          }
+        }
+      }
+
+      // Validate events
+      if (events !== undefined && typeof events !== "object") {
+        return res.status(400).json({ message: "Events must be an object" });
+      }
+
+      await storage.ensureNotificationSettings(userId);
+      
+      const updates: any = {};
+      if (enabled !== undefined) updates.enabled = enabled;
+      if (emails !== undefined) updates.emails = JSON.stringify(emails.map((e: string) => e.toLowerCase().trim()));
+      if (events !== undefined) updates.events = JSON.stringify(events);
+
+      const updated = await storage.updateNotificationSettings(userId, updates);
+      
+      res.json({
+        ...updated,
+        emails: updated?.emails ? JSON.parse(updated.emails) : [],
+        events: updated?.events ? JSON.parse(updated.events) : {}
+      });
+    } catch (error) {
+      console.error("[notification-settings] Error updating settings:", error);
+      res.status(500).json({ message: "Failed to update notification settings" });
+    }
+  });
+
   // Get all finops referrals (admin/master only)
   app.get("/api/admin/finops-referrals", requireAdmin, logPhiAccess("finops_referrals"), async (req, res) => {
     try {
