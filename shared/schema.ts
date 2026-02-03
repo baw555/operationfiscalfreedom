@@ -1316,6 +1316,30 @@ export const insertPortalActivitySchema = createInsertSchema(portalActivity).omi
 export type InsertPortalActivity = z.infer<typeof insertPortalActivitySchema>;
 export type PortalActivity = typeof portalActivity.$inferSelect;
 
+// ============================================
+// AFFILIATE ACTIVITY TRACKING WITH EMAIL NOTIFICATIONS
+// ============================================
+
+// Affiliate Activities - Tracks all affiliate events with hash-based deduplication
+export const affiliateActivities = pgTable("affiliate_activities", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // SITE_VISIT, CONTRACT_VIEW, CONTRACT_SIGNED, INFO_REQUEST, AFFILIATE_CLICK, AFFILIATE_SIGNUP
+  actorEmail: text("actor_email").notNull(),
+  actorUserId: integer("actor_user_id").references(() => users.id),
+  metadata: text("metadata"), // JSON string for additional event data
+  hash: text("hash").notNull().unique(), // SHA256 hash for idempotency
+  notifiedEmails: text("notified_emails"), // JSON array of emails that were notified
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAffiliateActivitySchema = createInsertSchema(affiliateActivities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAffiliateActivity = z.infer<typeof insertAffiliateActivitySchema>;
+export type AffiliateActivity = typeof affiliateActivities.$inferSelect;
+
 // Password Reset Tokens
 export const passwordResetTokens = pgTable("password_reset_tokens", {
   id: serial("id").primaryKey(),
