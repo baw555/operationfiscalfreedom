@@ -678,7 +678,8 @@ export async function registerRoutes(
   const notificationSettingsSchema = z.object({
     enabled: z.boolean().optional(),
     emails: z.array(z.string().email("Invalid email format").transform(e => e.toLowerCase().trim())).max(5, "Maximum 5 additional emails allowed").optional(),
-    events: z.record(z.boolean()).optional()
+    events: z.record(z.boolean()).optional(),
+    delivery: z.enum(["instant", "hourly", "daily"]).optional()
   });
   
   // Track affiliate activity event
@@ -741,10 +742,19 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Not authenticated" });
       }
       const settings = await storage.ensureNotificationSettings(userId);
+      const { decrypt } = await import("./crypto");
+      let emails: string[] = [];
+      try {
+        if (settings.emailsEnc) {
+          emails = JSON.parse(decrypt(settings.emailsEnc));
+        }
+      } catch { emails = []; }
+      
       res.json({
         ...settings,
-        emails: settings.emails ? JSON.parse(settings.emails) : [],
-        events: settings.events ? JSON.parse(settings.events) : {}
+        emails,
+        events: settings.events ? JSON.parse(settings.events) : {},
+        delivery: settings.delivery
       });
     } catch (error) {
       console.error("[notification-settings] Error fetching settings:", error);
@@ -768,25 +778,94 @@ export async function registerRoutes(
         });
       }
 
-      const { enabled, emails, events } = validation.data;
+      const { enabled, emails, events, delivery } = validation.data;
+      const { encrypt, decrypt } = await import("./crypto");
 
       await storage.ensureNotificationSettings(userId);
       
       const updates: any = {};
       if (enabled !== undefined) updates.enabled = enabled;
-      if (emails !== undefined) updates.emails = JSON.stringify(emails);
+      if (emails !== undefined) updates.emailsEnc = encrypt(JSON.stringify(emails));
       if (events !== undefined) updates.events = JSON.stringify(events);
+      if (delivery !== undefined) updates.delivery = delivery;
 
       const updated = await storage.updateNotificationSettings(userId, updates);
       
+      let decryptedEmails: string[] = [];
+      try {
+        if (updated?.emailsEnc) {
+          decryptedEmails = JSON.parse(decrypt(updated.emailsEnc));
+        }
+      } catch { decryptedEmails = []; }
+      
       res.json({
         ...updated,
-        emails: updated?.emails ? JSON.parse(updated.emails) : [],
-        events: updated?.events ? JSON.parse(updated.events) : {}
+        emails: decryptedEmails,
+        events: updated?.events ? JSON.parse(updated.events) : {},
+        delivery: updated?.delivery
       });
     } catch (error) {
       console.error("[notification-settings] Error updating settings:", error);
       res.status(500).json({ message: "Failed to update notification settings" });
+    }
+  });
+
+  // Admin export: Notification audit logs as CSV
+  app.get("/api/admin/export/audit", requireAdmin, async (req, res) => {
+    try {
+      const { getAllAuditLogs } = await import("./auditService");
+      const logs = await getAllAuditLogs();
+      
+      const headers = ["id", "eventType", "actorEmail", "recipients", "delivery", "provider", "success", "error", "prevHash", "hash", "createdAt"];
+      const csvRows = [headers.join(",")];
+      
+      for (const log of logs) {
+        const row = headers.map(h => {
+          const value = (log as any)[h];
+          if (value === null || value === undefined) return "";
+          if (typeof value === "string" && (value.includes(",") || value.includes('"') || value.includes("\n"))) {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+          if (value instanceof Date) {
+            return value.toISOString();
+          }
+          return String(value);
+        });
+        csvRows.push(row.join(","));
+      }
+      
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", "attachment; filename=audit-export.csv");
+      res.send(csvRows.join("\n"));
+    } catch (error) {
+      console.error("[admin/export/audit] Error:", error);
+      res.status(500).json({ message: "Failed to export audit logs" });
+    }
+  });
+
+  // Verify audit chain integrity
+  app.get("/api/admin/audit/verify", requireAdmin, async (req, res) => {
+    try {
+      const { verifyAuditChain } = await import("./auditService");
+      const result = await verifyAuditChain();
+      res.json(result);
+    } catch (error) {
+      console.error("[admin/audit/verify] Error:", error);
+      res.status(500).json({ message: "Failed to verify audit chain" });
+    }
+  });
+
+  // System health endpoint
+  app.get("/api/system/health", async (req, res) => {
+    try {
+      await storage.getUser(1);
+      res.json({
+        status: "ok",
+        db: "up",
+        time: new Date().toISOString()
+      });
+    } catch {
+      res.status(500).json({ status: "degraded", db: "down" });
     }
   });
 

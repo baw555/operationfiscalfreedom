@@ -4,6 +4,7 @@ import { sendEmailWithRetry } from "./emailWithRetry";
 import { vltAffiliates, users } from "@shared/schema";
 import { db } from "./db";
 import { eq, inArray } from "drizzle-orm";
+import { appendAudit } from "./auditService";
 
 const MASTER_EMAIL = process.env.MASTER_EMAIL || "infoservicesbhi@gmail.com";
 
@@ -106,8 +107,10 @@ async function shouldNotify(userId: number | undefined, eventType: ActivityType)
   
   let extraEmails: string[] = [];
   try {
-    if (settings.emails) {
-      const parsed = JSON.parse(settings.emails);
+    if (settings.emailsEnc) {
+      const { decrypt } = await import("./crypto");
+      const decrypted = decrypt(settings.emailsEnc);
+      const parsed = JSON.parse(decrypted);
       extraEmails = Array.isArray(parsed) 
         ? parsed.filter((e): e is string => typeof e === "string").map(e => e.toLowerCase().trim())
         : [];
@@ -196,6 +199,7 @@ export async function recordAffiliateActivity(params: ActivityEventParams): Prom
   }
   
   const notifiedEmails: string[] = [];
+  const failedEmails: { email: string; error: string }[] = [];
   const emailHtml = buildActivityEmailHtml(type, actorEmail, metadata);
   const subject = `Activity Alert: ${type.replace(/_/g, " ")}`;
   
@@ -210,11 +214,44 @@ export async function recordAffiliateActivity(params: ActivityEventParams): Prom
       if (result.success) {
         notifiedEmails.push(email);
         console.log(`[AffiliateActivity] Email sent to ${email}`);
+        
+        await appendAudit({
+          eventType: type,
+          actorEmail,
+          recipients: [email],
+          delivery: "instant",
+          provider: "resend",
+          success: true
+        });
       } else {
-        console.error(`[AffiliateActivity] Failed to email ${email}: ${result.error}`);
+        const errorMsg = result.error || "Unknown error";
+        failedEmails.push({ email, error: errorMsg });
+        console.error(`[AffiliateActivity] Failed to email ${email}: ${errorMsg}`);
+        
+        await appendAudit({
+          eventType: type,
+          actorEmail,
+          recipients: [email],
+          delivery: "instant",
+          provider: "resend",
+          success: false,
+          error: errorMsg
+        });
       }
     } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      failedEmails.push({ email, error: errorMsg });
       console.error(`[AffiliateActivity] Email error for ${email}:`, err);
+      
+      await appendAudit({
+        eventType: type,
+        actorEmail,
+        recipients: [email],
+        delivery: "instant",
+        provider: "resend",
+        success: false,
+        error: errorMsg
+      });
     }
   }
   

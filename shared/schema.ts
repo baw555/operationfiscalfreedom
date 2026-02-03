@@ -1345,8 +1345,9 @@ export const notificationSettings = pgTable("notification_settings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull().unique(),
   enabled: boolean("enabled").default(true).notNull(),
-  emails: text("emails"), // JSON array of additional email addresses (max 5)
+  emailsEnc: text("emails_enc"), // AES-256-GCM encrypted JSON array of additional emails (max 5)
   events: text("events"), // JSON object { EVENT_NAME: true/false }
+  delivery: text("delivery").default("instant").notNull(), // instant, hourly, daily
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
@@ -1357,6 +1358,29 @@ export const insertNotificationSettingsSchema = createInsertSchema(notificationS
 
 export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
 export type NotificationSettings = typeof notificationSettings.$inferSelect;
+
+// Notification Audit - Immutable append-only log with hash chain
+export const notificationAudit = pgTable("notification_audit", {
+  id: serial("id").primaryKey(),
+  eventType: text("event_type").notNull(),
+  actorEmail: text("actor_email").notNull(),
+  recipients: text("recipients").notNull(), // JSON array
+  delivery: text("delivery").notNull(),
+  provider: text("provider").notNull(), // resend, smtp, webhook
+  success: boolean("success").notNull(),
+  error: text("error"),
+  prevHash: text("prev_hash"),
+  hash: text("hash").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertNotificationAuditSchema = createInsertSchema(notificationAudit).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertNotificationAudit = z.infer<typeof insertNotificationAuditSchema>;
+export type NotificationAudit = typeof notificationAudit.$inferSelect;
 
 // Password Reset Tokens
 export const passwordResetTokens = pgTable("password_reset_tokens", {

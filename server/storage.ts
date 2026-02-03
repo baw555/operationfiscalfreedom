@@ -71,7 +71,8 @@ import {
   vendorMagicLinks, type VendorMagicLink, type InsertVendorMagicLink,
   vendorSessions, type VendorSession, type InsertVendorSession,
   affiliateActivities, type AffiliateActivity, type InsertAffiliateActivity,
-  notificationSettings, type NotificationSettings, type InsertNotificationSettings
+  notificationSettings, type NotificationSettings, type InsertNotificationSettings,
+  notificationAudit, type NotificationAudit
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -2681,11 +2682,14 @@ export class DatabaseStorage implements IStorage {
       AFFILIATE_SIGNUP: true
     };
     
+    const { encrypt } = await import("./crypto");
+    
     return this.createNotificationSettings({
       userId,
       enabled: true,
-      emails: JSON.stringify([]),
-      events: JSON.stringify(defaultEvents)
+      emailsEnc: encrypt(JSON.stringify([])),
+      events: JSON.stringify(defaultEvents),
+      delivery: "instant"
     });
   }
 }
