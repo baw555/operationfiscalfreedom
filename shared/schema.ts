@@ -1382,6 +1382,30 @@ export const insertNotificationAuditSchema = createInsertSchema(notificationAudi
 export type InsertNotificationAudit = z.infer<typeof insertNotificationAuditSchema>;
 export type NotificationAudit = typeof notificationAudit.$inferSelect;
 
+// Notification Queue - Persistent queue with retry and backoff support
+export const notificationQueue = pgTable("notification_queue", {
+  id: serial("id").primaryKey(),
+  to: text("to").notNull(),
+  subject: text("subject").notNull(),
+  html: text("html").notNull(),
+  userId: integer("user_id").references(() => users.id),
+  delivery: text("delivery").notNull(), // instant, hourly, daily
+  attempts: integer("attempts").default(0).notNull(),
+  maxAttempts: integer("max_attempts").default(5).notNull(),
+  nextRunAt: timestamp("next_run_at").defaultNow().notNull(),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertNotificationQueueSchema = createInsertSchema(notificationQueue).omit({
+  id: true,
+  attempts: true,
+  createdAt: true,
+});
+
+export type InsertNotificationQueue = z.infer<typeof insertNotificationQueueSchema>;
+export type NotificationQueue = typeof notificationQueue.$inferSelect;
+
 // Password Reset Tokens
 export const passwordResetTokens = pgTable("password_reset_tokens", {
   id: serial("id").primaryKey(),

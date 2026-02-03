@@ -1,0 +1,226 @@
+/**********************************************************************
+ * PHASE 3 — ADMIN + AFFILIATE CONSOLE (REACT)
+ *********************************************************************/
+
+import { useEffect, useState } from "react";
+
+/* ---------------- AUTH CONTEXT ---------------- */
+function useMe() {
+  const [me, setMe] = useState(null);
+  useEffect(() => {
+    fetch("/me").then(r => r.json()).then(setMe);
+  }, []);
+  return me;
+}
+
+/* ---------------- NOTIFICATION SETTINGS ---------------- */
+function NotificationSettings({ me }) {
+  const [settings, setSettings] = useState(null);
+  const [emailInput, setEmailInput] = useState("");
+
+  useEffect(() => {
+    fetch(`/me/notifications?email=${me.email}`)
+      .then(r => r.json())
+      .then(setSettings);
+  }, []);
+
+  if (!settings) return null;
+
+  return (
+    <div className="card">
+      <h2>Notification Settings</h2>
+
+      <label>
+        <input
+          type="checkbox"
+          checked={settings.enabled}
+          onChange={e =>
+            setSettings({ ...settings, enabled: e.target.checked })
+          }
+        />
+        Enabled
+      </label>
+
+      <h4>Events</h4>
+      {Object.keys(settings.events).map(e => (
+        <label key={e}>
+          <input
+            type="checkbox"
+            checked={settings.events[e]}
+            onChange={() =>
+              setSettings({
+                ...settings,
+                events: {
+                  ...settings.events,
+                  [e]: !settings.events[e]
+                }
+              })
+            }
+          />
+          {e}
+        </label>
+      ))}
+
+      <h4>Emails</h4>
+      <div>
+        {settings.emails.map(e => (
+          <span key={e} className="chip">{e}</span>
+        ))}
+      </div>
+
+      <input
+        value={emailInput}
+        placeholder="add email"
+        onChange={e => setEmailInput(e.target.value)}
+      />
+      <button
+        onClick={() => {
+          setSettings({
+            ...settings,
+            emails: [...settings.emails, emailInput]
+          });
+          setEmailInput("");
+        }}
+      >
+        Add
+      </button>
+
+      <h4>Delivery</h4>
+      <select
+        value={settings.delivery}
+        onChange={e =>
+          setSettings({ ...settings, delivery: e.target.value })
+        }
+      >
+        <option value="instant">Instant</option>
+        <option value="hourly">Hourly Digest</option>
+        <option value="daily">Daily Digest</option>
+      </select>
+
+      <button
+        onClick={() =>
+          fetch("/me/notifications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: me.email, ...settings })
+          })
+        }
+      >
+        Save
+      </button>
+
+      <button
+        onClick={() =>
+          fetch("/me/notifications/test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: me.email })
+          })
+        }
+      >
+        Send Test
+      </button>
+    </div>
+  );
+}
+
+/* ---------------- AUDIT VIEWER (MASTER) ---------------- */
+function AuditViewer() {
+  const [logs, setLogs] = useState([]);
+
+  useEffect(() => {
+    fetch("/admin/audit")
+      .then(r => r.json())
+      .then(setLogs);
+  }, []);
+
+  return (
+    <div className="card">
+      <h2>Audit Logs</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Event</th>
+            <th>Recipient</th>
+            <th>Provider</th>
+            <th>Status</th>
+            <th>Hash</th>
+          </tr>
+        </thead>
+        <tbody>
+          {logs.map(l => (
+            <tr key={l.id}>
+              <td>{new Date(l.createdAt).toLocaleString()}</td>
+              <td>{l.eventType}</td>
+              <td>{l.recipients}</td>
+              <td>{l.provider}</td>
+              <td>{l.success ? "OK" : "FAIL"}</td>
+              <td>{l.hash.slice(0, 10)}…</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <a href="/admin/export/audit">⬇ Download CSV</a>
+    </div>
+  );
+}
+
+/* ---------------- WEBHOOK TESTER (MASTER) ---------------- */
+function WebhookTester() {
+  return (
+    <div className="card">
+      <h2>Webhook Tester</h2>
+      <button
+        onClick={() =>
+          fetch("/admin/webhook/test", { method: "POST" })
+        }
+      >
+        Fire Test Webhook
+      </button>
+    </div>
+  );
+}
+
+/* ---------------- SYSTEM STATUS (MASTER) ---------------- */
+function SystemHealth() {
+  const [health, setHealth] = useState(null);
+
+  useEffect(() => {
+    fetch("/system/health")
+      .then(r => r.json())
+      .then(setHealth);
+  }, []);
+
+  if (!health) return null;
+
+  return (
+    <div className="card">
+      <h2>System Health</h2>
+      <pre>{JSON.stringify(health, null, 2)}</pre>
+    </div>
+  );
+}
+
+/* ---------------- MAIN CONSOLE ---------------- */
+export default function Console() {
+  const me = useMe();
+  if (!me) return null;
+
+  return (
+    <div>
+      <h1>Notification Console</h1>
+
+      <NotificationSettings me={me} />
+
+      {me.role === "MASTER" && (
+        <>
+          <AuditViewer />
+          <WebhookTester />
+          <SystemHealth />
+        </>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,176 @@
+/**********************************************************************
+ * PHASE 2 — QUEUE + SLA + RETRIES (REPLIT SAFE)
+ *********************************************************************/
+
+//////////////////////////////
+// prisma/schema.prisma (ADD)
+//////////////////////////////
+/*
+model NotificationQueue {
+  id          String   @id @default(uuid())
+  to          String
+  subject     String
+  html        String
+  userId      String?
+  delivery    String
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(5)
+  nextRunAt   DateTime @default(now())
+  lastError   String?
+  createdAt   DateTime @default(now())
+}
+*/
+
+//////////////////////////////
+// src/queue/enqueue.ts
+//////////////////////////////
+export async function enqueueNotification({
+  to,
+  subject,
+  html,
+  userId,
+  delivery
+}) {
+  await prisma.notificationQueue.create({
+    data: {
+      to,
+      subject,
+      html,
+      userId,
+      delivery
+    }
+  });
+}
+
+//////////////////////////////
+// src/queue/worker.ts
+//////////////////////////////
+import { sendPrimary, sendSecondary } from "../email/providers";
+import { appendAudit } from "../audit/appendOnly";
+
+const BACKOFF = [0, 60, 300, 900, 3600]; // seconds
+
+async function processJob(job) {
+  let result;
+  try {
+    result = await sendPrimary(job.to, job.subject, job.html);
+    if (!result.success) throw new Error(result.error);
+  } catch (e) {
+    result = await sendSecondary(job.to, job.subject, job.html);
+  }
+
+  await appendAudit({
+    eventType: "DELIVERY",
+    actorEmail: job.to,
+    recipients: job.to,
+    delivery: job.delivery,
+    provider: result.provider,
+    success: result.success,
+    error: result.error
+  });
+
+  if (result.success) {
+    await prisma.notificationQueue.delete({ where: { id: job.id } });
+    return;
+  }
+
+  const attempts = job.attempts + 1;
+
+  if (attempts >= job.maxAttempts) {
+    await prisma.notificationQueue.update({
+      where: { id: job.id },
+      data: {
+        attempts,
+        lastError: result.error
+      }
+    });
+
+    // SLA BREACH — ALERT MASTER
+    await sendSecondary(
+      process.env.MASTER_EMAIL,
+      "🚨 Notification Delivery Failed",
+      `<pre>${JSON.stringify(job, null, 2)}</pre>`
+    );
+    return;
+  }
+
+  const delay = BACKOFF[Math.min(attempts, BACKOFF.length - 1)];
+
+  await prisma.notificationQueue.update({
+    where: { id: job.id },
+    data: {
+      attempts,
+      nextRunAt: new Date(Date.now() + delay * 1000),
+      lastError: result.error
+    }
+  });
+}
+
+//////////////////////////////
+// src/queue/runner.ts
+//////////////////////////////
+setInterval(async () => {
+  const jobs = await prisma.notificationQueue.findMany({
+    where: {
+      nextRunAt: { lte: new Date() }
+    },
+    take: 10,
+    orderBy: { createdAt: "asc" }
+  });
+
+  for (const job of jobs) {
+    await processJob(job);
+  }
+}, 5000);
+
+//////////////////////////////
+// src/notifications/dispatch.ts (REPLACE)
+//////////////////////////////
+import { enqueueNotification } from "../queue/enqueue";
+
+export async function dispatchNotification({
+  to,
+  subject,
+  html,
+  userId,
+  delivery
+}) {
+  await enqueueNotification({
+    to,
+    subject,
+    html,
+    userId,
+    delivery
+  });
+}
+
+//////////////////////////////
+// src/system/degraded.ts
+//////////////////////////////
+export async function checkDegradedMode() {
+  const failures = await prisma.notificationQueue.count({
+    where: {
+      attempts: { gte: 3 }
+    }
+  });
+
+  if (failures > 20) {
+    await sendSecondary(
+      process.env.MASTER_EMAIL,
+      "⚠️ System Degraded Mode",
+      "Notification system entering throttled digest mode."
+    );
+  }
+}
+
+setInterval(checkDegradedMode, 60000);
+
+//////////////////////////////
+// src/system/promoteDigest.ts
+//////////////////////////////
+export async function promoteDigestForUser(userId) {
+  await prisma.notificationSettings.update({
+    where: { userId },
+    data: { delivery: "hourly" }
+  });
+}

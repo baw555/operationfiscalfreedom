@@ -869,6 +869,18 @@ export async function registerRoutes(
     }
   });
 
+  // Queue stats endpoint (admin only)
+  app.get("/api/admin/queue/stats", requireAdmin, async (req, res) => {
+    try {
+      const { getQueueStats } = await import("./queueService");
+      const stats = await getQueueStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting queue stats:", error);
+      res.status(500).json({ message: "Failed to get queue stats" });
+    }
+  });
+
   // Get all finops referrals (admin/master only)
   app.get("/api/admin/finops-referrals", requireAdmin, logPhiAccess("finops_referrals"), async (req, res) => {
     try {

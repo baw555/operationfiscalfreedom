@@ -6,6 +6,7 @@ import { seedPayziumData } from "./seeds/payziumSeed";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { createServer } from "http";
 import path from "path";
+import { startQueueRunner } from "./queueService";
 
 const app = express();
 const httpServer = createServer(app);
@@ -150,6 +151,9 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+      
+      startQueueRunner();
+      log("Notification queue runner started");
     },
   );
 })();
