@@ -52,13 +52,18 @@ The database supports various functionalities including user management (`users`
 - **Email Signature Generator (`/email-signature`)**: Interactive generator with 4 animated templates (Modern, Classic, Minimal, Bold), mobile-friendly preview, and Gmail-compatible output.
 
 ## Queued Enhancements
-- **Platform Extension v3 (UI + Audit + Digest + Failover + Webhooks)**:
-  - **Delivery Options**: instant, hourly digest, or daily digest
-  - **Notification Audit Trail**: Tracks all email attempts with provider, success status, and error logging
+- **Platform Extension v3 (Digest + Failover + Webhooks + Frontend UI)**:
   - **Digest Queue System**: Batches events for hourly/daily delivery with automatic cleanup
   - **Email Failover**: Primary SMTP with secondary webhook fallback
   - **Webhook Integration**: HMAC-signed webhook dispatch for external integrations
   - **Frontend Settings UI**: React component for managing notification preferences (toggle events, add emails, select delivery mode)
+
+## Security Features (Hardening Layer)
+- **AES-256-GCM Encryption**: Sensitive data (additional notification emails) encrypted at rest using `server/crypto.ts`
+- **Immutable Audit Trail**: Hash-chained notification audit logs (`notification_audit` table) with SHA256 verification
+- **Audit Chain Verification**: `GET /api/admin/audit/verify` validates chain integrity
+- **Admin Audit Export**: `GET /api/admin/export/audit` exports CSV of all notification audit logs
+- **System Health Endpoint**: `GET /api/system/health` for monitoring database connectivity
 
 ## External Dependencies
 - **PostgreSQL**: Primary database.

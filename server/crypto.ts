@@ -1,10 +1,14 @@
 import crypto from "crypto";
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "default-dev-key-change-in-production-32chars";
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+if (!ENCRYPTION_KEY && process.env.NODE_ENV === "production") {
+  throw new Error("ENCRYPTION_KEY environment variable is required in production");
+}
 
 const KEY = crypto
   .createHash("sha256")
-  .update(ENCRYPTION_KEY)
+  .update(ENCRYPTION_KEY || "dev-only-key-not-for-production-use")
   .digest();
 
 export function encrypt(text: string): string {

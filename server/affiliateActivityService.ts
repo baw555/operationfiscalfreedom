@@ -215,19 +215,43 @@ export async function recordAffiliateActivity(params: ActivityEventParams): Prom
         notifiedEmails.push(email);
         console.log(`[AffiliateActivity] Email sent to ${email}`);
         
-        await appendAudit({
-          eventType: type,
-          actorEmail,
-          recipients: [email],
-          delivery: "instant",
-          provider: "resend",
-          success: true
-        });
+        try {
+          await appendAudit({
+            eventType: type,
+            actorEmail,
+            recipients: [email],
+            delivery: "instant",
+            provider: "resend",
+            success: true
+          });
+        } catch (auditErr) {
+          console.error(`[AffiliateActivity] Audit log failed for ${email}:`, auditErr);
+        }
       } else {
         const errorMsg = result.error || "Unknown error";
         failedEmails.push({ email, error: errorMsg });
         console.error(`[AffiliateActivity] Failed to email ${email}: ${errorMsg}`);
         
+        try {
+          await appendAudit({
+            eventType: type,
+            actorEmail,
+            recipients: [email],
+            delivery: "instant",
+            provider: "resend",
+            success: false,
+            error: errorMsg
+          });
+        } catch (auditErr) {
+          console.error(`[AffiliateActivity] Audit log failed for ${email}:`, auditErr);
+        }
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      failedEmails.push({ email, error: errorMsg });
+      console.error(`[AffiliateActivity] Email error for ${email}:`, err);
+      
+      try {
         await appendAudit({
           eventType: type,
           actorEmail,
@@ -237,21 +261,9 @@ export async function recordAffiliateActivity(params: ActivityEventParams): Prom
           success: false,
           error: errorMsg
         });
+      } catch (auditErr) {
+        console.error(`[AffiliateActivity] Audit log failed for ${email}:`, auditErr);
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      failedEmails.push({ email, error: errorMsg });
-      console.error(`[AffiliateActivity] Email error for ${email}:`, err);
-      
-      await appendAudit({
-        eventType: type,
-        actorEmail,
-        recipients: [email],
-        delivery: "instant",
-        provider: "resend",
-        success: false,
-        error: errorMsg
-      });
     }
   }
   
