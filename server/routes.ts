@@ -179,7 +179,7 @@ function isValidTransition(currentStatus: string, newStatus: string, transitions
 }
 
 // Email retry with exponential backoff - imported from centralized module
-import { sendEmailWithRetryClient } from "./emailWithRetry";
+import { sendEmailWithRetryClient, sendEmailWithRetry } from "./emailWithRetry";
 
 declare module "express-session" {
   interface SessionData {
@@ -1026,6 +1026,57 @@ export async function registerRoutes(
       });
       
       console.log(`[disability] New ${data.claimType} referral - ref: ${data.referralCode || 'direct'}, email: ${data.email}`);
+      
+      // Get raw form data for forwarding (includes extra fields not in schema)
+      const rawFormData = req.body;
+      
+      // Forward to Rochelle's call center system
+      try {
+        const forwardResponse = await fetch('https://operationfiscalfreedom.com/disability-rating/intake?type=initial', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...rawFormData,
+            source: 'NavigatorUSA',
+          }),
+        });
+        console.log(`[disability] Forwarded to Rochelle's system: ${forwardResponse.status}`);
+      } catch (forwardError) {
+        console.error('[disability] Failed to forward to external system:', forwardError);
+      }
+      
+      // Send notification emails
+      try {
+        const notifyEmails = [
+          'infoservicesbhi@gmail.com',  // Maurice
+          'rladler86@gmail.com',         // Rochelle
+        ];
+        
+        await sendEmailWithRetry({
+          to: notifyEmails,
+          subject: `New VA Disability Referral: ${data.firstName} ${data.lastName}`,
+          html: `
+            <h2>New VA Disability Referral Submitted</h2>
+            <p><strong>Name:</strong> ${data.firstName} ${data.lastName}</p>
+            <p><strong>Email:</strong> ${data.email}</p>
+            <p><strong>Phone:</strong> ${data.phone}</p>
+            <p><strong>Location:</strong> ${rawFormData.city || 'N/A'}, ${rawFormData.state || 'N/A'}</p>
+            <p><strong>Claim Type:</strong> ${data.claimType}</p>
+            <p><strong>Current Rating:</strong> ${data.currentRating || 'N/A'}</p>
+            <p><strong>Sought Rating:</strong> ${rawFormData.soughtRating || 'N/A'}</p>
+            <p><strong>Conditions:</strong> ${data.conditions || 'N/A'}</p>
+            <p><strong>Branch:</strong> ${rawFormData.militaryBranch || data.branchOfService || 'N/A'}</p>
+            <p><strong>Service Years:</strong> ${rawFormData.serviceYears || 'N/A'}</p>
+            <p><strong>Notes:</strong> ${rawFormData.notes || data.caseDescription || 'N/A'}</p>
+            <p><strong>Referral Code:</strong> ${data.referralCode || 'Direct'}</p>
+            <hr>
+            <p><em>Submitted via NavigatorUSA at ${new Date().toISOString()}</em></p>
+          `,
+        });
+        console.log(`[disability] Notification emails sent to ${notifyEmails.join(', ')}`);
+      } catch (emailError) {
+        console.error('[disability] Failed to send notification emails:', emailError);
+      }
       
       res.status(201).json({ 
         message: "Referral submitted successfully", 

@@ -614,7 +614,7 @@ export default function LegalEco() {
               <span className="sword-text">LEGAL ECO</span>
             </h1>
             <p className="text-xl sm:text-2xl text-white font-display mb-4" style={{ animation: 'sparkleText 4s ease-in-out infinite' }}>
-              Cut Through The Non-Sense & Get The Best of the Best!
+              Cut Through The Nonsense & Get The Best of the Best!
             </p>
             <div className="w-32 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent mx-auto mb-6" />
             <p className="text-xl text-blue-200/80 max-w-3xl mx-auto leading-relaxed">

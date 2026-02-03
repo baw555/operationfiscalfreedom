@@ -37,6 +37,8 @@ export default function SignContract() {
   const [allDone, setAllDone] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [signatureMode, setSignatureMode] = useState<"draw" | "type">("draw");
+  const [typedSignature, setTypedSignature] = useState("");
   
   // W9 form state
   const [w9Completed, setW9Completed] = useState(false);
@@ -290,6 +292,28 @@ export default function SignContract() {
         setSignatureData("");
       }
     }
+    setTypedSignature("");
+  };
+
+  const generateTypedSignature = (name: string) => {
+    if (!name.trim()) {
+      setSignatureData("");
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = 600;
+    canvas.height = 150;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "italic 48px 'Dancing Script', 'Brush Script MT', cursive";
+      ctx.fillStyle = "#1A365D";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(name, canvas.width / 2, canvas.height / 2);
+      setSignatureData(canvas.toDataURL());
+    }
   };
 
   const handleSingleSign = (e: React.FormEvent) => {
@@ -418,26 +442,76 @@ export default function SignContract() {
               
               <h3 className="font-bold text-lg text-brand-navy border-b pb-2">Electronic Signature</h3>
               
-              <p className="text-sm text-gray-600">Sign in the box below:</p>
-              
-              <div className="border rounded p-2 bg-gray-50">
-                <canvas
-                  ref={canvasRef}
-                  width={600}
-                  height={150}
-                  className="border bg-white rounded cursor-crosshair w-full touch-none"
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                />
-                <button type="button" onClick={clearSignature} className="text-sm text-brand-red mt-2">
-                  Clear Signature
+              <div className="flex gap-4 mb-3">
+                <button
+                  type="button"
+                  onClick={() => { setSignatureMode("draw"); clearSignature(); }}
+                  className={`px-4 py-2 rounded font-medium text-sm ${signatureMode === "draw" ? "bg-brand-navy text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                  data-testid="button-signature-draw"
+                >
+                  Draw Signature
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSignatureMode("type"); clearSignature(); }}
+                  className={`px-4 py-2 rounded font-medium text-sm ${signatureMode === "type" ? "bg-brand-navy text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                  data-testid="button-signature-type"
+                >
+                  Type Your Name
                 </button>
               </div>
+              
+              {signatureMode === "draw" ? (
+                <>
+                  <p className="text-sm text-gray-600">Sign in the box below:</p>
+                  <div className="border rounded p-2 bg-gray-50">
+                    <canvas
+                      ref={canvasRef}
+                      width={600}
+                      height={150}
+                      className="border bg-white rounded cursor-crosshair w-full touch-none"
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                    />
+                    <button type="button" onClick={clearSignature} className="text-sm text-brand-red mt-2">
+                      Clear Signature
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-600">Type your full legal name below:</p>
+                  <div className="border rounded p-2 bg-gray-50">
+                    <input
+                      type="text"
+                      value={typedSignature}
+                      onChange={(e) => {
+                        setTypedSignature(e.target.value);
+                        generateTypedSignature(e.target.value);
+                      }}
+                      placeholder="Type your full name"
+                      className="w-full p-3 border rounded text-xl"
+                      data-testid="input-typed-signature"
+                    />
+                    {typedSignature && (
+                      <div className="mt-3 p-4 bg-white border rounded">
+                        <p className="text-xs text-gray-500 mb-2">Signature Preview:</p>
+                        <p className="text-3xl text-brand-navy" style={{ fontFamily: "'Dancing Script', 'Brush Script MT', cursive", fontStyle: "italic" }}>
+                          {typedSignature}
+                        </p>
+                      </div>
+                    )}
+                    <button type="button" onClick={clearSignature} className="text-sm text-brand-red mt-2">
+                      Clear
+                    </button>
+                  </div>
+                </>
+              )}
 
               <div className="flex items-start gap-2">
                 <input
@@ -507,24 +581,66 @@ export default function SignContract() {
               </div>
             </div>
 
-            {/* Signature Canvas for Sign All */}
+            {/* Signature Options for Sign All */}
             <div className="bg-white/10 rounded-lg p-4 mb-4">
-              <p className="text-sm text-white/80 mb-2">Draw your signature:</p>
-              <div className="border-2 border-white/30 rounded bg-white">
-                <canvas
-                  ref={canvasRef}
-                  width={600}
-                  height={120}
-                  className="w-full cursor-crosshair touch-none"
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                />
+              <div className="flex gap-3 mb-3">
+                <button
+                  type="button"
+                  onClick={() => { setSignatureMode("draw"); clearSignature(); }}
+                  className={`px-3 py-1.5 rounded text-sm font-medium ${signatureMode === "draw" ? "bg-white text-brand-red" : "bg-white/20 text-white hover:bg-white/30"}`}
+                >
+                  Draw Signature
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSignatureMode("type"); clearSignature(); }}
+                  className={`px-3 py-1.5 rounded text-sm font-medium ${signatureMode === "type" ? "bg-white text-brand-red" : "bg-white/20 text-white hover:bg-white/30"}`}
+                >
+                  Type Your Name
+                </button>
               </div>
+              
+              {signatureMode === "draw" ? (
+                <>
+                  <p className="text-sm text-white/80 mb-2">Draw your signature:</p>
+                  <div className="border-2 border-white/30 rounded bg-white">
+                    <canvas
+                      ref={canvasRef}
+                      width={600}
+                      height={120}
+                      className="w-full cursor-crosshair touch-none"
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-white/80 mb-2">Type your full legal name:</p>
+                  <input
+                    type="text"
+                    value={typedSignature}
+                    onChange={(e) => {
+                      setTypedSignature(e.target.value);
+                      generateTypedSignature(e.target.value);
+                    }}
+                    placeholder="Type your full name"
+                    className="w-full p-3 border rounded text-xl text-brand-navy"
+                  />
+                  {typedSignature && (
+                    <div className="mt-2 p-3 bg-white rounded">
+                      <p className="text-3xl text-brand-navy" style={{ fontFamily: "'Dancing Script', cursive", fontStyle: "italic" }}>
+                        {typedSignature}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
               <button type="button" onClick={clearSignature} className="text-sm text-white/80 mt-2 underline">
                 Clear
               </button>

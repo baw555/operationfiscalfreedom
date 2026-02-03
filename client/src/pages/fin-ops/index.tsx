@@ -617,16 +617,17 @@ function MerchantServicesContent({ referralCode }: { referralCode: string | null
             <h2 className="text-2xl sm:text-3xl font-display text-brand-navy mb-6 sm:mb-8 text-center">Learn More About This Opportunity</h2>
             
             <div className="bg-white p-6 sm:p-10 rounded-xl shadow-lg mb-8">
-              <div className="aspect-video bg-brand-navy/10 rounded-lg flex items-center justify-center mb-6 relative overflow-hidden">
-                <div className="text-center p-8">
-                  <Play className="w-16 h-16 text-brand-navy mx-auto mb-4" />
-                  <h3 className="text-xl font-display text-brand-navy mb-2">9-Minute Overview Video</h3>
-                  <p className="text-gray-600 mb-4">Learn how this compliance solution helps businesses and veterans</p>
-                  <Button onClick={() => window.open('https://limewire.com/d/LBcw8#sbH4nbVvQd', '_blank')} className="bg-brand-navy hover:bg-brand-navy/90">
-                    Watch Video <ExternalLink className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
+              <div className="aspect-video rounded-lg overflow-hidden mb-6">
+                <iframe
+                  src="https://player.vimeo.com/video/1159350744?autoplay=0"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title="Merchant Services Overview"
+                />
               </div>
+              <p className="text-center text-gray-600">Learn how this compliance solution helps businesses and veterans</p>
             </div>
 
             <div className="bg-white p-6 sm:p-10 rounded-xl shadow-lg border-l-4 border-brand-red">
