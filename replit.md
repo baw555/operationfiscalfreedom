@@ -52,11 +52,18 @@ The database supports various functionalities including user management (`users`
 - **Email Signature Generator (`/email-signature`)**: Interactive generator with 4 animated templates (Modern, Classic, Minimal, Bold), mobile-friendly preview, and Gmail-compatible output.
 
 ## Queued Enhancements
-- **Platform Extension v3 (Digest + Failover + Webhooks + Frontend UI)**:
-  - **Digest Queue System**: Batches events for hourly/daily delivery with automatic cleanup
-  - **Email Failover**: Primary SMTP with secondary webhook fallback
-  - **Webhook Integration**: HMAC-signed webhook dispatch for external integrations
+- **Platform Extension v3 (Frontend Settings UI + HMAC Webhooks)**:
   - **Frontend Settings UI**: React component for managing notification preferences (toggle events, add emails, select delivery mode)
+  - **HMAC Webhooks**: Signed webhook dispatch for external integrations
+
+## Queue + SLA System (Phase 2)
+- **NotificationQueue Table**: Persistent queue with retry tracking (`attempts`, `maxAttempts`, `nextRunAt`, `lastError`)
+- **Queue Runner**: 5-second polling interval processes pending jobs from the queue
+- **Exponential Backoff**: Retry delays [0s, 60s, 5min, 15min, 1hr] for failed deliveries
+- **Failover Support**: Primary email (Resend) falls back to webhook if configured
+- **SLA Breach Alerts**: Master email notified when max attempts exceeded
+- **Degraded Mode Detection**: 60-second monitoring alerts when >20 notifications failing
+- **Admin Stats**: `GET /api/admin/queue/stats` for pending/failing counts
 
 ## Security Features (Hardening Layer)
 - **AES-256-GCM Encryption**: Sensitive data (additional notification emails) encrypted at rest using `server/crypto.ts`
