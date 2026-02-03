@@ -43,7 +43,12 @@ function hashEvent(type: string, actorEmail: string, metadata: Record<string, an
     .digest("hex");
 }
 
-async function getUplineEmailsFromVlt(affiliateEmail: string, affiliateUserId?: number): Promise<string[]> {
+interface RecipientInfo {
+  email: string;
+  userId?: number;
+}
+
+async function getUplineRecipientsFromVlt(affiliateEmail: string, affiliateUserId?: number): Promise<RecipientInfo[]> {
   const normalizedEmail = affiliateEmail.toLowerCase().trim();
   
   let affiliate = await db.select().from(vltAffiliates).where(eq(vltAffiliates.email, normalizedEmail)).then(r => r[0]);
@@ -68,11 +73,42 @@ async function getUplineEmailsFromVlt(affiliateEmail: string, affiliateUserId?: 
   
   if (levelIds.length === 0) return [];
   
-  const uplines = await db.select({ email: vltAffiliates.email })
+  const uplines = await db.select({ email: vltAffiliates.email, userId: vltAffiliates.userId })
     .from(vltAffiliates)
     .where(inArray(vltAffiliates.id, levelIds));
   
-  return uplines.map(u => u.email);
+  return uplines.map(u => ({ email: u.email, userId: u.userId || undefined }));
+}
+
+async function shouldNotify(userId: number | undefined, eventType: ActivityType): Promise<{ enabled: boolean; extraEmails: string[] }> {
+  if (!userId) return { enabled: true, extraEmails: [] };
+  
+  const settings = await storage.getNotificationSettings(userId);
+  if (!settings) return { enabled: true, extraEmails: [] };
+  
+  if (!settings.enabled) return { enabled: false, extraEmails: [] };
+  
+  let eventPrefs: Record<string, boolean> = {};
+  try {
+    if (settings.events) {
+      eventPrefs = JSON.parse(settings.events);
+    }
+  } catch {
+    eventPrefs = {};
+  }
+  
+  const shouldSend = eventPrefs[eventType] !== false;
+  
+  let extraEmails: string[] = [];
+  try {
+    if (settings.emails) {
+      extraEmails = JSON.parse(settings.emails);
+    }
+  } catch {
+    extraEmails = [];
+  }
+  
+  return { enabled: shouldSend, extraEmails };
 }
 
 function buildActivityEmailHtml(type: ActivityType, actorEmail: string, metadata?: Record<string, any>): string {
@@ -118,6 +154,7 @@ export async function recordAffiliateActivity(params: ActivityEventParams): Prom
   success: boolean; 
   isDuplicate?: boolean;
   notifiedEmails?: string[];
+  skippedEmails?: string[];
   error?: string;
 }> {
   const { type, actorUserId, metadata = {} } = params;
@@ -131,17 +168,30 @@ export async function recordAffiliateActivity(params: ActivityEventParams): Prom
     return { success: true, isDuplicate: true };
   }
   
-  const recipients = new Set<string>();
-  recipients.add(MASTER_EMAIL);
+  const recipientsToNotify: Set<string> = new Set();
+  const skippedEmails: string[] = [];
   
-  const uplineEmails = await getUplineEmailsFromVlt(actorEmail, actorUserId);
-  uplineEmails.forEach(email => recipients.add(email));
+  recipientsToNotify.add(MASTER_EMAIL);
+  
+  const uplineRecipients = await getUplineRecipientsFromVlt(actorEmail, actorUserId);
+  
+  for (const recipient of uplineRecipients) {
+    const { enabled, extraEmails } = await shouldNotify(recipient.userId, type);
+    
+    if (enabled) {
+      recipientsToNotify.add(recipient.email);
+      extraEmails.forEach(email => recipientsToNotify.add(email.toLowerCase().trim()));
+    } else {
+      skippedEmails.push(recipient.email);
+      console.log(`[AffiliateActivity] Skipped ${recipient.email} - notifications disabled for ${type}`);
+    }
+  }
   
   const notifiedEmails: string[] = [];
   const emailHtml = buildActivityEmailHtml(type, actorEmail, metadata);
   const subject = `Activity Alert: ${type.replace(/_/g, " ")}`;
   
-  const recipientArray = Array.from(recipients);
+  const recipientArray = Array.from(recipientsToNotify);
   for (const email of recipientArray) {
     try {
       const result = await sendEmailWithRetry({
@@ -169,10 +219,11 @@ export async function recordAffiliateActivity(params: ActivityEventParams): Prom
     notifiedEmails: JSON.stringify(notifiedEmails)
   });
   
-  console.log(`[AffiliateActivity] Recorded ${type} for ${actorEmail}, notified ${notifiedEmails.length} recipients`);
+  console.log(`[AffiliateActivity] Recorded ${type} for ${actorEmail}, notified ${notifiedEmails.length} recipients, skipped ${skippedEmails.length}`);
   
   return {
     success: true,
-    notifiedEmails
+    notifiedEmails,
+    skippedEmails
   };
 }

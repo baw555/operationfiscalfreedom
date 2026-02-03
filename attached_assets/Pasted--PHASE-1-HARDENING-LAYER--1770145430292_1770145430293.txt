@@ -1,0 +1,215 @@
+/**********************************************************************
+ * PHASE 1 HARDENING LAYER
+ * RBAC + Encryption + Immutable Audit + Admin Export + Guardrails
+ *********************************************************************/
+
+//////////////////////////////
+// prisma/schema.prisma (ADD / MERGE)
+//////////////////////////////
+/*
+enum Role {
+  MASTER
+  AFFILIATE
+  VIEWER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      Role     @default(AFFILIATE)
+  parentId  String?
+  level     Int
+  createdAt DateTime @default(now())
+}
+
+model NotificationSettings {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  enabled     Boolean  @default(true)
+  emailsEnc   String   // 🔐 encrypted JSON array
+  events      Json
+  delivery    String   @default("instant")
+  updatedAt   DateTime @updatedAt
+}
+
+model NotificationAudit {
+  id          String   @id @default(uuid())
+  eventType   String
+  actorEmail  String
+  recipients  String
+  delivery    String
+  provider    String
+  success     Boolean
+  error       String?
+  prevHash    String?
+  hash        String
+  createdAt   DateTime @default(now())
+}
+*/
+
+//////////////////////////////
+// src/security/crypto.ts
+//////////////////////////////
+import crypto from "crypto";
+
+const KEY = crypto
+  .createHash("sha256")
+  .update(process.env.ENCRYPTION_KEY)
+  .digest();
+
+export function encrypt(text: string) {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv("aes-256-gcm", KEY, iv);
+  const enc = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([iv, tag, enc]).toString("base64");
+}
+
+export function decrypt(blob: string) {
+  const raw = Buffer.from(blob, "base64");
+  const iv = raw.slice(0, 16);
+  const tag = raw.slice(16, 32);
+  const data = raw.slice(32);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", KEY, iv);
+  decipher.setAuthTag(tag);
+  return decipher.update(data) + decipher.final("utf8");
+}
+
+//////////////////////////////
+// src/security/rbac.ts
+//////////////////////////////
+export function requireRole(role: "MASTER" | "AFFILIATE" | "VIEWER") {
+  return async (req, res, next) => {
+    const user = req.user;
+    if (!user) return res.status(401).send("Unauthenticated");
+    if (user.role !== role && user.role !== "MASTER")
+      return res.status(403).send("Forbidden");
+    next();
+  };
+}
+
+//////////////////////////////
+// src/audit/appendOnly.ts
+//////////////////////////////
+import crypto from "crypto";
+
+export async function appendAudit({
+  eventType,
+  actorEmail,
+  recipients,
+  delivery,
+  provider,
+  success,
+  error
+}) {
+  const last = await prisma.notificationAudit.findFirst({
+    orderBy: { createdAt: "desc" }
+  });
+
+  const payload = JSON.stringify({
+    eventType,
+    actorEmail,
+    recipients,
+    delivery,
+    provider,
+    success,
+    error,
+    prevHash: last?.hash || null
+  });
+
+  const hash = crypto.createHash("sha256").update(payload).digest("hex");
+
+  await prisma.notificationAudit.create({
+    data: {
+      eventType,
+      actorEmail,
+      recipients,
+      delivery,
+      provider,
+      success,
+      error,
+      prevHash: last?.hash || null,
+      hash
+    }
+  });
+}
+
+//////////////////////////////
+// src/notifications/settings.ts
+//////////////////////////////
+import { encrypt, decrypt } from "../security/crypto";
+
+export async function saveSettings(userId, emails, events, delivery, enabled) {
+  return prisma.notificationSettings.upsert({
+    where: { userId },
+    update: {
+      emailsEnc: encrypt(JSON.stringify(emails)),
+      events,
+      delivery,
+      enabled
+    },
+    create: {
+      userId,
+      emailsEnc: encrypt(JSON.stringify(emails)),
+      events,
+      delivery,
+      enabled
+    }
+  });
+}
+
+export async function loadSettings(userId) {
+  const s = await prisma.notificationSettings.findUnique({ where: { userId } });
+  if (!s) return null;
+  return {
+    ...s,
+    emails: JSON.parse(decrypt(s.emailsEnc))
+  };
+}
+
+//////////////////////////////
+// src/admin/export.ts
+//////////////////////////////
+import { Parser } from "json2csv";
+
+export async function exportAuditsCSV(req, res) {
+  const logs = await prisma.notificationAudit.findMany({
+    orderBy: { createdAt: "desc" }
+  });
+
+  const parser = new Parser();
+  const csv = parser.parse(logs);
+
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=audit-export.csv"
+  );
+  res.send(csv);
+}
+
+//////////////////////////////
+// src/system/health.ts
+//////////////////////////////
+export async function systemHealth(req, res) {
+  try {
+    await prisma.user.findFirst();
+    res.send({
+      status: "ok",
+      db: "up",
+      time: new Date().toISOString()
+    });
+  } catch {
+    res.status(500).send({ status: "degraded" });
+  }
+}
+
+//////////////////////////////
+// src/server.ts (WIRE IN)
+//////////////////////////////
+app.get("/admin/export/audit",
+  requireRole("MASTER"),
+  exportAuditsCSV
+);
+
+app.get("/system/health", systemHealth);
