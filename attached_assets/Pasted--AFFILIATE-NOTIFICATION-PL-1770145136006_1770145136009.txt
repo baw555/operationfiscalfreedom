@@ -1,0 +1,243 @@
+/**********************************************************************
+ * AFFILIATE NOTIFICATION PLATFORM v2
+ * Per-User Email Lists + Toggleable Event Preferences
+ *********************************************************************/
+
+///////////////////////////
+// prisma/schema.prisma
+///////////////////////////
+/*
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  parentId    String?
+  parent      User?    @relation("AffiliateTree", fields: [parentId], references: [id])
+  children    User[]   @relation("AffiliateTree")
+  level       Int
+  createdAt   DateTime @default(now())
+  activities  Activity[]
+  settings    NotificationSettings?
+}
+
+model NotificationSettings {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  enabled       Boolean  @default(true)
+  emails        String[] @default([])
+  events        Json     // { EVENT_NAME: true/false }
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  type        String
+  actorEmail String
+  metadata    Json
+  hash        String   @unique
+  createdAt   DateTime @default(now())
+}
+*/
+
+///////////////////////////
+// src/server.js
+///////////////////////////
+import express from "express";
+import { PrismaClient } from "@prisma/client";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
+
+const prisma = new PrismaClient();
+const app = express();
+app.use(express.json());
+
+const EVENTS = [
+  "SITE_VISIT",
+  "CONTRACT_VIEW",
+  "CONTRACT_SIGNED",
+  "INFO_REQUEST",
+  "AFFILIATE_CLICK",
+  "AFFILIATE_SIGNUP"
+];
+
+const MASTER_EMAIL = process.env.MASTER_EMAIL;
+
+/* ---------------- EMAIL ---------------- */
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
+
+async function sendEmail(to, subject, html) {
+  await transporter.sendMail({
+    from: `"Activity Bot" <${process.env.SMTP_USER}>`,
+    to,
+    subject,
+    html
+  });
+}
+
+/* ---------------- HELPERS ---------------- */
+function hashEvent(type, actorEmail, metadata) {
+  return crypto
+    .createHash("sha256")
+    .update(type + actorEmail + JSON.stringify(metadata))
+    .digest("hex");
+}
+
+async function getUpline(userId, maxDepth = 6) {
+  const chain = [];
+  let current = await prisma.user.findUnique({ where: { id: userId } });
+  let depth = 0;
+
+  while (current?.parentId && depth < maxDepth) {
+    const parent = await prisma.user.findUnique({
+      where: { id: current.parentId },
+      include: { settings: true }
+    });
+    if (!parent) break;
+    chain.push(parent);
+    current = parent;
+    depth++;
+  }
+
+  return chain;
+}
+
+function shouldNotify(settings, eventType) {
+  if (!settings?.enabled) return false;
+  if (!settings.events?.[eventType]) return false;
+  return true;
+}
+
+/* ---------------- CORE PIPELINE ---------------- */
+async function recordActivity({ type, actorEmail, metadata }) {
+  const hash = hashEvent(type, actorEmail, metadata);
+  if (await prisma.activity.findUnique({ where: { hash } })) return;
+
+  await prisma.activity.create({
+    data: { type, actorEmail, metadata, hash }
+  });
+
+  const actor = await prisma.user.findUnique({
+    where: { email: actorEmail },
+    include: { settings: true }
+  });
+
+  const recipients = new Set();
+  recipients.add(MASTER_EMAIL);
+
+  if (actor && shouldNotify(actor.settings, type)) {
+    actor.settings.emails.forEach(e => recipients.add(e));
+    recipients.add(actor.email);
+  }
+
+  if (actor) {
+    const upline = await getUpline(actor.id);
+    for (const u of upline) {
+      if (shouldNotify(u.settings, type)) {
+        u.settings?.emails?.forEach(e => recipients.add(e));
+        recipients.add(u.email);
+      }
+    }
+  }
+
+  const html = `
+    <h3>${type}</h3>
+    <p><strong>User:</strong> ${actorEmail}</p>
+    <pre>${JSON.stringify(metadata, null, 2)}</pre>
+  `;
+
+  for (const email of recipients) {
+    await sendEmail(email, `Activity: ${type}`, html);
+  }
+}
+
+/* ---------------- SETTINGS API ---------------- */
+
+// Create default settings
+async function ensureSettings(userId) {
+  const exists = await prisma.notificationSettings.findUnique({
+    where: { userId }
+  });
+
+  if (!exists) {
+    const defaults = {};
+    EVENTS.forEach(e => (defaults[e] = true));
+
+    await prisma.notificationSettings.create({
+      data: {
+        userId,
+        enabled: true,
+        emails: [],
+        events: defaults
+      }
+    });
+  }
+}
+
+// Get settings
+app.get("/me/notifications", async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { email: req.query.email },
+    include: { settings: true }
+  });
+
+  await ensureSettings(user.id);
+  res.send(user.settings);
+});
+
+// Update settings
+app.post("/me/notifications", async (req, res) => {
+  const { email, enabled, emails, events } = req.body;
+
+  if (emails?.length > 5)
+    return res.status(400).send({ error: "Max 5 emails allowed" });
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  await ensureSettings(user.id);
+
+  await prisma.notificationSettings.update({
+    where: { userId: user.id },
+    data: {
+      enabled,
+      emails,
+      events
+    }
+  });
+
+  res.send({ ok: true });
+});
+
+// Test notification
+app.post("/me/notifications/test", async (req, res) => {
+  const { email } = req.body;
+  await recordActivity({
+    type: "INFO_REQUEST",
+    actorEmail: email,
+    metadata: { test: true }
+  });
+  res.send({ ok: true });
+});
+
+/* ---------------- EVENTS ---------------- */
+app.post("/event/:type", async (req, res) => {
+  const type = req.params.type.toUpperCase();
+  if (!EVENTS.includes(type)) return res.status(400).send("Invalid event");
+
+  await recordActivity({
+    type,
+    actorEmail: req.body.email,
+    metadata: req.body.metadata || {}
+  });
+
+  res.send({ ok: true });
+});
+
+/* ---------------- START ---------------- */
+app.listen(3000, () => console.log("Server running"));
