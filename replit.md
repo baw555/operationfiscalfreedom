@@ -42,6 +42,16 @@ The database supports various functionalities including user management (`users`
   - **Stage 10**: VA.gov upload checklist with step-by-step submission guidance
   - Controlled sharing with vendors via role-based permissions
 - **Vendor Portal (`/vendor-portal`)**: A secure, scoped portal for vendors to access shared veteran cases. Features passwordless magic-link authentication via email (15-minute expiry), 7-day sessions stored in localStorage, role-based permissions (view/comment/upload), and session-based API authorization.
+- **Affiliate Activity Tracking System**: Automated tracking of affiliate events (SITE_VISIT, CONTRACT_VIEW, CONTRACT_SIGNED, INFO_REQUEST, AFFILIATE_CLICK, AFFILIATE_SIGNUP) with:
+  - SHA256 hash-based deduplication using deterministic key ordering
+  - Automatic email notifications to master and up to 6 levels of upline affiliates via Resend
+  - Zod validation for API requests
+  - Email normalization (lowercase/trim) for consistent deduplication
+  - API: `POST /api/affiliate-activity/:type` and `GET /api/admin/affiliate-activities`
+- **Email Signature Generator (`/email-signature`)**: Interactive generator with 4 animated templates (Modern, Classic, Minimal, Bold), mobile-friendly preview, and Gmail-compatible output.
+
+## Queued Enhancements
+- **Affiliate Notification Platform v2**: Per-user email lists (max 5 emails) with toggleable event preferences. Users can configure which events they receive notifications for and specify additional email addresses. Includes NotificationSettings model with events JSON field for granular control.
 
 ## External Dependencies
 - **PostgreSQL**: Primary database.
