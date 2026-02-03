@@ -674,6 +674,12 @@ export async function registerRoutes(
     actorUserId: z.number().optional(),
     metadata: z.record(z.any()).optional().default({})
   });
+
+  const notificationSettingsSchema = z.object({
+    enabled: z.boolean().optional(),
+    emails: z.array(z.string().email("Invalid email format").transform(e => e.toLowerCase().trim())).max(5, "Maximum 5 additional emails allowed").optional(),
+    events: z.record(z.boolean()).optional()
+  });
   
   // Track affiliate activity event
   app.post("/api/affiliate-activity/:type", async (req, res) => {
@@ -754,34 +760,21 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const { enabled, emails, events } = req.body;
-      
-      // Validate emails (max 5)
-      if (emails !== undefined) {
-        if (!Array.isArray(emails)) {
-          return res.status(400).json({ message: "Emails must be an array" });
-        }
-        if (emails.length > 5) {
-          return res.status(400).json({ message: "Maximum 5 additional emails allowed" });
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        for (const email of emails) {
-          if (!emailRegex.test(email)) {
-            return res.status(400).json({ message: `Invalid email format: ${email}` });
-          }
-        }
+      const validation = notificationSettingsSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors: validation.error.errors 
+        });
       }
 
-      // Validate events
-      if (events !== undefined && typeof events !== "object") {
-        return res.status(400).json({ message: "Events must be an object" });
-      }
+      const { enabled, emails, events } = validation.data;
 
       await storage.ensureNotificationSettings(userId);
       
       const updates: any = {};
       if (enabled !== undefined) updates.enabled = enabled;
-      if (emails !== undefined) updates.emails = JSON.stringify(emails.map((e: string) => e.toLowerCase().trim()));
+      if (emails !== undefined) updates.emails = JSON.stringify(emails);
       if (events !== undefined) updates.events = JSON.stringify(events);
 
       const updated = await storage.updateNotificationSettings(userId, updates);

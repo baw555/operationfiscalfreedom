@@ -107,7 +107,10 @@ async function shouldNotify(userId: number | undefined, eventType: ActivityType)
   let extraEmails: string[] = [];
   try {
     if (settings.emails) {
-      extraEmails = JSON.parse(settings.emails);
+      const parsed = JSON.parse(settings.emails);
+      extraEmails = Array.isArray(parsed) 
+        ? parsed.filter((e): e is string => typeof e === "string").map(e => e.toLowerCase().trim())
+        : [];
     }
   } catch {
     extraEmails = [];
