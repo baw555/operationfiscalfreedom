@@ -6,7 +6,7 @@ import pg from "pg";
 import multer from "multer";
 import { storage } from "./storage";
 import { db } from "./db";
-import { LEGAL_DOCS, getLegalStatus, signLegalDocumentAtomic, healLegalStateOnLogin, createLegalOverride, legalSystemHealthCheck } from "./legal-system";
+import { LEGAL_DOCS, getLegalStatus, signLegalDocumentAtomic, healLegalStateOnLogin, createLegalOverride, legalSystemHealthCheck, generateEvidenceBundle, processExternalEsignCallback, runLegalTestBot } from "./legal-system";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
@@ -2866,6 +2866,56 @@ export async function registerRoutes(
     } catch (error) {
       console.error("[LEGAL HEALTH CHECK ERROR]", error);
       res.status(500).json({ message: "Health check failed" });
+    }
+  });
+
+  // External e-sign callback (for DocuSign/HelloSign style integrations)
+  app.post("/api/legal/esign-callback", async (req, res) => {
+    const { userId, documentType, envelopeId, docText } = req.body;
+    
+    if (!userId || !documentType || !envelopeId || !docText) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    try {
+      await processExternalEsignCallback({
+        userId,
+        documentType,
+        envelopeId,
+        docText,
+        req,
+      });
+      res.sendStatus(200);
+    } catch (error) {
+      console.error("[ESIGN CALLBACK ERROR]", error);
+      res.status(500).json({ message: "Failed to process e-sign callback" });
+    }
+  });
+
+  // Generate legal evidence bundle for a user (admin only)
+  app.get("/api/admin/legal/evidence/:userId", requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const filePath = await generateEvidenceBundle(userId);
+      res.download(filePath, `legal_evidence_${userId}.txt`);
+    } catch (error) {
+      console.error("[EVIDENCE BUNDLE ERROR]", error);
+      res.status(500).json({ message: "Failed to generate evidence bundle" });
+    }
+  });
+
+  // Run legal test bot (admin only)
+  app.post("/api/admin/legal/test-bot", requireAdmin, async (req, res) => {
+    try {
+      const result = await runLegalTestBot();
+      res.json(result);
+    } catch (error) {
+      console.error("[LEGAL TEST BOT ERROR]", error);
+      res.status(500).json({ message: "Test bot failed" });
     }
   });
 

@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 import { Request, Response, NextFunction } from "express";
 import { db } from "./db";
 import { legalSignatures, legalOverrideAudit, users } from "@shared/schema";
@@ -9,6 +11,12 @@ export const LEGAL_DOCS = {
     type: "NDA",
     version: "nda_v1_2026",
     path: "/affiliate/nda",
+    requiredFor: ["affiliate"],
+  },
+  CONTRACT: {
+    type: "CONTRACT",
+    version: "contract_v1_2026",
+    path: "/legal/contract",
     requiredFor: ["affiliate"],
   },
 } as const;
@@ -38,11 +46,15 @@ export async function signLegalDocumentAtomic({
   doc,
   docHash,
   req,
+  provider = null,
+  envelopeId = null,
 }: {
   userId: number;
   doc: LegalDoc;
   docHash?: string;
   req: Request;
+  provider?: string | null;
+  envelopeId?: string | null;
 }): Promise<{ success: boolean; alreadySigned?: boolean }> {
   const ip =
     req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
@@ -89,7 +101,7 @@ export function requireLegalClearance() {
 
     for (const key of Object.keys(LEGAL_DOCS) as LegalDocType[]) {
       const doc = LEGAL_DOCS[key];
-      if (!doc.requiredFor.includes(session.userRole)) continue;
+      if (!(doc.requiredFor as readonly string[]).includes(session.userRole)) continue;
 
       const ok = await hasSignedLegalDoc(session.userId, doc);
       if (!ok) {
@@ -170,6 +182,57 @@ export async function createLegalOverride({
   });
 }
 
+export async function generateEvidenceBundle(userId: number): Promise<string> {
+  const records = await db.select().from(legalSignatures).where(eq(legalSignatures.userId, userId));
+
+  const content = records
+    .map(
+      (r) =>
+        `DOC: ${r.documentType}
+VERSION: ${r.documentVersion}
+HASH: ${r.documentHash || "N/A"}
+SIGNED AT: ${r.signedAt}
+IP: ${r.ipAddress}
+AGENT: ${r.userAgent || "N/A"}
+----`
+    )
+    .join("\n\n");
+
+  const filePath = path.join("/tmp", `legal_evidence_${userId}_${Date.now()}.txt`);
+  fs.writeFileSync(filePath, content);
+  return filePath;
+}
+
+export async function processExternalEsignCallback({
+  userId,
+  documentType,
+  envelopeId,
+  docText,
+  req,
+}: {
+  userId: number;
+  documentType: string;
+  envelopeId: string;
+  docText: string;
+  req: Request;
+}): Promise<{ success: boolean }> {
+  const doc = LEGAL_DOCS[documentType as LegalDocType];
+  if (!doc) {
+    throw new Error("Invalid document type");
+  }
+
+  await signLegalDocumentAtomic({
+    userId,
+    doc,
+    docHash: hashDocument(docText),
+    req,
+    provider: "external",
+    envelopeId,
+  });
+
+  return { success: true };
+}
+
 export async function legalSystemHealthCheck(): Promise<{ healthy: boolean; issues: string[] }> {
   const issues: string[] = [];
 
@@ -180,6 +243,16 @@ export async function legalSystemHealthCheck(): Promise<{ healthy: boolean; issu
     if (!LEGAL_DOCS[k].path) {
       issues.push(`Missing path: ${k}`);
     }
+  }
+
+  return { healthy: issues.length === 0, issues };
+}
+
+export async function runLegalTestBot(): Promise<{ healthy: boolean; issues: string[] }> {
+  const issues: string[] = [];
+
+  for (const k of Object.keys(LEGAL_DOCS) as LegalDocType[]) {
+    if (!LEGAL_DOCS[k].version) issues.push(`Missing version: ${k}`);
   }
 
   return { healthy: issues.length === 0, issues };
