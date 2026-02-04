@@ -6873,6 +6873,30 @@ Be thorough but concise. Focus on actionable insights.`
       // Update the contract send status
       await storage.updateCsuContractSend(contractSend.id, { status: "signed" });
 
+      // Mirror to global legal system if signer is a registered user
+      const existingUser = await storage.getUserByEmail(signerEmail);
+      if (existingUser) {
+        try {
+          const { signLegalDocumentAtomic } = await import("./legal-system");
+          const template = await storage.getCsuContractTemplate(contractSend.templateId);
+          await signLegalDocumentAtomic(
+            existingUser.id,
+            "CONTRACT",
+            signatureData,
+            signedIpAddress,
+            signingUserAgent,
+            { 
+              csuAgreementId: signedAgreement.id,
+              templateName: template?.name || "CSU Contract",
+              signerName
+            }
+          );
+          console.log(`[CSU Sign] Mirrored to legal_signatures for user ${existingUser.id}`);
+        } catch (mirrorError) {
+          console.error("[CSU Sign] Mirror to legal system failed (non-blocking):", mirrorError);
+        }
+      }
+
       res.json({ success: true, agreementId: signedAgreement.id, signedAgreement });
     } catch (error) {
       console.error("Error signing CSU contract:", error);
