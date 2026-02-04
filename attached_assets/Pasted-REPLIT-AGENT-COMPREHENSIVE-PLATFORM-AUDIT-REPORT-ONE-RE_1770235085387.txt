@@ -1,0 +1,118 @@
+REPLIT AGENT — COMPREHENSIVE PLATFORM AUDIT & REPORT (ONE RESPONSE ONLY)
+
+Generate ONE consolidated report that covers ALL of the following areas at once.
+Do NOT split into multiple replies. Do NOT ask follow-up questions.
+Assume this system is production, regulated, and audit-sensitive.
+
+========================
+SECTION 1 — LEGAL & SIGNATURE ENFORCEMENT
+========================
+- List EVERY API route and whether requireLegalClearance() is applied
+- Identify any protected routes using requireAuth, requireAffiliate, or requireAdmin
+  WITHOUT requireLegalClearance
+- Identify any bypass paths (direct, indirect, or role-based)
+- Confirm whether legal_signatures is the SINGLE source of truth
+- Identify any remaining reads/writes to legacy signature tables
+- Output PASS / FAIL with exact file paths
+
+========================
+SECTION 2 — SIGNATURE FLOW COVERAGE
+========================
+- Identify ALL frontend pages where a user signs anything (NDA, contract, CSU, documents)
+- For each page, state whether it:
+  - Calls POST /api/legal/sign/*
+  - Calls GET /api/legal/status
+  - Blocks redirect until backend confirmation
+- List any pages that bypass the legal system
+- Output a wiring gap list with filenames and line numbers
+
+========================
+SECTION 3 — HIPAA SAFEGUARD MAPPING
+========================
+Map current implementation to:
+- 45 CFR §164.312(a)(1) Access Control
+- 45 CFR §164.312(c)(1) Integrity
+- 45 CFR §164.312(d) Authentication
+
+For each safeguard:
+- Explain how it is met in code
+- List gaps if any exist
+- State whether evidence is logged and retrievable
+
+========================
+SECTION 4 — SIGNATURE FAILURE ROOT CAUSE ANALYSIS
+========================
+Analyze all signature-related endpoints and report:
+- Race conditions
+- Session loss risks
+- Timeout risks
+- Partial write scenarios
+- Frontend/backend state mismatches
+
+Rank each issue by:
+- Likelihood
+- Severity
+- Whether it is auto-healed
+
+========================
+SECTION 5 — SESSION & STATE RELIABILITY
+========================
+- Describe session persistence mechanism
+- Identify risk of session loss on redeploy
+- Review cookie configuration (SameSite, Secure, etc.)
+- Identify intermittent failure risks related to state
+
+========================
+SECTION 6 — DEPLOY & REGRESSION SAFETY
+========================
+- List checks that run at startup
+- Identify which failures block deploy vs only log
+- Identify any silent failures
+- Recommend changes to make all critical failures fail-closed
+
+========================
+SECTION 7 — USER SIGNATURE FUNNEL
+========================
+Produce metrics showing:
+- Users who view signature pages
+- Users who start signing
+- Users who fail to complete
+- Users who retry
+- Users who abandon
+
+If data is missing, state exactly what instrumentation is absent.
+
+========================
+SECTION 8 — LEGACY DEPENDENCY REPORT
+========================
+- Identify any remaining reliance on legacy signature logic
+- Confirm legacy systems are NOT used for access control
+- State whether they can be safely removed
+
+========================
+SECTION 9 — FORWARD-LOOKING RISK ANALYSIS
+========================
+Based on current architecture, identify:
+- Most likely future regressions
+- Most dangerous developer mistakes
+- Areas most likely to violate legal or HIPAA compliance accidentally
+
+Rank by risk level.
+
+========================
+SECTION 10 — REGULATOR / ATTORNEY SUMMARY
+========================
+Provide a plain-English explanation suitable for auditors or attorneys explaining:
+- How legal agreements are enforced
+- How access is blocked without signatures
+- How evidence is preserved
+- How compliance is continuously monitored
+
+========================
+FINAL OUTPUT REQUIREMENTS
+========================
+- ONE unified report
+- Clear PASS / FAIL indicators
+- Exact file names and routes where issues exist
+- No suggestions unless tied to a specific finding
+- No assumptions — only evidence from the codebase

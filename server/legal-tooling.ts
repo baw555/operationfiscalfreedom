@@ -87,7 +87,6 @@ HASH: ${r.documentHash}
 SIGNED_AT: ${r.signedAt?.toISOString() || "N/A"}
 IP: ${r.ipAddress}
 USER_AGENT: ${r.userAgent}
-METADATA: ${r.metadata || "N/A"}
 ---`
     )
     .join("\n");
@@ -103,17 +102,18 @@ async function simulateUserSignatureFlow(testUserId: number): Promise<void> {
   for (const docType of docs) {
     const doc = LEGAL_DOCS[docType];
     
-    await signLegalDocumentAtomic(
-      testUserId,
-      docType,
-      "TEST_SIGNATURE_DATA",
-      "127.0.0.1",
-      "SyntheticTestBot/1.0",
-      { testRun: true, timestamp: new Date().toISOString() }
-    );
+    await signLegalDocumentAtomic({
+      userId: testUserId,
+      doc,
+      docHash: "TEST_HASH_" + docType,
+      req: { 
+        headers: { "user-agent": "SyntheticTestBot/1.0" }, 
+        socket: { remoteAddress: "127.0.0.1" } 
+      } as any,
+    });
 
-    const status = await getLegalStatus(testUserId);
-    const signed = status.documents.find(d => d.type === docType)?.signed;
+    const status = await getLegalStatus(testUserId, "affiliate");
+    const signed = status[docType];
     
     if (!signed) {
       throw new Error(`Synthetic sign failed for ${docType}`);

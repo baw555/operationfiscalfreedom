@@ -2967,6 +2967,81 @@ export async function registerRoutes(
     }
   });
 
+  // Signature metrics tracking endpoint (public for funnel tracking)
+  app.post("/api/metrics/signature-event", async (req, res) => {
+    try {
+      const { recordSignatureEvent } = await import("./legal-tooling");
+      const { event, documentType } = req.body;
+      const userId = req.session?.userId?.toString() || "anonymous";
+      await recordSignatureEvent(userId, event, documentType);
+      res.sendStatus(204);
+    } catch (error) {
+      console.error("[SIGNATURE METRICS ERROR]", error);
+      res.sendStatus(500);
+    }
+  });
+
+  // Admin: Get signature funnel metrics
+  app.get("/api/admin/legal/metrics", requireAdmin, async (req, res) => {
+    try {
+      const { getSignatureMetrics } = await import("./legal-tooling");
+      const stats = await getSignatureMetrics();
+      res.json(stats);
+    } catch (error) {
+      console.error("[LEGAL METRICS ERROR]", error);
+      res.status(500).json({ message: "Failed to get metrics" });
+    }
+  });
+
+  // Admin: Get auto-diagnosis coverage report
+  app.get("/api/admin/legal/coverage", requireAdmin, async (req, res) => {
+    try {
+      const { generateAutoDiagnosis } = await import("./legal-tooling");
+      const diagnosis = await generateAutoDiagnosis();
+      res.json(diagnosis);
+    } catch (error) {
+      console.error("[LEGAL COVERAGE ERROR]", error);
+      res.status(500).json({ message: "Failed to generate coverage report" });
+    }
+  });
+
+  // Admin: Export evidence bundle for user
+  app.get("/api/admin/legal/evidence-bundle/:userId", requireAdmin, async (req, res) => {
+    try {
+      const { exportEvidenceBundle } = await import("./legal-tooling");
+      const userId = parseInt(req.params.userId);
+      const filePath = await exportEvidenceBundle(userId);
+      res.download(filePath);
+    } catch (error) {
+      console.error("[EVIDENCE BUNDLE ERROR]", error);
+      res.status(500).json({ message: "Failed to export evidence bundle" });
+    }
+  });
+
+  // Admin: Run compliance check
+  app.post("/api/admin/legal/compliance-check", requireAdmin, async (req, res) => {
+    try {
+      const { continuousComplianceCheck } = await import("./legal-tooling");
+      const result = await continuousComplianceCheck();
+      res.json(result);
+    } catch (error) {
+      console.error("[COMPLIANCE CHECK ERROR]", error);
+      res.status(500).json({ message: "Compliance check failed" });
+    }
+  });
+
+  // Admin: Get compliance history
+  app.get("/api/admin/legal/compliance-history", requireAdmin, async (req, res) => {
+    try {
+      const { getComplianceHistory } = await import("./legal-tooling");
+      const history = await getComplianceHistory(20);
+      res.json(history);
+    } catch (error) {
+      console.error("[COMPLIANCE HISTORY ERROR]", error);
+      res.status(500).json({ message: "Failed to get compliance history" });
+    }
+  });
+
   // Get all NDAs for master portal
   app.get("/api/master/ndas", requireAdmin, async (req, res) => {
     try {
@@ -6877,20 +6952,13 @@ Be thorough but concise. Focus on actionable insights.`
       const existingUser = await storage.getUserByEmail(signerEmail);
       if (existingUser) {
         try {
-          const { signLegalDocumentAtomic } = await import("./legal-system");
-          const template = await storage.getCsuContractTemplate(contractSend.templateId);
-          await signLegalDocumentAtomic(
-            existingUser.id,
-            "CONTRACT",
-            signatureData,
-            signedIpAddress,
-            signingUserAgent,
-            { 
-              csuAgreementId: signedAgreement.id,
-              templateName: template?.name || "CSU Contract",
-              signerName
-            }
-          );
+          const { signLegalDocumentAtomic, LEGAL_DOCS, hashDocument } = await import("./legal-system");
+          await signLegalDocumentAtomic({
+            userId: existingUser.id,
+            doc: LEGAL_DOCS.CONTRACT,
+            docHash: hashDocument(JSON.stringify({ signerName, signerEmail, signatureData })),
+            req,
+          });
           console.log(`[CSU Sign] Mirrored to legal_signatures for user ${existingUser.id}`);
         } catch (mirrorError) {
           console.error("[CSU Sign] Mirror to legal system failed (non-blocking):", mirrorError);
@@ -9798,7 +9866,7 @@ Create a detailed scene plan with timing. Return JSON:
       res.json({
         scorecards,
         stats,
-        activeVendors: shares.filter(s => s.status === "active").length
+        activeVendors: shares.length
       });
     } catch (error) {
       console.error("Error generating vendor scorecards:", error);
