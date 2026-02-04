@@ -689,6 +689,39 @@ export const insertLegalOverrideAuditSchema = createInsertSchema(legalOverrideAu
 export type InsertLegalOverrideAudit = z.infer<typeof insertLegalOverrideAuditSchema>;
 export type LegalOverrideAudit = typeof legalOverrideAudit.$inferSelect;
 
+// Signature Metrics - Tracks signature funnel events
+export const signatureMetrics = pgTable("signature_metrics", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  event: text("event").notNull(), // viewed, started, submitted, confirmed, failed
+  documentType: text("document_type").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const insertSignatureMetricsSchema = createInsertSchema(signatureMetrics).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertSignatureMetrics = z.infer<typeof insertSignatureMetricsSchema>;
+export type SignatureMetrics = typeof signatureMetrics.$inferSelect;
+
+// Compliance Runs - Tracks continuous compliance check results
+export const complianceRuns = pgTable("compliance_runs", {
+  id: serial("id").primaryKey(),
+  report: text("report").notNull(),
+  status: text("status").notNull(), // PASS, FAIL
+  ranAt: timestamp("ran_at").defaultNow().notNull(),
+});
+
+export const insertComplianceRunsSchema = createInsertSchema(complianceRuns).omit({
+  id: true,
+  ranAt: true,
+});
+
+export type InsertComplianceRuns = z.infer<typeof insertComplianceRunsSchema>;
+export type ComplianceRuns = typeof complianceRuns.$inferSelect;
+
 // Business Leads - Submissions from the Vet Biz Owner page
 export const businessLeads = pgTable("business_leads", {
   id: serial("id").primaryKey(),
