@@ -325,6 +325,7 @@ function requireAffiliate(req: Request, res: Response, next: NextFunction) {
 
 // Middleware to check if affiliate has signed NDA - ENFORCED ON BACKEND
 // This is the authoritative check - client-side checks are for UX only
+// NOW USES GLOBAL LEGAL SYSTEM for unified enforcement
 async function requireAffiliateWithNda(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId || req.session.userRole !== "affiliate") {
     return res.status(403).json({ message: "Forbidden" });
@@ -338,19 +339,30 @@ async function requireAffiliateWithNda(req: Request, res: Response, next: NextFu
     });
   }
   
-  // CRITICAL: Check NDA status from database - this is the authoritative check
+  // CRITICAL: Check legal status from GLOBAL LEGAL SYSTEM - single source of truth
   try {
-    const hasSigned = await storage.hasAffiliateSignedNda(req.session.userId);
-    if (!hasSigned) {
+    const legalStatus = await getLegalStatus(req.session.userId, req.session.userRole);
+    
+    // Check NDA specifically
+    if (!legalStatus.NDA) {
       return res.status(403).json({ 
         message: "NDA signature required",
-        ndaRequired: true,
+        required: "NDA",
         redirectTo: "/affiliate/nda"
       });
     }
+    
+    // Check CONTRACT if defined for this role
+    if (legalStatus.CONTRACT === false) {
+      return res.status(403).json({ 
+        message: "Contract signature required",
+        required: "CONTRACT",
+        redirectTo: "/legal/contract"
+      });
+    }
   } catch (error) {
-    console.error("[requireAffiliateWithNda] Error checking NDA status:", error);
-    return res.status(500).json({ message: "Failed to verify NDA status" });
+    console.error("[requireAffiliateWithNda] Error checking legal status:", error);
+    return res.status(500).json({ message: "Failed to verify legal status" });
   }
   
   next();
@@ -2919,6 +2931,42 @@ export async function registerRoutes(
     }
   });
 
+  // Migrate legacy signatures to global legal system (admin only)
+  app.post("/api/admin/legal/migrate", requireAdmin, async (req, res) => {
+    try {
+      const { migrateLegacySignatures } = await import("./legal-finalization");
+      const result = await migrateLegacySignatures();
+      res.json(result);
+    } catch (error) {
+      console.error("[LEGAL MIGRATION ERROR]", error);
+      res.status(500).json({ message: "Migration failed" });
+    }
+  });
+
+  // Generate legal coverage report (admin only)
+  app.get("/api/admin/legal/report", requireAdmin, async (req, res) => {
+    try {
+      const { generateLegalCoverageReport } = await import("./legal-finalization");
+      const report = await generateLegalCoverageReport();
+      res.json(report);
+    } catch (error) {
+      console.error("[LEGAL REPORT ERROR]", error);
+      res.status(500).json({ message: "Report generation failed" });
+    }
+  });
+
+  // Validate legal system (admin only)
+  app.get("/api/admin/legal/validate", requireAdmin, async (req, res) => {
+    try {
+      const { runLegalSystemValidation } = await import("./legal-finalization");
+      const result = await runLegalSystemValidation();
+      res.json(result);
+    } catch (error) {
+      console.error("[LEGAL VALIDATION ERROR]", error);
+      res.status(500).json({ message: "Validation failed" });
+    }
+  });
+
   // Get all NDAs for master portal
   app.get("/api/master/ndas", requireAdmin, async (req, res) => {
     try {
@@ -3047,6 +3095,15 @@ export async function registerRoutes(
           idPhoto: idPhoto || null,
           signedIpAddress: ipAddress,
           agreedToTerms: "true",
+        });
+        
+        // MIRROR TO GLOBAL LEGAL SYSTEM - single source of truth
+        // This ensures unified enforcement across all protected routes
+        await signLegalDocumentAtomic({
+          userId,
+          doc: LEGAL_DOCS.NDA,
+          docHash: hashDocument(JSON.stringify({ fullName, signatureData, address })),
+          req,
         });
         
         // Idempotent: return success even if already signed
@@ -3774,6 +3831,17 @@ export async function registerRoutes(
         ...data,
         signedIpAddress: Array.isArray(clientIp) ? clientIp[0] : clientIp || 'unknown'
       });
+      
+      // MIRROR TO GLOBAL LEGAL SYSTEM - single source of truth
+      if (req.session.userId) {
+        await signLegalDocumentAtomic({
+          userId: req.session.userId,
+          doc: LEGAL_DOCS.CONTRACT,
+          docHash: hashDocument(JSON.stringify({ templateId: data.contractTemplateId, signatureData: data.signatureData })),
+          req,
+        });
+      }
+      
       res.status(201).json({ success: true, id: signedAgreement.id });
     } catch (error) {
       if (error instanceof z.ZodError) {
