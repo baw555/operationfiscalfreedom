@@ -3174,12 +3174,18 @@ export async function registerRoutes(
         
         // MIRROR TO GLOBAL LEGAL SYSTEM - single source of truth
         // This ensures unified enforcement across all protected routes
-        await signLegalDocumentAtomic({
-          userId,
-          doc: LEGAL_DOCS.NDA,
-          docHash: hashDocument(JSON.stringify({ fullName, signatureData, address })),
-          req,
-        });
+        // Non-blocking: don't fail NDA signing if mirror fails
+        try {
+          await signLegalDocumentAtomic({
+            userId,
+            doc: LEGAL_DOCS.NDA,
+            docHash: hashDocument(JSON.stringify({ fullName, signatureData, address })),
+            req,
+          });
+          console.log(`[NDA Sign] Mirrored to legal_signatures for user ${userId}`);
+        } catch (mirrorError) {
+          console.error("[NDA Sign] Mirror to legal system failed (non-blocking):", mirrorError);
+        }
         
         // Idempotent: return success even if already signed
         if (result.alreadySigned) {
@@ -3908,13 +3914,19 @@ export async function registerRoutes(
       });
       
       // MIRROR TO GLOBAL LEGAL SYSTEM - single source of truth
+      // Non-blocking: don't fail contract signing if mirror fails
       if (req.session.userId) {
-        await signLegalDocumentAtomic({
-          userId: req.session.userId,
-          doc: LEGAL_DOCS.CONTRACT,
-          docHash: hashDocument(JSON.stringify({ templateId: data.contractTemplateId, signatureData: data.signatureData })),
-          req,
-        });
+        try {
+          await signLegalDocumentAtomic({
+            userId: req.session.userId,
+            doc: LEGAL_DOCS.CONTRACT,
+            docHash: hashDocument(JSON.stringify({ templateId: data.contractTemplateId, signatureData: data.signatureData })),
+            req,
+          });
+          console.log(`[Contract Sign] Mirrored to legal_signatures for user ${req.session.userId}`);
+        } catch (mirrorError) {
+          console.error("[Contract Sign] Mirror to legal system failed (non-blocking):", mirrorError);
+        }
       }
       
       res.status(201).json({ success: true, id: signedAgreement.id });
