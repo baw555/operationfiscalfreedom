@@ -73,6 +73,27 @@ The database supports various functionalities including user management (`users`
 - **Admin Audit Export**: `GET /api/admin/export/audit` exports CSV of all notification audit logs
 - **System Health Endpoint**: `GET /api/system/health` for monitoring database connectivity
 
+## Global Legal Signature System
+A comprehensive, fail-closed legal document signing system implemented in `server/legal-system.ts`:
+- **Platform-wide Enforcement**: `requireLegalClearance()` middleware blocks access without required signatures
+- **Atomic + Idempotent Signing**: Database transactions ensure no partial state; retries are safe
+- **Version + Hash Locked**: Documents are tied to specific versions with SHA256 hashes
+- **Auto-heal on Login**: `healLegalStateOnLogin()` redirects users to sign missing documents
+- **Admin Override (Audited)**: Admins can bypass requirements with full audit trail
+- **External E-Sign Support**: Callback handler for DocuSign/HelloSign style integrations
+- **Evidence Bundle Generation**: PDF-ready proof for litigation
+- **Self-testing Bot**: Continuous validation of system health
+- **Document Types**: NDA (affiliates), CONTRACT (affiliates)
+- **API Routes**:
+  - `GET /api/legal/status` - Check signature status for current user
+  - `POST /api/legal/sign/:type` - Sign a legal document
+  - `POST /api/legal/esign-callback` - External e-sign webhook
+  - `POST /api/admin/legal-override` - Admin override with audit
+  - `GET /api/admin/legal/health` - System health check
+  - `GET /api/admin/legal/evidence/:userId` - Download evidence bundle
+  - `POST /api/admin/legal/test-bot` - Run validation bot
+- **Database Tables**: `legal_signatures`, `legal_override_audit`
+
 ## External Dependencies
 - **PostgreSQL**: Primary database.
 - **Drizzle ORM**: For database interaction.
