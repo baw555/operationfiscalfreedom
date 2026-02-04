@@ -45,6 +45,17 @@ export default function AffiliateDashboard() {
   const [leadSearch, setLeadSearch] = useState("");
   const [leadStatusFilter, setLeadStatusFilter] = useState<string>("all");
 
+  // Helper to check for NDA required response from backend
+  const handleNdaRequired = (response: Response) => {
+    if (response.status === 403) {
+      response.clone().json().then((data: any) => {
+        if (data.ndaRequired) {
+          window.location.href = "/affiliate/nda";
+        }
+      }).catch(() => {});
+    }
+  };
+
   // Check auth - single attempt since session should be verified before redirect
   // If this fails, the user needs to log in again (session was not properly established)
   const { data: authData, isLoading: authLoading, isSuccess: authSuccess } = useQuery({
@@ -106,11 +117,15 @@ export default function AffiliateDashboard() {
   });
 
   // Fetch assigned leads - only after auth confirmed
+  // Backend enforces NDA - if 403 with ndaRequired, redirect
   const { data: applications = [] } = useQuery({
     queryKey: ["affiliate-applications"],
     queryFn: async () => {
       const res = await fetch("/api/affiliate/applications", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch");
+      if (!res.ok) {
+        handleNdaRequired(res);
+        throw new Error("Failed to fetch");
+      }
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
@@ -120,7 +135,10 @@ export default function AffiliateDashboard() {
     queryKey: ["affiliate-help-requests"],
     queryFn: async () => {
       const res = await fetch("/api/affiliate/help-requests", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch");
+      if (!res.ok) {
+        handleNdaRequired(res);
+        throw new Error("Failed to fetch");
+      }
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,

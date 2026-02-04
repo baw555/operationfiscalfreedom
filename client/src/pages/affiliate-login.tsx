@@ -79,6 +79,26 @@ export default function AffiliateLogin() {
           return;
         }
         
+        // CRITICAL: Check NDA status before allowing dashboard access
+        // Backend is the authoritative source - this determines redirect destination
+        try {
+          const ndaResponse = await fetch("/api/affiliate/nda-status", {
+            credentials: "include",
+          });
+          if (ndaResponse.ok) {
+            const ndaData = await ndaResponse.json();
+            if (!ndaData.hasSigned) {
+              toast({ title: "Welcome! Please sign the Confidentiality Agreement to continue." });
+              window.location.href = "/affiliate/nda";
+              return;
+            }
+          }
+        } catch {
+          // If NDA check fails, redirect to NDA page to be safe
+          window.location.href = "/affiliate/nda";
+          return;
+        }
+        
         toast({ title: "Welcome back, Operator!" });
         // Use full page navigation for reliable session handling
         window.location.href = "/affiliate/dashboard";

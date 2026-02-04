@@ -321,6 +321,39 @@ function requireAffiliate(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+// Middleware to check if affiliate has signed NDA - ENFORCED ON BACKEND
+// This is the authoritative check - client-side checks are for UX only
+async function requireAffiliateWithNda(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId || req.session.userRole !== "affiliate") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  
+  // HIPAA §164.312(d) - Enforce MFA for affiliate access if enabled
+  if (req.session.mfaPending === true && req.session.mfaVerified !== true) {
+    return res.status(403).json({ 
+      message: "MFA verification required",
+      mfaPending: true 
+    });
+  }
+  
+  // CRITICAL: Check NDA status from database - this is the authoritative check
+  try {
+    const hasSigned = await storage.hasAffiliateSignedNda(req.session.userId);
+    if (!hasSigned) {
+      return res.status(403).json({ 
+        message: "NDA signature required",
+        ndaRequired: true,
+        redirectTo: "/affiliate/nda"
+      });
+    }
+  } catch (error) {
+    console.error("[requireAffiliateWithNda] Error checking NDA status:", error);
+    return res.status(500).json({ message: "Failed to verify NDA status" });
+  }
+  
+  next();
+}
+
 // HIPAA §164.312(b) - PHI Access Audit Logging Middleware
 // Automatically logs access to PHI-containing resources
 function logPhiAccess(resourceType: string) {
@@ -1234,7 +1267,7 @@ export async function registerRoutes(
   });
 
   // Get disability referrals for a specific affiliate
-  app.get("/api/affiliate/disability-referrals", requireAffiliate, logPhiAccess("disability_referrals"), async (req, res) => {
+  app.get("/api/affiliate/disability-referrals", requireAffiliateWithNda, logPhiAccess("disability_referrals"), async (req, res) => {
     try {
       const referrals = await storage.getDisabilityReferralsByAffiliate(req.session.userId!);
       res.json(referrals);
@@ -1245,7 +1278,7 @@ export async function registerRoutes(
   });
 
   // Get vet professional intakes for affiliate
-  app.get("/api/affiliate/vet-professional-intakes", requireAffiliate, logPhiAccess("vet_professional_intakes"), async (req, res) => {
+  app.get("/api/affiliate/vet-professional-intakes", requireAffiliateWithNda, logPhiAccess("vet_professional_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getVetProfessionalIntakesByAffiliate(req.session.userId!);
       res.json(intakes);
@@ -2624,7 +2657,7 @@ export async function registerRoutes(
   // ===== AFFILIATE ROUTES =====
 
   // Get assigned affiliate applications
-  app.get("/api/affiliate/applications", requireAffiliate, async (req, res) => {
+  app.get("/api/affiliate/applications", requireAffiliateWithNda, async (req, res) => {
     try {
       const applications = await storage.getAffiliateApplicationsByAssignee(req.session.userId!);
       res.json(applications);
@@ -2634,7 +2667,7 @@ export async function registerRoutes(
   });
 
   // Get assigned help requests
-  app.get("/api/affiliate/help-requests", requireAffiliate, logPhiAccess("help_requests"), async (req, res) => {
+  app.get("/api/affiliate/help-requests", requireAffiliateWithNda, logPhiAccess("help_requests"), async (req, res) => {
     try {
       const requests = await storage.getHelpRequestsByAssignee(req.session.userId!);
       res.json(requests);
@@ -2644,7 +2677,7 @@ export async function registerRoutes(
   });
 
   // Update affiliate application status (affiliate)
-  app.patch("/api/affiliate/applications/:id", requireAffiliate, async (req, res) => {
+  app.patch("/api/affiliate/applications/:id", requireAffiliateWithNda, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status, notes } = req.body;
@@ -2663,7 +2696,7 @@ export async function registerRoutes(
   });
 
   // Update help request status (affiliate)
-  app.patch("/api/affiliate/help-requests/:id", requireAffiliate, logPhiAccess("help_requests"), async (req, res) => {
+  app.patch("/api/affiliate/help-requests/:id", requireAffiliateWithNda, logPhiAccess("help_requests"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status, notes } = req.body;
@@ -2682,7 +2715,7 @@ export async function registerRoutes(
   });
 
   // Get affiliate's referral info
-  app.get("/api/affiliate/referral-info", requireAffiliate, async (req, res) => {
+  app.get("/api/affiliate/referral-info", requireAffiliateWithNda, async (req, res) => {
     try {
       const user = await storage.getUser(req.session.userId!);
       if (!user) {
@@ -2715,7 +2748,7 @@ export async function registerRoutes(
   });
 
   // Submit VSO Air Support Request (affiliate requests master to send projections to a VSO)
-  app.post("/api/affiliate/vso-air-support", requireAffiliate, async (req, res) => {
+  app.post("/api/affiliate/vso-air-support", requireAffiliateWithNda, async (req, res) => {
     try {
       const { vsoName, vsoEmail, comments } = req.body;
       const user = await storage.getUser(req.session.userId!);
@@ -2911,7 +2944,7 @@ export async function registerRoutes(
   });
 
   // Get W9 status for affiliate
-  app.get("/api/affiliate/w9-status", requireAffiliate, async (req, res) => {
+  app.get("/api/affiliate/w9-status", requireAffiliateWithNda, async (req, res) => {
     try {
       const hasSubmitted = await storage.hasAffiliateSubmittedW9(req.session.userId!);
       const w9 = hasSubmitted ? await storage.getAffiliateW9ByUserId(req.session.userId!) : null;
@@ -2922,7 +2955,7 @@ export async function registerRoutes(
   });
 
   // Submit W9 form
-  app.post("/api/affiliate/submit-w9", requireAffiliate, async (req, res) => {
+  app.post("/api/affiliate/submit-w9", requireAffiliateWithNda, async (req, res) => {
     try {
       // Zod validation schema for W9
       const w9Schema = z.object({
@@ -4186,7 +4219,7 @@ export async function registerRoutes(
   });
 
   // Affiliate: Get business leads referred by this affiliate
-  app.get("/api/affiliate/business-leads", requireAffiliate, async (req, res) => {
+  app.get("/api/affiliate/business-leads", requireAffiliateWithNda, async (req, res) => {
     try {
       const leads = await storage.getBusinessLeadsByReferrer(req.session.userId!);
       res.json(leads);
@@ -4277,7 +4310,7 @@ export async function registerRoutes(
   });
 
   // Affiliate: Get their own IP referral tracking
-  app.get("/api/affiliate/security-tracking", requireAffiliate, async (req, res) => {
+  app.get("/api/affiliate/security-tracking", requireAffiliateWithNda, async (req, res) => {
     try {
       const ipReferrals = await storage.getIpReferralsByAffiliate(req.session.userId!);
       const now = new Date();
@@ -4871,7 +4904,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/affiliate/medical-sales-intakes", requireAffiliate, logPhiAccess("medical_sales_intakes"), async (req, res) => {
+  app.get("/api/affiliate/medical-sales-intakes", requireAffiliateWithNda, logPhiAccess("medical_sales_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getMedicalSalesIntakesByAffiliate(req.session.userId!);
       res.json(intakes);
@@ -4915,7 +4948,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/affiliate/business-dev-intakes", requireAffiliate, logPhiAccess("business_dev_intakes"), async (req, res) => {
+  app.get("/api/affiliate/business-dev-intakes", requireAffiliateWithNda, logPhiAccess("business_dev_intakes"), async (req, res) => {
     try {
       const intakes = await storage.getBusinessDevIntakesByAffiliate(req.session.userId!);
       res.json(intakes);
