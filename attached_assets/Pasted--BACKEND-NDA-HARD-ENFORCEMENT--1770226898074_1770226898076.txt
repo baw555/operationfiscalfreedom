@@ -1,0 +1,95 @@
+/* ============================
+   BACKEND — NDA HARD ENFORCEMENT
+   ============================ */
+
+// server/middleware/requireAffiliateWithNda.ts
+import { Request, Response, NextFunction } from "express";
+
+export async function requireAffiliateWithNda(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.session?.userId || req.session.userRole !== "affiliate") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  // MFA hard block
+  if (req.session.mfaPending === true && req.session.mfaVerified !== true) {
+    return res.status(403).json({
+      message: "MFA verification required",
+      mfaPending: true,
+    });
+  }
+
+  try {
+    const hasSigned = await storage.hasAffiliateSignedNda(req.session.userId);
+    if (!hasSigned) {
+      return res.status(403).json({
+        message: "NDA signature required",
+        ndaRequired: true,
+        redirectTo: "/affiliate/nda",
+      });
+    }
+  } catch (err) {
+    console.error("[NDA CHECK FAILED]", err);
+    return res.status(500).json({ message: "NDA verification failure" });
+  }
+
+  next();
+}
+
+/* ============================
+   ROUTE ENFORCEMENT
+   ============================ */
+
+// server/routes.ts
+
+// KEEP NO-NDA GUARD ONLY HERE
+app.get("/api/affiliate/nda-status", requireAffiliate, ndaStatusHandler);
+app.post("/api/affiliate/sign-nda", requireAffiliate, signNdaHandler);
+
+// NDA REQUIRED FOR ALL OTHER AFFILIATE ROUTES
+app.use("/api/affiliate/applications", requireAffiliateWithNda);
+app.use("/api/affiliate/help-requests", requireAffiliateWithNda);
+app.use("/api/affiliate/disability-referrals", requireAffiliateWithNda);
+app.use("/api/affiliate/vet-professional-intakes", requireAffiliateWithNda);
+app.use("/api/affiliate/referral-info", requireAffiliateWithNda);
+app.use("/api/affiliate/vso-air-support", requireAffiliateWithNda);
+app.use("/api/affiliate/w9-status", requireAffiliateWithNda);
+app.use("/api/affiliate/submit-w9", requireAffiliateWithNda);
+app.use("/api/affiliate/business-leads", requireAffiliateWithNda);
+app.use("/api/affiliate/security-tracking", requireAffiliateWithNda);
+app.use("/api/affiliate/medical-sales-intakes", requireAffiliateWithNda);
+app.use("/api/affiliate/business-dev-intakes", requireAffiliateWithNda);
+
+/* ============================
+   FRONTEND — FAIL-CLOSED NDA GATE
+   ============================ */
+
+// client/src/pages/affiliate-login.tsx
+// After session verification success
+
+try {
+  const res = await fetch("/api/affiliate/nda-status", {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    window.location.href = "/affiliate/nda";
+    return;
+  }
+
+  const data = await res.json();
+  if (!data.hasSigned) {
+    toast({
+      title: "Confidentiality Agreement Required",
+      description: "Please sign the NDA to continue.",
+    });
+    window.location.href = "/affiliate/nda";
+    return;
+  }
+} catch {
+  window.location.href = "/affiliate/nda";
+  return;
+}
