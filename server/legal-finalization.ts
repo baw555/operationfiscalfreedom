@@ -42,9 +42,12 @@ export async function migrateLegacySignatures(): Promise<{ migrated: number; err
       try {
         const [existing] = await db.select()
           .from(legalSignatures)
-          .where(eq(legalSignatures.userId, contract.affiliateId));
+          .where(and(
+            eq(legalSignatures.userId, contract.affiliateId),
+            eq(legalSignatures.documentType, "CONTRACT")
+          ));
         
-        if (!existing || existing.documentType !== "CONTRACT") {
+        if (!existing) {
           await db.insert(legalSignatures).values({
             userId: contract.affiliateId,
             documentType: "CONTRACT",
@@ -61,6 +64,43 @@ export async function migrateLegacySignatures(): Promise<{ migrated: number; err
     }
   } catch (err) {
     errors.push(`Failed to read legacy contracts: ${err}`);
+  }
+
+  // Migrate CSU signed agreements for registered users
+  try {
+    const csuAgreements = await db.select().from(csuSignedAgreements);
+    const allUsers = await db.select().from(users);
+    const userByEmail = new Map(allUsers.map(u => [u.email.toLowerCase(), u]));
+    
+    for (const agreement of csuAgreements) {
+      const matchedUser = userByEmail.get(agreement.signerEmail.toLowerCase());
+      if (!matchedUser) continue;
+      
+      try {
+        const [existing] = await db.select()
+          .from(legalSignatures)
+          .where(and(
+            eq(legalSignatures.userId, matchedUser.id),
+            eq(legalSignatures.documentType, "CONTRACT")
+          ));
+        
+        if (!existing) {
+          await db.insert(legalSignatures).values({
+            userId: matchedUser.id,
+            documentType: "CONTRACT",
+            documentVersion: LEGAL_DOCS.CONTRACT.version,
+            documentHash: "LEGACY_IMPORT_CSU",
+            ipAddress: agreement.signedIpAddress || "legacy",
+            userAgent: "legacy-migration-csu",
+          }).onConflictDoNothing();
+          migrated++;
+        }
+      } catch (err) {
+        errors.push(`CSU migration failed for ${agreement.signerEmail}: ${err}`);
+      }
+    }
+  } catch (err) {
+    errors.push(`Failed to read CSU agreements: ${err}`);
   }
 
   return { migrated, errors };
