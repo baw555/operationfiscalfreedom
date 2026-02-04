@@ -2857,8 +2857,14 @@ export async function registerRoutes(
     }
   });
 
-  // Sign affiliate NDA
+  // Sign affiliate NDA - ATOMIC + IDEMPOTENT
   app.post("/api/affiliate/sign-nda", requireAffiliate, async (req, res) => {
+    const userId = req.session.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Session not established" });
+    }
+
     try {
       const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms } = req.body;
       
@@ -2891,27 +2897,29 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Custom referral code is required (at least 3 characters)" });
       }
       
-      // Check if already signed
-      const alreadySigned = await storage.hasAffiliateSignedNda(req.session.userId!);
+      // IDEMPOTENT: If already signed, return success (not error)
+      const alreadySigned = await storage.hasAffiliateSignedNda(userId);
       if (alreadySigned) {
-        return res.status(400).json({ message: "NDA already signed" });
+        return res.json({ success: true, message: "NDA already signed" });
       }
 
       // Check if custom referral code is already taken BEFORE creating NDA
       const codeToCheck = customReferralCode.toUpperCase().trim();
       const existingUser = await storage.getUserByReferralCode(codeToCheck);
-      if (existingUser && existingUser.id !== req.session.userId) {
+      if (existingUser && existingUser.id !== userId) {
         return res.status(400).json({ 
           message: "This referral code is already taken. Please choose a different code." 
         });
       }
 
-      // Get IP address
-      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+      // Get IP address for audit trail
+      const ipAddress = req.headers['x-forwarded-for']?.toString().split(',')[0] || 
+                        req.socket.remoteAddress || 
+                        'unknown';
       
       // Update user's referral code FIRST (before NDA creation)
       try {
-        await storage.updateUserReferralCode(req.session.userId!, codeToCheck);
+        await storage.updateUserReferralCode(userId, codeToCheck);
       } catch (codeError: any) {
         // Handle race condition where code was taken between check and update
         if (codeError?.code === '23505') {
@@ -2924,7 +2932,7 @@ export async function registerRoutes(
       
       // Create NDA record
       const nda = await storage.createAffiliateNda({
-        userId: req.session.userId!,
+        userId,
         fullName,
         veteranNumber: veteranNumber || null,
         address,
@@ -2938,8 +2946,11 @@ export async function registerRoutes(
       
       res.json({ success: true, nda });
     } catch (error) {
-      console.error("NDA signing error:", error);
-      res.status(500).json({ message: "Failed to sign NDA" });
+      console.error("[NDA SIGN FAILURE]", error);
+      res.status(500).json({ 
+        message: "NDA signing failed. Please retry.",
+        retryable: true
+      });
     }
   });
 

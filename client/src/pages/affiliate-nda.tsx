@@ -218,12 +218,35 @@ export default function AffiliateNda() {
       }
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/affiliate/nda-status"] });
-      queryClient.invalidateQueries({ queryKey: ["affiliate-nda-status"] });
-      toast({ title: "NDA Signed Successfully!", description: "Welcome to the team! You can now access the affiliate dashboard." });
-      // Redirect to affiliate dashboard - contracts can be signed later
-      setLocation("/affiliate/dashboard");
+    onSuccess: async () => {
+      // FAIL-SAFE: Recheck NDA status from backend before redirecting
+      // Never trust UI state - backend is single source of truth
+      try {
+        const statusRes = await fetch("/api/affiliate/nda-status", {
+          credentials: "include",
+        });
+        
+        if (!statusRes.ok) {
+          throw new Error("Status check failed");
+        }
+        
+        const statusData = await statusRes.json();
+        if (!statusData.hasSigned) {
+          throw new Error("NDA not persisted");
+        }
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/affiliate/nda-status"] });
+        queryClient.invalidateQueries({ queryKey: ["affiliate-nda-status"] });
+        toast({ title: "NDA Signed Successfully!", description: "Welcome to the team! You can now access the affiliate dashboard." });
+        // Use full page navigation for reliable session handling
+        window.location.href = "/affiliate/dashboard";
+      } catch {
+        toast({ 
+          title: "Verification Failed", 
+          description: "Please try signing again.", 
+          variant: "destructive" 
+        });
+      }
     },
     onError: (error: Error) => {
       // Provide helpful error messages for common issues

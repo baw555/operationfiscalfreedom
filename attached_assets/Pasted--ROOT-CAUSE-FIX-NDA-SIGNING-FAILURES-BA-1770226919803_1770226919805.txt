@@ -1,0 +1,128 @@
+/* =====================================================
+   ROOT-CAUSE FIX: NDA SIGNING FAILURES (BACKEND AUTHORITATIVE)
+   ===================================================== */
+
+/*
+COMMON CAUSES YOU HAVE RIGHT NOW (THIS FIXES THEM):
+1. Session not persisted before NDA submit
+2. Double-submit / race condition
+3. Frontend redirect before DB commit
+4. Contract write succeeds but response fails
+5. Partial state (signed but not marked signed)
+6. Retry causes duplicate constraint errors
+*/
+
+/* ============================
+   DB REQUIREMENTS (MANDATORY)
+   ============================ */
+
+// nda_signatures table MUST enforce idempotency
+// UNIQUE (user_id, document_version)
+
+interface NdaSignature {
+  userId: string;
+  documentVersion: string;
+  ipAddress: string;
+  signedAt: Date;
+}
+
+/* ============================
+   BACKEND — ATOMIC NDA SIGN
+   ============================ */
+
+// server/routes/affiliate-sign-nda.ts
+app.post("/api/affiliate/sign-nda", requireAffiliate, async (req, res) => {
+  const userId = req.session.userId;
+  const documentVersion = CURRENT_NDA_VERSION;
+  const ipAddress =
+    req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
+    req.socket.remoteAddress ||
+    "unknown";
+
+  if (!userId) {
+    return res.status(401).json({ message: "Session not established" });
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      const existing = await tx.ndaSignatures.findFirst({
+        where: { userId, documentVersion },
+      });
+
+      if (existing) {
+        return;
+      }
+
+      await tx.ndaSignatures.create({
+        data: {
+          userId,
+          documentVersion,
+          ipAddress,
+          signedAt: new Date(),
+        },
+      });
+    });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("[NDA SIGN FAILURE]", err);
+    return res.status(500).json({
+      message: "NDA signing failed. Please retry.",
+      retryable: true,
+    });
+  }
+});
+
+/* ============================
+   BACKEND — STATUS CHECK (SINGLE SOURCE OF TRUTH)
+   ============================ */
+
+app.get("/api/affiliate/nda-status", requireAffiliate, async (req, res) => {
+  const hasSigned = await storage.hasAffiliateSignedNda(req.session.userId);
+  res.json({ hasSigned });
+});
+
+/* ============================
+   FRONTEND — FAIL-SAFE SIGN FLOW
+   ============================ */
+
+// client/src/pages/affiliate-nda.tsx
+
+let submitting = false;
+
+async function signNda() {
+  if (submitting) return;
+  submitting = true;
+
+  try {
+    const res = await fetch("/api/affiliate/sign-nda", {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!res.ok) throw new Error("sign_failed");
+
+    // RECHECK FROM BACKEND (never trust UI state)
+    const status = await fetch("/api/affiliate/nda-status", {
+      credentials: "include",
+    });
+
+    const data = await status.json();
+    if (!data.hasSigned) throw new Error("not_persisted");
+
+    window.location.href = "/affiliate/dashboard";
+  } catch {
+    submitting = false;
+    alert("Signature failed. Please retry.");
+  }
+}
+
+/* ============================
+   NON-NEGOTIABLE RULES
+   ============================ */
+
+// 1. Never redirect before DB commit
+// 2. Never rely on frontend state
+// 3. NDA write is atomic + idempotent
+// 4. Status is always rechecked
+// 5. Failure = retryable, not silent
