@@ -6,6 +6,7 @@ import pg from "pg";
 import multer from "multer";
 import { storage } from "./storage";
 import { db } from "./db";
+import { LEGAL_DOCS, getLegalStatus, signLegalDocumentAtomic, healLegalStateOnLogin, createLegalOverride, legalSystemHealthCheck } from "./legal-system";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
@@ -2795,6 +2796,76 @@ export async function registerRoutes(
       res.json({ hasSigned, nda });
     } catch (error) {
       res.status(500).json({ message: "Failed to check NDA status" });
+    }
+  });
+
+  // ===== GLOBAL LEGAL SYSTEM ROUTES =====
+  
+  // Get legal document signature status for current user
+  app.get("/api/legal/status", requireAffiliate, async (req, res) => {
+    try {
+      const status = await getLegalStatus(req.session.userId!, req.session.userRole || "affiliate");
+      res.json(status);
+    } catch (error) {
+      console.error("[LEGAL STATUS ERROR]", error);
+      res.status(500).json({ message: "Failed to check legal status" });
+    }
+  });
+
+  // Sign a legal document (generic handler)
+  app.post("/api/legal/sign/:type", requireAffiliate, async (req, res) => {
+    const docType = req.params.type.toUpperCase() as keyof typeof LEGAL_DOCS;
+    const doc = LEGAL_DOCS[docType];
+    
+    if (!doc) {
+      return res.status(400).json({ message: "Invalid document type" });
+    }
+
+    try {
+      const result = await signLegalDocumentAtomic({
+        userId: req.session.userId!,
+        doc,
+        docHash: req.body.documentHash,
+        req,
+      });
+      res.json(result);
+    } catch (error) {
+      console.error("[LEGAL SIGN ERROR]", error);
+      res.status(500).json({ message: "Failed to sign document", retryable: true });
+    }
+  });
+
+  // Admin override for legal documents (with audit)
+  app.post("/api/admin/legal-override", requireAdmin, async (req, res) => {
+    const { userId, documentType, reason } = req.body;
+
+    if (!userId || !documentType || !reason) {
+      return res.status(400).json({ message: "userId, documentType, and reason are required" });
+    }
+
+    try {
+      await createLegalOverride({
+        adminId: req.session.userId!,
+        userId,
+        documentType,
+        reason,
+        req,
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[LEGAL OVERRIDE ERROR]", error);
+      res.status(500).json({ message: "Failed to create legal override" });
+    }
+  });
+
+  // Legal system health check (admin only)
+  app.get("/api/admin/legal/health", requireAdmin, async (req, res) => {
+    try {
+      const health = await legalSystemHealthCheck();
+      res.json(health);
+    } catch (error) {
+      console.error("[LEGAL HEALTH CHECK ERROR]", error);
+      res.status(500).json({ message: "Health check failed" });
     }
   });
 

@@ -648,6 +648,47 @@ export const insertAffiliateNdaSchema = createInsertSchema(affiliateNda).omit({
 export type InsertAffiliateNda = z.infer<typeof insertAffiliateNdaSchema>;
 export type AffiliateNda = typeof affiliateNda.$inferSelect;
 
+// Global Legal Signatures - Platform-wide document signature tracking
+// UNIQUE constraint on (user_id, document_type, document_version) enforced at DB level
+export const legalSignatures = pgTable("legal_signatures", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  documentType: text("document_type").notNull(), // e.g., "NDA", "CONTRACT"
+  documentVersion: text("document_version").notNull(), // e.g., "nda_v1_2026"
+  documentHash: text("document_hash"), // SHA256 hash of document content at signing
+  ipAddress: text("ip_address").notNull(),
+  userAgent: text("user_agent"),
+  signedAt: timestamp("signed_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertLegalSignatureSchema = createInsertSchema(legalSignatures).omit({
+  id: true,
+  signedAt: true,
+  createdAt: true,
+});
+
+export type InsertLegalSignature = z.infer<typeof insertLegalSignatureSchema>;
+export type LegalSignature = typeof legalSignatures.$inferSelect;
+
+// Legal Override Audit - Tracks admin overrides for legal documents
+export const legalOverrideAudit = pgTable("legal_override_audit", {
+  id: serial("id").primaryKey(),
+  adminId: integer("admin_id").references(() => users.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  documentType: text("document_type").notNull(),
+  reason: text("reason").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertLegalOverrideAuditSchema = createInsertSchema(legalOverrideAudit).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertLegalOverrideAudit = z.infer<typeof insertLegalOverrideAuditSchema>;
+export type LegalOverrideAudit = typeof legalOverrideAudit.$inferSelect;
+
 // Business Leads - Submissions from the Vet Biz Owner page
 export const businessLeads = pgTable("business_leads", {
   id: serial("id").primaryKey(),
