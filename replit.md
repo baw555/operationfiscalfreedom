@@ -76,6 +76,7 @@ The database supports various functionalities including user management (`users`
 ## Global Legal Signature System
 A comprehensive, fail-closed legal document signing system implemented in `server/legal-system.ts`:
 - **Platform-wide Enforcement**: `requireLegalClearance()` middleware blocks access without required signatures
+- **Unified Signature Mirroring**: All signature flows (NDA, contracts, CSU agreements) mirror to `legal_signatures` table for unified enforcement
 - **Atomic + Idempotent Signing**: Database transactions ensure no partial state; retries are safe
 - **Version + Hash Locked**: Documents are tied to specific versions with SHA256 hashes
 - **Auto-heal on Login**: `healLegalStateOnLogin()` redirects users to sign missing documents
@@ -83,6 +84,7 @@ A comprehensive, fail-closed legal document signing system implemented in `serve
 - **External E-Sign Support**: Callback handler for DocuSign/HelloSign style integrations
 - **Evidence Bundle Generation**: PDF-ready proof for litigation
 - **Self-testing Bot**: Continuous validation of system health
+- **Legacy Migration**: `migrateLegacySignatures()` backfills existing signatures from `affiliate_nda`, `signed_agreements`, and `csu_signed_agreements`
 - **Document Types**: NDA (affiliates), CONTRACT (affiliates)
 - **API Routes**:
   - `GET /api/legal/status` - Check signature status for current user
@@ -92,7 +94,11 @@ A comprehensive, fail-closed legal document signing system implemented in `serve
   - `GET /api/admin/legal/health` - System health check
   - `GET /api/admin/legal/evidence/:userId` - Download evidence bundle
   - `POST /api/admin/legal/test-bot` - Run validation bot
+  - `POST /api/admin/legal/migrate` - Migrate legacy signatures to unified system
+  - `GET /api/admin/legal/report` - Generate legal coverage report
+  - `GET /api/admin/legal/validate` - Validate legal system integrity
 - **Database Tables**: `legal_signatures`, `legal_override_audit`
+- **Finalization Module**: `server/legal-finalization.ts` provides migration and validation utilities
 
 ## External Dependencies
 - **PostgreSQL**: Primary database.
