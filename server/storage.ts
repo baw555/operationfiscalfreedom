@@ -224,6 +224,8 @@ export interface IStorage {
   getAffiliateNdaById(id: number): Promise<AffiliateNda | undefined>;
   hasAffiliateSignedNda(userId: number): Promise<boolean>;
   getAllAffiliateNdas(): Promise<AffiliateNda[]>;
+  // Atomic NDA signing with referral code update in single transaction
+  signNdaAtomic(userId: number, referralCode: string, nda: InsertAffiliateNda): Promise<{ nda: AffiliateNda; alreadySigned?: boolean }>;
 
   // Business Leads
   createBusinessLead(lead: InsertBusinessLead): Promise<BusinessLead>;
@@ -1114,6 +1116,25 @@ export class DatabaseStorage implements IStorage {
 
   async getAllAffiliateNdas(): Promise<AffiliateNda[]> {
     return db.select().from(affiliateNda).orderBy(desc(affiliateNda.signedAt));
+  }
+
+  // Atomic NDA signing with referral code update in single transaction
+  async signNdaAtomic(userId: number, referralCode: string, ndaData: InsertAffiliateNda): Promise<{ nda: AffiliateNda; alreadySigned?: boolean }> {
+    return await db.transaction(async (tx) => {
+      // Check if already signed (idempotent)
+      const [existing] = await tx.select().from(affiliateNda).where(eq(affiliateNda.userId, userId));
+      if (existing) {
+        return { nda: existing, alreadySigned: true };
+      }
+
+      // Update referral code atomically
+      await tx.update(users).set({ referralCode }).where(eq(users.id, userId));
+
+      // Create NDA record atomically
+      const [created] = await tx.insert(affiliateNda).values(ndaData).returning();
+      
+      return { nda: created, alreadySigned: false };
+    });
   }
 
   // Business Leads

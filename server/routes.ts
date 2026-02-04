@@ -5,6 +5,7 @@ import pgSession from "connect-pg-simple";
 import pg from "pg";
 import multer from "multer";
 import { storage } from "./storage";
+import { db } from "./db";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
@@ -2897,12 +2898,6 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Custom referral code is required (at least 3 characters)" });
       }
       
-      // IDEMPOTENT: If already signed, return success (not error)
-      const alreadySigned = await storage.hasAffiliateSignedNda(userId);
-      if (alreadySigned) {
-        return res.json({ success: true, message: "NDA already signed" });
-      }
-
       // Check if custom referral code is already taken BEFORE creating NDA
       const codeToCheck = customReferralCode.toUpperCase().trim();
       const existingUser = await storage.getUserByReferralCode(codeToCheck);
@@ -2917,11 +2912,30 @@ export async function registerRoutes(
                         req.socket.remoteAddress || 
                         'unknown';
       
-      // Update user's referral code FIRST (before NDA creation)
+      // ATOMIC + IDEMPOTENT: Single transaction for referral code + NDA creation
+      // Prevents race conditions and partial state (code updated but NDA failed, or vice versa)
       try {
-        await storage.updateUserReferralCode(userId, codeToCheck);
+        const result = await storage.signNdaAtomic(userId, codeToCheck, {
+          userId,
+          fullName,
+          veteranNumber: veteranNumber || null,
+          address,
+          customReferralCode: customReferralCode || null,
+          signatureData: signatureData || null,
+          facePhoto: facePhoto || null,
+          idPhoto: idPhoto || null,
+          signedIpAddress: ipAddress,
+          agreedToTerms: "true",
+        });
+        
+        // Idempotent: return success even if already signed
+        if (result.alreadySigned) {
+          return res.json({ success: true, message: "NDA already signed", nda: result.nda });
+        }
+        
+        res.json({ success: true, nda: result.nda });
       } catch (codeError: any) {
-        // Handle race condition where code was taken between check and update
+        // Handle race condition where code was taken between check and transaction
         if (codeError?.code === '23505') {
           return res.status(400).json({ 
             message: "This referral code was just taken by another user. Please choose a different code." 
@@ -2929,22 +2943,6 @@ export async function registerRoutes(
         }
         throw codeError;
       }
-      
-      // Create NDA record
-      const nda = await storage.createAffiliateNda({
-        userId,
-        fullName,
-        veteranNumber: veteranNumber || null,
-        address,
-        customReferralCode: customReferralCode || null,
-        signatureData: signatureData || null,
-        facePhoto: facePhoto || null,
-        idPhoto: idPhoto || null,
-        signedIpAddress: ipAddress,
-        agreedToTerms: "true",
-      });
-      
-      res.json({ success: true, nda });
     } catch (error) {
       console.error("[NDA SIGN FAILURE]", error);
       res.status(500).json({ 
