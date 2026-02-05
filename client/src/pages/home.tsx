@@ -331,7 +331,7 @@ export default function Home() {
       {!introPlayed && (
         <section className={cn(
           "relative flex items-center justify-center overflow-hidden transition-all duration-500",
-          videoFullscreen ? "min-h-[100vh]" : "min-h-[50vh] py-8"
+          videoFullscreen ? "min-h-[100svh]" : "min-h-[50svh] py-8"
         )}
         >
           {/* Slideshow Background - only shows when video hasn't started */}
@@ -432,7 +432,7 @@ export default function Home() {
 
       {/* Animated Hero Intro */}
       {introPlayed && animationPhase >= 1 && animationPhase < 7 && (
-        <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden bg-black">
+        <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-black">
           {/* Phase 1: We can feel it - INSTANT visibility, no slow transitions */}
           <div className={cn(
             "absolute inset-0 flex items-center justify-center transition-opacity duration-300",
@@ -585,7 +585,7 @@ export default function Home() {
       {/* Main Hero Section - After Animation */}
       {introPlayed && animationPhase >= 7 && (
         <section className={cn(
-          "relative min-h-[80vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-navy transition-opacity duration-1000",
+          "relative min-h-[80svh] sm:min-h-[90svh] flex items-center justify-center overflow-hidden bg-brand-navy transition-opacity duration-1000",
           showContent ? "opacity-100" : "opacity-0"
         )}>
           <HeroMontage isActive={showContent} audioRef={montageAudioRef} />

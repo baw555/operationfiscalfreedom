@@ -232,9 +232,9 @@ export function FacerCBot() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50" ref={botRef}>
+    <div className="fixed bottom-4 right-4 left-4 md:left-auto z-50" ref={botRef}>
       {showBubble && (
-        <div className="absolute bottom-36 right-0 w-80 animate-bounce-in" data-testid="speech-bubble">
+        <div className="absolute bottom-36 right-0 w-full md:w-80 max-w-[calc(100vw-2rem)] animate-bounce-in" data-testid="speech-bubble">
           <div className="relative bg-white rounded-[30px] p-5 shadow-2xl border-4 border-black" style={{ 
             boxShadow: '8px 8px 0 rgba(0,0,0,0.3)',
             background: 'linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%)'
@@ -265,7 +265,7 @@ export function FacerCBot() {
       )}
 
       {isOpen && (
-        <div className="absolute bottom-36 right-0 w-96 bg-white rounded-2xl shadow-2xl overflow-hidden animate-slide-up border-4 border-[#1A365D]" style={{ maxHeight: '70vh' }} data-testid="chat-panel">
+        <div className="absolute bottom-36 right-0 w-full md:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl overflow-hidden animate-slide-up border-4 border-[#1A365D]" style={{ maxHeight: '70svh' }} data-testid="chat-panel">
           <div className="bg-gradient-to-r from-[#1A365D] to-[#0D2847] text-white p-4 flex items-center gap-3">
             <img src={popeyeBot} alt="Sailor Man" className="w-12 h-12 rounded-full border-2 border-white" />
             <div className="flex-1">
@@ -405,7 +405,7 @@ export function FacerCBot() {
         <img 
           src={popeyeBot} 
           alt="Sailor Man AI Assistant" 
-          className="w-28 h-28 object-contain drop-shadow-2xl rounded-full"
+          className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-2xl rounded-full max-w-full"
           style={{ 
             filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.4))',
           }}

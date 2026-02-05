@@ -127,7 +127,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileFreeVetSoftwareOpen, setMobileFreeVetSoftwareOpen] = useState(false);
   
   return (
-    <div className="min-h-screen flex flex-col bg-background font-body">
+    <div className="min-h-[100svh] flex flex-col bg-background font-body overflow-x-hidden">
       {/* Top Bar - INTENSE */}
       <style>{animatedTextStyles}</style>
       <div className="bg-brand-navy text-[10px] sm:text-xs py-2 sm:py-3 px-2 sm:px-4 text-center text-white uppercase tracking-wide sm:tracking-widest flex flex-col md:flex-row justify-center items-center gap-1 md:gap-8 border-b-2 border-brand-red">
