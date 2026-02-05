@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, X } from "lucide-react";
+import popeyeBot from "../assets/images/popeye-bot.png";
 
 export function FacerCBot() {
   const [showBubble, setShowBubble] = useState(true);
@@ -149,87 +150,11 @@ export function FacerCBot() {
         onClick={() => { setIsOpen(!isOpen); setShowBubble(false); }}
         data-testid="facer-c-bot"
       >
-        <svg width="85" height="100" viewBox="0 0 100 120" className="drop-shadow-xl">
-          <defs>
-            <linearGradient id="skinTone" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#FDBF6F" />
-              <stop offset="100%" stopColor="#E8A850" />
-            </linearGradient>
-            <linearGradient id="shirtBlue" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#1E3A5F" />
-              <stop offset="100%" stopColor="#0F1F33" />
-            </linearGradient>
-            <linearGradient id="pantsBlue" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#2C3E50" />
-              <stop offset="100%" stopColor="#1A252F" />
-            </linearGradient>
-          </defs>
-          
-          <ellipse cx="50" cy="115" rx="22" ry="4" fill="rgba(0,0,0,0.15)" />
-          
-          <ellipse cx="38" cy="112" rx="6" ry="3" fill="#4A3728" />
-          <ellipse cx="62" cy="112" rx="6" ry="3" fill="#4A3728" />
-          
-          <path d="M 32 85 L 30 108 L 46 108 L 44 85 Z" fill="url(#pantsBlue)" />
-          <path d="M 56 85 L 54 108 L 70 108 L 68 85 Z" fill="url(#pantsBlue)" />
-          
-          <path d="M 30 50 L 25 75 L 35 75 L 38 55 Z" fill="url(#shirtBlue)" />
-          <path d="M 70 50 L 75 75 L 65 75 L 62 55 Z" fill="url(#shirtBlue)" />
-          <rect x="32" y="48" width="36" height="40" rx="4" fill="url(#shirtBlue)" />
-          
-          <path d="M 35 48 L 50 42 L 65 48 L 65 52 L 50 46 L 35 52 Z" fill="white" />
-          <polygon points="50,42 45,52 55,52" fill="white" />
-          <circle cx="50" cy="56" r="2" fill="#C41E3A" />
-          
-          <ellipse cx="18" cy="68" rx="12" ry="8" fill="url(#skinTone)" />
-          <ellipse cx="16" cy="70" rx="10" ry="6" fill="url(#skinTone)" />
-          <ellipse cx="14" cy="72" rx="4" ry="3" fill="url(#skinTone)" />
-          <path d="M 8 64 L 12 60 L 16 64 L 12 68 Z" fill="url(#skinTone)" />
-          
-          <ellipse cx="82" cy="60" rx="14" ry="9" fill="url(#skinTone)" />
-          <ellipse cx="85" cy="58" rx="12" ry="7" fill="url(#skinTone)" />
-          <ellipse cx="88" cy="56" rx="5" ry="4" fill="url(#skinTone)" />
-          <path d="M 92 50 L 96 46 L 100 50 L 96 54 Z" fill="url(#skinTone)" />
-          
-          <g transform="translate(16, 66)">
-            <ellipse cx="0" cy="0" rx="4" ry="3" fill="#1E5C3A" opacity="0.8" />
-            <path d="M -2 -1 L 4 -2 L 4 0 L -2 1 Z" fill="#1E5C3A" />
-          </g>
-          
-          <ellipse cx="50" cy="26" rx="18" ry="20" fill="url(#skinTone)" />
-          
-          <path d="M 32 18 Q 32 8 50 6 Q 68 8 68 18 L 68 12 Q 68 5 50 3 Q 32 5 32 12 Z" fill="white" />
-          <ellipse cx="50" cy="6" rx="12" ry="4" fill="white" />
-          <rect x="45" y="2" width="10" height="2" fill="white" />
-          
-          <g className="transition-transform duration-100" style={{ transform: `translate(${eyePosition.x * 0.5}px, ${eyePosition.y * 0.3}px)` }}>
-            <ellipse cx="42" cy="24" rx="4" ry={isBlinking ? 0.5 : 2} fill="black">
-              <animate attributeName="ry" values="2;2;0.5;2;2" dur="4s" repeatCount="indefinite" keyTimes="0;0.45;0.5;0.55;1" />
-            </ellipse>
-            <ellipse cx="58" cy="22" rx="3" ry={isBlinking ? 0.5 : 1.5} fill="black">
-              <animate attributeName="ry" values="1.5;1.5;0.5;1.5;1.5" dur="4s" repeatCount="indefinite" keyTimes="0;0.45;0.5;0.55;1" />
-            </ellipse>
-          </g>
-          
-          <ellipse cx="50" cy="30" rx="3" ry="2" fill="#D4956A" />
-          
-          <path d="M 62 32 L 78 28 L 80 30 L 78 32 L 62 34 Z" fill="#8B6914" />
-          <ellipse cx="80" cy="30" rx="3" ry="2" fill="#8B6914" />
-          
-          <ellipse cx="83" cy="26" rx="4" ry="3" fill="#CCCCCC" opacity="0.6">
-            <animate attributeName="cy" values="26;23;26" dur="2s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2s" repeatCount="indefinite" />
-          </ellipse>
-          <ellipse cx="86" cy="22" rx="3" ry="2" fill="#CCCCCC" opacity="0.4">
-            <animate attributeName="cy" values="22;18;22" dur="2.5s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.4;0.2;0.4" dur="2.5s" repeatCount="indefinite" />
-          </ellipse>
-          
-          <path d="M 38 36 L 40 42 Q 50 48 60 42 L 62 38" fill="none" stroke="url(#skinTone)" strokeWidth="4" />
-          <ellipse cx="50" cy="44" rx="8" ry="4" fill="url(#skinTone)" />
-          
-          <path d="M 44 40 Q 50 44 56 40" fill="none" stroke="#C41E3A" strokeWidth="2" strokeLinecap="round" />
-        </svg>
+        <img 
+          src={popeyeBot} 
+          alt="FACER-C Repair Bot" 
+          className="w-20 h-20 object-contain drop-shadow-xl"
+        />
       </div>
 
       <style>{`
