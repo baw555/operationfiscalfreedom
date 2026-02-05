@@ -2368,8 +2368,8 @@ export const repairLogs = pgTable("repair_logs", {
   id: serial("id").primaryKey(),
   description: text("description").notNull(),
   issueType: text("issue_type").notNull(),
-  status: text("status").notNull(), // FIXED, FAILED, ESCALATED, NO_PATCH
-  patch: text("patch"), // JSON stringified patch details
+  status: text("status").notNull(),
+  patch: text("patch"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -2379,6 +2379,54 @@ export const insertRepairLogSchema = createInsertSchema(repairLogs).omit({
 });
 export type InsertRepairLog = z.infer<typeof insertRepairLogSchema>;
 export type RepairLog = typeof repairLogs.$inferSelect;
+
+// Critical Incidents (Tier-0 Critical Flow System)
+export const criticalIncidents = pgTable("critical_incidents", {
+  id: serial("id").primaryKey(),
+  incidentId: text("incident_id").notNull().unique(),
+  flowType: text("flow_type").notNull(),
+  userHashedId: text("user_hashed_id").notNull(),
+  ipHash: text("ip_hash").notNull(),
+  uaHash: text("ua_hash").notNull(),
+  documentVersionHash: text("document_version_hash"),
+  failurePoint: text("failure_point").notNull(),
+  diagnostics: text("diagnostics").notNull(),
+  cause: text("cause").notNull(),
+  impact: text("impact").notNull(),
+  proposedFix: text("proposed_fix").notNull(),
+  riskLevel: text("risk_level").notNull(),
+  status: text("status").notNull(),
+  actionsTaken: text("actions_taken"),
+  adminApprovalRequired: boolean("admin_approval_required").default(false),
+  adminApprovedBy: integer("admin_approved_by"),
+  adminApprovedAt: timestamp("admin_approved_at"),
+  emergencyMode: boolean("emergency_mode").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
+export const insertCriticalIncidentSchema = createInsertSchema(criticalIncidents).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertCriticalIncident = z.infer<typeof insertCriticalIncidentSchema>;
+export type CriticalIncident = typeof criticalIncidents.$inferSelect;
+
+// Incident Audit Log
+export const incidentAuditLog = pgTable("incident_audit_log", {
+  id: serial("id").primaryKey(),
+  incidentId: text("incident_id").notNull(),
+  adminId: integer("admin_id").notNull(),
+  action: text("action").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const insertIncidentAuditLogSchema = createInsertSchema(incidentAuditLog).omit({
+  id: true,
+  timestamp: true,
+});
+export type InsertIncidentAuditLog = z.infer<typeof insertIncidentAuditLogSchema>;
+export type IncidentAuditLog = typeof incidentAuditLog.$inferSelect;
 
 // Replit Auth tables (for veteran users)
 export * from "./models/auth";

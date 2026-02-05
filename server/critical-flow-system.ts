@@ -1,6 +1,4 @@
 import { storage } from "./storage";
-import { db } from "./db";
-import { sql } from "drizzle-orm";
 import crypto from "crypto";
 
 export type CriticalFlowType = "AUTH" | "CONTRACT_SIGNING";
@@ -14,30 +12,6 @@ export interface DiagnosticResult {
   passed: boolean;
   details?: string;
   autoFixable: boolean;
-}
-
-export interface CriticalIncident {
-  id: string;
-  flowType: CriticalFlowType;
-  userId?: number;
-  userHashedId: string;
-  ipHash: string;
-  userAgentHash: string;
-  documentVersionHash?: string;
-  failurePoint: string;
-  diagnostics: DiagnosticResult[];
-  cause: string;
-  impact: string;
-  proposedFix: string;
-  riskLevel: IncidentSeverity;
-  status: IncidentStatus;
-  actionsTaken: string[];
-  adminApprovalRequired: boolean;
-  adminApprovedBy?: number;
-  adminApprovedAt?: Date;
-  createdAt: Date;
-  resolvedAt?: Date;
-  emergencyMode: boolean;
 }
 
 export interface IncidentReport {
@@ -55,118 +29,39 @@ export interface IncidentReport {
   noRetroactiveChanges: boolean;
 }
 
-const AUTH_DIAGNOSTIC_TREE: { layer: DiagnosticLayer; checks: { name: string; autoFixable: boolean }[] }[] = [
-  {
-    layer: "CLIENT",
-    checks: [
-      { name: "Button fired?", autoFixable: true },
-      { name: "JS error?", autoFixable: true },
-      { name: "Network request sent?", autoFixable: true },
-      { name: "Cookies allowed?", autoFixable: false }
-    ]
-  },
-  {
-    layer: "NETWORK",
-    checks: [
-      { name: "Request reached server?", autoFixable: false },
-      { name: "4xx vs 5xx?", autoFixable: false },
-      { name: "CORS blocked?", autoFixable: true },
-      { name: "CSRF token present?", autoFixable: true }
-    ]
-  },
-  {
-    layer: "AUTH_PROVIDER",
-    checks: [
-      { name: "OAuth redirect URI mismatch", autoFixable: true },
-      { name: "Expired refresh token", autoFixable: false },
-      { name: "Invalid client secret", autoFixable: false },
-      { name: "Scope mismatch", autoFixable: false },
-      { name: "Provider outage", autoFixable: false }
-    ]
-  },
-  {
-    layer: "SESSION",
-    checks: [
-      { name: "SameSite misconfig", autoFixable: true },
-      { name: "Secure flag mismatch", autoFixable: true },
-      { name: "Domain mismatch", autoFixable: true },
-      { name: "Session store unreachable", autoFixable: false }
-    ]
-  },
-  {
-    layer: "USER_STATE",
-    checks: [
-      { name: "User exists?", autoFixable: false },
-      { name: "Disabled?", autoFixable: false },
-      { name: "Email verified?", autoFixable: false },
-      { name: "Duplicate identity?", autoFixable: false }
-    ]
-  }
+const AUTH_KEYWORDS: { layer: DiagnosticLayer; keywords: string[]; check: string; autoFixable: boolean }[] = [
+  { layer: "CLIENT", keywords: ["button", "click", "not working", "nothing happens"], check: "Button/click handler issue", autoFixable: true },
+  { layer: "CLIENT", keywords: ["js error", "javascript", "console error", "script"], check: "JavaScript error", autoFixable: true },
+  { layer: "CLIENT", keywords: ["cookie", "cookies blocked", "third-party cookie"], check: "Cookie access issue", autoFixable: false },
+  { layer: "NETWORK", keywords: ["network", "connection", "timeout", "unreachable"], check: "Network connectivity issue", autoFixable: false },
+  { layer: "NETWORK", keywords: ["500", "server error", "internal error"], check: "Server 5xx error", autoFixable: false },
+  { layer: "NETWORK", keywords: ["cors", "cross-origin", "access-control"], check: "CORS configuration issue", autoFixable: true },
+  { layer: "NETWORK", keywords: ["csrf", "token", "validation failed"], check: "CSRF token issue", autoFixable: true },
+  { layer: "AUTH_PROVIDER", keywords: ["redirect uri", "callback url", "mismatch"], check: "OAuth redirect URI mismatch", autoFixable: true },
+  { layer: "AUTH_PROVIDER", keywords: ["expired", "refresh token", "token expired"], check: "Token expiration issue", autoFixable: false },
+  { layer: "AUTH_PROVIDER", keywords: ["client secret", "invalid secret", "authentication failed"], check: "Client secret issue", autoFixable: false },
+  { layer: "AUTH_PROVIDER", keywords: ["scope", "permission", "unauthorized scope"], check: "OAuth scope mismatch", autoFixable: false },
+  { layer: "AUTH_PROVIDER", keywords: ["outage", "provider down", "service unavailable"], check: "Provider outage", autoFixable: false },
+  { layer: "SESSION", keywords: ["samesite", "cookie policy", "lax", "strict"], check: "SameSite cookie misconfiguration", autoFixable: true },
+  { layer: "SESSION", keywords: ["secure flag", "https only", "insecure"], check: "Secure flag mismatch", autoFixable: true },
+  { layer: "SESSION", keywords: ["domain", "subdomain", "cookie domain"], check: "Cookie domain mismatch", autoFixable: true },
+  { layer: "SESSION", keywords: ["session store", "redis", "store unreachable"], check: "Session store issue", autoFixable: false },
+  { layer: "USER_STATE", keywords: ["user not found", "account deleted", "no account"], check: "User does not exist", autoFixable: false },
+  { layer: "USER_STATE", keywords: ["disabled", "suspended", "banned", "deactivated"], check: "Account disabled", autoFixable: false },
+  { layer: "USER_STATE", keywords: ["email not verified", "unverified", "confirm email"], check: "Email not verified", autoFixable: false },
+  { layer: "USER_STATE", keywords: ["duplicate", "already exists", "multiple accounts"], check: "Duplicate identity", autoFixable: false }
 ];
 
-const CONTRACT_SIGNING_FAILURE_MATRIX: { category: DiagnosticLayer; examples: { name: string; autoFixable: boolean }[] }[] = [
-  {
-    category: "UI",
-    examples: [
-      { name: "Button does nothing", autoFixable: true },
-      { name: "Re-wire click handlers", autoFixable: true }
-    ]
-  },
-  {
-    category: "DELIVERY",
-    examples: [
-      { name: "PDF not loading", autoFixable: true },
-      { name: "Re-send signature request", autoFixable: true }
-    ]
-  },
-  {
-    category: "EMBED",
-    examples: [
-      { name: "iFrame blocked", autoFixable: true },
-      { name: "Reload document renderer", autoFixable: true }
-    ]
-  },
-  {
-    category: "STATE",
-    examples: [
-      { name: "Status not updating", autoFixable: true },
-      { name: "Restore signing state", autoFixable: true }
-    ]
-  },
-  {
-    category: "WEBHOOK",
-    examples: [
-      { name: "Signature received but not processed", autoFixable: true },
-      { name: "Retry webhook delivery", autoFixable: true }
-    ]
-  },
-  {
-    category: "TIMING",
-    examples: [
-      { name: "Callback delayed", autoFixable: false }
-    ]
-  },
-  {
-    category: "LEGAL",
-    examples: [
-      { name: "Consent text", autoFixable: false },
-      { name: "Legal text change", autoFixable: false }
-    ]
-  },
-  {
-    category: "IDENTITY",
-    examples: [
-      { name: "Signer mismatch", autoFixable: false },
-      { name: "Identity binding", autoFixable: false }
-    ]
-  },
-  {
-    category: "TIMESTAMP",
-    examples: [
-      { name: "Authority / clock", autoFixable: false },
-      { name: "Timestamp authority", autoFixable: false }
-    ]
-  }
+const CONTRACT_KEYWORDS: { layer: DiagnosticLayer; keywords: string[]; check: string; autoFixable: boolean }[] = [
+  { layer: "UI", keywords: ["button", "click", "not responding", "nothing happens"], check: "UI button/handler issue", autoFixable: true },
+  { layer: "DELIVERY", keywords: ["pdf", "not loading", "document failed", "blank page"], check: "PDF delivery issue", autoFixable: true },
+  { layer: "EMBED", keywords: ["iframe", "blocked", "embed", "frame"], check: "iFrame/embed blocked", autoFixable: true },
+  { layer: "STATE", keywords: ["status", "not updating", "stuck", "pending forever"], check: "State sync issue", autoFixable: true },
+  { layer: "WEBHOOK", keywords: ["webhook", "callback", "not received", "signature received"], check: "Webhook processing issue", autoFixable: true },
+  { layer: "TIMING", keywords: ["delayed", "slow", "timeout", "taking too long"], check: "Timing/delay issue", autoFixable: false },
+  { layer: "LEGAL", keywords: ["consent", "terms", "legal text", "agreement text"], check: "Legal text issue", autoFixable: false },
+  { layer: "IDENTITY", keywords: ["signer", "wrong person", "identity", "mismatch"], check: "Signer identity mismatch", autoFixable: false },
+  { layer: "TIMESTAMP", keywords: ["timestamp", "clock", "time authority", "invalid time"], check: "Timestamp authority issue", autoFixable: false }
 ];
 
 function hashValue(value: string): string {
@@ -180,48 +75,44 @@ function generateIncidentId(): string {
 export function classifyCriticalFlow(description: string): CriticalFlowType | null {
   const lower = description.toLowerCase();
   const authKeywords = ["sign in", "signin", "login", "logout", "auth", "session", "oauth", "token", "password", "credential"];
-  const contractKeywords = ["sign", "contract", "signature", "document", "pdf", "consent", "agreement", "nda"];
+  const contractKeywords = ["sign contract", "contract", "signature", "document", "pdf", "consent", "agreement", "nda", "signing"];
   
   if (authKeywords.some(k => lower.includes(k))) return "AUTH";
   if (contractKeywords.some(k => lower.includes(k))) return "CONTRACT_SIGNING";
   return null;
 }
 
-export async function runAuthDiagnostics(description: string, context: { userId?: number; ip?: string; userAgent?: string }): Promise<DiagnosticResult[]> {
+export async function runAuthDiagnostics(description: string): Promise<DiagnosticResult[]> {
   const results: DiagnosticResult[] = [];
   const lower = description.toLowerCase();
   
-  for (const layer of AUTH_DIAGNOSTIC_TREE) {
-    for (const check of layer.checks) {
-      const passed = !lower.includes(check.name.toLowerCase().replace("?", ""));
-      results.push({
-        layer: layer.layer,
-        check: check.name,
-        passed,
-        autoFixable: check.autoFixable,
-        details: passed ? undefined : `Potential issue detected: ${check.name}`
-      });
-    }
+  for (const item of AUTH_KEYWORDS) {
+    const matches = item.keywords.some(k => lower.includes(k));
+    results.push({
+      layer: item.layer,
+      check: item.check,
+      passed: !matches,
+      autoFixable: item.autoFixable,
+      details: matches ? `Detected issue: ${item.check}` : undefined
+    });
   }
   
   return results;
 }
 
-export async function runContractSigningDiagnostics(description: string, context: { userId?: number; documentId?: string }): Promise<DiagnosticResult[]> {
+export async function runContractSigningDiagnostics(description: string): Promise<DiagnosticResult[]> {
   const results: DiagnosticResult[] = [];
   const lower = description.toLowerCase();
   
-  for (const category of CONTRACT_SIGNING_FAILURE_MATRIX) {
-    for (const example of category.examples) {
-      const passed = !lower.includes(example.name.toLowerCase());
-      results.push({
-        layer: category.category,
-        check: example.name,
-        passed,
-        autoFixable: example.autoFixable,
-        details: passed ? undefined : `Potential issue: ${example.name}`
-      });
-    }
+  for (const item of CONTRACT_KEYWORDS) {
+    const matches = item.keywords.some(k => lower.includes(k));
+    results.push({
+      layer: item.layer,
+      check: item.check,
+      passed: !matches,
+      autoFixable: item.autoFixable,
+      details: matches ? `Detected issue: ${item.check}` : undefined
+    });
   }
   
   return results;
@@ -239,65 +130,47 @@ export function determineAutoFixability(diagnostics: DiagnosticResult[]): { canA
   };
 }
 
-export function shouldTriggerEmergencyMode(failureCount: number, isCriticalPath: boolean, userRequestedHelp: boolean): boolean {
-  return failureCount >= 2 || isCriticalPath || userRequestedHelp;
+export function shouldTriggerEmergencyMode(failureCount: number, userRequestedHelp: boolean): boolean {
+  return failureCount >= 2 || userRequestedHelp;
 }
 
-export async function createCriticalIncident(
-  flowType: CriticalFlowType,
-  description: string,
-  context: { userId?: number; ip?: string; userAgent?: string; documentId?: string },
-  diagnostics: DiagnosticResult[],
-  emergencyMode: boolean = false
-): Promise<CriticalIncident> {
-  const { canAutoFix, autoFixableIssues, requiresApproval } = determineAutoFixability(diagnostics);
-  const failedDiagnostics = diagnostics.filter(d => !d.passed);
-  
-  const incident: CriticalIncident = {
-    id: generateIncidentId(),
-    flowType,
-    userId: context.userId,
-    userHashedId: context.userId ? hashValue(String(context.userId)) : hashValue("anonymous"),
-    ipHash: context.ip ? hashValue(context.ip) : hashValue("unknown"),
-    userAgentHash: context.userAgent ? hashValue(context.userAgent) : hashValue("unknown"),
-    documentVersionHash: context.documentId ? hashValue(context.documentId) : undefined,
-    failurePoint: failedDiagnostics.map(d => d.check).join(", ") || "Unknown",
-    diagnostics,
-    cause: failedDiagnostics.length > 0 ? failedDiagnostics[0].check : "Unknown cause",
-    impact: `${context.userId ? "1 user" : "Unknown users"}, 0 funds, 0 legal changes`,
-    proposedFix: autoFixableIssues.length > 0 
-      ? autoFixableIssues.map(i => `Fix: ${i.check}`).join("; ")
-      : requiresApproval.length > 0 
-        ? "Requires admin approval for: " + requiresApproval.map(r => r.check).join(", ")
-        : "Manual investigation required",
-    riskLevel: emergencyMode ? "CRITICAL" : requiresApproval.length > 0 ? "HIGH" : autoFixableIssues.length > 0 ? "LOW" : "MEDIUM",
-    status: emergencyMode ? "EMERGENCY_MODE" : canAutoFix ? "AUTO_FIXED" : "PENDING_APPROVAL",
-    actionsTaken: [],
-    adminApprovalRequired: !canAutoFix,
-    createdAt: new Date(),
-    emergencyMode
-  };
-  
-  await logCriticalIncident(incident);
-  return incident;
-}
-
-export async function logCriticalIncident(incident: CriticalIncident): Promise<void> {
+export async function logCriticalIncident(incident: {
+  incidentId: string;
+  flowType: CriticalFlowType;
+  userHashedId: string;
+  ipHash: string;
+  uaHash: string;
+  documentVersionHash?: string;
+  failurePoint: string;
+  diagnostics: DiagnosticResult[];
+  cause: string;
+  impact: string;
+  proposedFix: string;
+  riskLevel: IncidentSeverity;
+  status: IncidentStatus;
+  actionsTaken: string[];
+  adminApprovalRequired: boolean;
+  emergencyMode: boolean;
+}): Promise<void> {
   try {
-    await db.execute(sql`
-      INSERT INTO critical_incidents (
-        incident_id, flow_type, user_hashed_id, ip_hash, ua_hash, document_version_hash,
-        failure_point, diagnostics, cause, impact, proposed_fix, risk_level, status,
-        actions_taken, admin_approval_required, emergency_mode, created_at
-      ) VALUES (
-        ${incident.id}, ${incident.flowType}, ${incident.userHashedId}, ${incident.ipHash},
-        ${incident.userAgentHash}, ${incident.documentVersionHash || null}, ${incident.failurePoint},
-        ${JSON.stringify(incident.diagnostics)}, ${incident.cause}, ${incident.impact},
-        ${incident.proposedFix}, ${incident.riskLevel}, ${incident.status},
-        ${JSON.stringify(incident.actionsTaken)}, ${incident.adminApprovalRequired},
-        ${incident.emergencyMode}, NOW()
-      )
-    `);
+    await storage.createCriticalIncident({
+      incidentId: incident.incidentId,
+      flowType: incident.flowType,
+      userHashedId: incident.userHashedId,
+      ipHash: incident.ipHash,
+      uaHash: incident.uaHash,
+      documentVersionHash: incident.documentVersionHash || null,
+      failurePoint: incident.failurePoint,
+      diagnostics: JSON.stringify(incident.diagnostics),
+      cause: incident.cause,
+      impact: incident.impact,
+      proposedFix: incident.proposedFix,
+      riskLevel: incident.riskLevel,
+      status: incident.status,
+      actionsTaken: JSON.stringify(incident.actionsTaken),
+      adminApprovalRequired: incident.adminApprovalRequired,
+      emergencyMode: incident.emergencyMode
+    });
   } catch (error) {
     console.error("[CRITICAL FLOW] Failed to log incident:", error);
   }
@@ -306,19 +179,28 @@ export async function logCriticalIncident(incident: CriticalIncident): Promise<v
 export async function approveIncident(incidentId: string, adminId: number, action: "APPROVE" | "REJECT"): Promise<{ success: boolean; message: string }> {
   try {
     const newStatus = action === "APPROVE" ? "APPROVED" : "REJECTED";
-    await db.execute(sql`
-      UPDATE critical_incidents 
-      SET status = ${newStatus}, 
-          admin_approved_by = ${adminId}, 
-          admin_approved_at = NOW(),
-          resolved_at = NOW()
-      WHERE incident_id = ${incidentId}
-    `);
     
-    await db.execute(sql`
-      INSERT INTO incident_audit_log (incident_id, admin_id, action, timestamp)
-      VALUES (${incidentId}, ${adminId}, ${action}, NOW())
-    `);
+    const incident = await storage.getCriticalIncidentByIncidentId(incidentId);
+    if (!incident) {
+      return { success: false, message: "Incident not found" };
+    }
+    
+    const actionsTaken = JSON.parse(incident.actionsTaken || "[]");
+    actionsTaken.push(`Admin ${action.toLowerCase()}d at ${new Date().toISOString()}`);
+    
+    await storage.updateCriticalIncident(incidentId, {
+      status: newStatus,
+      adminApprovedBy: adminId,
+      adminApprovedAt: new Date(),
+      resolvedAt: new Date(),
+      actionsTaken: JSON.stringify(actionsTaken)
+    });
+    
+    await storage.createIncidentAuditLog({
+      incidentId,
+      adminId,
+      action
+    });
     
     return { success: true, message: `Incident ${incidentId} ${action.toLowerCase()}d successfully` };
   } catch (error) {
@@ -329,16 +211,7 @@ export async function approveIncident(incidentId: string, adminId: number, actio
 
 export async function getCriticalIncidents(status?: IncidentStatus, limit: number = 20): Promise<any[]> {
   try {
-    if (status) {
-      const result = await db.execute(sql`
-        SELECT * FROM critical_incidents WHERE status = ${status} ORDER BY created_at DESC LIMIT ${limit}
-      `);
-      return result.rows as any[];
-    }
-    const result = await db.execute(sql`
-      SELECT * FROM critical_incidents ORDER BY created_at DESC LIMIT ${limit}
-    `);
-    return result.rows as any[];
+    return await storage.getCriticalIncidents(status, limit);
   } catch (error) {
     console.error("[CRITICAL FLOW] Failed to get incidents:", error);
     return [];
@@ -347,33 +220,26 @@ export async function getCriticalIncidents(status?: IncidentStatus, limit: numbe
 
 export async function generateIncidentReport(incidentId: string): Promise<IncidentReport | null> {
   try {
-    const result = await db.execute(sql`
-      SELECT * FROM critical_incidents WHERE incident_id = ${incidentId}
-    `);
+    const incident = await storage.getCriticalIncidentByIncidentId(incidentId);
+    if (!incident) return null;
     
-    if (result.rows.length === 0) return null;
+    const auditLogs = await storage.getIncidentAuditLogs(incidentId);
     
-    const incident = result.rows[0] as any;
-    
-    const auditResult = await db.execute(sql`
-      SELECT * FROM incident_audit_log WHERE incident_id = ${incidentId} ORDER BY timestamp ASC
-    `);
-    
-    const approvals = (auditResult.rows as any[]).map(a => ({
-      adminId: a.admin_id,
+    const approvals = auditLogs.map(a => ({
+      adminId: a.adminId,
       action: a.action,
-      timestamp: a.timestamp
+      timestamp: a.timestamp.toISOString()
     }));
     
     return {
-      incidentId: incident.incident_id,
-      timestamp: incident.created_at,
-      userHash: incident.user_hashed_id,
-      ipHash: incident.ip_hash,
-      uaHash: incident.ua_hash,
-      documentVersionHash: incident.document_version_hash,
-      failurePoint: incident.failure_point,
-      actionsTaken: JSON.parse(incident.actions_taken || "[]"),
+      incidentId: incident.incidentId,
+      timestamp: incident.createdAt.toISOString(),
+      userHash: incident.userHashedId,
+      ipHash: incident.ipHash,
+      uaHash: incident.uaHash,
+      documentVersionHash: incident.documentVersionHash || undefined,
+      failurePoint: incident.failurePoint,
+      actionsTaken: JSON.parse(incident.actionsTaken || "[]"),
       adminApprovals: approvals,
       outcome: incident.status,
       noPHIMutation: true,
@@ -389,7 +255,17 @@ export async function processCriticalFlowIssue(
   description: string,
   context: { userId?: number; ip?: string; userAgent?: string; documentId?: string; failureCount?: number; userRequestedHelp?: boolean }
 ): Promise<{
-  incident: CriticalIncident;
+  incident: {
+    id: string;
+    flowType: CriticalFlowType;
+    cause: string;
+    impact: string;
+    proposedFix: string;
+    riskLevel: IncidentSeverity;
+    status: IncidentStatus;
+    adminApprovalRequired: boolean;
+    emergencyMode: boolean;
+  };
   autoFixed: boolean;
   emergencyModeActivated: boolean;
   adminApprovalRequired: boolean;
@@ -401,43 +277,71 @@ export async function processCriticalFlowIssue(
   
   const emergencyMode = shouldTriggerEmergencyMode(
     context.failureCount || 0,
-    flowType === "CONTRACT_SIGNING",
     context.userRequestedHelp || false
   );
   
   const diagnostics = flowType === "AUTH"
-    ? await runAuthDiagnostics(description, context)
-    : await runContractSigningDiagnostics(description, context);
+    ? await runAuthDiagnostics(description)
+    : await runContractSigningDiagnostics(description);
   
-  const incident = await createCriticalIncident(flowType, description, context, diagnostics, emergencyMode);
+  const { canAutoFix, autoFixableIssues, requiresApproval } = determineAutoFixability(diagnostics);
+  const failedDiagnostics = diagnostics.filter(d => !d.passed);
   
-  const { canAutoFix } = determineAutoFixability(diagnostics);
+  const incidentId = generateIncidentId();
+  const userHashedId = context.userId ? hashValue(String(context.userId)) : hashValue("anonymous");
+  const ipHash = context.ip ? hashValue(context.ip) : hashValue("unknown");
+  const uaHash = context.userAgent ? hashValue(context.userAgent) : hashValue("unknown");
+  
+  const cause = failedDiagnostics.length > 0 ? failedDiagnostics[0].check : "Unknown cause";
+  const impact = `${context.userId ? "1 user" : "Unknown users"}, 0 funds, 0 legal changes`;
+  const proposedFix = autoFixableIssues.length > 0 
+    ? autoFixableIssues.map(i => `Fix: ${i.check}`).join("; ")
+    : requiresApproval.length > 0 
+      ? "Requires admin approval for: " + requiresApproval.map(r => r.check).join(", ")
+      : "Manual investigation required";
+  const riskLevel: IncidentSeverity = emergencyMode ? "CRITICAL" : requiresApproval.length > 0 ? "HIGH" : autoFixableIssues.length > 0 ? "LOW" : "MEDIUM";
+  let status: IncidentStatus = emergencyMode ? "EMERGENCY_MODE" : canAutoFix ? "AUTO_FIXED" : "PENDING_APPROVAL";
+  
+  const actionsTaken: string[] = [];
   
   if (canAutoFix && !emergencyMode) {
-    incident.actionsTaken.push(`Auto-fix applied at ${new Date().toISOString()}`);
-    incident.status = "AUTO_FIXED";
-    incident.resolvedAt = new Date();
+    actionsTaken.push(`Auto-fix applied at ${new Date().toISOString()}`);
+    status = "AUTO_FIXED";
   }
   
+  await logCriticalIncident({
+    incidentId,
+    flowType,
+    userHashedId,
+    ipHash,
+    uaHash,
+    documentVersionHash: context.documentId ? hashValue(context.documentId) : undefined,
+    failurePoint: failedDiagnostics.map(d => d.check).join(", ") || "Unknown",
+    diagnostics,
+    cause,
+    impact,
+    proposedFix,
+    riskLevel,
+    status,
+    actionsTaken,
+    adminApprovalRequired: !canAutoFix,
+    emergencyMode
+  });
+  
   return {
-    incident,
+    incident: {
+      id: incidentId,
+      flowType,
+      cause,
+      impact,
+      proposedFix,
+      riskLevel,
+      status,
+      adminApprovalRequired: !canAutoFix,
+      emergencyMode
+    },
     autoFixed: canAutoFix && !emergencyMode,
     emergencyModeActivated: emergencyMode,
-    adminApprovalRequired: incident.adminApprovalRequired
+    adminApprovalRequired: !canAutoFix
   };
-}
-
-export function formatAdminApprovalView(incident: CriticalIncident): string {
-  return `
-ISSUE: ${incident.flowType === "AUTH" ? "User unable to sign in" : "User unable to sign contract"}
-CAUSE: ${incident.cause}
-IMPACT: ${incident.impact}
-PROPOSED FIX: ${incident.proposedFix}
-RISK LEVEL: ${incident.riskLevel}
-
-Actions:
-✅ Approve & apply
-❌ Reject
-📄 Generate incident report
-`.trim();
 }

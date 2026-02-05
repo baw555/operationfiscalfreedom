@@ -100,6 +100,23 @@ A comprehensive, fail-closed legal document signing system implemented in `serve
 - **Database Tables**: `legal_signatures`, `legal_override_audit`
 - **Finalization Module**: `server/legal-finalization.ts` provides migration and validation utilities
 
+## Tier-0 Critical Flow System (`/critical-flow`)
+A specialized diagnostic and emergency response system for Auth and Contract Signing failures:
+- **Auth Diagnostic Tree**: 5-layer diagnostic (Client, Network, Auth Provider, Session, User State) with 20+ specific checks
+- **Contract Signing Failure Matrix**: 9 categories (UI, Delivery, Embed, State, Webhook, Timing, Legal, Identity, Timestamp) with auto-fix eligibility
+- **Auto-Fix Rules**: Plumbing issues (UI, delivery, state, webhooks) are auto-fixable; Authority issues (identity, consent, legal text, timestamps) require approval
+- **One-Click Admin Approval**: Fast admin workflow showing issue/cause/impact/risk with approve/reject/report buttons
+- **Emergency Mode**: Activates on 2+ failures or user request - locks documents, freezes legal logic, preserves audit chain
+- **Legal-Grade Incident Reports**: Automatic generation with hashed user/IP/UA, document version hash, actions taken, admin approvals, SOC-2 ready
+- **The Governing Rule**: "The bot may fix plumbing, not authority"
+- **API Routes**:
+  - `POST /api/critical-flow/process` - Process critical flow issue
+  - `GET /api/critical-flow/incidents` - Get all incidents
+  - `POST /api/critical-flow/approve/:incidentId` - Admin approve/reject
+  - `GET /api/critical-flow/report/:incidentId` - Generate incident report
+  - `POST /api/critical-flow/emergency` - Activate emergency mode
+- **Database Tables**: `critical_incidents`, `incident_audit_log`
+
 ## Self-Repair Bot (`/self-repair`)
 An automated issue classification and repair system with a rule-based patch pipeline:
 - **Issue Classifier**: Categorizes issues into 6 types: RUNTIME_ERROR, UI_BROKEN, FORM_ERROR, API_FAIL, AUTH_ERROR, DATABASE_ERROR

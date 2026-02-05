@@ -73,7 +73,9 @@ import {
   affiliateActivities, type AffiliateActivity, type InsertAffiliateActivity,
   notificationSettings, type NotificationSettings, type InsertNotificationSettings,
   notificationAudit, type NotificationAudit,
-  repairLogs, type RepairLog, type InsertRepairLog
+  repairLogs, type RepairLog, type InsertRepairLog,
+  criticalIncidents, type CriticalIncident, type InsertCriticalIncident,
+  incidentAuditLog, type IncidentAuditLog, type InsertIncidentAuditLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -513,6 +515,16 @@ export interface IStorage {
   // Self-Repair Bot Logs
   createRepairLog(log: InsertRepairLog): Promise<RepairLog>;
   getRepairLogs(limit?: number): Promise<RepairLog[]>;
+  
+  // Critical Incidents (Tier-0 Critical Flow)
+  createCriticalIncident(incident: InsertCriticalIncident): Promise<CriticalIncident>;
+  getCriticalIncidentByIncidentId(incidentId: string): Promise<CriticalIncident | undefined>;
+  getCriticalIncidents(status?: string, limit?: number): Promise<CriticalIncident[]>;
+  updateCriticalIncident(incidentId: string, updates: Partial<CriticalIncident>): Promise<CriticalIncident | undefined>;
+  
+  // Incident Audit Log
+  createIncidentAuditLog(log: InsertIncidentAuditLog): Promise<IncidentAuditLog>;
+  getIncidentAuditLogs(incidentId: string): Promise<IncidentAuditLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2727,6 +2739,49 @@ export class DatabaseStorage implements IStorage {
   
   async getRepairLogs(limit: number = 20): Promise<RepairLog[]> {
     return db.select().from(repairLogs).orderBy(desc(repairLogs.createdAt)).limit(limit);
+  }
+  
+  // Critical Incidents (Tier-0 Critical Flow)
+  async createCriticalIncident(incident: InsertCriticalIncident): Promise<CriticalIncident> {
+    const [created] = await db.insert(criticalIncidents).values(incident).returning();
+    return created;
+  }
+  
+  async getCriticalIncidentByIncidentId(incidentId: string): Promise<CriticalIncident | undefined> {
+    const [incident] = await db.select().from(criticalIncidents).where(eq(criticalIncidents.incidentId, incidentId));
+    return incident || undefined;
+  }
+  
+  async getCriticalIncidents(status?: string, limit: number = 20): Promise<CriticalIncident[]> {
+    if (status) {
+      return db.select().from(criticalIncidents)
+        .where(eq(criticalIncidents.status, status))
+        .orderBy(desc(criticalIncidents.createdAt))
+        .limit(limit);
+    }
+    return db.select().from(criticalIncidents)
+      .orderBy(desc(criticalIncidents.createdAt))
+      .limit(limit);
+  }
+  
+  async updateCriticalIncident(incidentId: string, updates: Partial<CriticalIncident>): Promise<CriticalIncident | undefined> {
+    const [updated] = await db.update(criticalIncidents)
+      .set(updates)
+      .where(eq(criticalIncidents.incidentId, incidentId))
+      .returning();
+    return updated || undefined;
+  }
+  
+  // Incident Audit Log
+  async createIncidentAuditLog(log: InsertIncidentAuditLog): Promise<IncidentAuditLog> {
+    const [created] = await db.insert(incidentAuditLog).values(log).returning();
+    return created;
+  }
+  
+  async getIncidentAuditLogs(incidentId: string): Promise<IncidentAuditLog[]> {
+    return db.select().from(incidentAuditLog)
+      .where(eq(incidentAuditLog.incidentId, incidentId))
+      .orderBy(incidentAuditLog.timestamp);
   }
 }
 
