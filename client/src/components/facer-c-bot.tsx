@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, X } from "lucide-react";
-import popeyeBot from "../assets/images/popeye-bot.png";
+import popeyeBot from "../assets/images/popeye-sailor.png";
 
 export function FacerCBot() {
   const [showBubble, setShowBubble] = useState(true);
@@ -146,14 +146,17 @@ export function FacerCBot() {
       )}
 
       <div 
-        className="cursor-pointer transition-transform hover:scale-110"
+        className="cursor-pointer transition-transform hover:scale-125 animate-float"
         onClick={() => { setIsOpen(!isOpen); setShowBubble(false); }}
         data-testid="facer-c-bot"
       >
         <img 
           src={popeyeBot} 
           alt="FACER-C Repair Bot" 
-          className="w-20 h-20 object-contain drop-shadow-xl"
+          className="w-28 h-28 object-contain drop-shadow-2xl rounded-full"
+          style={{ 
+            filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.4))',
+          }}
         />
       </div>
 
@@ -167,8 +170,19 @@ export function FacerCBot() {
           0% { transform: translateY(20px); opacity: 0; }
           100% { transform: translateY(0); opacity: 1; }
         }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          25% { transform: translateY(-8px) rotate(2deg); }
+          50% { transform: translateY(-4px) rotate(0deg); }
+          75% { transform: translateY(-10px) rotate(-2deg); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4)); }
+          50% { filter: drop-shadow(0 12px 24px rgba(30,90,200,0.6)); }
+        }
         .animate-bounce-in { animation: bounce-in 0.5s ease-out forwards; }
         .animate-slide-up { animation: slide-up 0.3s ease-out forwards; }
+        .animate-float { animation: float 3s ease-in-out infinite, pulse-glow 2s ease-in-out infinite; }
       `}</style>
     </div>
   );
