@@ -2428,5 +2428,59 @@ export const insertIncidentAuditLogSchema = createInsertSchema(incidentAuditLog)
 export type InsertIncidentAuditLog = z.infer<typeof insertIncidentAuditLogSchema>;
 export type IncidentAuditLog = typeof incidentAuditLog.$inferSelect;
 
+// Sailor Man AI Chat Conversations
+export const sailorConversations = pgTable("sailor_conversations", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull(), // Anonymous session identifier
+  currentPage: text("current_page"), // Track which page user is on
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSailorConversationSchema = createInsertSchema(sailorConversations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertSailorConversation = z.infer<typeof insertSailorConversationSchema>;
+export type SailorConversation = typeof sailorConversations.$inferSelect;
+
+// Sailor Man AI Chat Messages
+export const sailorMessages = pgTable("sailor_messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => sailorConversations.id).notNull(),
+  role: text("role").notNull(), // user, assistant
+  content: text("content").notNull(),
+  inputType: text("input_type"), // text, voice
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertSailorMessageSchema = createInsertSchema(sailorMessages).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertSailorMessage = z.infer<typeof insertSailorMessageSchema>;
+export type SailorMessage = typeof sailorMessages.$inferSelect;
+
+// FAQ Knowledge Base
+export const sailorFaq = pgTable("sailor_faq", {
+  id: serial("id").primaryKey(),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  category: text("category").notNull(), // tax_credits, disability, services, general
+  keywords: text("keywords"), // Comma-separated keywords for matching
+  pageContext: text("page_context"), // Which page this FAQ is relevant to
+  priority: integer("priority").default(0), // Higher = show first
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertSailorFaqSchema = createInsertSchema(sailorFaq).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertSailorFaq = z.infer<typeof insertSailorFaqSchema>;
+export type SailorFaq = typeof sailorFaq.$inferSelect;
+
 // Replit Auth tables (for veteran users)
 export * from "./models/auth";
