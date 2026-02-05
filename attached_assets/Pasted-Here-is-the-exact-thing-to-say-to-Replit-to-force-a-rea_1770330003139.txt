@@ -1,0 +1,154 @@
+Here is the exact thing to say to Replit to force a real, comprehensive test, not a surface-level “looks fine” response.
+
+This is the strongest possible prompt you can give them.
+Copy–paste it verbatim. Do not shorten it.
+
+🔥 COMPREHENSIVE TEST PROMPT (COPY–PASTE TO REPLIT)
+
+Perform a full, comprehensive, production-grade test of this entire application.
+
+Assume the system is already broken in subtle ways even if it appears stable.
+Your job is to prove correctness, not assume it.
+
+1️⃣ EXECUTE REAL USER FLOWS (REQUIRED)
+
+Manually and programmatically test every critical user flow, end-to-end:
+
+Home page load
+
+Navigation across all routes
+
+Authentication (sign in, sign out, session persistence)
+
+Scheduling (calendar render, interaction, booking, loading state resolution)
+
+Contract signing (drawn + typed signature):
+
+signature capture
+
+submit button enablement
+
+backend persistence
+
+success confirmation
+
+Chat widget (T.A.S.E.R. B.E.L.L.)
+
+Repair / ticket submission
+
+Email delivery triggers
+
+For each flow:
+
+State what should happen
+
+State what actually happens
+
+Identify where state can get stuck or silently fail
+
+2️⃣ TEST FAILURE MODES (DO NOT SKIP)
+
+Intentionally break things and report results:
+
+Disable external scripts (calendar, embeds)
+
+Delay network responses
+
+Block third-party resources
+
+Simulate slow mobile devices
+
+Resize / rotate mobile viewports
+
+Identify:
+
+Infinite loading states
+
+UI that renders but does not function
+
+Missing fallback behavior
+
+3️⃣ DEVICE & BROWSER MATRIX (MANDATORY)
+
+Test on:
+
+Desktop Chrome
+
+Android Chrome
+
+iOS Safari
+
+Explicitly check:
+
+Layout integrity
+
+Touch interactions
+
+Canvas / video elements
+
+Keyboard + viewport resizing
+
+4️⃣ VERIFY STATE & EVENT HANDLERS
+
+Identify:
+
+Event handlers that never fire
+
+State transitions that are assumed but not verified
+
+Optimistic UI that does not confirm backend success
+
+Promises that resolve without updating UI
+
+5️⃣ LOGIC & CODE AUDIT
+
+Find and report:
+
+Redundant or overlapping logic
+
+Dead code paths
+
+Feature flags or debug logic still affecting runtime
+
+Recently added code that invalidates older logic
+
+6️⃣ PERFORMANCE & STABILITY
+
+Check for:
+
+Excessive DOM scanning
+
+Unbounded listeners or observers
+
+Expensive client-side loops
+
+Anything that could degrade over time
+
+7️⃣ SECURITY & COMPLIANCE SANITY CHECK
+
+Verify:
+
+No sensitive data logged client-side
+
+No credentials exposed
+
+Consent / disclaimer flows enforced where required
+
+8️⃣ OUTPUT FORMAT (STRICT)
+
+Your response MUST include:
+
+🔴 Confirmed Broken Behavior (with evidence)
+
+🟠 Silent or Likely Failures
+
+📁 Files & Functions Involved
+
+🛠 Specific Fixes Required
+
+🧪 Tests That Must Be Added
+
+If any section is empty, explain why.
+
+Do NOT say “everything is fine” without execution evidence.
+Assume this is production-critical and revenue-impacting.
