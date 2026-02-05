@@ -1,75 +1,253 @@
 import { useState, useEffect, useRef } from "react";
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle, X, Mic, MicOff, Send, Volume2, Loader2, Lightbulb, HelpCircle } from "lucide-react";
+import { useLocation } from "wouter";
 import popeyeBot from "../assets/images/popeye-sailor.png";
+
+interface Message {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+  inputType?: string;
+  createdAt: string;
+}
+
+function generateSessionId(): string {
+  const existing = localStorage.getItem("sailorSessionId");
+  if (existing) return existing;
+  const newId = `sailor_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  localStorage.setItem("sailorSessionId", newId);
+  return newId;
+}
 
 export function FacerCBot() {
   const [showBubble, setShowBubble] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [issueText, setIssueText] = useState("");
-  const [status, setStatus] = useState<string | null>(null);
-  const [eyePosition, setEyePosition] = useState({ x: 0, y: 0 });
-  const [isBlinking, setIsBlinking] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [tips, setTips] = useState<string[]>([]);
+  const [showTips, setShowTips] = useState(true);
+  const [conversationId, setConversationId] = useState<number | null>(null);
+  const [location] = useLocation();
+  
   const botRef = useRef<HTMLDivElement>(null);
-
-
-  useEffect(() => {
-    const blinkInterval = setInterval(() => {
-      setIsBlinking(true);
-      setTimeout(() => setIsBlinking(false), 150);
-    }, 3000 + Math.random() * 2000);
-    return () => clearInterval(blinkInterval);
-  }, []);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const sessionId = useRef(generateSessionId());
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!botRef.current) return;
-      const botRect = botRef.current.getBoundingClientRect();
-      const botCenterX = botRect.left + botRect.width / 2;
-      const botCenterY = botRect.top + botRect.height / 2;
-      
-      const deltaX = e.clientX - botCenterX;
-      const deltaY = e.clientY - botCenterY;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const maxMove = 4;
-      
-      const moveX = (deltaX / Math.max(distance, 1)) * Math.min(distance / 50, maxMove);
-      const moveY = (deltaY / Math.max(distance, 1)) * Math.min(distance / 50, maxMove);
-      
-      setEyePosition({ x: moveX, y: moveY });
-    };
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  useEffect(() => {
+    if (isOpen) {
+      fetchTips();
+      initConversation();
+    }
+  }, [isOpen, location]);
 
-  async function submitIssue() {
-    if (!issueText.trim()) return;
-    setStatus("Diagnosing...");
+  async function fetchTips() {
     try {
-      const res = await fetch("/api/repair/public-intake", {
+      const res = await fetch(`/api/sailor/tips?page=${encodeURIComponent(location)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setTips(data.tips);
+      }
+    } catch (e) {
+      console.error("Failed to fetch tips:", e);
+    }
+  }
+
+  async function initConversation() {
+    try {
+      const res = await fetch("/api/sailor/conversation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: issueText, role: "PUBLIC" })
+        body: JSON.stringify({ sessionId: sessionId.current, currentPage: location })
       });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        setStatus(errorData.message || "Hmm, something's not right. Let me get help!");
-        return;
+      if (res.ok) {
+        const conv = await res.json();
+        setConversationId(conv.id);
+        await loadMessages(conv.id);
       }
-      const data = await res.json();
-      if (data.status === "FIXED" || data.status === "PATCH_PROPOSED") {
-        setStatus("Fixed it! All better now!");
-      } else if (data.status === "ESCALATED") {
-        setStatus("I've called in the big humans to help!");
-      } else if (data.status === "NO_PATCH") {
-        setStatus("I'll need a human to look at this one!");
+    } catch (e) {
+      console.error("Failed to init conversation:", e);
+    }
+  }
+
+  async function loadMessages(convId: number) {
+    try {
+      const res = await fetch(`/api/sailor/conversation/${convId}/messages`);
+      if (res.ok) {
+        const msgs = await res.json();
+        setMessages(msgs);
+      }
+    } catch (e) {
+      console.error("Failed to load messages:", e);
+    }
+  }
+
+  async function sendMessage(text?: string) {
+    const messageText = text || inputText.trim();
+    if (!messageText || isLoading) return;
+
+    setInputText("");
+    setIsLoading(true);
+    setShowTips(false);
+
+    const tempUserMsg: Message = {
+      id: Date.now(),
+      role: "user",
+      content: messageText,
+      inputType: "text",
+      createdAt: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, tempUserMsg]);
+
+    try {
+      const res = await fetch("/api/sailor/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sessionId.current,
+          message: messageText,
+          currentPage: location
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setConversationId(data.conversationId);
+        
+        const assistantMsg: Message = {
+          id: data.messageId,
+          role: "assistant",
+          content: data.response,
+          createdAt: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, assistantMsg]);
       } else {
-        setStatus("Got it! I'm working on it!");
+        const assistantMsg: Message = {
+          id: Date.now() + 1,
+          role: "assistant",
+          content: "Blimey! Something went wrong. Try again, shipmate!",
+          createdAt: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, assistantMsg]);
       }
-      setIssueText("");
-    } catch (err) {
-      console.error("FACER-C error:", err);
-      setStatus("Oops! Something went wrong. Try again?");
+    } catch (error) {
+      console.error("Chat error:", error);
+      const assistantMsg: Message = {
+        id: Date.now() + 1,
+        role: "assistant",
+        content: "Arr! Lost connection there. Give it another try!",
+        createdAt: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, assistantMsg]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        stream.getTracks().forEach(track => track.stop());
+        await sendVoiceMessage(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Failed to start recording:", error);
+      alert("Could not access microphone. Please allow microphone access.");
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }
+
+  async function sendVoiceMessage(audioBlob: Blob) {
+    setIsLoading(true);
+    setShowTips(false);
+
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "recording.webm");
+    formData.append("sessionId", sessionId.current);
+    formData.append("currentPage", location);
+
+    try {
+      const res = await fetch("/api/sailor/voice-chat", {
+        method: "POST",
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setConversationId(data.conversationId);
+
+        const userMsg: Message = {
+          id: Date.now(),
+          role: "user",
+          content: data.transcript,
+          inputType: "voice",
+          createdAt: new Date().toISOString()
+        };
+        
+        const assistantMsg: Message = {
+          id: data.messageId,
+          role: "assistant",
+          content: data.response,
+          createdAt: new Date().toISOString()
+        };
+        
+        setMessages(prev => [...prev, userMsg, assistantMsg]);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        const assistantMsg: Message = {
+          id: Date.now(),
+          role: "assistant",
+          content: errData.message || "Couldn't hear ya there, shipmate! Try again!",
+          createdAt: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, assistantMsg]);
+      }
+    } catch (error) {
+      console.error("Voice chat error:", error);
+      const assistantMsg: Message = {
+        id: Date.now(),
+        role: "assistant",
+        content: "Voice message hit some rough seas. Try typing instead!",
+        createdAt: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, assistantMsg]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function handleKeyPress(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
   }
 
@@ -92,7 +270,7 @@ export function FacerCBot() {
               </div>
             </div>
             <p className="text-sm leading-relaxed text-gray-800 font-bold text-center" style={{ fontFamily: 'Comic Sans MS, cursive, sans-serif' }}>
-              "Well blow me down! I'm here to fix yer problems! Click me again to report any issues, and I'll muscle through 'em!"
+              "Well blow me down! I'm here to help with VA claims, tax credits, and more! Click me to chat!"
             </p>
             <button 
               onClick={(e) => { e.stopPropagation(); setShowBubble(false); }}
@@ -107,45 +285,125 @@ export function FacerCBot() {
       )}
 
       {isOpen && (
-        <div className="absolute bottom-32 right-0 w-80 bg-[#0A1A0C] border border-[#00FF88] rounded-lg shadow-2xl overflow-hidden animate-slide-up" style={{ boxShadow: '0 0 20px rgba(0,255,136,0.3)' }} data-testid="chat-panel">
-          <div className="bg-gradient-to-r from-[#1A365D] to-[#0D2847] text-white p-3 font-bold flex items-center gap-2 border-b-4 border-[#E21C3D]">
-            <div className="w-3 h-3 rounded-full bg-[#E21C3D] animate-pulse"></div>
-            <div className="flex flex-col">
-              <span className="text-sm font-black tracking-wide" style={{ fontFamily: 'Impact, sans-serif' }}>SAILOR MAN</span>
-              <span className="text-[8px] text-[#E21C3D] tracking-widest">SENIOR AID INTEL REPAIR</span>
+        <div className="absolute bottom-36 right-0 w-96 bg-white rounded-2xl shadow-2xl overflow-hidden animate-slide-up border-4 border-[#1A365D]" style={{ maxHeight: '70vh' }} data-testid="chat-panel">
+          <div className="bg-gradient-to-r from-[#1A365D] to-[#0D2847] text-white p-4 flex items-center gap-3">
+            <img src={popeyeBot} alt="Sailor Man" className="w-12 h-12 rounded-full border-2 border-white" />
+            <div className="flex-1">
+              <div className="font-black text-lg" style={{ fontFamily: 'Impact, sans-serif' }}>SAILOR MAN</div>
+              <div className="text-[10px] text-[#E21C3D] tracking-widest font-bold">SENIOR AID INTEL REPAIR</div>
             </div>
-            <span className="ml-auto text-xs bg-[#E21C3D] text-white px-2 py-0.5 rounded font-bold">READY</span>
-          </div>
-          <div className="p-4 space-y-3">
-            <div className="text-[#00FF88]/60 text-xs font-mono mb-2">// ENTER ISSUE REPORT</div>
-            <textarea
-              className="w-full p-3 bg-[#0A1A0C] border border-[#00FF88]/40 rounded text-sm text-[#00FF88] placeholder-[#00FF88]/40 focus:border-[#00FF88] focus:outline-none focus:ring-1 focus:ring-[#00FF88]/50 resize-none font-mono"
-              placeholder="Describe malfunction..."
-              value={issueText}
-              onChange={(e) => setIssueText(e.target.value)}
-              rows={3}
-              data-testid="issue-input"
-            />
             <button
-              onClick={submitIssue}
-              className="w-full bg-gradient-to-r from-[#00FF88]/20 to-[#00FF88]/10 hover:from-[#00FF88]/30 hover:to-[#00FF88]/20 text-[#00FF88] font-bold py-2.5 px-4 rounded transition-all border border-[#00FF88]/50 hover:border-[#00FF88] font-mono text-sm tracking-wider hover:shadow-[0_0_15px_rgba(0,255,136,0.3)]"
-              data-testid="submit-issue"
+              onClick={() => setIsOpen(false)}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              data-testid="close-chat"
             >
-              ▶ SEND TO SAILOR MAN
+              <X className="w-5 h-5" />
             </button>
-            {status && (
-              <div className="text-center text-sm font-mono text-[#00FF88] bg-[#00FF88]/10 p-2 rounded border border-[#00FF88]/30" data-testid="status-message">
-                <span className="inline-block w-2 h-2 rounded-full bg-[#00FF88] mr-2 animate-pulse"></span>
-                {status}
+          </div>
+
+          <div className="h-72 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-gray-50 to-white" data-testid="messages-container">
+            {showTips && tips.length > 0 && messages.length === 0 && (
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-[#1A365D] font-bold text-sm">
+                  <Lightbulb className="w-4 h-4 text-[#EAB308]" />
+                  Quick Questions:
+                </div>
+                {tips.map((tip, i) => (
+                  <button
+                    key={i}
+                    onClick={() => sendMessage(tip)}
+                    className="w-full text-left p-3 bg-blue-50 hover:bg-blue-100 rounded-lg text-sm text-[#1A365D] border border-blue-200 transition-colors"
+                    data-testid={`tip-button-${i}`}
+                  >
+                    <HelpCircle className="w-4 h-4 inline mr-2 text-blue-500" />
+                    {tip}
+                  </button>
+                ))}
               </div>
             )}
+
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                data-testid={`message-${msg.id}`}
+              >
+                <div
+                  className={`max-w-[80%] p-3 rounded-2xl ${
+                    msg.role === "user"
+                      ? "bg-[#1A365D] text-white rounded-br-sm"
+                      : "bg-gray-100 text-gray-800 rounded-bl-sm border border-gray-200"
+                  }`}
+                >
+                  {msg.role === "assistant" && (
+                    <div className="text-xs font-bold text-[#E21C3D] mb-1">SAILOR MAN:</div>
+                  )}
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  {msg.inputType === "voice" && (
+                    <div className="text-xs opacity-60 mt-1 flex items-center gap-1">
+                      <Volume2 className="w-3 h-3" /> Voice
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 p-3 rounded-2xl rounded-bl-sm border border-gray-200">
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Sailor Man is thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
-          <div className="px-4 pb-3 flex gap-2 text-[10px] font-mono text-[#00FF88]/40">
-            <span>SYS:OK</span>
-            <span>•</span>
-            <span>NET:SECURE</span>
-            <span>•</span>
-            <span>REPAIR:READY</span>
+
+          <div className="p-4 border-t border-gray-200 bg-white">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={isRecording ? stopRecording : startRecording}
+                disabled={isLoading}
+                className={`p-3 rounded-full transition-all ${
+                  isRecording
+                    ? "bg-red-500 text-white animate-pulse"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                data-testid="voice-button"
+                title={isRecording ? "Stop recording" : "Start voice input"}
+              >
+                {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+              
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask me anything..."
+                disabled={isLoading || isRecording}
+                className="flex-1 p-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#1A365D] focus:border-transparent disabled:opacity-50"
+                data-testid="chat-input"
+              />
+              
+              <button
+                onClick={() => sendMessage()}
+                disabled={!inputText.trim() || isLoading || isRecording}
+                className="p-3 bg-[#1A365D] text-white rounded-full hover:bg-[#0D2847] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="send-button"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {isRecording && (
+              <div className="mt-2 text-center text-sm text-red-500 font-medium animate-pulse">
+                🎙️ Recording... Click mic to stop
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -166,7 +424,7 @@ export function FacerCBot() {
       >
         <img 
           src={popeyeBot} 
-          alt="FACER-C Repair Bot" 
+          alt="Sailor Man AI Assistant" 
           className="w-28 h-28 object-contain drop-shadow-2xl rounded-full"
           style={{ 
             filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.4))',

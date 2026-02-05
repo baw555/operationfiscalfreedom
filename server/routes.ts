@@ -16,6 +16,7 @@ import { recordAffiliateActivity, ACTIVITY_TYPES, type ActivityType } from "./af
 import { TOTP, generateSecret, verifySync, NobleCryptoPlugin, ScureBase32Plugin } from "otplib";
 import * as QRCode from "qrcode";
 import crypto from "crypto";
+import { getOrCreateConversation, getConversationHistory, saveMessage, generateAIResponse, getContextualTips, seedInitialFaqs, transcribeAudio } from "./sailor-chat";
 
 // HIPAA Security: Configure TOTP with strict timing window to prevent replay attacks
 const totpInstance = new TOTP({
@@ -11217,6 +11218,136 @@ Generated: ${new Date().toISOString()}
     } catch (error) {
       console.error("Error adding vendor note:", error);
       res.status(500).json({ message: "Failed to add note" });
+    }
+  });
+
+  // =====================================================
+  // SAILOR MAN AI CHAT ROUTES
+  // =====================================================
+  
+  // Configure multer for audio uploads
+  const audioUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit for audio
+  });
+  
+  // Seed FAQs on startup
+  seedInitialFaqs().catch(console.error);
+
+  // Start or continue a conversation
+  app.post("/api/sailor/conversation", async (req, res) => {
+    try {
+      const { sessionId, currentPage } = req.body;
+      if (!sessionId) {
+        return res.status(400).json({ message: "Session ID required" });
+      }
+      const conversation = await getOrCreateConversation(sessionId, currentPage);
+      res.json(conversation);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      res.status(500).json({ message: "Failed to create conversation" });
+    }
+  });
+
+  // Get conversation history
+  app.get("/api/sailor/conversation/:id/messages", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      if (isNaN(conversationId)) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
+      const messages = await getConversationHistory(conversationId, 20);
+      res.json(messages.reverse());
+    } catch (error) {
+      console.error("Error getting messages:", error);
+      res.status(500).json({ message: "Failed to get messages" });
+    }
+  });
+
+  // Send a text message and get AI response
+  app.post("/api/sailor/chat", async (req, res) => {
+    try {
+      const { sessionId, message, currentPage } = req.body;
+      if (!sessionId || !message) {
+        return res.status(400).json({ message: "Session ID and message required" });
+      }
+
+      const conversation = await getOrCreateConversation(sessionId, currentPage);
+      
+      await saveMessage(conversation.id, "user", message, "text");
+      
+      const aiResponse = await generateAIResponse(conversation.id, message, currentPage);
+      
+      const assistantMsg = await saveMessage(conversation.id, "assistant", aiResponse);
+      
+      res.json({
+        conversationId: conversation.id,
+        response: aiResponse,
+        messageId: assistantMsg.id
+      });
+    } catch (error) {
+      console.error("Error in chat:", error);
+      res.status(500).json({ message: "Failed to process chat" });
+    }
+  });
+
+  // Get contextual tips for current page
+  app.get("/api/sailor/tips", async (req, res) => {
+    try {
+      const currentPage = req.query.page as string || "/";
+      const tips = await getContextualTips(currentPage);
+      res.json({ tips });
+    } catch (error) {
+      console.error("Error getting tips:", error);
+      res.status(500).json({ message: "Failed to get tips" });
+    }
+  });
+
+  // Voice transcription endpoint
+  app.post("/api/sailor/transcribe", audioUpload.single("audio"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Audio file required" });
+      }
+      const transcript = await transcribeAudio(req.file.buffer);
+      res.json({ transcript });
+    } catch (error) {
+      console.error("Error transcribing:", error);
+      res.status(500).json({ message: "Failed to transcribe audio" });
+    }
+  });
+
+  // Voice chat - transcribe and respond
+  app.post("/api/sailor/voice-chat", audioUpload.single("audio"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Audio file required" });
+      }
+      const { sessionId, currentPage } = req.body;
+      if (!sessionId) {
+        return res.status(400).json({ message: "Session ID required" });
+      }
+
+      const transcript = await transcribeAudio(req.file.buffer);
+      if (!transcript || transcript.trim() === "") {
+        return res.status(400).json({ message: "Could not understand audio" });
+      }
+
+      const conversation = await getOrCreateConversation(sessionId, currentPage);
+      await saveMessage(conversation.id, "user", transcript, "voice");
+      
+      const aiResponse = await generateAIResponse(conversation.id, transcript, currentPage);
+      const assistantMsg = await saveMessage(conversation.id, "assistant", aiResponse);
+      
+      res.json({
+        conversationId: conversation.id,
+        transcript,
+        response: aiResponse,
+        messageId: assistantMsg.id
+      });
+    } catch (error) {
+      console.error("Error in voice chat:", error);
+      res.status(500).json({ message: "Failed to process voice chat" });
     }
   });
 
