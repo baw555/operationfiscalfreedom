@@ -11309,11 +11309,11 @@ Generated: ${new Date().toISOString()}
       if (!req.file) {
         return res.status(400).json({ message: "Audio file required" });
       }
-      const transcript = await transcribeAudio(req.file.buffer);
+      const transcript = await transcribeAudio(req.file.buffer, req.file.mimetype);
       res.json({ transcript });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error transcribing:", error);
-      res.status(500).json({ message: "Failed to transcribe audio" });
+      res.status(500).json({ message: error.message || "Failed to transcribe audio" });
     }
   });
 
@@ -11328,7 +11328,7 @@ Generated: ${new Date().toISOString()}
         return res.status(400).json({ message: "Session ID required" });
       }
 
-      const transcript = await transcribeAudio(req.file.buffer);
+      const transcript = await transcribeAudio(req.file.buffer, req.file.mimetype);
       if (!transcript || transcript.trim() === "") {
         return res.status(400).json({ message: "Could not understand audio" });
       }

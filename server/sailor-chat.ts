@@ -155,9 +155,19 @@ export async function generateAIResponse(
   }
 }
 
-export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
+export async function transcribeAudio(audioBuffer: Buffer, mimeType?: string): Promise<string> {
+  if (!audioBuffer || audioBuffer.length === 0) {
+    throw new Error("Empty audio buffer");
+  }
+
+  if (audioBuffer.length > 25 * 1024 * 1024) {
+    throw new Error("Audio file too large (max 25MB)");
+  }
+
   try {
-    const file = new File([audioBuffer], "audio.wav", { type: "audio/wav" });
+    const fileType = mimeType || "audio/webm";
+    const extension = fileType.includes("webm") ? "webm" : fileType.includes("mp4") ? "mp4" : "wav";
+    const file = new File([audioBuffer], `audio.${extension}`, { type: fileType });
     
     const transcription = await openai.audio.transcriptions.create({
       file,
@@ -165,10 +175,16 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
       response_format: "json",
     });
 
-    return transcription.text;
-  } catch (error) {
+    return transcription.text || "";
+  } catch (error: any) {
     console.error("Transcription error:", error);
-    throw new Error("Failed to transcribe audio");
+    if (error.status === 400) {
+      throw new Error("Could not process audio. Please try recording again.");
+    }
+    if (error.status === 429) {
+      throw new Error("Too many requests. Please wait a moment and try again.");
+    }
+    throw new Error("Failed to transcribe audio. Please try again.");
   }
 }
 

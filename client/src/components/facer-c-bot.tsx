@@ -97,14 +97,13 @@ export function FacerCBot() {
     setIsLoading(true);
     setShowTips(false);
 
-    const tempUserMsg: Message = {
-      id: Date.now(),
-      role: "user",
+    setMessages(prev => [...prev, {
+      id: -Date.now(),
+      role: "user" as const,
       content: messageText,
       inputType: "text",
       createdAt: new Date().toISOString()
-    };
-    setMessages(prev => [...prev, tempUserMsg]);
+    }]);
 
     try {
       const res = await fetch("/api/sailor/chat", {
@@ -120,32 +119,23 @@ export function FacerCBot() {
       if (res.ok) {
         const data = await res.json();
         setConversationId(data.conversationId);
-        
-        const assistantMsg: Message = {
-          id: data.messageId,
-          role: "assistant",
-          content: data.response,
-          createdAt: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, assistantMsg]);
+        await loadMessages(data.conversationId);
       } else {
-        const assistantMsg: Message = {
-          id: Date.now() + 1,
-          role: "assistant",
+        setMessages(prev => prev.filter(m => m.id > 0).concat({
+          id: -Date.now() - 1,
+          role: "assistant" as const,
           content: "Blimey! Something went wrong. Try again, shipmate!",
           createdAt: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, assistantMsg]);
+        }));
       }
     } catch (error) {
       console.error("Chat error:", error);
-      const assistantMsg: Message = {
-        id: Date.now() + 1,
-        role: "assistant",
+      setMessages(prev => prev.filter(m => m.id > 0).concat({
+        id: -Date.now() - 1,
+        role: "assistant" as const,
         content: "Arr! Lost connection there. Give it another try!",
         createdAt: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, assistantMsg]);
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -189,6 +179,14 @@ export function FacerCBot() {
     setIsLoading(true);
     setShowTips(false);
 
+    setMessages(prev => [...prev, {
+      id: -Date.now(),
+      role: "user" as const,
+      content: "Transcribing...",
+      inputType: "voice",
+      createdAt: new Date().toISOString()
+    }]);
+
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.webm");
     formData.append("sessionId", sessionId.current);
@@ -203,42 +201,24 @@ export function FacerCBot() {
       if (res.ok) {
         const data = await res.json();
         setConversationId(data.conversationId);
-
-        const userMsg: Message = {
-          id: Date.now(),
-          role: "user",
-          content: data.transcript,
-          inputType: "voice",
-          createdAt: new Date().toISOString()
-        };
-        
-        const assistantMsg: Message = {
-          id: data.messageId,
-          role: "assistant",
-          content: data.response,
-          createdAt: new Date().toISOString()
-        };
-        
-        setMessages(prev => [...prev, userMsg, assistantMsg]);
+        await loadMessages(data.conversationId);
       } else {
         const errData = await res.json().catch(() => ({}));
-        const assistantMsg: Message = {
-          id: Date.now(),
-          role: "assistant",
+        setMessages(prev => prev.filter(m => m.id > 0).concat({
+          id: -Date.now() - 1,
+          role: "assistant" as const,
           content: errData.message || "Couldn't hear ya there, shipmate! Try again!",
           createdAt: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, assistantMsg]);
+        }));
       }
     } catch (error) {
       console.error("Voice chat error:", error);
-      const assistantMsg: Message = {
-        id: Date.now(),
-        role: "assistant",
+      setMessages(prev => prev.filter(m => m.id > 0).concat({
+        id: -Date.now() - 1,
+        role: "assistant" as const,
         content: "Voice message hit some rough seas. Try typing instead!",
         createdAt: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, assistantMsg]);
+      }));
     } finally {
       setIsLoading(false);
     }
