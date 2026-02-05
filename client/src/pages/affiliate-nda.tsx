@@ -32,6 +32,41 @@ export default function AffiliateNda() {
     agreedToTerms: false,
   });
 
+  // Session heartbeat - prevents session timeout during long form fills
+  // Sends a heartbeat every 5 minutes while user is actively on the form
+  useEffect(() => {
+    const HEARTBEAT_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    
+    const sendHeartbeat = async () => {
+      try {
+        const res = await fetch("/api/session/heartbeat", {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          console.warn("[Session] Heartbeat failed - session may have expired");
+        }
+      } catch (err) {
+        console.warn("[Session] Heartbeat error:", err);
+      }
+    };
+    
+    // Send initial heartbeat when form loads
+    sendHeartbeat();
+    
+    // Set up interval for periodic heartbeats
+    const intervalId = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+    
+    // Also send heartbeat on window focus (user returns to tab)
+    const handleFocus = () => sendHeartbeat();
+    window.addEventListener("focus", handleFocus);
+    
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []);
+
   // Start webcam for face capture
   const startCamera = useCallback(async () => {
     try {

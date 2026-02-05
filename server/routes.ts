@@ -466,7 +466,7 @@ export async function registerRoutes(
       cookie: {
         secure: isProduction, // HTTPS only in production (§164.312(e)(1))
         httpOnly: true, // Prevent XSS access to cookies (§164.312(c)(1))
-        sameSite: 'strict', // CSRF protection - strict for maximum security
+        sameSite: 'lax', // CSRF protection - lax allows cookies on navigation from external links (email, social) while still blocking cross-origin POST requests
         maxAge: SESSION_TIMEOUT_MINUTES * 60 * 1000, // 15 minutes for HIPAA auto-logoff
       },
     })
@@ -3907,10 +3907,23 @@ export async function registerRoutes(
         });
       }
 
-      // Get IP address for audit trail
-      const ipAddress = req.headers['x-forwarded-for']?.toString().split(',')[0] || 
-                        req.socket.remoteAddress || 
-                        'unknown';
+      // Get IP address for audit trail with robust fallback handling
+      const forwardedFor = req.headers['x-forwarded-for'];
+      const realIp = req.headers['x-real-ip'];
+      const cfConnectingIp = req.headers['cf-connecting-ip']; // Cloudflare
+      
+      let ipAddress = 'not-captured';
+      if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
+        ipAddress = forwardedFor.split(',')[0].trim();
+      } else if (typeof realIp === 'string' && realIp.trim()) {
+        ipAddress = realIp.trim();
+      } else if (typeof cfConnectingIp === 'string' && cfConnectingIp.trim()) {
+        ipAddress = cfConnectingIp.trim();
+      } else if (req.socket?.remoteAddress) {
+        ipAddress = req.socket.remoteAddress;
+      }
+      
+      console.log(`[NDA Sign] IP detection: forwarded=${forwardedFor}, realIp=${realIp}, socket=${req.socket?.remoteAddress}, resolved=${ipAddress}`);
       
       // ATOMIC + IDEMPOTENT: Single transaction for referral code + NDA creation
       // Prevents race conditions and partial state (code updated but NDA failed, or vice versa)
@@ -3958,12 +3971,41 @@ export async function registerRoutes(
         }
         throw codeError;
       }
-    } catch (error) {
-      console.error("[NDA SIGN FAILURE]", error);
+    } catch (error: any) {
+      // Detailed error logging for debugging
+      console.error("[NDA SIGN FAILURE] Full error details:", {
+        userId,
+        errorMessage: error?.message,
+        errorCode: error?.code,
+        errorStack: error?.stack?.substring(0, 500),
+        sessionId: req.sessionID,
+        hasSession: !!req.session,
+        requestBody: {
+          hasFullName: !!req.body?.fullName,
+          hasAddress: !!req.body?.address,
+          hasSignature: !!req.body?.signatureData?.substring(0, 30),
+          hasFacePhoto: !!req.body?.facePhoto?.substring(0, 30),
+          hasIdPhoto: !!req.body?.idPhoto?.substring(0, 30),
+          agreedToTerms: req.body?.agreedToTerms,
+          customReferralCode: req.body?.customReferralCode,
+        }
+      });
+      
       res.status(500).json({ 
         message: "NDA signing failed. Please retry.",
         retryable: true
       });
+    }
+  });
+
+  // Session heartbeat - renew session on form focus to prevent timeout during long form fills
+  app.post("/api/session/heartbeat", (req, res) => {
+    if (req.session) {
+      // Touch the session to reset the maxAge timer
+      req.session.touch();
+      res.json({ success: true, renewed: true });
+    } else {
+      res.status(401).json({ success: false, message: "No active session" });
     }
   });
 
