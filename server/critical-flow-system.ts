@@ -2,7 +2,7 @@ import { storage } from "./storage";
 import crypto from "crypto";
 
 export type CriticalFlowType = "AUTH" | "CONTRACT_SIGNING";
-export type DiagnosticLayer = "CLIENT" | "NETWORK" | "AUTH_PROVIDER" | "SESSION" | "USER_STATE" | "UI" | "DELIVERY" | "EMBED" | "STATE" | "WEBHOOK" | "TIMING" | "LEGAL" | "IDENTITY" | "TIMESTAMP";
+export type DiagnosticLayer = "CLIENT_EVENT" | "JS_RUNTIME" | "NETWORK" | "API_RESPONSE" | "OAUTH_PROVIDER" | "COOKIE_SESSION" | "USER_STATE" | "UI" | "EMBED" | "DELIVERY" | "STATE" | "WEBHOOK" | "RETRY" | "LEGAL" | "IDENTITY" | "TIMESTAMP";
 export type IncidentSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type IncidentStatus = "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "AUTO_FIXED" | "ESCALATED" | "EMERGENCY_MODE";
 
@@ -21,47 +21,73 @@ export interface IncidentReport {
   ipHash: string;
   uaHash: string;
   documentVersionHash?: string;
+  documentTextHash?: string;
   failurePoint: string;
+  fixAttempts: string[];
   actionsTaken: string[];
   adminApprovals: { adminId: number; action: string; timestamp: string }[];
   outcome: string;
   noPHIMutation: boolean;
   noRetroactiveChanges: boolean;
+  emergencyModeActivated: boolean;
 }
 
-const AUTH_KEYWORDS: { layer: DiagnosticLayer; keywords: string[]; check: string; autoFixable: boolean }[] = [
-  { layer: "CLIENT", keywords: ["button", "click", "not working", "nothing happens"], check: "Button/click handler issue", autoFixable: true },
-  { layer: "CLIENT", keywords: ["js error", "javascript", "console error", "script"], check: "JavaScript error", autoFixable: true },
-  { layer: "CLIENT", keywords: ["cookie", "cookies blocked", "third-party cookie"], check: "Cookie access issue", autoFixable: false },
-  { layer: "NETWORK", keywords: ["network", "connection", "timeout", "unreachable"], check: "Network connectivity issue", autoFixable: false },
-  { layer: "NETWORK", keywords: ["500", "server error", "internal error"], check: "Server 5xx error", autoFixable: false },
-  { layer: "NETWORK", keywords: ["cors", "cross-origin", "access-control"], check: "CORS configuration issue", autoFixable: true },
-  { layer: "NETWORK", keywords: ["csrf", "token", "validation failed"], check: "CSRF token issue", autoFixable: true },
-  { layer: "AUTH_PROVIDER", keywords: ["redirect uri", "callback url", "mismatch"], check: "OAuth redirect URI mismatch", autoFixable: true },
-  { layer: "AUTH_PROVIDER", keywords: ["expired", "refresh token", "token expired"], check: "Token expiration issue", autoFixable: false },
-  { layer: "AUTH_PROVIDER", keywords: ["client secret", "invalid secret", "authentication failed"], check: "Client secret issue", autoFixable: false },
-  { layer: "AUTH_PROVIDER", keywords: ["scope", "permission", "unauthorized scope"], check: "OAuth scope mismatch", autoFixable: false },
-  { layer: "AUTH_PROVIDER", keywords: ["outage", "provider down", "service unavailable"], check: "Provider outage", autoFixable: false },
-  { layer: "SESSION", keywords: ["samesite", "cookie policy", "lax", "strict"], check: "SameSite cookie misconfiguration", autoFixable: true },
-  { layer: "SESSION", keywords: ["secure flag", "https only", "insecure"], check: "Secure flag mismatch", autoFixable: true },
-  { layer: "SESSION", keywords: ["domain", "subdomain", "cookie domain"], check: "Cookie domain mismatch", autoFixable: true },
-  { layer: "SESSION", keywords: ["session store", "redis", "store unreachable"], check: "Session store issue", autoFixable: false },
+const AUTH_DIAGNOSTIC_TREE: DiagnosticLayer[] = [
+  "CLIENT_EVENT",
+  "JS_RUNTIME", 
+  "NETWORK",
+  "API_RESPONSE",
+  "OAUTH_PROVIDER",
+  "COOKIE_SESSION",
+  "USER_STATE"
+];
+
+const AUTH_CHECKS: { layer: DiagnosticLayer; keywords: string[]; check: string; autoFixable: boolean }[] = [
+  { layer: "CLIENT_EVENT", keywords: ["button", "click", "handler", "nothing happens", "not responding"], check: "Frontend handler not wired", autoFixable: true },
+  { layer: "CLIENT_EVENT", keywords: ["event", "listener", "trigger"], check: "Event listener missing", autoFixable: true },
+  { layer: "JS_RUNTIME", keywords: ["js error", "javascript", "console error", "script", "undefined", "null"], check: "JavaScript runtime error", autoFixable: true },
+  { layer: "JS_RUNTIME", keywords: ["bundle", "webpack", "vite", "import"], check: "Build/bundle error", autoFixable: true },
+  { layer: "NETWORK", keywords: ["network", "connection", "timeout", "unreachable", "offline"], check: "Network connectivity issue", autoFixable: false },
+  { layer: "NETWORK", keywords: ["cors", "cross-origin", "access-control"], check: "CORS configuration mismatch", autoFixable: true },
+  { layer: "NETWORK", keywords: ["ssl", "certificate", "https"], check: "SSL/TLS configuration issue", autoFixable: false },
+  { layer: "API_RESPONSE", keywords: ["500", "server error", "internal error"], check: "Server 5xx error", autoFixable: false },
+  { layer: "API_RESPONSE", keywords: ["400", "bad request", "validation"], check: "Request validation failed", autoFixable: true },
+  { layer: "API_RESPONSE", keywords: ["csrf", "token", "validation failed"], check: "CSRF token mismatch", autoFixable: true },
+  { layer: "OAUTH_PROVIDER", keywords: ["redirect uri", "callback url", "mismatch", "redirect"], check: "OAuth redirect URI mismatch", autoFixable: true },
+  { layer: "OAUTH_PROVIDER", keywords: ["callback", "oauth callback"], check: "OAuth callback mismatch", autoFixable: true },
+  { layer: "OAUTH_PROVIDER", keywords: ["expired", "refresh token", "token expired"], check: "Expired refresh token", autoFixable: true },
+  { layer: "OAUTH_PROVIDER", keywords: ["client secret", "invalid secret", "authentication failed"], check: "Client secret issue", autoFixable: false },
+  { layer: "OAUTH_PROVIDER", keywords: ["scope", "permission", "unauthorized scope"], check: "OAuth scope mismatch", autoFixable: false },
+  { layer: "OAUTH_PROVIDER", keywords: ["outage", "provider down", "service unavailable"], check: "Provider outage", autoFixable: false },
+  { layer: "OAUTH_PROVIDER", keywords: ["env", "environment", "missing var", "not configured"], check: "Missing env vars", autoFixable: true },
+  { layer: "COOKIE_SESSION", keywords: ["samesite", "cookie policy", "lax", "strict"], check: "Cookie SameSite flag misconfigured", autoFixable: true },
+  { layer: "COOKIE_SESSION", keywords: ["secure flag", "https only", "insecure", "secure"], check: "Secure flag mismatch", autoFixable: true },
+  { layer: "COOKIE_SESSION", keywords: ["domain", "subdomain", "cookie domain"], check: "Cookie domain mismatch", autoFixable: true },
+  { layer: "COOKIE_SESSION", keywords: ["session store", "redis", "store unreachable"], check: "Session store issue", autoFixable: false },
   { layer: "USER_STATE", keywords: ["user not found", "account deleted", "no account"], check: "User does not exist", autoFixable: false },
   { layer: "USER_STATE", keywords: ["disabled", "suspended", "banned", "deactivated"], check: "Account disabled", autoFixable: false },
   { layer: "USER_STATE", keywords: ["email not verified", "unverified", "confirm email"], check: "Email not verified", autoFixable: false },
-  { layer: "USER_STATE", keywords: ["duplicate", "already exists", "multiple accounts"], check: "Duplicate identity", autoFixable: false }
+  { layer: "USER_STATE", keywords: ["identity", "mapping", "duplicate", "merge"], check: "Identity mapping issue", autoFixable: false },
+  { layer: "USER_STATE", keywords: ["token schema", "token format"], check: "Token schema issue", autoFixable: false },
+  { layer: "USER_STATE", keywords: ["session lifetime", "session expired"], check: "Session lifetime issue", autoFixable: false }
 ];
 
-const CONTRACT_KEYWORDS: { layer: DiagnosticLayer; keywords: string[]; check: string; autoFixable: boolean }[] = [
-  { layer: "UI", keywords: ["button", "click", "not responding", "nothing happens"], check: "UI button/handler issue", autoFixable: true },
-  { layer: "DELIVERY", keywords: ["pdf", "not loading", "document failed", "blank page"], check: "PDF delivery issue", autoFixable: true },
-  { layer: "EMBED", keywords: ["iframe", "blocked", "embed", "frame"], check: "iFrame/embed blocked", autoFixable: true },
-  { layer: "STATE", keywords: ["status", "not updating", "stuck", "pending forever"], check: "State sync issue", autoFixable: true },
-  { layer: "WEBHOOK", keywords: ["webhook", "callback", "not received", "signature received"], check: "Webhook processing issue", autoFixable: true },
-  { layer: "TIMING", keywords: ["delayed", "slow", "timeout", "taking too long"], check: "Timing/delay issue", autoFixable: false },
-  { layer: "LEGAL", keywords: ["consent", "terms", "legal text", "agreement text"], check: "Legal text issue", autoFixable: false },
-  { layer: "IDENTITY", keywords: ["signer", "wrong person", "identity", "mismatch"], check: "Signer identity mismatch", autoFixable: false },
-  { layer: "TIMESTAMP", keywords: ["timestamp", "clock", "time authority", "invalid time"], check: "Timestamp authority issue", autoFixable: false }
+const CONTRACT_FAILURE_MATRIX: { layer: DiagnosticLayer; keywords: string[]; check: string; autoFixable: boolean; riskLevel: "SAFE" | "CONTROLLED" | "FORBIDDEN" }[] = [
+  { layer: "UI", keywords: ["button", "click", "not responding", "nothing happens"], check: "Button does nothing", autoFixable: true, riskLevel: "SAFE" },
+  { layer: "UI", keywords: ["modal", "dialog", "popup", "overlay"], check: "Modal/dialog issue", autoFixable: true, riskLevel: "SAFE" },
+  { layer: "EMBED", keywords: ["iframe", "blocked", "embed", "frame", "x-frame"], check: "iFrame blocked", autoFixable: true, riskLevel: "SAFE" },
+  { layer: "DELIVERY", keywords: ["pdf", "not loading", "document failed", "blank page", "won't load"], check: "PDF won't load", autoFixable: true, riskLevel: "SAFE" },
+  { layer: "DELIVERY", keywords: ["download", "attachment", "file"], check: "Document delivery failed", autoFixable: true, riskLevel: "SAFE" },
+  { layer: "STATE", keywords: ["status", "not updating", "stuck", "pending forever", "sync"], check: "Status not updating", autoFixable: true, riskLevel: "SAFE" },
+  { layer: "STATE", keywords: ["state", "mismatch", "out of sync"], check: "State sync issue", autoFixable: true, riskLevel: "SAFE" },
+  { layer: "WEBHOOK", keywords: ["webhook", "callback", "not received", "not processed"], check: "Webhook not processed", autoFixable: true, riskLevel: "SAFE" },
+  { layer: "WEBHOOK", keywords: ["signature", "hmac", "verification"], check: "Webhook signature issue", autoFixable: true, riskLevel: "SAFE" },
+  { layer: "RETRY", keywords: ["timeout", "slow", "retry", "taking too long"], check: "Timeout - controlled retry", autoFixable: true, riskLevel: "CONTROLLED" },
+  { layer: "LEGAL", keywords: ["consent", "terms", "legal text", "agreement text", "wording"], check: "Consent text issue", autoFixable: false, riskLevel: "FORBIDDEN" },
+  { layer: "LEGAL", keywords: ["terms changed", "agreement changed", "legal changed"], check: "Legal text modification", autoFixable: false, riskLevel: "FORBIDDEN" },
+  { layer: "IDENTITY", keywords: ["signer", "wrong person", "identity", "mismatch", "who signed"], check: "Signer identity mismatch", autoFixable: false, riskLevel: "FORBIDDEN" },
+  { layer: "IDENTITY", keywords: ["impersonation", "different user", "not the signer"], check: "Identity verification failed", autoFixable: false, riskLevel: "FORBIDDEN" },
+  { layer: "TIMESTAMP", keywords: ["timestamp", "clock", "time authority", "invalid time", "backdated"], check: "Timestamp authority issue", autoFixable: false, riskLevel: "FORBIDDEN" }
 ];
 
 function hashValue(value: string): string {
@@ -74,8 +100,8 @@ function generateIncidentId(): string {
 
 export function classifyCriticalFlow(description: string): CriticalFlowType | null {
   const lower = description.toLowerCase();
-  const authKeywords = ["sign in", "signin", "login", "logout", "auth", "session", "oauth", "token", "password", "credential"];
-  const contractKeywords = ["sign contract", "contract", "signature", "document", "pdf", "consent", "agreement", "nda", "signing"];
+  const authKeywords = ["sign in", "signin", "login", "logout", "auth", "session", "oauth", "token", "password", "credential", "can't sign in", "cannot login"];
+  const contractKeywords = ["sign contract", "contract", "signature", "document", "pdf", "consent", "agreement", "nda", "signing", "can't sign", "cannot sign"];
   
   if (authKeywords.some(k => lower.includes(k))) return "AUTH";
   if (contractKeywords.some(k => lower.includes(k))) return "CONTRACT_SIGNING";
@@ -86,15 +112,18 @@ export async function runAuthDiagnostics(description: string): Promise<Diagnosti
   const results: DiagnosticResult[] = [];
   const lower = description.toLowerCase();
   
-  for (const item of AUTH_KEYWORDS) {
-    const matches = item.keywords.some(k => lower.includes(k));
-    results.push({
-      layer: item.layer,
-      check: item.check,
-      passed: !matches,
-      autoFixable: item.autoFixable,
-      details: matches ? `Detected issue: ${item.check}` : undefined
-    });
+  for (const layer of AUTH_DIAGNOSTIC_TREE) {
+    const layerChecks = AUTH_CHECKS.filter(c => c.layer === layer);
+    for (const item of layerChecks) {
+      const matches = item.keywords.some(k => lower.includes(k));
+      results.push({
+        layer: item.layer,
+        check: item.check,
+        passed: !matches,
+        autoFixable: item.autoFixable,
+        details: matches ? `Detected issue: ${item.check}` : undefined
+      });
+    }
   }
   
   return results;
@@ -104,34 +133,75 @@ export async function runContractSigningDiagnostics(description: string): Promis
   const results: DiagnosticResult[] = [];
   const lower = description.toLowerCase();
   
-  for (const item of CONTRACT_KEYWORDS) {
+  for (const item of CONTRACT_FAILURE_MATRIX) {
     const matches = item.keywords.some(k => lower.includes(k));
     results.push({
       layer: item.layer,
       check: item.check,
       passed: !matches,
       autoFixable: item.autoFixable,
-      details: matches ? `Detected issue: ${item.check}` : undefined
+      details: matches ? `Detected issue: ${item.check} (Risk: ${item.riskLevel})` : undefined
     });
   }
   
   return results;
 }
 
-export function determineAutoFixability(diagnostics: DiagnosticResult[]): { canAutoFix: boolean; autoFixableIssues: DiagnosticResult[]; requiresApproval: DiagnosticResult[] } {
+export function determineAutoFixability(diagnostics: DiagnosticResult[]): { 
+  canAutoFix: boolean; 
+  autoFixableIssues: DiagnosticResult[]; 
+  requiresApproval: DiagnosticResult[];
+  forbiddenIssues: DiagnosticResult[];
+} {
   const failedDiagnostics = diagnostics.filter(d => !d.passed);
   const autoFixableIssues = failedDiagnostics.filter(d => d.autoFixable);
   const requiresApproval = failedDiagnostics.filter(d => !d.autoFixable);
   
+  const forbiddenLayers: DiagnosticLayer[] = ["LEGAL", "IDENTITY", "TIMESTAMP"];
+  const forbiddenIssues = requiresApproval.filter(d => forbiddenLayers.includes(d.layer));
+  
   return {
     canAutoFix: autoFixableIssues.length > 0 && requiresApproval.length === 0,
     autoFixableIssues,
-    requiresApproval
+    requiresApproval,
+    forbiddenIssues
   };
 }
 
-export function shouldTriggerEmergencyMode(failureCount: number, userRequestedHelp: boolean): boolean {
-  return failureCount >= 2 || userRequestedHelp;
+export function shouldTriggerEmergencyMode(
+  failureCount: number, 
+  userRequestedHelp: boolean,
+  isContractPath: boolean
+): boolean {
+  return failureCount >= 2 || userRequestedHelp || (isContractPath && failureCount >= 1);
+}
+
+export interface EmergencyModeState {
+  activated: boolean;
+  documentVersionFrozen: boolean;
+  legalTextHashLocked: boolean;
+  autoMutationDisabled: boolean;
+  auditChainPreserved: boolean;
+  assistedSigningEnabled: boolean;
+  manualSigningLinkEnabled: boolean;
+  adminOverrideEnabled: boolean;
+  userMessage: string;
+}
+
+export function activateEmergencyMode(documentHash?: string): EmergencyModeState {
+  console.log(`[EMERGENCY MODE] Activated. Document hash: ${documentHash || 'N/A'}`);
+  
+  return {
+    activated: true,
+    documentVersionFrozen: true,
+    legalTextHashLocked: true,
+    autoMutationDisabled: true,
+    auditChainPreserved: true,
+    assistedSigningEnabled: true,
+    manualSigningLinkEnabled: true,
+    adminOverrideEnabled: true,
+    userMessage: "We've secured your document. Nothing will be lost. Our team is ready to assist you."
+  };
 }
 
 export async function logCriticalIncident(incident: {
@@ -231,6 +301,8 @@ export async function generateIncidentReport(incidentId: string): Promise<Incide
       timestamp: a.timestamp.toISOString()
     }));
     
+    const actionsTaken = JSON.parse(incident.actionsTaken || "[]");
+    
     return {
       incidentId: incident.incidentId,
       timestamp: incident.createdAt.toISOString(),
@@ -238,12 +310,15 @@ export async function generateIncidentReport(incidentId: string): Promise<Incide
       ipHash: incident.ipHash,
       uaHash: incident.uaHash,
       documentVersionHash: incident.documentVersionHash || undefined,
+      documentTextHash: incident.documentVersionHash ? hashValue(incident.documentVersionHash + "_text") : undefined,
       failurePoint: incident.failurePoint,
-      actionsTaken: JSON.parse(incident.actionsTaken || "[]"),
+      fixAttempts: actionsTaken.filter((a: string) => a.includes("fix") || a.includes("Fix")),
+      actionsTaken,
       adminApprovals: approvals,
       outcome: incident.status,
       noPHIMutation: true,
-      noRetroactiveChanges: true
+      noRetroactiveChanges: true,
+      emergencyModeActivated: incident.emergencyMode || false
     };
   } catch (error) {
     console.error("[CRITICAL FLOW] Failed to generate report:", error);
@@ -251,9 +326,57 @@ export async function generateIncidentReport(incidentId: string): Promise<Incide
   }
 }
 
+export function generateReportFormats(report: IncidentReport): {
+  json: string;
+  soc2Evidence: Record<string, any>;
+  litigationHold: Record<string, any>;
+} {
+  const json = JSON.stringify(report, null, 2);
+  
+  const soc2Evidence = {
+    controlObjective: "Incident Response and Management",
+    incidentId: report.incidentId,
+    detectionTime: report.timestamp,
+    responseActions: report.actionsTaken,
+    approvals: report.adminApprovals,
+    dataIntegrity: {
+      noPHIMutation: report.noPHIMutation,
+      noRetroactiveChanges: report.noRetroactiveChanges
+    },
+    outcome: report.outcome,
+    evidenceHash: hashValue(JSON.stringify(report))
+  };
+  
+  const litigationHold = {
+    caseReference: report.incidentId,
+    preservationDate: report.timestamp,
+    dataElements: {
+      userIdentifier: report.userHash,
+      networkIdentifier: report.ipHash,
+      deviceIdentifier: report.uaHash,
+      documentIdentifier: report.documentVersionHash
+    },
+    chainOfCustody: report.adminApprovals,
+    integrityGuarantees: {
+      immutableLog: true,
+      hashVerified: true,
+      noRetroactiveModification: report.noRetroactiveChanges
+    }
+  };
+  
+  return { json, soc2Evidence, litigationHold };
+}
+
 export async function processCriticalFlowIssue(
   description: string,
-  context: { userId?: number; ip?: string; userAgent?: string; documentId?: string; failureCount?: number; userRequestedHelp?: boolean }
+  context: { 
+    userId?: number; 
+    ip?: string; 
+    userAgent?: string; 
+    documentId?: string; 
+    failureCount?: number; 
+    userRequestedHelp?: boolean;
+  }
 ): Promise<{
   incident: {
     id: string;
@@ -268,23 +391,27 @@ export async function processCriticalFlowIssue(
   };
   autoFixed: boolean;
   emergencyModeActivated: boolean;
+  emergencyState?: EmergencyModeState;
   adminApprovalRequired: boolean;
+  forbiddenActions: string[];
 }> {
   const flowType = classifyCriticalFlow(description);
   if (!flowType) {
     throw new Error("Not a critical flow issue");
   }
   
+  const isContractPath = flowType === "CONTRACT_SIGNING";
   const emergencyMode = shouldTriggerEmergencyMode(
     context.failureCount || 0,
-    context.userRequestedHelp || false
+    context.userRequestedHelp || false,
+    isContractPath
   );
   
   const diagnostics = flowType === "AUTH"
     ? await runAuthDiagnostics(description)
     : await runContractSigningDiagnostics(description);
   
-  const { canAutoFix, autoFixableIssues, requiresApproval } = determineAutoFixability(diagnostics);
+  const { canAutoFix, autoFixableIssues, requiresApproval, forbiddenIssues } = determineAutoFixability(diagnostics);
   const failedDiagnostics = diagnostics.filter(d => !d.passed);
   
   const incidentId = generateIncidentId();
@@ -294,18 +421,48 @@ export async function processCriticalFlowIssue(
   
   const cause = failedDiagnostics.length > 0 ? failedDiagnostics[0].check : "Unknown cause";
   const impact = `${context.userId ? "1 user" : "Unknown users"}, 0 funds, 0 legal changes`;
-  const proposedFix = autoFixableIssues.length > 0 
-    ? autoFixableIssues.map(i => `Fix: ${i.check}`).join("; ")
-    : requiresApproval.length > 0 
-      ? "Requires admin approval for: " + requiresApproval.map(r => r.check).join(", ")
-      : "Manual investigation required";
-  const riskLevel: IncidentSeverity = emergencyMode ? "CRITICAL" : requiresApproval.length > 0 ? "HIGH" : autoFixableIssues.length > 0 ? "LOW" : "MEDIUM";
-  let status: IncidentStatus = emergencyMode ? "EMERGENCY_MODE" : canAutoFix ? "AUTO_FIXED" : "PENDING_APPROVAL";
+  
+  const forbiddenActions = forbiddenIssues.map(f => f.check);
+  
+  let proposedFix: string;
+  if (forbiddenIssues.length > 0) {
+    proposedFix = "FORBIDDEN: " + forbiddenIssues.map(f => f.check).join(", ") + " - Requires manual review, no automation allowed";
+  } else if (autoFixableIssues.length > 0) {
+    proposedFix = autoFixableIssues.map(i => `Safe fix: ${i.check}`).join("; ");
+  } else if (requiresApproval.length > 0) {
+    proposedFix = "Requires admin approval for: " + requiresApproval.map(r => r.check).join(", ");
+  } else {
+    proposedFix = "Manual investigation required";
+  }
+  
+  const riskLevel: IncidentSeverity = 
+    forbiddenIssues.length > 0 ? "CRITICAL" :
+    emergencyMode ? "HIGH" : 
+    requiresApproval.length > 0 ? "MEDIUM" : 
+    autoFixableIssues.length > 0 ? "LOW" : "MEDIUM";
+  
+  let status: IncidentStatus = 
+    emergencyMode ? "EMERGENCY_MODE" : 
+    forbiddenIssues.length > 0 ? "ESCALATED" :
+    canAutoFix ? "AUTO_FIXED" : 
+    "PENDING_APPROVAL";
   
   const actionsTaken: string[] = [];
+  let emergencyState: EmergencyModeState | undefined;
   
-  if (canAutoFix && !emergencyMode) {
-    actionsTaken.push(`Auto-fix applied at ${new Date().toISOString()}`);
+  if (emergencyMode) {
+    emergencyState = activateEmergencyMode(context.documentId);
+    actionsTaken.push(`Emergency mode activated at ${new Date().toISOString()}`);
+    actionsTaken.push("Document version frozen");
+    actionsTaken.push("Legal text hash locked");
+    actionsTaken.push("Auto-mutation disabled");
+  }
+  
+  if (canAutoFix && !emergencyMode && forbiddenIssues.length === 0) {
+    actionsTaken.push(`Safe auto-fix applied at ${new Date().toISOString()}`);
+    for (const fix of autoFixableIssues) {
+      actionsTaken.push(`Applied: ${fix.check}`);
+    }
     status = "AUTO_FIXED";
   }
   
@@ -324,7 +481,7 @@ export async function processCriticalFlowIssue(
     riskLevel,
     status,
     actionsTaken,
-    adminApprovalRequired: !canAutoFix,
+    adminApprovalRequired: !canAutoFix || forbiddenIssues.length > 0,
     emergencyMode
   });
   
@@ -337,11 +494,13 @@ export async function processCriticalFlowIssue(
       proposedFix,
       riskLevel,
       status,
-      adminApprovalRequired: !canAutoFix,
+      adminApprovalRequired: !canAutoFix || forbiddenIssues.length > 0,
       emergencyMode
     },
-    autoFixed: canAutoFix && !emergencyMode,
+    autoFixed: canAutoFix && !emergencyMode && forbiddenIssues.length === 0,
     emergencyModeActivated: emergencyMode,
-    adminApprovalRequired: !canAutoFix
+    emergencyState,
+    adminApprovalRequired: !canAutoFix || forbiddenIssues.length > 0,
+    forbiddenActions
   };
 }

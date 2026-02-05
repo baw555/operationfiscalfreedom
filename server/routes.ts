@@ -3325,15 +3325,32 @@ export async function registerRoutes(
     }
   });
 
-  // Generate incident report
+  // Generate incident report (supports multiple formats)
   app.get("/api/critical-flow/report/:incidentId", requireAdmin, async (req, res) => {
     try {
       const { incidentId } = req.params;
-      const { generateIncidentReport } = await import("./critical-flow-system");
+      const format = req.query.format as string || "json";
+      
+      const { generateIncidentReport, generateReportFormats } = await import("./critical-flow-system");
       const report = await generateIncidentReport(incidentId);
       
       if (!report) {
         return res.status(404).json({ message: "Incident not found" });
+      }
+      
+      if (format === "soc2") {
+        const { soc2Evidence } = generateReportFormats(report);
+        return res.json(soc2Evidence);
+      }
+      
+      if (format === "litigation") {
+        const { litigationHold } = generateReportFormats(report);
+        return res.json(litigationHold);
+      }
+      
+      if (format === "all") {
+        const formats = generateReportFormats(report);
+        return res.json({ report, ...formats });
       }
       
       res.json(report);
