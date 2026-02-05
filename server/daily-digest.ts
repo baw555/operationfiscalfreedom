@@ -1,8 +1,6 @@
 import { storage } from './storage';
-import { Resend } from 'resend';
+import { getResendClient } from './resendClient';
 import { CRITICAL_PATH_POLICY } from './safety-rules';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface IncidentSummary {
   flow: string;
@@ -20,17 +18,14 @@ interface DigestData {
 }
 
 export async function generateDailyDigest(): Promise<DigestData> {
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000); // Last 24 hours
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
   
-  // Get all repair logs from storage
   const allLogs = await storage.getRepairLogs(500);
   
-  // Filter to last 24 hours
   const recentLogs = allLogs.filter(log => 
     log.createdAt && new Date(log.createdAt) >= since
   );
   
-  // Group by issue type (flow)
   const flowCounts: Record<string, { count: number; lastIncident: Date }> = {};
   const issueCounts: Record<string, number> = {};
   
@@ -47,12 +42,10 @@ export async function generateDailyDigest(): Promise<DigestData> {
       flowCounts[flow].lastIncident = logDate;
     }
     
-    // Track issue descriptions
     const desc = log.description?.substring(0, 50) || 'Unknown';
     issueCounts[desc] = (issueCounts[desc] || 0) + 1;
   }
   
-  // Convert to array and sort
   const byFlow: IncidentSummary[] = Object.entries(flowCounts)
     .map(([flow, data]) => ({
       flow,
@@ -61,22 +54,18 @@ export async function generateDailyDigest(): Promise<DigestData> {
     }))
     .sort((a, b) => b.count - a.count);
   
-  // Get awaiting approval count
   const escalatedLogs = allLogs.filter(log => 
     log.status === 'ESCALATED' || log.status === 'pending_approval'
   );
   
-  // Get emergency locks (simplified - count failed critical logs)
   const emergencyLogs = allLogs.filter(log => 
     log.status === 'FAILED' || log.description?.includes('EMERGENCY')
   );
   
-  // Calculate safe actions available
   const pendingLogs = allLogs.filter(log => 
     log.status === 'PENDING' || log.status === 'pending'
   );
   
-  // Top issues
   const topIssues = Object.entries(issueCounts)
     .map(([description, count]) => ({ description, count }))
     .sort((a, b) => b.count - a.count)
@@ -157,8 +146,9 @@ Daily Digest | ${dateStr}
 ═══════════════════════════════════════════════════`;
 
   try {
-    await resend.emails.send({
-      from: 'FACER-C Repair <onboarding@resend.dev>',
+    const { client, fromEmail } = await getResendClient();
+    await client.emails.send({
+      from: fromEmail,
       to: adminEmail,
       subject,
       text: body,
@@ -209,8 +199,9 @@ ESCALATE
 ═══════════════════════════════════════════════════`;
 
   try {
-    await resend.emails.send({
-      from: 'FACER-C Repair <onboarding@resend.dev>',
+    const { client, fromEmail } = await getResendClient();
+    await client.emails.send({
+      from: fromEmail,
       to: adminEmail,
       subject,
       text: body,

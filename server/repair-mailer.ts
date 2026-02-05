@@ -1,6 +1,4 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getResendClient } from './resendClient';
 
 type AlertType = 'CONTRACT_SIGN_FAIL' | 'AUTH_FAIL' | 'CORE_FUNCTION_FAIL' | 'EMERGENCY_MODE';
 
@@ -113,8 +111,9 @@ ESCALATE`;
   }
 
   try {
-    const result = await resend.emails.send({
-      from: 'FACER-C Repair <onboarding@resend.dev>',
+    const { client, fromEmail } = await getResendClient();
+    const result = await client.emails.send({
+      from: fromEmail,
       to: adminEmail,
       subject,
       text: body,
@@ -162,8 +161,9 @@ LOCK ${incidentId}
 ESCALATE`;
 
   try {
-    await resend.emails.send({
-      from: 'FACER-C Repair <onboarding@resend.dev>',
+    const { client, fromEmail } = await getResendClient();
+    await client.emails.send({
+      from: fromEmail,
       to: adminEmail,
       subject,
       text: body,
@@ -194,8 +194,9 @@ All auto-repair actions are now disabled for this target.
 Manual intervention through the admin dashboard is required to unlock.`;
 
   try {
-    await resend.emails.send({
-      from: 'FACER-C Repair <onboarding@resend.dev>',
+    const { client, fromEmail } = await getResendClient();
+    await client.emails.send({
+      from: fromEmail,
       to: adminEmail,
       subject,
       text: body,
@@ -225,8 +226,9 @@ Auto-repair has been disabled pending human review.
 Access the Admin Repair Queue to review and resolve.`;
 
   try {
-    await resend.emails.send({
-      from: 'FACER-C Repair <onboarding@resend.dev>',
+    const { client, fromEmail } = await getResendClient();
+    await client.emails.send({
+      from: fromEmail,
       to: adminEmail,
       subject,
       text: body,

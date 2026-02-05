@@ -2201,7 +2201,7 @@ export async function registerRoutes(
         console.log(`Password reset email sent to ${user.email}`);
       } catch (err) {
         console.error("Failed to send password reset email:", err);
-        console.log(`Password reset link (email failed): ${resetLink}`);
+        console.log(`Password reset email failed for user, link generated but not logged for security`);
       }
 
       res.json({ message: "If an account exists with this email, you will receive a password reset link." });
@@ -3198,7 +3198,7 @@ export async function registerRoutes(
       await storage.updateRepairLogStatus(id, "APPROVED");
       
       const { complianceLog } = await import("./compliance-audit");
-      await complianceLog("REPAIR_APPROVED", { repairId: id, previousStatus: existing.status }, { userId: req.user?.id, ip: req.ip });
+      await complianceLog("REPAIR_APPROVED", { repairId: id, previousStatus: existing.status }, { userId: req.session.userId, ip: req.ip });
       
       res.json({ success: true, message: "Repair approved and resolved" });
     } catch (error) {
@@ -3223,7 +3223,7 @@ export async function registerRoutes(
       await storage.updateRepairLogStatus(id, "REJECTED");
       
       const { complianceLog } = await import("./compliance-audit");
-      await complianceLog("REPAIR_REJECTED", { repairId: id, previousStatus: existing.status }, { userId: req.user?.id, ip: req.ip });
+      await complianceLog("REPAIR_REJECTED", { repairId: id, previousStatus: existing.status }, { userId: req.session.userId, ip: req.ip });
       
       res.json({ success: true, message: "Repair rejected" });
     } catch (error) {
@@ -3370,7 +3370,7 @@ export async function registerRoutes(
           
           if (isSafeAction(actionType)) {
             // Mark as applied
-            await storage.updateRepairLog(log.id, { status: "APPLIED" });
+            await storage.updateRepairLogStatus(log.id, "APPLIED");
             approved.push(`✓ ${log.description || actionType}`);
             
             await complianceLog("BATCH_APPROVE", {
