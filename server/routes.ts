@@ -3042,6 +3042,68 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== SELF-REPAIR BOT ====================
+
+  // Submit issue for automated repair
+  app.post("/api/repair/intake", requireAdmin, async (req, res) => {
+    try {
+      const { description } = req.body;
+      
+      if (!description || typeof description !== "string" || description.trim().length < 5) {
+        return res.status(400).json({ message: "Issue description is required (at least 5 characters)" });
+      }
+
+      const { processRepair } = await import("./self-repair");
+      const result = await processRepair(description.trim());
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[REPAIR INTAKE ERROR]", error);
+      res.status(500).json({ message: "Failed to process repair request" });
+    }
+  });
+
+  // Get repair logs (admin only)
+  app.get("/api/repair/logs", requireAdmin, async (req, res) => {
+    try {
+      const { getRepairLogs } = await import("./self-repair");
+      const limit = parseInt(req.query.limit as string) || 20;
+      const logs = await getRepairLogs(limit);
+      res.json(logs);
+    } catch (error) {
+      console.error("[REPAIR LOGS ERROR]", error);
+      res.status(500).json({ message: "Failed to get repair logs" });
+    }
+  });
+
+  // Classify issue without processing (dry run)
+  app.post("/api/repair/classify", requireAdmin, async (req, res) => {
+    try {
+      const { description } = req.body;
+      
+      if (!description) {
+        return res.status(400).json({ message: "Description is required" });
+      }
+
+      const { classifyIssue, canAutoFix, runDiagnostics } = await import("./self-repair");
+      const issueType = classifyIssue(description);
+      const autoFixable = canAutoFix(issueType);
+      const diagnostics = await runDiagnostics(issueType, description);
+      
+      res.json({
+        issueType,
+        autoFixable,
+        diagnostics,
+        message: autoFixable 
+          ? `Issue can be auto-fixed as ${issueType}` 
+          : `Issue requires manual review (${issueType})`
+      });
+    } catch (error) {
+      console.error("[REPAIR CLASSIFY ERROR]", error);
+      res.status(500).json({ message: "Failed to classify issue" });
+    }
+  });
+
   // Get all NDAs for master portal
   app.get("/api/master/ndas", requireAdmin, async (req, res) => {
     try {
