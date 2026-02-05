@@ -42,6 +42,17 @@ The database supports user management, affiliate applications, support requests,
     - **Tier-0 Critical Path Protection**: A specialized diagnostic and emergency response system for authentication and contract signing failures. It distinguishes between "plumbing" (auto-fixable) and "authority" (forbidden to auto-fix) issues. Features an "Emergency Mode" for critical failures and generates legal-grade incident reports.
     - **Platform Configuration**: Provides toggles for auto-fixes and admin approval requirements.
     - **Compliance Logging**: Implements SOC-2 / HIPAA hardening hooks for an immutable audit trail.
+- **Sailor Man AI Assistant**: An AI-powered chat assistant with:
+    - OpenAI integration (gpt-5-mini) via Replit AI Integrations
+    - Voice input with speech-to-text transcription (gpt-4o-mini-transcribe)
+    - Text chat with message history persistence
+    - Contextual quick tips based on current page
+    - FAQ knowledge base with semantic search
+    - Popeye-themed character with nautical personality
+    - Session-based conversation tracking
+- **Guided Tour System**: Interactive website walkthrough with step-by-step guidance.
+- **Form Assistance**: Contextual help for form fields with examples and validation tips.
+- **Status Notifications**: Toast notification system with success/warning/info/error types.
 
 ### Security Features
 - **AES-256-GCM Encryption**: For sensitive data at rest.
