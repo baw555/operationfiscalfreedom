@@ -3104,6 +3104,128 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== TIER-0 CRITICAL FLOW SYSTEM ====================
+
+  // Process critical flow issue (Auth or Contract Signing)
+  app.post("/api/critical-flow/process", requireAdmin, async (req, res) => {
+    try {
+      const { description, userId, failureCount, userRequestedHelp } = req.body;
+      
+      if (!description) {
+        return res.status(400).json({ message: "Description is required" });
+      }
+
+      const { processCriticalFlowIssue, classifyCriticalFlow } = await import("./critical-flow-system");
+      
+      const flowType = classifyCriticalFlow(description);
+      if (!flowType) {
+        return res.status(400).json({ message: "Not a critical flow issue (Auth or Contract Signing)" });
+      }
+
+      const result = await processCriticalFlowIssue(description, {
+        userId,
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+        failureCount: failureCount || 0,
+        userRequestedHelp: userRequestedHelp || false
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[CRITICAL FLOW PROCESS ERROR]", error);
+      res.status(500).json({ message: "Failed to process critical flow issue" });
+    }
+  });
+
+  // Get critical incidents
+  app.get("/api/critical-flow/incidents", requireAdmin, async (req, res) => {
+    try {
+      const { getCriticalIncidents } = await import("./critical-flow-system");
+      const status = req.query.status as string | undefined;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const incidents = await getCriticalIncidents(status as any, limit);
+      res.json(incidents);
+    } catch (error) {
+      console.error("[CRITICAL FLOW INCIDENTS ERROR]", error);
+      res.status(500).json({ message: "Failed to get incidents" });
+    }
+  });
+
+  // Approve or reject incident
+  app.post("/api/critical-flow/approve/:incidentId", requireAdmin, async (req, res) => {
+    try {
+      const { incidentId } = req.params;
+      const { action } = req.body;
+      
+      if (!action || !["APPROVE", "REJECT"].includes(action)) {
+        return res.status(400).json({ message: "Action must be APPROVE or REJECT" });
+      }
+
+      const { approveIncident } = await import("./critical-flow-system");
+      const adminId = (req as any).user?.id || 1;
+      const result = await approveIncident(incidentId, adminId, action);
+      res.json(result);
+    } catch (error) {
+      console.error("[CRITICAL FLOW APPROVE ERROR]", error);
+      res.status(500).json({ message: "Failed to process approval" });
+    }
+  });
+
+  // Generate incident report
+  app.get("/api/critical-flow/report/:incidentId", requireAdmin, async (req, res) => {
+    try {
+      const { incidentId } = req.params;
+      const { generateIncidentReport } = await import("./critical-flow-system");
+      const report = await generateIncidentReport(incidentId);
+      
+      if (!report) {
+        return res.status(404).json({ message: "Incident not found" });
+      }
+      
+      res.json(report);
+    } catch (error) {
+      console.error("[CRITICAL FLOW REPORT ERROR]", error);
+      res.status(500).json({ message: "Failed to generate report" });
+    }
+  });
+
+  // Emergency mode activation
+  app.post("/api/critical-flow/emergency", requireAdmin, async (req, res) => {
+    try {
+      const { description, userId, documentId } = req.body;
+      
+      if (!description) {
+        return res.status(400).json({ message: "Description is required" });
+      }
+
+      const { processCriticalFlowIssue } = await import("./critical-flow-system");
+      
+      const result = await processCriticalFlowIssue(description, {
+        userId,
+        documentId,
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+        failureCount: 2,
+        userRequestedHelp: true
+      });
+      
+      res.json({
+        ...result,
+        message: "We've secured your document. You won't lose anything.",
+        emergencyActions: [
+          "Document version locked",
+          "Legal logic frozen",
+          "Audit chain preserved",
+          "Manual signing link available",
+          "Admin override enabled (logged)"
+        ]
+      });
+    } catch (error) {
+      console.error("[CRITICAL FLOW EMERGENCY ERROR]", error);
+      res.status(500).json({ message: "Failed to activate emergency mode" });
+    }
+  });
+
   // Get all NDAs for master portal
   app.get("/api/master/ndas", requireAdmin, async (req, res) => {
     try {

@@ -1,0 +1,236 @@
+TIER-0 CRITICAL FLOW SYSTEM
+
+(Auth + Contract Signing)
+
+This system never guesses, never silently fixes authority, and never invalidates contracts — but it does fix real problems fast.
+
+1️⃣ Exact Diagnostic Tree — Sign-In Failures
+Entry trigger
+
+User clicks “Sign In” → fails once
+
+Bot immediately switches to CRITICAL DIAGNOSTIC MODE.
+
+Diagnostic tree (in order, no skipping)
+A. Client Layer
+   ├─ Button fired?
+   ├─ JS error?
+   ├─ Network request sent?
+   └─ Cookies allowed?
+
+B. Network / API
+   ├─ Request reached server?
+   ├─ 4xx vs 5xx?
+   ├─ CORS blocked?
+   └─ CSRF token present?
+
+C. Auth Provider
+   ├─ OAuth redirect URI mismatch
+   ├─ Expired refresh token
+   ├─ Invalid client secret
+   ├─ Scope mismatch
+   └─ Provider outage
+
+D. Session / Cookie
+   ├─ SameSite misconfig
+   ├─ Secure flag mismatch
+   ├─ Domain mismatch
+   └─ Session store unreachable
+
+E. User State
+   ├─ User exists?
+   ├─ Disabled?
+   ├─ Email verified?
+   └─ Duplicate identity?
+
+Auto-fix allowed here ✅
+
+Redirect URI mismatch
+
+Missing env var
+
+Cookie flags
+
+CSRF token regeneration
+
+Frontend handler wiring
+
+Always approval-gated ❌
+
+Provider change
+
+Token schema change
+
+Session lifetime
+
+Identity merging
+
+2️⃣ Contract-Signing Failure Matrix
+
+This is not about changing legal logic — it’s about ensuring the act of signing completes and records correctly.
+
+Failure categories
+Category	Example	Auto-Fix
+UI	Button does nothing	✅
+Delivery	PDF not loading	✅
+Embed	iFrame blocked	✅
+State	Status not updating	✅
+Webhook	Signature received but not processed	✅
+Timing	Callback delayed	⚠️ Retry only
+Legal	Consent text	❌
+Identity	Signer mismatch	❌
+Timestamp	Authority / clock	❌
+Safe auto-fix scope
+
+Re-wire click handlers
+
+Re-send signature request
+
+Retry webhook delivery
+
+Restore signing state
+
+Reload document renderer
+
+Never auto-fix
+
+Legal text
+
+Signature meaning
+
+Identity binding
+
+Timestamp authority
+
+3️⃣ One-Click Admin Approval (Critical but Fast)
+
+When escalation is required, admin sees exactly this:
+
+Admin view
+ISSUE: User unable to sign contract
+CAUSE: Webhook received but state not updated
+IMPACT: 1 user, 0 funds, 0 legal changes
+PROPOSED FIX: Replay webhook + re-sync status
+RISK LEVEL: LOW
+
+Admin actions
+
+✅ Approve & apply
+
+❌ Reject
+
+📄 Generate incident report
+
+One click. Logged forever.
+
+4️⃣ “User Can’t Sign” Emergency Mode
+
+This is huge for trust.
+
+Trigger conditions
+
+2+ failures
+
+Or “critical path” detected
+
+Or user clicks “I can’t sign”
+
+What emergency mode does
+
+Locks document version
+
+Freezes legal logic
+
+Preserves audit chain
+
+Enables:
+
+Manual signing link
+
+Assisted session
+
+Admin override (logged)
+
+Displays to user:
+
+“We’ve secured your document. You won’t lose anything.”
+
+This prevents rage-quits and lawsuits.
+
+5️⃣ Legal-Grade Incident Reports (Automatic)
+
+Every critical incident generates a defensible record.
+
+Report includes
+
+Timestamp (UTC)
+
+User (hashed)
+
+IP / UA (hashed)
+
+Document version hash
+
+Failure point
+
+Actions taken
+
+Admin approvals
+
+Outcome
+
+No PHI mutation
+
+No retroactive changes
+
+Output formats
+
+PDF (legal)
+
+JSON (audit)
+
+SOC-2 evidence
+
+Litigation hold ready
+
+The governing rule (this matters)
+
+The bot may fix plumbing, not authority.
+
+Plumbing:
+
+UI
+
+Delivery
+
+State sync
+
+Webhooks
+
+Config mismatches
+
+Authority:
+
+Identity
+
+Consent
+
+Signature meaning
+
+Legal text
+
+Time authority
+
+Final answer (direct)
+
+❌ Do not fully automate sign-in or signing fixes
+
+✅ Do automate diagnosis + safe fixes
+
+✅ Do require approval for authority
+
+✅ Do preserve evidentiary integrity
+
+✅ Do make it fast, calm, and logged
+
+This is exactly how enterprise platforms protect revenue and stay legally clean.
