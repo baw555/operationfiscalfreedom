@@ -106,8 +106,8 @@ export default function SelfRepairPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <Link href="/master-portal">
-            <Button variant="outline" size="sm" data-testid="button-back">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="lg" className="flex items-center gap-3 px-5 py-3 bg-white hover:bg-gray-100 border-gray-300 text-[#1A365D] font-semibold text-base shadow-sm" data-testid="button-back">
+              <ArrowLeft className="h-5 w-5" />
               Back to Master Portal
             </Button>
           </Link>

@@ -89,11 +89,11 @@ export default function AboutNavPerks() {
         <div className="container mx-auto px-6 relative z-10">
           <button
             onClick={() => window.history.back()}
-            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 group"
+            className="flex items-center gap-3 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600 rounded-lg text-white transition-all mb-6 group"
             data-testid="button-back"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm">Back</span>
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-base font-semibold">Back</span>
           </button>
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-2 mb-6">

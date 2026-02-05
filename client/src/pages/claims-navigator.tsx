@@ -676,12 +676,13 @@ export default function ClaimsNavigator() {
                 <div className="flex items-center justify-between mb-8">
                   <div>
                     <Button 
-                      variant="ghost" 
-                      className="text-slate-400 hover:text-white mb-2"
+                      variant="outline" 
+                      size="lg"
+                      className="flex items-center gap-3 px-5 py-3 bg-slate-800/50 hover:bg-slate-700/50 border-slate-600 text-white font-semibold text-base mb-4"
                       onClick={() => { setActiveCaseId(null); setStep("track"); }}
                       data-testid="back-to-cases-btn"
                     >
-                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      <ChevronLeft className="w-5 h-5" />
                       Back to Cases
                     </Button>
                     <h1 className="text-3xl font-bold text-white">{activeCase?.title || "Loading..."}</h1>
@@ -1828,12 +1829,13 @@ export default function ClaimsNavigator() {
                       </button>
                     ))}
                     <Button 
-                      variant="ghost" 
-                      className="text-slate-400 hover:text-white"
+                      variant="outline"
+                      size="lg"
+                      className="flex items-center gap-3 px-5 py-3 bg-slate-800/50 hover:bg-slate-700/50 border-slate-600 text-white font-semibold text-base"
                       onClick={() => { setSelectedClaimType(null); setStep("track"); }}
                       data-testid="back-to-track-btn"
                     >
-                      <ChevronLeft className="w-4 h-4 mr-2" />
+                      <ChevronLeft className="w-5 h-5" />
                       Back
                     </Button>
                   </CardContent>
@@ -1872,12 +1874,13 @@ export default function ClaimsNavigator() {
                       </button>
                     ))}
                     <Button 
-                      variant="ghost" 
-                      className="text-slate-400 hover:text-white"
+                      variant="outline"
+                      size="lg"
+                      className="flex items-center gap-3 px-5 py-3 bg-slate-800/50 hover:bg-slate-700/50 border-slate-600 text-white font-semibold text-base"
                       onClick={() => { setSelectedEvidenceLevel(null); setStep("type"); }}
                       data-testid="back-to-type-btn"
                     >
-                      <ChevronLeft className="w-4 h-4 mr-2" />
+                      <ChevronLeft className="w-5 h-5" />
                       Back
                     </Button>
                   </CardContent>
@@ -1935,12 +1938,13 @@ export default function ClaimsNavigator() {
 
                     <div className="flex gap-4">
                       <Button 
-                        variant="outline" 
-                        className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
+                        variant="outline"
+                        size="lg"
+                        className="flex-1 flex items-center justify-center gap-3 px-5 py-3 bg-slate-800/50 hover:bg-slate-700/50 border-slate-600 text-white font-semibold text-base"
                         onClick={() => setStep("evidence")}
                         data-testid="back-to-evidence-btn"
                       >
-                        <ChevronLeft className="w-4 h-4 mr-2" />
+                        <ChevronLeft className="w-5 h-5" />
                         Back
                       </Button>
                       <Button 

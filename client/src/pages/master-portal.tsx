@@ -251,6 +251,17 @@ export default function MasterPortal() {
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
   });
 
+  // Fetch CSU signed agreements (individual contracts)
+  const { data: csuSignedAgreements = [], isLoading: csuSignedLoading } = useQuery<any[]>({
+    queryKey: ["csu-signed-agreements"],
+    queryFn: async () => {
+      const res = await fetch("/api/csu/signed-agreements", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+  });
+
   // Fetch affiliate applications
   const { data: affiliateApplications = [] } = useQuery<any[]>({
     queryKey: ["affiliate-applications"],
@@ -1330,6 +1341,7 @@ export default function MasterPortal() {
               <TabsList className="bg-black/20 border border-white/10 mb-4">
                 <TabsTrigger value="signed-ndas" className="data-[state=active]:bg-brand-navy text-gray-400">Signed NDAs ({ndaFiles.length})</TabsTrigger>
                 <TabsTrigger value="schedule-a-sub" className="data-[state=active]:bg-brand-navy text-gray-400">Schedule A ({scheduleASignaturesSafe.length})</TabsTrigger>
+                <TabsTrigger value="csu-contracts" className="data-[state=active]:bg-brand-navy text-gray-400" data-testid="tab-csu-contracts">Contracts ({csuSignedAgreements.length})</TabsTrigger>
               </TabsList>
               <TabsContent value="signed-ndas">
                 <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
@@ -1518,6 +1530,75 @@ export default function MasterPortal() {
                   </table>
                 </div>
                 )}
+                </div>
+              </TabsContent>
+
+              {/* CSU Contracts Tab */}
+              <TabsContent value="csu-contracts">
+                <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+                  <div className="p-4 border-b border-white/10 bg-black/20">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-purple-400" />
+                      Signed Contracts
+                    </h2>
+                    <p className="text-sm text-gray-400 mt-1">
+                      All individually signed CSU/RANGER contracts
+                    </p>
+                  </div>
+
+                  {csuSignedLoading ? (
+                    <div className="p-8 text-center">
+                      <div className="animate-spin w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full mx-auto"></div>
+                      <p className="text-gray-400 mt-4">Loading contracts...</p>
+                    </div>
+                  ) : csuSignedAgreements.length === 0 ? (
+                    <div className="p-8 text-center text-gray-400">
+                      No signed contracts found.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full" data-testid="csu-contracts-table">
+                        <thead className="bg-black/30">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Contract</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Signer Name</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Email</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Signed At</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/10" data-testid="csu-contracts-table-body">
+                          {csuSignedAgreements.map((agreement: any) => (
+                            <tr key={agreement.id} className="hover:bg-white/5" data-testid={`row-csu-contract-${agreement.id}`}>
+                              <td className="px-4 py-3 text-sm text-white font-medium">{agreement.templateName || `Contract #${agreement.templateId}`}</td>
+                              <td className="px-4 py-3 text-sm text-white">{agreement.signerName}</td>
+                              <td className="px-4 py-3 text-sm text-gray-400">{agreement.signerEmail}</td>
+                              <td className="px-4 py-3 text-sm text-gray-400">
+                                {new Date(agreement.signedAt).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </td>
+                              <td className="px-4 py-3">
+                                <Button
+                                  size="sm"
+                                  onClick={() => window.open(`/api/csu/signed-agreements/${agreement.id}/pdf`, '_blank')}
+                                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                                  data-testid={`btn-download-contract-${agreement.id}`}
+                                >
+                                  <Download className="w-4 h-4 mr-1" />
+                                  PDF
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>

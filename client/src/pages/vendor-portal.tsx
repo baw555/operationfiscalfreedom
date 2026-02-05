@@ -375,9 +375,10 @@ export default function VendorPortal() {
           <div className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
               <Button
-                variant="ghost"
+                variant="outline"
+                size="lg"
                 onClick={() => setSelectedCaseId(null)}
-                className="text-slate-400 hover:text-white mb-4"
+                className="flex items-center gap-3 px-5 py-3 bg-slate-800/50 hover:bg-slate-700/50 border-slate-600 text-white font-semibold text-base mb-6"
                 data-testid="back-to-cases-btn"
               >
                 ← Back to Cases

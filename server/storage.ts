@@ -314,7 +314,7 @@ export interface IStorage {
   // CSU Signed Agreements
   createCsuSignedAgreement(agreement: InsertCsuSignedAgreement): Promise<CsuSignedAgreement>;
   getCsuSignedAgreement(id: number): Promise<CsuSignedAgreement | undefined>;
-  getAllCsuSignedAgreements(): Promise<CsuSignedAgreement[]>;
+  getAllCsuSignedAgreements(): Promise<(CsuSignedAgreement & { templateName: string | null })[]>;
 
   // Portal Activity Tracking
   createPortalActivity(activity: InsertPortalActivity): Promise<PortalActivity>;
@@ -1584,8 +1584,29 @@ export class DatabaseStorage implements IStorage {
     return agreement || undefined;
   }
 
-  async getAllCsuSignedAgreements(): Promise<CsuSignedAgreement[]> {
-    return db.select().from(csuSignedAgreements).orderBy(desc(csuSignedAgreements.createdAt));
+  async getAllCsuSignedAgreements(): Promise<(CsuSignedAgreement & { templateName: string | null })[]> {
+    const results = await db
+      .select({
+        id: csuSignedAgreements.id,
+        contractSendId: csuSignedAgreements.contractSendId,
+        templateId: csuSignedAgreements.templateId,
+        signerName: csuSignedAgreements.signerName,
+        signerEmail: csuSignedAgreements.signerEmail,
+        signerPhone: csuSignedAgreements.signerPhone,
+        address: csuSignedAgreements.address,
+        initials: csuSignedAgreements.initials,
+        effectiveDate: csuSignedAgreements.effectiveDate,
+        signatureData: csuSignedAgreements.signatureData,
+        signedIpAddress: csuSignedAgreements.signedIpAddress,
+        agreedToTerms: csuSignedAgreements.agreedToTerms,
+        signedAt: csuSignedAgreements.signedAt,
+        createdAt: csuSignedAgreements.createdAt,
+        templateName: csuContractTemplates.name,
+      })
+      .from(csuSignedAgreements)
+      .leftJoin(csuContractTemplates, eq(csuSignedAgreements.templateId, csuContractTemplates.id))
+      .orderBy(desc(csuSignedAgreements.createdAt));
+    return results;
   }
 
   // Portal Activity Tracking
