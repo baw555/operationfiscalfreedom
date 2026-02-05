@@ -100,6 +100,21 @@ A comprehensive, fail-closed legal document signing system implemented in `serve
 - **Database Tables**: `legal_signatures`, `legal_override_audit`
 - **Finalization Module**: `server/legal-finalization.ts` provides migration and validation utilities
 
+## Self-Repair Bot (`/self-repair`)
+An automated issue classification and repair system with a rule-based patch pipeline:
+- **Issue Classifier**: Categorizes issues into 6 types: RUNTIME_ERROR, UI_BROKEN, FORM_ERROR, API_FAIL, AUTH_ERROR, DATABASE_ERROR
+- **Fix Eligibility Gate**: Only auto-fixable types (RUNTIME_ERROR, UI_BROKEN, FORM_ERROR, API_FAIL) proceed; AUTH_ERROR, DATABASE_ERROR, and UNKNOWN are escalated for manual review
+- **Diagnostics Runner**: Gathers contextual information about the issue (component hints, endpoint detection, stack trace hints)
+- **Patch Generator**: Rule-based patch proposals (no AI) suggesting specific fixes
+- **Test + Apply Gate**: Validates patches before proposing; rolls back on failure
+- **Status Flow**: Issues result in PATCH_PROPOSED (successful proposal), ESCALATED (requires human review), NO_PATCH (no safe patch available), or FAILED (patch failed tests)
+- **API Routes**:
+  - `POST /api/repair/intake` - Submit issue for repair (admin only)
+  - `GET /api/repair/logs` - Get repair history
+  - `POST /api/repair/classify` - Classify issue without processing (dry run)
+- **Database Table**: `repair_logs` stores all repair attempts with issue type, status, and patch details
+- **Admin UI**: Available at `/self-repair` with issue submission, classification preview, and repair log history
+
 ## External Dependencies
 - **PostgreSQL**: Primary database.
 - **Drizzle ORM**: For database interaction.
