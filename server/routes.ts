@@ -3350,6 +3350,49 @@ export async function registerRoutes(
         });
       }
 
+      // Handle APPROVE ALL (batch safe actions)
+      if (command.type === "APPROVE_ALL") {
+        const { isSafeAction } = await import("./safety-rules");
+        const { sendBatchApprovalResult } = await import("./daily-digest");
+        
+        // Get all pending repair logs
+        const allLogs = await storage.getRepairLogs(100);
+        const pendingLogs = allLogs.filter(log => 
+          log.status === "PENDING" || log.status === "pending"
+        );
+        
+        const approved: string[] = [];
+        const skipped: string[] = [];
+        
+        for (const log of pendingLogs) {
+          const actionType = log.issueType || "";
+          
+          if (isSafeAction(actionType)) {
+            // Mark as applied
+            await storage.updateRepairLog(log.id, { status: "APPLIED" });
+            approved.push(`✓ ${log.description || actionType}`);
+            
+            await complianceLog("BATCH_APPROVE", {
+              logId: log.id,
+              actionType,
+              approvedVia: "EMAIL",
+            });
+          } else {
+            skipped.push(`⊘ ${log.description || actionType} (requires approval)`);
+          }
+        }
+        
+        // Send batch result email
+        await sendBatchApprovalResult(approved.length, skipped.length, [...approved, ...skipped]);
+        
+        return res.json({
+          status: "batch_approved",
+          approved: approved.length,
+          skipped: skipped.length,
+          details: { approved, skipped },
+        });
+      }
+
       // Handle APPROVE/RETRY commands
       if (command.type === "APPROVE" || command.type === "RETRY") {
         // Check if incident exists, if not register with default actions
@@ -3478,6 +3521,140 @@ export async function registerRoutes(
     } catch (error) {
       console.error("[EmailQueue] Error:", error);
       res.status(500).json({ message: "Failed to get queue status" });
+    }
+  });
+
+  // Daily digest - generate and view
+  app.get("/api/repair/daily-digest", requireAdmin, async (req, res) => {
+    try {
+      const { generateDailyDigest } = await import("./daily-digest");
+      const digest = await generateDailyDigest();
+      res.json(digest);
+    } catch (error) {
+      console.error("[DailyDigest] Error:", error);
+      res.status(500).json({ message: "Failed to generate digest" });
+    }
+  });
+
+  // Send daily digest email manually
+  app.post("/api/repair/send-digest", requireAdmin, async (req, res) => {
+    try {
+      const { sendDailyDigest } = await import("./daily-digest");
+      const sent = await sendDailyDigest();
+      res.json({ success: sent, message: sent ? "Digest sent" : "Failed to send digest" });
+    } catch (error) {
+      console.error("[DailyDigest] Error:", error);
+      res.status(500).json({ message: "Failed to send digest" });
+    }
+  });
+
+  // Get safety rules and policy
+  app.get("/api/repair/safety-policy", requireAdmin, async (req, res) => {
+    try {
+      const { CRITICAL_PATH_POLICY, getAllFlowTypes } = await import("./safety-rules");
+      res.json({
+        flowTypes: getAllFlowTypes(),
+        policy: CRITICAL_PATH_POLICY,
+      });
+    } catch (error) {
+      console.error("[SafetyPolicy] Error:", error);
+      res.status(500).json({ message: "Failed to get safety policy" });
+    }
+  });
+
+  // ==================== PROTECTED FLOW INCIDENT LOGGING ====================
+
+  // Log incident for password change attempt
+  app.post("/api/incident/password-change", async (req, res) => {
+    try {
+      const { userId, reason, success } = req.body;
+      
+      if (!success) {
+        await storage.createRepairLog({
+          description: `Password change ${success ? 'succeeded' : 'failed'}: ${reason || 'Unknown reason'}`,
+          issueType: "CHANGE_PASSWORD",
+          status: "ESCALATED",
+          patch: JSON.stringify({ userId, reason, flow: "ACCOUNT", requiresApproval: true }),
+        });
+        
+        // Send alert email
+        const { sendRepairAlert } = await import("./repair-mailer");
+        await sendRepairAlert({
+          type: "AUTH_FAIL",
+          userHash: `user_${userId || 'unknown'}`,
+          provider: "Internal",
+          failureType: "PASSWORD_CHANGE_BLOCKED",
+          impact: "User cannot change password",
+          safeActions: [
+            { id: 1, code: "RETRY_PASSWORD_CHANGE", label: "Retry password change" },
+            { id: 2, code: "RESET_SESSION", label: "Reset user session" },
+          ],
+        });
+      }
+      
+      res.json({ logged: true, requiresApproval: !success });
+    } catch (error) {
+      console.error("[IncidentLog] Password change error:", error);
+      res.status(500).json({ message: "Failed to log incident" });
+    }
+  });
+
+  // Log incident for email change attempt
+  app.post("/api/incident/email-change", async (req, res) => {
+    try {
+      const { userId, reason, success } = req.body;
+      
+      if (!success) {
+        await storage.createRepairLog({
+          description: `Email change ${success ? 'succeeded' : 'failed'}: ${reason || 'Unknown reason'}`,
+          issueType: "CHANGE_EMAIL",
+          status: "ESCALATED",
+          patch: JSON.stringify({ userId, reason, flow: "ACCOUNT", requiresApproval: true }),
+        });
+      }
+      
+      res.json({ logged: true, requiresApproval: !success });
+    } catch (error) {
+      console.error("[IncidentLog] Email change error:", error);
+      res.status(500).json({ message: "Failed to log incident" });
+    }
+  });
+
+  // Log incident for referral code change attempt
+  app.post("/api/incident/referral-change", async (req, res) => {
+    try {
+      const { userId, reason } = req.body;
+      
+      await storage.createRepairLog({
+        description: `Referral code change attempted: ${reason || 'No reason provided'}`,
+        issueType: "CHANGE_REFERRAL_CODE",
+        status: "ESCALATED",
+        patch: JSON.stringify({ userId, reason, flow: "REFERRAL", requiresApproval: true }),
+      });
+      
+      res.status(409).json({ logged: true, message: "ESCALATED - requires approval" });
+    } catch (error) {
+      console.error("[IncidentLog] Referral change error:", error);
+      res.status(500).json({ message: "Failed to log incident" });
+    }
+  });
+
+  // Log incident for user add/remove attempt
+  app.post("/api/incident/user-management", async (req, res) => {
+    try {
+      const { adminId, action, targetUserId, reason } = req.body;
+      
+      await storage.createRepairLog({
+        description: `User ${action} attempted by admin ${adminId}: ${reason || 'No reason'}`,
+        issueType: action === "ADD" ? "ADD_USER" : "REMOVE_USER",
+        status: "ESCALATED",
+        patch: JSON.stringify({ adminId, action, targetUserId, reason, flow: "USERS", requiresApproval: true }),
+      });
+      
+      res.status(409).json({ logged: true, message: "ESCALATED - requires approval" });
+    } catch (error) {
+      console.error("[IncidentLog] User management error:", error);
+      res.status(500).json({ message: "Failed to log incident" });
     }
   });
 

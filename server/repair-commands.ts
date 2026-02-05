@@ -1,5 +1,6 @@
 export type RepairCommandType = 
   | 'APPROVE'
+  | 'APPROVE_ALL'
   | 'RETRY'
   | 'LOCK'
   | 'UNLOCK'
@@ -15,6 +16,7 @@ export interface RepairCommand {
 }
 
 const COMMAND_PATTERNS: Record<RepairCommandType, RegExp> = {
+  APPROVE_ALL: /^APPROVE\s+ALL$/i,
   APPROVE: /^APPROVE\s+(\d+)$/i,
   RETRY: /^RETRY\s+(\d+)$/i,
   LOCK: /^LOCK\s+([a-zA-Z0-9_-]+)$/i,
@@ -88,6 +90,7 @@ FACER-C COMMAND REFERENCE
 ═════════════════════════
 
 APPROVE <N>    Execute safe action #N
+APPROVE ALL    Approve all safe pending actions (batch)
 RETRY <N>      Retry failed action #N
 LOCK <ID>      Lock contract/incident
 UNLOCK <ID>    Unlock for editing
@@ -95,5 +98,6 @@ ESCALATE       Flag for human review
 STATUS         Get current status
 
 Example: APPROVE 1
+Example: APPROVE ALL
   `.trim();
 }

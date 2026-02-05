@@ -1,0 +1,225 @@
+📧 REPAIR ROBOT — EMAIL CONTROL LAYER (UPGRADE)
+What’s new
+
+🗞 Daily Incident Digest (one email/day, grouped & actionable)
+
+🧺 Batch approval via email: APPROVE ALL (safe scope only)
+
+🔐 New protected flows covered:
+
+Change password
+
+Change email
+
+Change referral code
+
+Add/remove users
+
+Rule holds: email approves precomputed safe actions only. No free-form execution.
+
+1️⃣ DAILY INCIDENT DIGEST (AUTOMATED)
+Schedule
+
+Run once daily (e.g., 09:00 UTC) via Replit cron / scheduled job.
+
+Digest content
+
+Totals by category
+
+Top impacted flows
+
+Items awaiting approval
+
+Safe batch actions available
+
+Cron job
+// lib/digestCron.ts
+import { prisma } from "@/lib/prisma"
+import { sendRepairAlert } from "@/lib/repairMailer"
+
+export async function sendDailyDigest() {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000)
+
+  const incidents = await prisma.incidentReport.findMany({
+    where: { createdAt: { gte: since } },
+    orderBy: { createdAt: "desc" }
+  })
+
+  const summary = incidents.reduce((acc: any, i) => {
+    const k = i.payload?.flow || "OTHER"
+    acc[k] = (acc[k] || 0) + 1
+    return acc
+  }, {})
+
+  const awaiting = await prisma.repairTicket.findMany({
+    where: { status: "ESCALATED" }
+  })
+
+  const body = `
+DAILY INCIDENT DIGEST (UTC)
+
+Totals (last 24h):
+${Object.entries(summary).map(([k,v]) => `• ${k}: ${v}`).join("\n")}
+
+Awaiting Approval: ${awaiting.length}
+
+BATCH COMMANDS (SAFE SCOPE ONLY):
+APPROVE ALL
+STATUS
+
+(Reply with one command on its own line.)
+`
+
+  await sendRepairAlert({
+    type: "DAILY_DIGEST",
+    message: body
+  })
+}
+
+
+Replit: schedule this with a cron runner or scheduled job invoking sendDailyDigest().
+
+2️⃣ “REPLY APPROVE ALL” — SAFE BATCH MODE
+What it does
+
+Approves all pending SAFE actions for the referenced incident set.
+
+Skips any action that touches authority (identity, consent, timestamps).
+
+Logs each approval individually.
+
+Parser update
+// lib/repairCommands.ts (extend)
+export function parseCommand(text: string) {
+  const lines = text.toUpperCase().split(/\r?\n/).map(l => l.trim())
+
+  for (const line of lines) {
+    if (line === "APPROVE ALL") return { type: "APPROVE_ALL" }
+    if (/^APPROVE \d+$/.test(line)) return { type: "APPROVE_ONE", actionId: line.split(" ")[1] }
+    if (line === "STATUS") return { type: "STATUS" }
+    if (/^LOCK /.test(line)) return { type: "LOCK", target: line.split(" ")[1] }
+    if (line === "ESCALATE") return { type: "ESCALATE" }
+  }
+  return null
+}
+
+Executor
+// lib/repairQueue.ts (extend)
+import { prisma } from "@/lib/prisma"
+import { isSafeAction } from "@/lib/safetyRules"
+
+export async function approveAllSafe() {
+  const pending = await prisma.repairAction.findMany({
+    where: { applied: false }
+  })
+
+  const results = []
+  for (const a of pending) {
+    if (!isSafeAction(a.action)) continue
+    // applyPatch(a) — your existing AST-safe applier
+    await prisma.repairAction.update({ where: { id: a.id }, data: { applied: true } })
+    results.push(a.id)
+  }
+  return results
+}
+
+Safety rules
+// lib/safetyRules.ts
+export function isSafeAction(action: string) {
+  return ![
+    "CHANGE_IDENTITY",
+    "CHANGE_EMAIL",
+    "CHANGE_PASSWORD",
+    "CHANGE_SIGNER",
+    "CHANGE_TIMESTAMP",
+    "CHANGE_CONTRACT_TEXT"
+  ].some(x => action.includes(x))
+}
+
+3️⃣ NEW PROTECTED FLOWS COVERED (PASSWORD / EMAIL / REFERRAL / USERS)
+Categories & policy
+// lib/criticalPathPolicy.ts (extend)
+export const POLICY = {
+  AUTH: {
+    SAFE: ["CSRF_REGEN","COOKIE_FIX","UI_WIRING"],
+    APPROVAL: ["CHANGE_PASSWORD","CHANGE_EMAIL","IDENTITY_MAPPING"]
+  },
+  ACCOUNT: {
+    SAFE: ["RATE_LIMIT_RESET","UI_WIRING","EMAIL_DELIVERY_RETRY"],
+    APPROVAL: ["CHANGE_EMAIL","CHANGE_PASSWORD"]
+  },
+  REFERRAL: {
+    SAFE: ["UI_WIRING","CACHE_REFRESH"],
+    APPROVAL: ["CHANGE_REFERRAL_CODE"]
+  },
+  USERS: {
+    SAFE: ["UI_WIRING","ROLE_VIEW_REFRESH"],
+    APPROVAL: ["ADD_USER","REMOVE_USER","ROLE_CHANGE"]
+  }
+}
+
+Detection hooks (examples)
+// app/api/account/change-password/route.ts
+import { logIncident } from "@/lib/incident"
+export async function POST(req: Request) {
+  try {
+    // attempt password change
+  } catch (e) {
+    await logIncident({
+      flow: "ACCOUNT",
+      summary: "Password change failed",
+      data: { reason: e.message },
+      requiresApproval: true
+    })
+    throw e
+  }
+}
+
+// app/api/referrals/update/route.ts
+import { logIncident } from "@/lib/incident"
+export async function POST(req: Request) {
+  // If someone attempts to change referral code:
+  await logIncident({
+    flow: "REFERRAL",
+    summary: "Referral code change attempted",
+    data: {},
+    requiresApproval: true
+  })
+  return new Response("ESCALATED", { status: 409 })
+}
+
+// app/api/users/manage/route.ts
+import { logIncident } from "@/lib/incident"
+export async function POST(req: Request) {
+  // add/remove user attempt
+  await logIncident({
+    flow: "USERS",
+    summary: "User add/remove attempted",
+    data: {},
+    requiresApproval: true
+  })
+  return new Response("ESCALATED", { status: 409 })
+}
+
+4️⃣ STATUS REPLIES (ROUND-TRIP CONFIRMATION)
+
+Every batch approval replies with:
+
+Subject: ✅ Batch Repair Update — APPROVE ALL
+
+Approved (safe): 7
+Skipped (approval required): 3
+Details logged per action.
+
+5️⃣ EMAIL-ONLY EMERGENCY OVERRIDE (UNCHANGED, STILL AVAILABLE)
+
+LOCK <ID> or EMERGENCY still locks authority immediately.
+
+Digest will reflect emergency locks next day.
+
+Operator Quick Commands (Email)
+STATUS
+APPROVE 1
+APPROVE ALL
+LOCK <ID>
+ESCALATE
