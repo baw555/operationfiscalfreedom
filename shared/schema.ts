@@ -2363,5 +2363,22 @@ export const insertVendorSessionSchema = createInsertSchema(vendorSessions).omit
 export type InsertVendorSession = z.infer<typeof insertVendorSessionSchema>;
 export type VendorSession = typeof vendorSessions.$inferSelect;
 
+// Self-Repair Bot Logs
+export const repairLogs = pgTable("repair_logs", {
+  id: serial("id").primaryKey(),
+  description: text("description").notNull(),
+  issueType: text("issue_type").notNull(),
+  status: text("status").notNull(), // FIXED, FAILED, ESCALATED, NO_PATCH
+  patch: text("patch"), // JSON stringified patch details
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertRepairLogSchema = createInsertSchema(repairLogs).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertRepairLog = z.infer<typeof insertRepairLogSchema>;
+export type RepairLog = typeof repairLogs.$inferSelect;
+
 // Replit Auth tables (for veteran users)
 export * from "./models/auth";

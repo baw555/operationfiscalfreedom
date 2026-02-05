@@ -1,5 +1,4 @@
-import { db } from "./db";
-import { sql } from "drizzle-orm";
+import { storage } from "./storage";
 
 const ISSUE_MAP = [
   { key: "RUNTIME_ERROR", keywords: ["crash", "error", "exception", "undefined", "null"] },
@@ -23,7 +22,7 @@ const ALLOWED_FIXES: Record<string, boolean> = {
 };
 
 export interface RepairResult {
-  status: "FIXED" | "FAILED" | "ESCALATED" | "NO_PATCH";
+  status: "PATCH_PROPOSED" | "FAILED" | "ESCALATED" | "NO_PATCH";
   issueType: IssueType;
   message: string;
   diagnostics?: Record<string, any>;
@@ -35,16 +34,7 @@ export interface RepairPatch {
   file: string;
   fix: string;
   description: string;
-  appliedAt?: Date;
-}
-
-export interface RepairLog {
-  id: number;
-  description: string;
-  issueType: string;
-  status: string;
-  patch: string | null;
-  createdAt: Date;
+  proposedAt?: string;
 }
 
 export function classifyIssue(text: string): IssueType {
@@ -163,9 +153,9 @@ export async function rollback(patch: RepairPatch): Promise<void> {
   console.log(`[REPAIR] Rolling back patch: ${patch.fix} on ${patch.file}`);
 }
 
-export async function applyPatch(patch: RepairPatch): Promise<void> {
-  patch.appliedAt = new Date();
-  console.log(`[REPAIR] Applied patch: ${patch.fix} to ${patch.file}`);
+export async function proposePatch(patch: RepairPatch): Promise<void> {
+  patch.proposedAt = new Date().toISOString();
+  console.log(`[REPAIR] Proposed patch: ${patch.fix} for ${patch.file}`);
 }
 
 export async function logRepair(
@@ -175,21 +165,20 @@ export async function logRepair(
   patch: RepairPatch | null
 ): Promise<void> {
   try {
-    await db.execute(sql`
-      INSERT INTO repair_logs (description, issue_type, status, patch, created_at)
-      VALUES (${description}, ${issueType}, ${status}, ${patch ? JSON.stringify(patch) : null}, NOW())
-    `);
+    await storage.createRepairLog({
+      description,
+      issueType,
+      status,
+      patch: patch ? JSON.stringify(patch) : null
+    });
   } catch (error) {
     console.error("[REPAIR] Failed to log repair:", error);
   }
 }
 
-export async function getRepairLogs(limit: number = 20): Promise<any[]> {
+export async function getRepairLogs(limit: number = 20) {
   try {
-    const result = await db.execute(sql`
-      SELECT * FROM repair_logs ORDER BY created_at DESC LIMIT ${limit}
-    `);
-    return result.rows as any[];
+    return await storage.getRepairLogs(limit);
   } catch (error) {
     console.error("[REPAIR] Failed to get repair logs:", error);
     return [];
@@ -247,13 +236,13 @@ export async function processRepair(description: string): Promise<RepairResult> 
     };
   }
 
-  await applyPatch(patch);
-  await logRepair(description, issueType, "FIXED", patch);
+  await proposePatch(patch);
+  await logRepair(description, issueType, "PATCH_PROPOSED", patch);
 
   return {
-    status: "FIXED",
+    status: "PATCH_PROPOSED",
     issueType,
-    message: `Issue classified as ${issueType} and patch applied successfully.`,
+    message: `Issue classified as ${issueType}. Patch has been proposed for review.`,
     diagnostics,
     patch
   };

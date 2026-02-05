@@ -72,7 +72,8 @@ import {
   vendorSessions, type VendorSession, type InsertVendorSession,
   affiliateActivities, type AffiliateActivity, type InsertAffiliateActivity,
   notificationSettings, type NotificationSettings, type InsertNotificationSettings,
-  notificationAudit, type NotificationAudit
+  notificationAudit, type NotificationAudit,
+  repairLogs, type RepairLog, type InsertRepairLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, ilike, gt, lt } from "drizzle-orm";
@@ -508,6 +509,10 @@ export interface IStorage {
   createNotificationSettings(settings: InsertNotificationSettings): Promise<NotificationSettings>;
   updateNotificationSettings(userId: number, updates: Partial<NotificationSettings>): Promise<NotificationSettings | undefined>;
   ensureNotificationSettings(userId: number): Promise<NotificationSettings>;
+  
+  // Self-Repair Bot Logs
+  createRepairLog(log: InsertRepairLog): Promise<RepairLog>;
+  getRepairLogs(limit?: number): Promise<RepairLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2712,6 +2717,16 @@ export class DatabaseStorage implements IStorage {
       events: JSON.stringify(defaultEvents),
       delivery: "instant"
     });
+  }
+  
+  // Self-Repair Bot Logs
+  async createRepairLog(log: InsertRepairLog): Promise<RepairLog> {
+    const [created] = await db.insert(repairLogs).values(log).returning();
+    return created;
+  }
+  
+  async getRepairLogs(limit: number = 20): Promise<RepairLog[]> {
+    return db.select().from(repairLogs).orderBy(desc(repairLogs.createdAt)).limit(limit);
   }
 }
 
