@@ -149,138 +149,86 @@ export function FacerCBot() {
         onClick={() => { setIsOpen(!isOpen); setShowBubble(false); }}
         data-testid="facer-c-bot"
       >
-        <svg width="90" height="100" viewBox="0 0 120 130" className="drop-shadow-2xl filter">
+        <svg width="85" height="100" viewBox="0 0 100 120" className="drop-shadow-xl">
           <defs>
-            <linearGradient id="metalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#2C3E2D" />
-              <stop offset="30%" stopColor="#1A2A1C" />
-              <stop offset="70%" stopColor="#3D4F3E" />
-              <stop offset="100%" stopColor="#1A2A1C" />
+            <linearGradient id="skinTone" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#FDBF6F" />
+              <stop offset="100%" stopColor="#E8A850" />
             </linearGradient>
-            <linearGradient id="visorGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#00FF88" stopOpacity="0.9" />
-              <stop offset="50%" stopColor="#00CC66" stopOpacity="0.95" />
-              <stop offset="100%" stopColor="#009944" stopOpacity="1" />
+            <linearGradient id="shirtBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#1E3A5F" />
+              <stop offset="100%" stopColor="#0F1F33" />
             </linearGradient>
-            <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#00FF88" stopOpacity="0" />
-              <stop offset="50%" stopColor="#00FF88" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#00FF88" stopOpacity="0" />
+            <linearGradient id="pantsBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#2C3E50" />
+              <stop offset="100%" stopColor="#1A252F" />
             </linearGradient>
-            <linearGradient id="chestPlate" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#3D4F3E" />
-              <stop offset="50%" stopColor="#2C3E2D" />
-              <stop offset="100%" stopColor="#1A2A1C" />
-            </linearGradient>
-            <linearGradient id="goldStar" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#FFD700" />
-              <stop offset="50%" stopColor="#DAA520" />
-              <stop offset="100%" stopColor="#B8860B" />
-            </linearGradient>
-            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-            <filter id="innerGlow">
-              <feGaussianBlur stdDeviation="1.5" result="blur"/>
-              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-            </filter>
           </defs>
           
-          <ellipse cx="60" cy="118" rx="30" ry="8" fill="rgba(0,255,136,0.15)">
-            <animate attributeName="rx" values="30;32;30" dur="2s" repeatCount="indefinite" />
-          </ellipse>
+          <ellipse cx="50" cy="115" rx="22" ry="4" fill="rgba(0,0,0,0.15)" />
           
-          <path d="M 45 95 L 42 115 L 48 115 L 50 100 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="1" />
-          <path d="M 75 95 L 78 115 L 72 115 L 70 100 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="1" />
-          <ellipse cx="45" cy="116" rx="5" ry="2" fill="#1A2A1C" />
-          <ellipse cx="75" cy="116" rx="5" ry="2" fill="#1A2A1C" />
-          <circle cx="45" cy="116" r="2" fill="#00FF88" opacity="0.5">
-            <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.5s" repeatCount="indefinite" />
-          </circle>
-          <circle cx="75" cy="116" r="2" fill="#00FF88" opacity="0.5">
-            <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.5s" repeatCount="indefinite" begin="0.75s" />
-          </circle>
+          <ellipse cx="38" cy="112" rx="6" ry="3" fill="#4A3728" />
+          <ellipse cx="62" cy="112" rx="6" ry="3" fill="#4A3728" />
           
-          <path d="M 30 50 L 25 50 L 22 65 L 28 68 L 35 55 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="1" />
-          <path d="M 90 50 L 95 50 L 98 65 L 92 68 L 85 55 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="1" />
-          <circle cx="24" cy="58" r="3" fill="#00FF88" filter="url(#glow)">
-            <animate attributeName="r" values="2;3;2" dur="1s" repeatCount="indefinite" />
-          </circle>
-          <circle cx="96" cy="58" r="3" fill="#00FF88" filter="url(#glow)">
-            <animate attributeName="r" values="2;3;2" dur="1s" repeatCount="indefinite" begin="0.5s" />
-          </circle>
+          <path d="M 32 85 L 30 108 L 46 108 L 44 85 Z" fill="url(#pantsBlue)" />
+          <path d="M 56 85 L 54 108 L 70 108 L 68 85 Z" fill="url(#pantsBlue)" />
           
-          <path d="M 35 45 L 35 95 L 45 100 L 55 95 L 55 50 L 50 45 Z" fill="url(#chestPlate)" stroke="#1A2A1C" strokeWidth="1.5" />
-          <path d="M 85 45 L 85 95 L 75 100 L 65 95 L 65 50 L 70 45 Z" fill="url(#chestPlate)" stroke="#1A2A1C" strokeWidth="1.5" />
-          <path d="M 55 48 L 55 90 L 60 93 L 65 90 L 65 48 L 60 45 Z" fill="#1A2A1C" />
+          <path d="M 30 50 L 25 75 L 35 75 L 38 55 Z" fill="url(#shirtBlue)" />
+          <path d="M 70 50 L 75 75 L 65 75 L 62 55 Z" fill="url(#shirtBlue)" />
+          <rect x="32" y="48" width="36" height="40" rx="4" fill="url(#shirtBlue)" />
           
-          <rect x="50" y="70" width="20" height="15" rx="2" fill="#0A1A0C" stroke="#00FF88" strokeWidth="0.5" />
-          <rect x="53" y="73" width="4" height="4" rx="1" fill="#00FF88">
-            <animate attributeName="fill" values="#00FF88;#00AA55;#00FF88" dur="0.8s" repeatCount="indefinite" />
-          </rect>
-          <rect x="58" y="73" width="4" height="4" rx="1" fill="#FFD700">
-            <animate attributeName="fill" values="#FFD700;#FFA500;#FFD700" dur="1.2s" repeatCount="indefinite" />
-          </rect>
-          <rect x="63" y="73" width="4" height="4" rx="1" fill="#FF3333">
-            <animate attributeName="fill" values="#FF3333;#CC0000;#FF3333" dur="0.6s" repeatCount="indefinite" />
-          </rect>
-          <rect x="53" y="79" width="14" height="3" rx="1" fill="#00FF88" opacity="0.3">
-            <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
-          </rect>
+          <path d="M 35 48 L 50 42 L 65 48 L 65 52 L 50 46 L 35 52 Z" fill="white" />
+          <polygon points="50,42 45,52 55,52" fill="white" />
+          <circle cx="50" cy="56" r="2" fill="#C41E3A" />
           
-          <path d="M 32 15 L 32 40 Q 32 48 40 48 L 80 48 Q 88 48 88 40 L 88 15 Q 88 5 60 5 Q 32 5 32 15 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="2" />
-          <path d="M 28 20 L 32 18 L 32 35 L 28 33 Z" fill="#2C3E2D" />
-          <path d="M 92 20 L 88 18 L 88 35 L 92 33 Z" fill="#2C3E2D" />
+          <ellipse cx="18" cy="68" rx="12" ry="8" fill="url(#skinTone)" />
+          <ellipse cx="16" cy="70" rx="10" ry="6" fill="url(#skinTone)" />
+          <ellipse cx="14" cy="72" rx="4" ry="3" fill="url(#skinTone)" />
+          <path d="M 8 64 L 12 60 L 16 64 L 12 68 Z" fill="url(#skinTone)" />
           
-          <polygon points="60,2 64,12 56,12" fill="url(#goldStar)" stroke="#8B6914" strokeWidth="0.5" filter="url(#glow)">
-            <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite" />
-          </polygon>
-          <circle cx="60" cy="7" r="1.5" fill="#FFFACD">
-            <animate attributeName="r" values="1;2;1" dur="1.5s" repeatCount="indefinite" />
-          </circle>
+          <ellipse cx="82" cy="60" rx="14" ry="9" fill="url(#skinTone)" />
+          <ellipse cx="85" cy="58" rx="12" ry="7" fill="url(#skinTone)" />
+          <ellipse cx="88" cy="56" rx="5" ry="4" fill="url(#skinTone)" />
+          <path d="M 92 50 L 96 46 L 100 50 L 96 54 Z" fill="url(#skinTone)" />
           
-          <path d="M 36 25 L 84 25 L 84 42 Q 84 45 80 45 L 40 45 Q 36 45 36 42 Z" fill="#0A1A0C" stroke="#00FF88" strokeWidth="1" opacity="0.95" />
-          
-          <g className="transition-transform duration-75" style={{ transform: `translate(${eyePosition.x * 1.2}px, ${eyePosition.y * 0.8}px)` }}>
-            <rect x="40" y="28" width="14" height={isBlinking ? 2 : 12} rx="2" fill="url(#visorGradient)" filter="url(#innerGlow)">
-              <animate attributeName="height" values="12;12;2;12;12" dur="4s" repeatCount="indefinite" keyTimes="0;0.45;0.5;0.55;1" />
-            </rect>
-            <rect x="66" y="28" width="14" height={isBlinking ? 2 : 12} rx="2" fill="url(#visorGradient)" filter="url(#innerGlow)">
-              <animate attributeName="height" values="12;12;2;12;12" dur="4s" repeatCount="indefinite" keyTimes="0;0.45;0.5;0.55;1" />
-            </rect>
-            <rect x="42" y="30" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.6" />
-            <rect x="68" y="30" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.6" />
-            <line x1="40" y1="34" x2="54" y2="34" stroke="#00FF88" strokeWidth="0.5" opacity="0.5">
-              <animate attributeName="x2" values="54;50;54" dur="0.5s" repeatCount="indefinite" />
-            </line>
-            <line x1="66" y1="34" x2="80" y2="34" stroke="#00FF88" strokeWidth="0.5" opacity="0.5">
-              <animate attributeName="x2" values="80;76;80" dur="0.5s" repeatCount="indefinite" begin="0.25s" />
-            </line>
+          <g transform="translate(16, 66)">
+            <ellipse cx="0" cy="0" rx="4" ry="3" fill="#1E5C3A" opacity="0.8" />
+            <path d="M -2 -1 L 4 -2 L 4 0 L -2 1 Z" fill="#1E5C3A" />
           </g>
           
-          <line x1="56" y1="30" x2="64" y2="30" stroke="#00FF88" strokeWidth="1" opacity="0.4" />
-          <line x1="58" y1="34" x2="62" y2="34" stroke="#00FF88" strokeWidth="1" opacity="0.4" />
-          <line x1="57" y1="38" x2="63" y2="38" stroke="#00FF88" strokeWidth="1" opacity="0.4" />
+          <ellipse cx="50" cy="26" rx="18" ry="20" fill="url(#skinTone)" />
           
-          <circle cx="35" cy="30" r="2" fill="#FF3333" filter="url(#glow)">
-            <animate attributeName="opacity" values="0.5;1;0.5" dur="0.8s" repeatCount="indefinite" />
-          </circle>
-          <circle cx="85" cy="30" r="2" fill="#FF3333" filter="url(#glow)">
-            <animate attributeName="opacity" values="0.5;1;0.5" dur="0.8s" repeatCount="indefinite" begin="0.4s" />
-          </circle>
+          <path d="M 32 18 Q 32 8 50 6 Q 68 8 68 18 L 68 12 Q 68 5 50 3 Q 32 5 32 12 Z" fill="white" />
+          <ellipse cx="50" cy="6" rx="12" ry="4" fill="white" />
+          <rect x="45" y="2" width="10" height="2" fill="white" />
           
-          <rect x="36" y="55" width="8" height="2" fill="#00FF88" opacity="0.3">
-            <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite" />
-          </rect>
-          <rect x="76" y="55" width="8" height="2" fill="#00FF88" opacity="0.3">
-            <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite" begin="1.5s" />
-          </rect>
+          <g className="transition-transform duration-100" style={{ transform: `translate(${eyePosition.x * 0.5}px, ${eyePosition.y * 0.3}px)` }}>
+            <ellipse cx="42" cy="24" rx="4" ry={isBlinking ? 0.5 : 2} fill="black">
+              <animate attributeName="ry" values="2;2;0.5;2;2" dur="4s" repeatCount="indefinite" keyTimes="0;0.45;0.5;0.55;1" />
+            </ellipse>
+            <ellipse cx="58" cy="22" rx="3" ry={isBlinking ? 0.5 : 1.5} fill="black">
+              <animate attributeName="ry" values="1.5;1.5;0.5;1.5;1.5" dur="4s" repeatCount="indefinite" keyTimes="0;0.45;0.5;0.55;1" />
+            </ellipse>
+          </g>
           
-          <text x="60" y="63" textAnchor="middle" fill="#00FF88" fontSize="5" fontFamily="monospace" opacity="0.7">FACER-C</text>
+          <ellipse cx="50" cy="30" rx="3" ry="2" fill="#D4956A" />
+          
+          <path d="M 62 32 L 78 28 L 80 30 L 78 32 L 62 34 Z" fill="#8B6914" />
+          <ellipse cx="80" cy="30" rx="3" ry="2" fill="#8B6914" />
+          
+          <ellipse cx="83" cy="26" rx="4" ry="3" fill="#CCCCCC" opacity="0.6">
+            <animate attributeName="cy" values="26;23;26" dur="2s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2s" repeatCount="indefinite" />
+          </ellipse>
+          <ellipse cx="86" cy="22" rx="3" ry="2" fill="#CCCCCC" opacity="0.4">
+            <animate attributeName="cy" values="22;18;22" dur="2.5s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.4;0.2;0.4" dur="2.5s" repeatCount="indefinite" />
+          </ellipse>
+          
+          <path d="M 38 36 L 40 42 Q 50 48 60 42 L 62 38" fill="none" stroke="url(#skinTone)" strokeWidth="4" />
+          <ellipse cx="50" cy="44" rx="8" ry="4" fill="url(#skinTone)" />
+          
+          <path d="M 44 40 Q 50 44 56 40" fill="none" stroke="#C41E3A" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </div>
 
