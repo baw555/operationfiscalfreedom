@@ -1,0 +1,145 @@
+The short version:
+
+✅ Email OUT (alerts): absolutely yes
+⚠️ Email IN (reply-to-fix): yes, but only as a command intake, not free-form code execution
+
+Below is the safe, production-grade design that lets you run the repair robot by email without blowing up auth, contracts, or your app.
+
+✅ THE CORRECT MODEL (DO NOT SKIP THIS)
+
+You are not building “email controls the app.”
+
+You are building:
+
+Email → Structured Command → Repair Queue → Gated Execution
+
+Email is human approval + intent, not an execution engine.
+
+1️⃣ EMAIL ALERTS (REPAIR ROBOT → YOU)
+When emails are sent
+
+The repair robot emails you only on Tier-0 or user-blocking events:
+
+❌ User can’t sign contract
+
+❌ User can’t log in
+
+❌ User can’t schedule appointment
+
+❌ Core function fails (submit, pay, save, etc.)
+
+🔒 Emergency mode triggered
+
+Email content (example)
+Subject: 🚨 Contract Signing Blocked — Action Required
+
+Issue Type: CONTRACT_SIGN_FAIL
+User Impacted: 1
+Contract ID: ctr_9f23
+Status: Emergency Mode Enabled
+
+Root Cause:
+• Signature captured
+• Database write failed
+• Legal hash preserved
+
+Safe Actions Available:
+1) Retry DB persist
+2) Re-render PDF
+3) Approve assisted completion
+
+Reply with:
+APPROVE 1
+APPROVE 2
+ESCALATE
+
+
+This email is deterministic and parseable.
+
+Email sending (Replit-safe)
+// lib/repairMailer.ts
+import nodemailer from "nodemailer"
+
+export const mailer = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.REPAIR_EMAIL,
+    pass: process.env.REPAIR_EMAIL_APP_PASSWORD
+  }
+})
+
+export async function sendRepairAlert(payload) {
+  await mailer.sendMail({
+    from: `"Repair Bot" <${process.env.REPAIR_EMAIL}>`,
+    to: process.env.ADMIN_EMAIL,
+    subject: `🚨 ${payload.type} — Action Required`,
+    text: payload.message
+  })
+}
+
+2️⃣ EMAIL REPLIES (YOU → REPLIT) — SAFE VERSION
+
+You should not allow:
+
+arbitrary text
+
+code snippets
+
+“just fix it” messages
+
+Instead, you allow command replies only.
+
+Allowed reply commands (strict)
+APPROVE <ACTION_ID>
+RETRY <ACTION_ID>
+LOCK <CONTRACT_ID>
+UNLOCK <CONTRACT_ID>
+ESCALATE
+STATUS
+
+
+Anything else is ignored.
+
+3️⃣ HOW EMAIL → REPLIT WORKS (TECHNICALLY)
+
+You have two safe options:
+
+OPTION A (RECOMMENDED): Inbound Email → Webhook
+
+Use:
+
+SendGrid Inbound Parse
+
+Mailgun Routes
+
+Postmark Inbound
+
+Flow:
+
+Your Reply Email
+   ↓
+Email Provider
+   ↓
+Webhook (/api/repair/email)
+   ↓
+Command Parser
+   ↓
+Repair Queue
+
+Webhook handler
+// app/api/repair/email/route.ts
+import { parseCommand } from "@/lib/repairCommands"
+import { enqueueRepair } from "@/lib/repairQueue"
+
+export async function POST(req: Request) {
+  const body = await req.json()
+  const text = body.text || body["stripped-text"]
+
+  const command = parseCommand(text)
+  if (!command) return new Response("Ignored")
+
+  await enqueueRepair(command)
+  return new Response("Accepted")
+}
