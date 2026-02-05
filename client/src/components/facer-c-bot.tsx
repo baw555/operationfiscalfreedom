@@ -100,15 +100,16 @@ export function FacerCBot() {
       )}
 
       {isOpen && (
-        <div className="absolute bottom-24 right-0 w-80 bg-white border-2 border-[#1A365D] rounded-xl shadow-xl overflow-hidden animate-slide-up" data-testid="chat-panel">
-          <div className="bg-[#1A365D] text-white p-3 font-bold flex items-center gap-2">
-            <span className="text-lg">🤖</span>
+        <div className="absolute bottom-28 right-0 w-80 bg-[#F5F5DC] border-2 border-[#4B5320] rounded-xl shadow-xl overflow-hidden animate-slide-up" data-testid="chat-panel">
+          <div className="bg-gradient-to-r from-[#4B5320] to-[#556B2F] text-white p-3 font-bold flex items-center gap-2">
+            <span className="text-lg">⭐</span>
             FACER-C Repair Console
+            <span className="ml-auto text-xs bg-[#8B0000] px-2 py-0.5 rounded">ARMY</span>
           </div>
-          <div className="p-4 space-y-3">
+          <div className="p-4 space-y-3 bg-gradient-to-b from-[#F5F5DC] to-[#E8E4D0]">
             <textarea
-              className="w-full p-3 border-2 border-gray-200 rounded-lg text-sm focus:border-[#1A365D] focus:outline-none resize-none"
-              placeholder="Tell me what's broken..."
+              className="w-full p-3 border-2 border-[#8B7355] rounded-lg text-sm focus:border-[#4B5320] focus:outline-none resize-none bg-white"
+              placeholder="Report your issue, soldier..."
               value={issueText}
               onChange={(e) => setIssueText(e.target.value)}
               rows={3}
@@ -116,13 +117,13 @@ export function FacerCBot() {
             />
             <button
               onClick={submitIssue}
-              className="w-full bg-[#E21C3D] hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+              className="w-full bg-gradient-to-r from-[#4B5320] to-[#556B2F] hover:from-[#3D4220] hover:to-[#4B5320] text-white font-bold py-2 px-4 rounded-lg transition-colors border border-[#3D4220]"
               data-testid="submit-issue"
             >
-              Send to FACER-C
+              🎖️ Send to FACER-C
             </button>
             {status && (
-              <div className="text-center text-sm font-medium text-[#1A365D] bg-blue-50 p-2 rounded-lg" data-testid="status-message">
+              <div className="text-center text-sm font-medium text-[#4B5320] bg-[#C4A76C] bg-opacity-30 p-2 rounded-lg border border-[#8B7355]" data-testid="status-message">
                 {status}
               </div>
             )}
@@ -135,71 +136,95 @@ export function FacerCBot() {
         onClick={() => { setIsOpen(!isOpen); setShowBubble(false); }}
         data-testid="facer-c-bot"
       >
-        <svg width="80" height="80" viewBox="0 0 100 100" className="drop-shadow-lg">
+        <svg width="80" height="90" viewBox="0 0 100 110" className="drop-shadow-lg">
           <defs>
-            <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#4A90D9" />
-              <stop offset="100%" stopColor="#1A365D" />
+            <linearGradient id="camoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#4B5320" />
+              <stop offset="50%" stopColor="#5C4033" />
+              <stop offset="100%" stopColor="#556B2F" />
+            </linearGradient>
+            <linearGradient id="camoGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#6B8E23" />
+              <stop offset="100%" stopColor="#4B5320" />
             </linearGradient>
             <linearGradient id="faceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#87CEEB" />
-              <stop offset="100%" stopColor="#5DADE2" />
+              <stop offset="0%" stopColor="#C4A76C" />
+              <stop offset="100%" stopColor="#A0855B" />
             </linearGradient>
+            <linearGradient id="helmetGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#556B2F" />
+              <stop offset="50%" stopColor="#4B5320" />
+              <stop offset="100%" stopColor="#3D4220" />
+            </linearGradient>
+            <pattern id="camoPattern" patternUnits="userSpaceOnUse" width="20" height="20">
+              <rect width="20" height="20" fill="#4B5320"/>
+              <circle cx="5" cy="5" r="4" fill="#5C4033"/>
+              <circle cx="15" cy="12" r="3" fill="#6B8E23"/>
+              <ellipse cx="10" cy="18" rx="5" ry="3" fill="#8B7355"/>
+              <circle cx="18" cy="3" r="2" fill="#556B2F"/>
+            </pattern>
           </defs>
           
-          <ellipse cx="50" cy="85" rx="25" ry="8" fill="rgba(0,0,0,0.2)" />
+          <ellipse cx="50" cy="95" rx="25" ry="8" fill="rgba(0,0,0,0.2)" />
           
-          <rect x="40" y="70" width="8" height="12" rx="2" fill="#3A5A8C" />
-          <rect x="52" y="70" width="8" height="12" rx="2" fill="#3A5A8C" />
-          <ellipse cx="44" cy="82" rx="6" ry="3" fill="#2D4A6F" />
-          <ellipse cx="56" cy="82" rx="6" ry="3" fill="#2D4A6F" />
+          <rect x="40" y="80" width="8" height="12" rx="2" fill="#4B5320" />
+          <rect x="52" y="80" width="8" height="12" rx="2" fill="#4B5320" />
+          <ellipse cx="44" cy="92" rx="6" ry="3" fill="#3D4220" />
+          <ellipse cx="56" cy="92" rx="6" ry="3" fill="#3D4220" />
           
-          <rect x="25" y="35" width="50" height="40" rx="8" fill="url(#bodyGradient)" stroke="#1A365D" strokeWidth="2" />
+          <rect x="25" y="45" width="50" height="40" rx="8" fill="url(#camoPattern)" stroke="#3D4220" strokeWidth="2" />
+          <ellipse cx="35" cy="55" rx="4" ry="3" fill="#5C4033" />
+          <ellipse cx="65" cy="60" rx="5" ry="4" fill="#6B8E23" />
+          <ellipse cx="50" cy="75" rx="6" ry="3" fill="#8B7355" />
           
-          <rect x="15" y="45" width="12" height="6" rx="3" fill="#3A5A8C" />
-          <rect x="73" y="45" width="12" height="6" rx="3" fill="#3A5A8C" />
-          <circle cx="13" cy="48" r="4" fill="#E21C3D" />
-          <circle cx="87" cy="48" r="4" fill="#E21C3D" />
+          <rect x="15" y="55" width="12" height="6" rx="3" fill="#4B5320" />
+          <rect x="73" y="55" width="12" height="6" rx="3" fill="#4B5320" />
+          <circle cx="13" cy="58" r="4" fill="#8B0000" />
+          <circle cx="87" cy="58" r="4" fill="#8B0000" />
           
-          <rect x="30" y="10" width="40" height="30" rx="6" fill="url(#faceGradient)" stroke="#1A365D" strokeWidth="2" />
+          <rect x="30" y="20" width="40" height="30" rx="6" fill="url(#faceGradient)" stroke="#3D4220" strokeWidth="2" />
           
-          <rect x="42" y="2" width="4" height="10" rx="2" fill="#3A5A8C" />
-          <circle cx="44" cy="2" r="4" fill="#E21C3D">
-            <animate attributeName="fill" values="#E21C3D;#FFD700;#E21C3D" dur="2s" repeatCount="indefinite" />
-          </circle>
+          <path d="M 25 22 Q 25 5 50 5 Q 75 5 75 22 L 75 20 Q 75 12 50 12 Q 25 12 25 20 Z" fill="url(#helmetGradient)" stroke="#3D4220" strokeWidth="2" />
+          <ellipse cx="50" cy="8" rx="18" ry="6" fill="#4B5320" />
+          <path d="M 22 22 L 25 22 L 25 25 L 22 25 Z" fill="#4B5320" />
+          <path d="M 75 22 L 78 22 L 78 25 L 75 25 Z" fill="#4B5320" />
+          
+          <polygon points="50,3 53,10 47,10" fill="#FFD700" stroke="#B8860B" strokeWidth="0.5">
+            <animate attributeName="fill" values="#FFD700;#FFA500;#FFD700" dur="2s" repeatCount="indefinite" />
+          </polygon>
           
           <g className="transition-transform duration-100" style={{ transform: `translate(${eyePosition.x}px, ${eyePosition.y}px)` }}>
-            <ellipse cx="40" cy="22" rx="7" ry={isBlinking ? 1 : 6} fill="white" stroke="#1A365D" strokeWidth="1">
+            <ellipse cx="40" cy="32" rx="7" ry={isBlinking ? 1 : 6} fill="white" stroke="#3D4220" strokeWidth="1">
               <animate attributeName="ry" values="6;6;1;6;6" dur="4s" repeatCount="indefinite" begin="0s" keyTimes="0;0.45;0.5;0.55;1" />
             </ellipse>
-            <ellipse cx="60" cy="22" rx="7" ry={isBlinking ? 1 : 6} fill="white" stroke="#1A365D" strokeWidth="1">
+            <ellipse cx="60" cy="32" rx="7" ry={isBlinking ? 1 : 6} fill="white" stroke="#3D4220" strokeWidth="1">
               <animate attributeName="ry" values="6;6;1;6;6" dur="4s" repeatCount="indefinite" begin="0s" keyTimes="0;0.45;0.5;0.55;1" />
             </ellipse>
-            <circle cx="40" cy="23" r="3" fill="#1A365D" />
-            <circle cx="60" cy="23" r="3" fill="#1A365D" />
-            <circle cx="41" cy="21" r="1" fill="white" />
-            <circle cx="61" cy="21" r="1" fill="white" />
+            <circle cx="40" cy="33" r="3" fill="#3D4220" />
+            <circle cx="60" cy="33" r="3" fill="#3D4220" />
+            <circle cx="41" cy="31" r="1" fill="white" />
+            <circle cx="61" cy="31" r="1" fill="white" />
           </g>
           
-          <path d="M 42 32 Q 50 38 58 32" fill="none" stroke="#1A365D" strokeWidth="2" strokeLinecap="round">
-            <animate attributeName="d" values="M 42 32 Q 50 38 58 32;M 42 33 Q 50 40 58 33;M 42 32 Q 50 38 58 32" dur="3s" repeatCount="indefinite" />
+          <path d="M 42 42 Q 50 48 58 42" fill="none" stroke="#3D4220" strokeWidth="2" strokeLinecap="round">
+            <animate attributeName="d" values="M 42 42 Q 50 48 58 42;M 42 43 Q 50 50 58 43;M 42 42 Q 50 48 58 42" dur="3s" repeatCount="indefinite" />
           </path>
           
-          <rect x="35" y="55" width="30" height="12" rx="3" fill="#2D4A6F" stroke="#1A365D" strokeWidth="1" />
-          <rect x="38" y="58" width="6" height="6" rx="1" fill="#4ADE80">
+          <rect x="35" y="65" width="30" height="12" rx="3" fill="#3D4220" stroke="#2D3218" strokeWidth="1" />
+          <rect x="38" y="68" width="6" height="6" rx="1" fill="#4ADE80">
             <animate attributeName="fill" values="#4ADE80;#22C55E;#4ADE80" dur="1.5s" repeatCount="indefinite" />
           </rect>
-          <rect x="47" y="58" width="6" height="6" rx="1" fill="#60A5FA">
-            <animate attributeName="fill" values="#60A5FA;#3B82F6;#60A5FA" dur="2s" repeatCount="indefinite" />
+          <rect x="47" y="68" width="6" height="6" rx="1" fill="#FFA500">
+            <animate attributeName="fill" values="#FFA500;#FF8C00;#FFA500" dur="2s" repeatCount="indefinite" />
           </rect>
-          <rect x="56" y="58" width="6" height="6" rx="1" fill="#FBBF24">
-            <animate attributeName="fill" values="#FBBF24;#F59E0B;#FBBF24" dur="1.8s" repeatCount="indefinite" />
+          <rect x="56" y="68" width="6" height="6" rx="1" fill="#DC143C">
+            <animate attributeName="fill" values="#DC143C;#B22222;#DC143C" dur="1.8s" repeatCount="indefinite" />
           </rect>
           
-          <circle cx="30" cy="23" r="3" fill="#E21C3D" opacity="0.7">
+          <circle cx="28" cy="32" r="3" fill="#8B0000" opacity="0.7">
             <animate attributeName="opacity" values="0.7;1;0.7" dur="1s" repeatCount="indefinite" />
           </circle>
-          <circle cx="70" cy="23" r="3" fill="#E21C3D" opacity="0.7">
+          <circle cx="72" cy="32" r="3" fill="#8B0000" opacity="0.7">
             <animate attributeName="opacity" values="0.7;1;0.7" dur="1s" repeatCount="indefinite" begin="0.5s" />
           </circle>
         </svg>
