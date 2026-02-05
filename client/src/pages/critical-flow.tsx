@@ -16,19 +16,19 @@ import { Link } from "wouter";
 
 interface CriticalIncident {
   id: number;
-  incident_id: string;
-  flow_type: string;
-  user_hashed_id: string;
-  failure_point: string;
+  incidentId: string;
+  flowType: string;
+  userHashedId: string;
+  failurePoint: string;
   cause: string;
   impact: string;
-  proposed_fix: string;
-  risk_level: string;
+  proposedFix: string;
+  riskLevel: string;
   status: string;
-  admin_approval_required: boolean;
-  emergency_mode: boolean;
-  created_at: string;
-  resolved_at?: string;
+  adminApprovalRequired: boolean;
+  emergencyMode: boolean;
+  createdAt: string;
+  resolvedAt?: string;
 }
 
 interface ProcessResult {
@@ -332,31 +332,31 @@ export default function CriticalFlowPage() {
                 {pendingIncidents && pendingIncidents.length > 0 ? (
                   <div className="space-y-4">
                     {pendingIncidents.map((incident) => (
-                      <div key={incident.id} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg" data-testid={`pending-${incident.incident_id}`}>
+                      <div key={incident.id} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg" data-testid={`pending-${incident.incidentId}`}>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            {getFlowTypeBadge(incident.flow_type)}
-                            {getRiskBadge(incident.risk_level)}
-                            {incident.emergency_mode && <Badge className="bg-purple-500 text-white">Emergency</Badge>}
+                            {getFlowTypeBadge(incident.flowType)}
+                            {getRiskBadge(incident.riskLevel)}
+                            {incident.emergencyMode && <Badge className="bg-purple-500 text-white">Emergency</Badge>}
                           </div>
-                          <span className="text-xs text-gray-500">{incident.incident_id}</span>
+                          <span className="text-xs text-gray-500">{incident.incidentId}</span>
                         </div>
                         
                         <div className="space-y-2 text-sm mb-4">
-                          <p><strong>ISSUE:</strong> {incident.flow_type === "AUTH" ? "User unable to sign in" : "User unable to sign contract"}</p>
+                          <p><strong>ISSUE:</strong> {incident.flowType === "AUTH" ? "User unable to sign in" : "User unable to sign contract"}</p>
                           <p><strong>CAUSE:</strong> {incident.cause}</p>
                           <p><strong>IMPACT:</strong> {incident.impact}</p>
-                          <p><strong>PROPOSED FIX:</strong> {incident.proposed_fix}</p>
-                          <p><strong>RISK LEVEL:</strong> {incident.risk_level}</p>
+                          <p><strong>PROPOSED FIX:</strong> {incident.proposedFix}</p>
+                          <p><strong>RISK LEVEL:</strong> {incident.riskLevel}</p>
                         </div>
 
                         <div className="flex gap-2">
                           <Button
                             size="sm"
                             className="bg-green-600 hover:bg-green-700"
-                            onClick={() => approveMutation.mutate({ incidentId: incident.incident_id, action: "APPROVE" })}
+                            onClick={() => approveMutation.mutate({ incidentId: incident.incidentId, action: "APPROVE" })}
                             disabled={approveMutation.isPending}
-                            data-testid={`approve-${incident.incident_id}`}
+                            data-testid={`approve-${incident.incidentId}`}
                           >
                             <CheckCircle className="h-4 w-4 mr-1" />
                             Approve & Apply
@@ -364,9 +364,9 @@ export default function CriticalFlowPage() {
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => approveMutation.mutate({ incidentId: incident.incident_id, action: "REJECT" })}
+                            onClick={() => approveMutation.mutate({ incidentId: incident.incidentId, action: "REJECT" })}
                             disabled={approveMutation.isPending}
-                            data-testid={`reject-${incident.incident_id}`}
+                            data-testid={`reject-${incident.incidentId}`}
                           >
                             <XCircle className="h-4 w-4 mr-1" />
                             Reject
@@ -374,8 +374,8 @@ export default function CriticalFlowPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => window.open(`/api/critical-flow/report/${incident.incident_id}`, "_blank")}
-                            data-testid={`report-${incident.incident_id}`}
+                            onClick={() => window.open(`/api/critical-flow/report/${incident.incidentId}`, "_blank")}
+                            data-testid={`report-${incident.incidentId}`}
                           >
                             <Download className="h-4 w-4 mr-1" />
                             Report
@@ -406,24 +406,24 @@ export default function CriticalFlowPage() {
                 ) : incidents && incidents.length > 0 ? (
                   <div className="space-y-3 max-h-[600px] overflow-y-auto" data-testid="incidents-list">
                     {incidents.map((incident) => (
-                      <div key={incident.id} className="p-3 bg-gray-50 rounded-lg text-sm" data-testid={`incident-${incident.incident_id}`}>
+                      <div key={incident.id} className="p-3 bg-gray-50 rounded-lg text-sm" data-testid={`incident-${incident.incidentId}`}>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            {getFlowTypeBadge(incident.flow_type)}
+                            {getFlowTypeBadge(incident.flowType)}
                             {getStatusBadge(incident.status)}
-                            {getRiskBadge(incident.risk_level)}
+                            {getRiskBadge(incident.riskLevel)}
                           </div>
                           <span className="text-xs text-gray-500">
-                            {new Date(incident.created_at).toLocaleString()}
+                            {new Date(incident.createdAt).toLocaleString()}
                           </span>
                         </div>
                         <p><strong>Cause:</strong> {incident.cause}</p>
-                        <p><strong>Fix:</strong> {incident.proposed_fix}</p>
+                        <p><strong>Fix:</strong> {incident.proposedFix}</p>
                         <div className="mt-2 flex gap-2">
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => window.open(`/api/critical-flow/report/${incident.incident_id}`, "_blank")}
+                            onClick={() => window.open(`/api/critical-flow/report/${incident.incidentId}`, "_blank")}
                           >
                             <FileText className="h-3 w-3 mr-1" />
                             View Report
