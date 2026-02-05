@@ -7,6 +7,7 @@ import { ScrollToTop } from "@/hooks/use-scroll-to-top";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { PlatformDisclaimerModal } from "@/components/platform-disclaimer-modal";
+import { FacerCBot } from "@/components/facer-c-bot";
 
 // Only eagerly load the homepage - everything else is lazy loaded
 import Home from "@/pages/home";
@@ -408,6 +409,7 @@ function App() {
           <Toaster />
           <PlatformDisclaimerModal />
           <Router />
+          <FacerCBot />
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
