@@ -43,6 +43,7 @@ const AffiliateNda = lazy(() => import("@/pages/affiliate-nda"));
 const AdminSetup = lazy(() => import("@/pages/admin-setup"));
 const MasterPortal = lazy(() => import("@/pages/master-portal"));
 const SelfRepair = lazy(() => import("@/pages/self-repair"));
+const AdminRepairQueue = lazy(() => import("@/pages/admin-repair-queue"));
 const CriticalFlow = lazy(() => import("@/pages/critical-flow"));
 const AboutNavPerks = lazy(() => import("@/pages/about-nav-perks"));
 const SubMasterPortal = lazy(() => import("@/pages/submaster-portal"));
@@ -343,6 +344,7 @@ function Router() {
         <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/master-portal" component={MasterPortal} />
         <Route path="/self-repair" component={SelfRepair} />
+        <Route path="/admin-repair-queue" component={AdminRepairQueue} />
         <Route path="/critical-flow" component={CriticalFlow} />
         <Route path="/submaster-portal" component={SubMasterPortal} />
         <Route path="/veteran-intake" component={VeteranIntake} />

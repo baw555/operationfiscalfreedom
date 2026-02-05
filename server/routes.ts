@@ -3104,6 +3104,136 @@ export async function registerRoutes(
     }
   });
 
+  // Public issue intake (no auth required)
+  app.post("/api/repair/public-intake", async (req, res) => {
+    try {
+      const { description, role = "PUBLIC" } = req.body;
+      
+      if (!description || typeof description !== "string" || description.trim().length < 5) {
+        return res.status(400).json({ message: "Issue description is required (at least 5 characters)" });
+      }
+
+      const { isPlatformEnabled, canAutoFixForRole, requiresAdminApproval } = await import("./platform-config");
+      
+      if (!isPlatformEnabled()) {
+        return res.status(503).json({ message: "Self-healing platform is currently disabled" });
+      }
+
+      const { processRepair, classifyIssue } = await import("./self-repair");
+      const { complianceLog } = await import("./compliance-audit");
+      
+      const issueType = classifyIssue(description);
+      
+      if (!canAutoFixForRole(role) || requiresAdminApproval(issueType)) {
+        await complianceLog("PUBLIC_ESCALATION", { description: description.substring(0, 100), issueType, role });
+        return res.json({
+          status: "ESCALATED",
+          message: "Your issue has been logged and will be reviewed by our team.",
+          issueType
+        });
+      }
+
+      const result = await processRepair(description.trim());
+      await complianceLog("PUBLIC_REPAIR", { issueType, status: result.status }, { ip: req.ip, userAgent: req.headers["user-agent"] });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[PUBLIC REPAIR INTAKE ERROR]", error);
+      res.status(500).json({ message: "Failed to process repair request" });
+    }
+  });
+
+  // Get escalated repairs (admin only)
+  app.get("/api/repair/escalated", requireAdmin, async (req, res) => {
+    try {
+      const logs = await storage.getRepairLogs(50);
+      const escalated = logs.filter(log => log.status === "ESCALATED" || log.status === "FAILED");
+      res.json(escalated);
+    } catch (error) {
+      console.error("[ESCALATED REPAIRS ERROR]", error);
+      res.status(500).json({ message: "Failed to get escalated repairs" });
+    }
+  });
+
+  // Get queue stats (admin only)
+  app.get("/api/repair/queue-stats", requireAdmin, async (req, res) => {
+    try {
+      const logs = await storage.getRepairLogs(100);
+      const escalated = logs.filter(log => log.status === "ESCALATED").length;
+      const failed = logs.filter(log => log.status === "FAILED").length;
+      const pending = logs.filter(log => log.status === "PATCH_PROPOSED").length;
+      const canDeploy = escalated === 0 && failed === 0;
+      
+      res.json({ escalated, failed, pending, canDeploy });
+    } catch (error) {
+      console.error("[QUEUE STATS ERROR]", error);
+      res.status(500).json({ message: "Failed to get queue stats" });
+    }
+  });
+
+  // Approve repair (admin only)
+  app.post("/api/repair/approve", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.query.id as string);
+      if (!id) {
+        return res.status(400).json({ message: "Repair ID is required" });
+      }
+      
+      const { complianceLog } = await import("./compliance-audit");
+      await complianceLog("REPAIR_APPROVED", { repairId: id }, { userId: req.user?.id, ip: req.ip });
+      
+      res.json({ success: true, message: "Repair approved" });
+    } catch (error) {
+      console.error("[REPAIR APPROVE ERROR]", error);
+      res.status(500).json({ message: "Failed to approve repair" });
+    }
+  });
+
+  // Reject repair (admin only)
+  app.post("/api/repair/reject", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.query.id as string);
+      if (!id) {
+        return res.status(400).json({ message: "Repair ID is required" });
+      }
+      
+      const { complianceLog } = await import("./compliance-audit");
+      await complianceLog("REPAIR_REJECTED", { repairId: id }, { userId: req.user?.id, ip: req.ip });
+      
+      res.json({ success: true, message: "Repair rejected" });
+    } catch (error) {
+      console.error("[REPAIR REJECT ERROR]", error);
+      res.status(500).json({ message: "Failed to reject repair" });
+    }
+  });
+
+  // Pipeline gate check (for CI/CD)
+  app.get("/api/repair/pipeline-gate", async (req, res) => {
+    try {
+      const logs = await storage.getRepairLogs(100);
+      const blocking = logs.filter(log => log.status === "ESCALATED" || log.status === "FAILED");
+      
+      const { logPipelineGate } = await import("./compliance-audit");
+      await logPipelineGate(blocking.length === 0, blocking.length);
+      
+      if (blocking.length > 0) {
+        res.status(503).json({
+          canDeploy: false,
+          message: `Deployment blocked: ${blocking.length} unresolved repair tickets`,
+          blockingCount: blocking.length
+        });
+      } else {
+        res.json({
+          canDeploy: true,
+          message: "All clear for deployment"
+        });
+      }
+    } catch (error) {
+      console.error("[PIPELINE GATE ERROR]", error);
+      res.status(500).json({ message: "Failed to check pipeline gate" });
+    }
+  });
+
   // ==================== TIER-0 CRITICAL FLOW SYSTEM ====================
 
   // Process critical flow issue (Auth or Contract Signing)
