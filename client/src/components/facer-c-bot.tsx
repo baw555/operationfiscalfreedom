@@ -76,23 +76,31 @@ export function FacerCBot() {
   return (
     <div className="fixed bottom-4 right-4 z-50" ref={botRef}>
       {showBubble && (
-        <div className="absolute bottom-32 right-0 w-72 animate-bounce-in" data-testid="speech-bubble">
-          <div className="relative bg-[#0A1A0C] border border-[#00FF88] rounded-lg p-4 shadow-2xl" style={{ boxShadow: '0 0 20px rgba(0,255,136,0.2)' }}>
-            <div className="absolute -bottom-3 right-8 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-[#00FF88]"></div>
-            <div className="absolute -bottom-2 right-9 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-[#0A1A0C]"></div>
-            <div className="flex items-center gap-2 mb-2 text-[#00FF88]/60 text-xs font-mono">
-              <div className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse"></div>
-              INCOMING TRANSMISSION
+        <div className="absolute bottom-36 right-0 w-80 animate-bounce-in" data-testid="speech-bubble">
+          <div className="relative bg-white rounded-[30px] p-5 shadow-2xl border-4 border-black" style={{ 
+            boxShadow: '8px 8px 0 rgba(0,0,0,0.3)',
+            background: 'linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%)'
+          }}>
+            <div className="absolute -bottom-4 right-10 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[20px] border-t-black"></div>
+            <div className="absolute -bottom-2 right-11 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[16px] border-t-white"></div>
+            <div className="text-center mb-2">
+              <span className="text-[#1A365D] font-black text-lg tracking-wide" style={{ fontFamily: 'Impact, sans-serif', textShadow: '2px 2px 0 #E21C3D' }}>
+                SAILOR MAN
+              </span>
+              <div className="text-[10px] font-bold text-[#E21C3D] tracking-widest mt-0.5">
+                SENIOR AID INTEL REPAIR MAN
+              </div>
             </div>
-            <p className="font-mono text-sm leading-relaxed text-[#00FF88]">
-              <span className="text-[#FFD700] font-bold">FACER-C</span> online. Friendly Army Corp of Engineers Repair unit activated. Report any system malfunctions and I will attempt immediate resolution.
+            <p className="text-sm leading-relaxed text-gray-800 font-bold text-center" style={{ fontFamily: 'Comic Sans MS, cursive, sans-serif' }}>
+              "Well blow me down! I'm here to fix yer problems! Click me again to report any issues, and I'll muscle through 'em!"
             </p>
             <button 
-              onClick={() => setShowBubble(false)}
-              className="absolute -top-2 -right-2 bg-[#1A2A1C] text-[#00FF88] border border-[#00FF88]/50 rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-[#00FF88]/20 hover:border-[#00FF88]"
+              onClick={(e) => { e.stopPropagation(); setShowBubble(false); }}
+              className="absolute -top-3 -right-3 bg-[#E21C3D] text-white border-3 border-black rounded-full w-8 h-8 flex items-center justify-center text-lg font-black hover:bg-[#B91C1C] hover:scale-110 transition-transform shadow-lg"
+              style={{ boxShadow: '3px 3px 0 rgba(0,0,0,0.4)' }}
               data-testid="close-bubble"
             >
-              <X className="w-4 h-4" />
+              ×
             </button>
           </div>
         </div>
@@ -100,10 +108,13 @@ export function FacerCBot() {
 
       {isOpen && (
         <div className="absolute bottom-32 right-0 w-80 bg-[#0A1A0C] border border-[#00FF88] rounded-lg shadow-2xl overflow-hidden animate-slide-up" style={{ boxShadow: '0 0 20px rgba(0,255,136,0.3)' }} data-testid="chat-panel">
-          <div className="bg-gradient-to-r from-[#1A2A1C] to-[#0A1A0C] text-[#00FF88] p-3 font-bold flex items-center gap-2 border-b border-[#00FF88]/30">
-            <div className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse"></div>
-            <span className="font-mono text-sm tracking-wider">FACER-C TACTICAL CONSOLE</span>
-            <span className="ml-auto text-xs bg-[#00FF88]/20 text-[#00FF88] px-2 py-0.5 rounded border border-[#00FF88]/50 font-mono">ONLINE</span>
+          <div className="bg-gradient-to-r from-[#1A365D] to-[#0D2847] text-white p-3 font-bold flex items-center gap-2 border-b-4 border-[#E21C3D]">
+            <div className="w-3 h-3 rounded-full bg-[#E21C3D] animate-pulse"></div>
+            <div className="flex flex-col">
+              <span className="text-sm font-black tracking-wide" style={{ fontFamily: 'Impact, sans-serif' }}>SAILOR MAN</span>
+              <span className="text-[8px] text-[#E21C3D] tracking-widest">SENIOR AID INTEL REPAIR</span>
+            </div>
+            <span className="ml-auto text-xs bg-[#E21C3D] text-white px-2 py-0.5 rounded font-bold">READY</span>
           </div>
           <div className="p-4 space-y-3">
             <div className="text-[#00FF88]/60 text-xs font-mono mb-2">// ENTER ISSUE REPORT</div>
@@ -120,7 +131,7 @@ export function FacerCBot() {
               className="w-full bg-gradient-to-r from-[#00FF88]/20 to-[#00FF88]/10 hover:from-[#00FF88]/30 hover:to-[#00FF88]/20 text-[#00FF88] font-bold py-2.5 px-4 rounded transition-all border border-[#00FF88]/50 hover:border-[#00FF88] font-mono text-sm tracking-wider hover:shadow-[0_0_15px_rgba(0,255,136,0.3)]"
               data-testid="submit-issue"
             >
-              ▶ TRANSMIT TO FACER-C
+              ▶ SEND TO SAILOR MAN
             </button>
             {status && (
               <div className="text-center text-sm font-mono text-[#00FF88] bg-[#00FF88]/10 p-2 rounded border border-[#00FF88]/30" data-testid="status-message">
