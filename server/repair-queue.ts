@@ -1,7 +1,7 @@
 import { RepairCommand, validateCommand } from './repair-commands';
 import { sendStatusUpdate } from './repair-mailer';
 import { findMatchingRules } from './fix-ruleset';
-import { complianceLog, logRepairAttempt } from './compliance-audit';
+import { complianceLog, logRepairAttempt, logEscalation } from './compliance-audit';
 
 interface QueuedRepair {
   id: string;
@@ -52,7 +52,8 @@ export async function enqueueRepair(command: RepairCommand, incidentId: string):
   });
 
   if (!validation.valid) {
-    await complianceLog('COMMAND_REJECTED', 'email_system', {
+    await complianceLog('COMMAND_REJECTED', {
+      source: 'email_system',
       command: command.raw,
       error: validation.error,
       incidentId,
@@ -72,7 +73,8 @@ export async function enqueueRepair(command: RepairCommand, incidentId: string):
 
   repairQueue.set(queueId, queuedRepair);
 
-  await complianceLog('COMMAND_QUEUED', 'email_system', {
+  await complianceLog('COMMAND_QUEUED', {
+    source: 'email_system',
     command: command.raw,
     queueId,
     incidentId,
@@ -105,10 +107,9 @@ async function processQueue(queueId: string): Promise<void> {
             : `Action ${actionNum} failed: ${fixResult.error}`;
           
           await logRepairAttempt(
-            repair.incidentId,
+            `${repair.incidentId}: ${action.label}`,
             action.actionType,
-            fixResult.success,
-            fixResult.success ? fixResult.message : fixResult.error
+            fixResult.success ? 'SUCCESS' : 'FAILED'
           );
         } else {
           result = `Action ${actionNum} not found`;
@@ -131,10 +132,10 @@ async function processQueue(queueId: string): Promise<void> {
 
       case 'ESCALATE':
         result = 'Incident escalated to human review';
-        await complianceLog('ESCALATION', 'email_system', {
-          incidentId: repair.incidentId,
-          reason: 'Email command escalation',
-        });
+        await logEscalation(
+          'EMAIL_ESCALATION',
+          `Escalated via email command for incident ${repair.incidentId}`
+        );
         break;
 
       case 'STATUS':
@@ -151,14 +152,15 @@ async function processQueue(queueId: string): Promise<void> {
     repair.result = result;
     repair.processedAt = new Date();
 
-    await sendStatusUpdate(repair.incidentId, 'COMMAND_PROCESSED', result);
+    await sendStatusUpdate(repair.incidentId, repair.command.type, 'SUCCESS', result);
 
   } catch (error) {
     repair.status = 'failed';
     repair.result = error instanceof Error ? error.message : 'Unknown error';
     repair.processedAt = new Date();
 
-    await complianceLog('COMMAND_FAILED', 'repair_queue', {
+    await complianceLog('COMMAND_FAILED', {
+      source: 'repair_queue',
       error: repair.result,
       incidentId: repair.incidentId,
     });

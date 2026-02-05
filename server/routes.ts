@@ -3258,6 +3258,229 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== EMAIL COMMAND WEBHOOK ====================
+
+  // Inbound email webhook for repair commands (from SendGrid/Mailgun/Postmark)
+  app.post("/api/repair/email", async (req, res) => {
+    try {
+      const { parseCommand } = await import("./repair-commands");
+      const { enqueueRepair, registerIncident, getIncidentState } = await import("./repair-queue");
+      const { sendEmergencyLockConfirmation, sendEscalationConfirmation, sendStatusUpdate } = await import("./repair-mailer");
+      const { complianceLog } = await import("./compliance-audit");
+
+      // Extract email text from various provider formats
+      const text = req.body.text || req.body["stripped-text"] || req.body.plain || req.body.body || "";
+      const from = req.body.from || req.body.sender || req.body.envelope?.from || "unknown";
+      const subject = req.body.subject || "";
+
+      // Extract incident ID from subject line (e.g., "Re: 🚨 Contract Signing Blocked — Action Required (ctr_9f23)")
+      const incidentMatch = subject.match(/\(([a-zA-Z0-9_-]+)\)/) || subject.match(/— ([a-zA-Z0-9_-]+)$/);
+      const incidentId = incidentMatch ? incidentMatch[1] : `email_${Date.now()}`;
+
+      await complianceLog("EMAIL_RECEIVED", {
+        from,
+        subject,
+        incidentId,
+        textLength: text.length,
+      });
+
+      const command = parseCommand(text, "email");
+
+      if (!command) {
+        console.log("[EmailWebhook] No valid command found in email");
+        return res.json({ status: "ignored", reason: "No valid command found" });
+      }
+
+      console.log(`[EmailWebhook] Parsed command: ${command.type} ${command.targetId || ""}`);
+
+      // Handle EMERGENCY/LOCK commands specially
+      if (command.type === "LOCK" || (text.toUpperCase().includes("EMERGENCY"))) {
+        const targetId = command.targetId || incidentId;
+        
+        // Register as locked incident
+        registerIncident(targetId, {
+          availableActions: [],
+          emergencyMode: true,
+        });
+
+        await complianceLog("EMERGENCY_LOCK", {
+          targetId,
+          triggeredBy: "EMAIL",
+          authorityChanged: false,
+        });
+
+        await sendEmergencyLockConfirmation(targetId);
+
+        return res.json({
+          status: "locked",
+          targetId,
+          message: "Emergency lock activated via email",
+        });
+      }
+
+      // Handle ESCALATE command
+      if (command.type === "ESCALATE") {
+        await sendEscalationConfirmation(incidentId, "Email escalation request");
+        
+        await complianceLog("ESCALATION", {
+          incidentId,
+          triggeredBy: "EMAIL",
+        });
+
+        return res.json({
+          status: "escalated",
+          incidentId,
+          message: "Incident escalated to human review",
+        });
+      }
+
+      // Handle STATUS command
+      if (command.type === "STATUS") {
+        const state = getIncidentState(incidentId);
+        const statusMessage = state
+          ? `Locked: ${state.isLocked}, Emergency: ${state.emergencyMode}, Actions: ${state.availableActions.length}`
+          : "No active incident state found";
+
+        await sendStatusUpdate(incidentId, "STATUS_REQUEST", "SUCCESS", statusMessage);
+
+        return res.json({
+          status: "status_sent",
+          incidentId,
+          state: state || null,
+        });
+      }
+
+      // Handle APPROVE/RETRY commands
+      if (command.type === "APPROVE" || command.type === "RETRY") {
+        // Check if incident exists, if not register with default actions
+        if (!getIncidentState(incidentId)) {
+          registerIncident(incidentId, {
+            availableActions: [
+              { id: 1, label: "Retry database persist", actionType: "RETRY_DB_PERSIST" },
+              { id: 2, label: "Re-render PDF", actionType: "RERENDER_PDF" },
+              { id: 3, label: "Assisted completion", actionType: "ASSISTED_COMPLETION" },
+            ],
+            emergencyMode: false,
+          });
+        }
+
+        const result = await enqueueRepair(command, incidentId);
+
+        if (result.success) {
+          return res.json({
+            status: "queued",
+            queueId: result.queueId,
+            incidentId,
+            command: command.type,
+            actionId: command.targetId,
+          });
+        } else {
+          return res.status(400).json({
+            status: "rejected",
+            error: result.error,
+            incidentId,
+          });
+        }
+      }
+
+      // Handle UNLOCK command
+      if (command.type === "UNLOCK") {
+        const targetId = command.targetId || incidentId;
+        const state = getIncidentState(targetId);
+        
+        if (state) {
+          state.isLocked = false;
+          state.emergencyMode = false;
+        }
+
+        await sendStatusUpdate(targetId, "UNLOCK", "SUCCESS", "Incident unlocked via email command");
+
+        return res.json({
+          status: "unlocked",
+          targetId,
+        });
+      }
+
+      return res.json({ status: "processed", command: command.type });
+
+    } catch (error) {
+      console.error("[EmailWebhook] Error:", error);
+      return res.status(500).json({ status: "error", message: "Failed to process email command" });
+    }
+  });
+
+  // Test email alert endpoint (for development)
+  app.post("/api/repair/test-email", requireAdmin, async (req, res) => {
+    try {
+      const { sendRepairAlert } = await import("./repair-mailer");
+      const { type = "CONTRACT_SIGN_FAIL", contractId = "test_ctr_001" } = req.body;
+
+      let sent = false;
+
+      if (type === "CONTRACT_SIGN_FAIL") {
+        sent = await sendRepairAlert({
+          type: "CONTRACT_SIGN_FAIL",
+          contractId,
+          userImpacted: 1,
+          emergencyMode: false,
+          whatHappened: [
+            "Signature drawn successfully",
+            "Signature hash generated",
+            "Database persist failed",
+            "Contract text + hash locked",
+            "Legal authority NOT modified",
+          ],
+          safeActions: [
+            { id: 1, code: "RETRY_DB_PERSIST", label: "Retry database persist" },
+            { id: 2, code: "RE_RENDER_PDF", label: "Re-render PDF document" },
+            { id: 3, code: "ASSISTED_COMPLETE", label: "Admin-only assisted completion" },
+          ],
+        });
+      } else if (type === "AUTH_FAIL") {
+        sent = await sendRepairAlert({
+          type: "AUTH_FAIL",
+          userHash: "abc123...hashed",
+          provider: "NextAuth",
+          failureType: "OAUTH_REDIRECT_MISMATCH",
+          impact: "User cannot sign in",
+          safeActions: [
+            { id: 1, code: "REPAIR_REDIRECT_URI", label: "Repair OAuth redirect URI" },
+            { id: 2, code: "RESET_CSRF_TOKEN", label: "Reset CSRF token" },
+          ],
+        });
+      } else if (type === "CORE_FUNCTION_FAIL") {
+        sent = await sendRepairAlert({
+          type: "CORE_FUNCTION_FAIL",
+          functionName: "Schedule Appointment",
+          failure: "API 500 on submit",
+          usersImpacted: 3,
+          safeActions: [
+            { id: 1, code: "RESTART_WORKER", label: "Restart background worker" },
+            { id: 2, code: "RETRY_API_CALL", label: "Retry API call" },
+            { id: 3, code: "CLEAR_STALE_STATE", label: "Clear stale state" },
+          ],
+        });
+      }
+
+      res.json({ success: sent, type, message: sent ? "Test email sent" : "Failed to send email" });
+    } catch (error) {
+      console.error("[TestEmail] Error:", error);
+      res.status(500).json({ success: false, message: "Failed to send test email" });
+    }
+  });
+
+  // Get repair queue status
+  app.get("/api/repair/email-queue", requireAdmin, async (req, res) => {
+    try {
+      const { getQueueStatus } = await import("./repair-queue");
+      const queue = getQueueStatus();
+      res.json({ queue, count: queue.length });
+    } catch (error) {
+      console.error("[EmailQueue] Error:", error);
+      res.status(500).json({ message: "Failed to get queue status" });
+    }
+  });
+
   // ==================== TIER-0 CRITICAL FLOW SYSTEM ====================
 
   // Process critical flow issue (Auth or Contract Signing)
