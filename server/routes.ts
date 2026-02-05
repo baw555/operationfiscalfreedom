@@ -3125,6 +3125,12 @@ export async function registerRoutes(
       const issueType = classifyIssue(description);
       
       if (!canAutoFixForRole(role) || requiresAdminApproval(issueType)) {
+        await storage.createRepairLog({
+          description: description.substring(0, 500),
+          issueType,
+          status: "ESCALATED",
+          patch: null
+        });
         await complianceLog("PUBLIC_ESCALATION", { description: description.substring(0, 100), issueType, role });
         return res.json({
           status: "ESCALATED",
@@ -3147,7 +3153,10 @@ export async function registerRoutes(
   app.get("/api/repair/escalated", requireAdmin, async (req, res) => {
     try {
       const logs = await storage.getRepairLogs(50);
-      const escalated = logs.filter(log => log.status === "ESCALATED" || log.status === "FAILED");
+      const escalated = logs.filter(log => 
+        (log.status === "ESCALATED" || log.status === "FAILED") &&
+        log.issueType !== "AUDIT"
+      );
       res.json(escalated);
     } catch (error) {
       console.error("[ESCALATED REPAIRS ERROR]", error);
@@ -3159,9 +3168,10 @@ export async function registerRoutes(
   app.get("/api/repair/queue-stats", requireAdmin, async (req, res) => {
     try {
       const logs = await storage.getRepairLogs(100);
-      const escalated = logs.filter(log => log.status === "ESCALATED").length;
-      const failed = logs.filter(log => log.status === "FAILED").length;
-      const pending = logs.filter(log => log.status === "PATCH_PROPOSED").length;
+      const repairLogs = logs.filter(log => log.issueType !== "AUDIT");
+      const escalated = repairLogs.filter(log => log.status === "ESCALATED").length;
+      const failed = repairLogs.filter(log => log.status === "FAILED").length;
+      const pending = repairLogs.filter(log => log.status === "PATCH_PROPOSED").length;
       const canDeploy = escalated === 0 && failed === 0;
       
       res.json({ escalated, failed, pending, canDeploy });
@@ -3179,10 +3189,17 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Repair ID is required" });
       }
       
-      const { complianceLog } = await import("./compliance-audit");
-      await complianceLog("REPAIR_APPROVED", { repairId: id }, { userId: req.user?.id, ip: req.ip });
+      const existing = await storage.getRepairLogById(id);
+      if (!existing) {
+        return res.status(404).json({ message: "Repair not found" });
+      }
       
-      res.json({ success: true, message: "Repair approved" });
+      await storage.updateRepairLogStatus(id, "APPROVED");
+      
+      const { complianceLog } = await import("./compliance-audit");
+      await complianceLog("REPAIR_APPROVED", { repairId: id, previousStatus: existing.status }, { userId: req.user?.id, ip: req.ip });
+      
+      res.json({ success: true, message: "Repair approved and resolved" });
     } catch (error) {
       console.error("[REPAIR APPROVE ERROR]", error);
       res.status(500).json({ message: "Failed to approve repair" });
@@ -3197,8 +3214,15 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Repair ID is required" });
       }
       
+      const existing = await storage.getRepairLogById(id);
+      if (!existing) {
+        return res.status(404).json({ message: "Repair not found" });
+      }
+      
+      await storage.updateRepairLogStatus(id, "REJECTED");
+      
       const { complianceLog } = await import("./compliance-audit");
-      await complianceLog("REPAIR_REJECTED", { repairId: id }, { userId: req.user?.id, ip: req.ip });
+      await complianceLog("REPAIR_REJECTED", { repairId: id, previousStatus: existing.status }, { userId: req.user?.id, ip: req.ip });
       
       res.json({ success: true, message: "Repair rejected" });
     } catch (error) {

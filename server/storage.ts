@@ -515,6 +515,8 @@ export interface IStorage {
   // Self-Repair Bot Logs
   createRepairLog(log: InsertRepairLog): Promise<RepairLog>;
   getRepairLogs(limit?: number): Promise<RepairLog[]>;
+  getRepairLogById(id: number): Promise<RepairLog | undefined>;
+  updateRepairLogStatus(id: number, status: string): Promise<RepairLog | undefined>;
   
   // Critical Incidents (Tier-0 Critical Flow)
   createCriticalIncident(incident: InsertCriticalIncident): Promise<CriticalIncident>;
@@ -2739,6 +2741,19 @@ export class DatabaseStorage implements IStorage {
   
   async getRepairLogs(limit: number = 20): Promise<RepairLog[]> {
     return db.select().from(repairLogs).orderBy(desc(repairLogs.createdAt)).limit(limit);
+  }
+  
+  async getRepairLogById(id: number): Promise<RepairLog | undefined> {
+    const [log] = await db.select().from(repairLogs).where(eq(repairLogs.id, id));
+    return log || undefined;
+  }
+  
+  async updateRepairLogStatus(id: number, status: string): Promise<RepairLog | undefined> {
+    const [updated] = await db.update(repairLogs)
+      .set({ status })
+      .where(eq(repairLogs.id, id))
+      .returning();
+    return updated || undefined;
   }
   
   // Critical Incidents (Tier-0 Critical Flow)
