@@ -1,0 +1,192 @@
+THE REAL FIX: RESPONSIVE LAYOUT RULES
+2️⃣ Never use fixed widths for layout
+
+❌ Bad:
+
+width: 1200px;
+height: 800px;
+
+
+✅ Good:
+
+width: 100%;
+max-width: 1200px;
+min-height: 100vh;
+
+
+Rule of thumb
+
+Containers flex. Content constrains.
+
+3️⃣ Use mobile-first CSS (Tailwind or CSS)
+Tailwind example (recommended)
+<div className="
+  w-full
+  px-4
+  sm:px-6
+  md:px-8
+  max-w-screen-xl
+  mx-auto
+">
+
+
+How this works:
+
+w-full → fills mobile screen
+
+padding scales up on larger screens
+
+max-w-screen-xl prevents desktop overflow
+
+mx-auto centers automatically
+
+✅ FLEX & GRID (THIS SOLVES 80% OF MOBILE ISSUES)
+4️⃣ Use flex/grid with wrapping
+<div className="flex flex-col md:flex-row gap-4">
+  <div className="flex-1">Left</div>
+  <div className="flex-1">Right</div>
+</div>
+
+
+📱 Mobile → stacked
+
+💻 Desktop → side-by-side
+
+No media-query spaghetti
+
+5️⃣ Never lock heights on mobile
+
+❌ Bad:
+
+height: 100vh;
+
+
+Mobile browsers lie about viewport height.
+
+✅ Good:
+
+min-height: 100svh; /* safe viewport height */
+
+
+or Tailwind:
+
+min-h-[100svh]
+
+
+This prevents:
+
+content cutoff
+
+address bar bugs
+
+iOS Safari issues
+
+✅ TEXT & MEDIA (COMMON PROBLEMS)
+6️⃣ Responsive text sizing
+<h1 className="text-2xl sm:text-3xl md:text-4xl">
+
+
+Never do:
+
+font-size: 48px;
+
+7️⃣ Images & canvases (VERY IMPORTANT FOR YOU)
+
+For your FacerBot / animations / canvas:
+
+<img
+  src={image}
+  className="w-full max-w-[320px] md:max-w-[420px] h-auto"
+/>
+
+
+For canvas:
+
+<canvas
+  className="w-full max-w-full h-auto"
+  width={500}
+  height={200}
+/>
+
+
+CSS controls display size
+width/height attributes control resolution
+
+This is how you avoid squishing.
+
+✅ FIX OVERFLOW (THIS IS HUGE)
+8️⃣ Kill horizontal scrolling globally
+
+Add once:
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+
+Or Tailwind:
+
+<body className="overflow-x-hidden">
+
+
+90% of “mobile doesn’t fit” bugs are:
+
+fixed widths
+
+absolute positioning
+
+overflow not handled
+
+✅ MODALS, PANELS, CHAT WIDGETS (RELEVANT TO YOU)
+9️⃣ Mobile-safe fixed elements
+
+For your chat / FacerBot panel:
+
+<div className="
+  fixed
+  bottom-0 right-0
+  w-full md:w-[420px]
+  max-h-[90svh]
+  overflow-y-auto
+">
+
+
+Full width on mobile
+
+Sidebar style on desktop
+
+Scrolls internally
+
+✅ DEBUGGING CHECKLIST (FAST)
+
+Open DevTools → mobile view → check:
+
+❌ Any element wider than screen?
+
+❌ Any position:absolute with left/right fixed?
+
+❌ Any width:px?
+
+❌ Any canvas/image without max-width: 100%?
+
+Use:
+
+document.body.scrollWidth > window.innerWidth
+
+
+If true → something is overflowing.
+
+✅ WHAT I’D DO IN YOUR CODEBASE SPECIFICALLY
+
+Based on what you showed:
+
+Make FacerBot container w-full md:w-[X]
+
+Make Hero dashboard preview scroll or stack on mobile
+
+Clamp all animation layers to max-w-full
+
+Replace vh with svh
+
+Ensure fairy dust layers don’t exceed viewport
