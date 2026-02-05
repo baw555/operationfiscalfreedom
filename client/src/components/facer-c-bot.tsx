@@ -3,7 +3,7 @@ import { MessageCircle, X } from "lucide-react";
 import popeyeBot from "../assets/images/popeye-sailor.png";
 
 export function FacerCBot() {
-  const [showBubble, setShowBubble] = useState(true);
+  const [showBubble, setShowBubble] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [issueText, setIssueText] = useState("");
   const [status, setStatus] = useState<string | null>(null);
@@ -11,12 +11,6 @@ export function FacerCBot() {
   const [isBlinking, setIsBlinking] = useState(false);
   const botRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowBubble(false);
-    }, 8000);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const blinkInterval = setInterval(() => {
@@ -147,7 +141,16 @@ export function FacerCBot() {
 
       <div 
         className="cursor-pointer transition-transform hover:scale-125 animate-float"
-        onClick={() => { setIsOpen(!isOpen); setShowBubble(false); }}
+        onClick={() => { 
+          if (!isOpen && !showBubble) {
+            setShowBubble(true);
+          } else if (showBubble) {
+            setShowBubble(false);
+            setIsOpen(true);
+          } else {
+            setIsOpen(!isOpen);
+          }
+        }}
         data-testid="facer-c-bot"
       >
         <img 
