@@ -81,16 +81,20 @@ export function FacerCBot() {
   return (
     <div className="fixed bottom-4 right-4 z-50" ref={botRef}>
       {showBubble && (
-        <div className="absolute bottom-24 right-0 w-72 animate-bounce-in" data-testid="speech-bubble">
-          <div className="relative bg-white border-4 border-black rounded-2xl p-4 shadow-lg">
-            <div className="absolute -bottom-4 right-8 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[16px] border-t-black"></div>
-            <div className="absolute -bottom-2 right-9 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[14px] border-t-white"></div>
-            <p className="font-bold text-sm leading-relaxed" style={{ fontFamily: "'Comic Sans MS', 'Chalkboard', cursive" }}>
-              Hey, I am <span className="text-[#E21C3D]">FACER-C</span>, Your Friendly Army Corp of Engineers Repair Bot! If you are having issues tell me and I will try and fix it!
+        <div className="absolute bottom-32 right-0 w-72 animate-bounce-in" data-testid="speech-bubble">
+          <div className="relative bg-[#0A1A0C] border border-[#00FF88] rounded-lg p-4 shadow-2xl" style={{ boxShadow: '0 0 20px rgba(0,255,136,0.2)' }}>
+            <div className="absolute -bottom-3 right-8 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-[#00FF88]"></div>
+            <div className="absolute -bottom-2 right-9 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-[#0A1A0C]"></div>
+            <div className="flex items-center gap-2 mb-2 text-[#00FF88]/60 text-xs font-mono">
+              <div className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse"></div>
+              INCOMING TRANSMISSION
+            </div>
+            <p className="font-mono text-sm leading-relaxed text-[#00FF88]">
+              <span className="text-[#FFD700] font-bold">FACER-C</span> online. Friendly Army Corp of Engineers Repair unit activated. Report any system malfunctions and I will attempt immediate resolution.
             </p>
             <button 
               onClick={() => setShowBubble(false)}
-              className="absolute -top-2 -right-2 bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-gray-700"
+              className="absolute -top-2 -right-2 bg-[#1A2A1C] text-[#00FF88] border border-[#00FF88]/50 rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-[#00FF88]/20 hover:border-[#00FF88]"
               data-testid="close-bubble"
             >
               <X className="w-4 h-4" />
@@ -100,16 +104,17 @@ export function FacerCBot() {
       )}
 
       {isOpen && (
-        <div className="absolute bottom-28 right-0 w-80 bg-[#F5F5DC] border-2 border-[#4B5320] rounded-xl shadow-xl overflow-hidden animate-slide-up" data-testid="chat-panel">
-          <div className="bg-gradient-to-r from-[#4B5320] to-[#556B2F] text-white p-3 font-bold flex items-center gap-2">
-            <span className="text-lg">⭐</span>
-            FACER-C Repair Console
-            <span className="ml-auto text-xs bg-[#8B0000] px-2 py-0.5 rounded">ARMY</span>
+        <div className="absolute bottom-32 right-0 w-80 bg-[#0A1A0C] border border-[#00FF88] rounded-lg shadow-2xl overflow-hidden animate-slide-up" style={{ boxShadow: '0 0 20px rgba(0,255,136,0.3)' }} data-testid="chat-panel">
+          <div className="bg-gradient-to-r from-[#1A2A1C] to-[#0A1A0C] text-[#00FF88] p-3 font-bold flex items-center gap-2 border-b border-[#00FF88]/30">
+            <div className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse"></div>
+            <span className="font-mono text-sm tracking-wider">FACER-C TACTICAL CONSOLE</span>
+            <span className="ml-auto text-xs bg-[#00FF88]/20 text-[#00FF88] px-2 py-0.5 rounded border border-[#00FF88]/50 font-mono">ONLINE</span>
           </div>
-          <div className="p-4 space-y-3 bg-gradient-to-b from-[#F5F5DC] to-[#E8E4D0]">
+          <div className="p-4 space-y-3">
+            <div className="text-[#00FF88]/60 text-xs font-mono mb-2">// ENTER ISSUE REPORT</div>
             <textarea
-              className="w-full p-3 border-2 border-[#8B7355] rounded-lg text-sm focus:border-[#4B5320] focus:outline-none resize-none bg-white"
-              placeholder="Report your issue, soldier..."
+              className="w-full p-3 bg-[#0A1A0C] border border-[#00FF88]/40 rounded text-sm text-[#00FF88] placeholder-[#00FF88]/40 focus:border-[#00FF88] focus:outline-none focus:ring-1 focus:ring-[#00FF88]/50 resize-none font-mono"
+              placeholder="Describe malfunction..."
               value={issueText}
               onChange={(e) => setIssueText(e.target.value)}
               rows={3}
@@ -117,16 +122,24 @@ export function FacerCBot() {
             />
             <button
               onClick={submitIssue}
-              className="w-full bg-gradient-to-r from-[#4B5320] to-[#556B2F] hover:from-[#3D4220] hover:to-[#4B5320] text-white font-bold py-2 px-4 rounded-lg transition-colors border border-[#3D4220]"
+              className="w-full bg-gradient-to-r from-[#00FF88]/20 to-[#00FF88]/10 hover:from-[#00FF88]/30 hover:to-[#00FF88]/20 text-[#00FF88] font-bold py-2.5 px-4 rounded transition-all border border-[#00FF88]/50 hover:border-[#00FF88] font-mono text-sm tracking-wider hover:shadow-[0_0_15px_rgba(0,255,136,0.3)]"
               data-testid="submit-issue"
             >
-              🎖️ Send to FACER-C
+              ▶ TRANSMIT TO FACER-C
             </button>
             {status && (
-              <div className="text-center text-sm font-medium text-[#4B5320] bg-[#C4A76C] bg-opacity-30 p-2 rounded-lg border border-[#8B7355]" data-testid="status-message">
+              <div className="text-center text-sm font-mono text-[#00FF88] bg-[#00FF88]/10 p-2 rounded border border-[#00FF88]/30" data-testid="status-message">
+                <span className="inline-block w-2 h-2 rounded-full bg-[#00FF88] mr-2 animate-pulse"></span>
                 {status}
               </div>
             )}
+          </div>
+          <div className="px-4 pb-3 flex gap-2 text-[10px] font-mono text-[#00FF88]/40">
+            <span>SYS:OK</span>
+            <span>•</span>
+            <span>NET:SECURE</span>
+            <span>•</span>
+            <span>REPAIR:READY</span>
           </div>
         </div>
       )}
@@ -136,97 +149,138 @@ export function FacerCBot() {
         onClick={() => { setIsOpen(!isOpen); setShowBubble(false); }}
         data-testid="facer-c-bot"
       >
-        <svg width="80" height="90" viewBox="0 0 100 110" className="drop-shadow-lg">
+        <svg width="90" height="100" viewBox="0 0 120 130" className="drop-shadow-2xl filter">
           <defs>
-            <linearGradient id="camoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#4B5320" />
-              <stop offset="50%" stopColor="#5C4033" />
-              <stop offset="100%" stopColor="#556B2F" />
+            <linearGradient id="metalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#2C3E2D" />
+              <stop offset="30%" stopColor="#1A2A1C" />
+              <stop offset="70%" stopColor="#3D4F3E" />
+              <stop offset="100%" stopColor="#1A2A1C" />
             </linearGradient>
-            <linearGradient id="camoGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#6B8E23" />
-              <stop offset="100%" stopColor="#4B5320" />
+            <linearGradient id="visorGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#00FF88" stopOpacity="0.9" />
+              <stop offset="50%" stopColor="#00CC66" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="#009944" stopOpacity="1" />
             </linearGradient>
-            <linearGradient id="faceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#C4A76C" />
-              <stop offset="100%" stopColor="#A0855B" />
+            <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#00FF88" stopOpacity="0" />
+              <stop offset="50%" stopColor="#00FF88" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#00FF88" stopOpacity="0" />
             </linearGradient>
-            <linearGradient id="helmetGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#556B2F" />
-              <stop offset="50%" stopColor="#4B5320" />
-              <stop offset="100%" stopColor="#3D4220" />
+            <linearGradient id="chestPlate" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#3D4F3E" />
+              <stop offset="50%" stopColor="#2C3E2D" />
+              <stop offset="100%" stopColor="#1A2A1C" />
             </linearGradient>
-            <pattern id="camoPattern" patternUnits="userSpaceOnUse" width="20" height="20">
-              <rect width="20" height="20" fill="#4B5320"/>
-              <circle cx="5" cy="5" r="4" fill="#5C4033"/>
-              <circle cx="15" cy="12" r="3" fill="#6B8E23"/>
-              <ellipse cx="10" cy="18" rx="5" ry="3" fill="#8B7355"/>
-              <circle cx="18" cy="3" r="2" fill="#556B2F"/>
-            </pattern>
+            <linearGradient id="goldStar" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#FFD700" />
+              <stop offset="50%" stopColor="#DAA520" />
+              <stop offset="100%" stopColor="#B8860B" />
+            </linearGradient>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <filter id="innerGlow">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
           </defs>
           
-          <ellipse cx="50" cy="95" rx="25" ry="8" fill="rgba(0,0,0,0.2)" />
+          <ellipse cx="60" cy="118" rx="30" ry="8" fill="rgba(0,255,136,0.15)">
+            <animate attributeName="rx" values="30;32;30" dur="2s" repeatCount="indefinite" />
+          </ellipse>
           
-          <rect x="40" y="80" width="8" height="12" rx="2" fill="#4B5320" />
-          <rect x="52" y="80" width="8" height="12" rx="2" fill="#4B5320" />
-          <ellipse cx="44" cy="92" rx="6" ry="3" fill="#3D4220" />
-          <ellipse cx="56" cy="92" rx="6" ry="3" fill="#3D4220" />
+          <path d="M 45 95 L 42 115 L 48 115 L 50 100 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="1" />
+          <path d="M 75 95 L 78 115 L 72 115 L 70 100 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="1" />
+          <ellipse cx="45" cy="116" rx="5" ry="2" fill="#1A2A1C" />
+          <ellipse cx="75" cy="116" rx="5" ry="2" fill="#1A2A1C" />
+          <circle cx="45" cy="116" r="2" fill="#00FF88" opacity="0.5">
+            <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.5s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="75" cy="116" r="2" fill="#00FF88" opacity="0.5">
+            <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.5s" repeatCount="indefinite" begin="0.75s" />
+          </circle>
           
-          <rect x="25" y="45" width="50" height="40" rx="8" fill="url(#camoPattern)" stroke="#3D4220" strokeWidth="2" />
-          <ellipse cx="35" cy="55" rx="4" ry="3" fill="#5C4033" />
-          <ellipse cx="65" cy="60" rx="5" ry="4" fill="#6B8E23" />
-          <ellipse cx="50" cy="75" rx="6" ry="3" fill="#8B7355" />
+          <path d="M 30 50 L 25 50 L 22 65 L 28 68 L 35 55 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="1" />
+          <path d="M 90 50 L 95 50 L 98 65 L 92 68 L 85 55 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="1" />
+          <circle cx="24" cy="58" r="3" fill="#00FF88" filter="url(#glow)">
+            <animate attributeName="r" values="2;3;2" dur="1s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="96" cy="58" r="3" fill="#00FF88" filter="url(#glow)">
+            <animate attributeName="r" values="2;3;2" dur="1s" repeatCount="indefinite" begin="0.5s" />
+          </circle>
           
-          <rect x="15" y="55" width="12" height="6" rx="3" fill="#4B5320" />
-          <rect x="73" y="55" width="12" height="6" rx="3" fill="#4B5320" />
-          <circle cx="13" cy="58" r="4" fill="#8B0000" />
-          <circle cx="87" cy="58" r="4" fill="#8B0000" />
+          <path d="M 35 45 L 35 95 L 45 100 L 55 95 L 55 50 L 50 45 Z" fill="url(#chestPlate)" stroke="#1A2A1C" strokeWidth="1.5" />
+          <path d="M 85 45 L 85 95 L 75 100 L 65 95 L 65 50 L 70 45 Z" fill="url(#chestPlate)" stroke="#1A2A1C" strokeWidth="1.5" />
+          <path d="M 55 48 L 55 90 L 60 93 L 65 90 L 65 48 L 60 45 Z" fill="#1A2A1C" />
           
-          <rect x="30" y="20" width="40" height="30" rx="6" fill="url(#faceGradient)" stroke="#3D4220" strokeWidth="2" />
+          <rect x="50" y="70" width="20" height="15" rx="2" fill="#0A1A0C" stroke="#00FF88" strokeWidth="0.5" />
+          <rect x="53" y="73" width="4" height="4" rx="1" fill="#00FF88">
+            <animate attributeName="fill" values="#00FF88;#00AA55;#00FF88" dur="0.8s" repeatCount="indefinite" />
+          </rect>
+          <rect x="58" y="73" width="4" height="4" rx="1" fill="#FFD700">
+            <animate attributeName="fill" values="#FFD700;#FFA500;#FFD700" dur="1.2s" repeatCount="indefinite" />
+          </rect>
+          <rect x="63" y="73" width="4" height="4" rx="1" fill="#FF3333">
+            <animate attributeName="fill" values="#FF3333;#CC0000;#FF3333" dur="0.6s" repeatCount="indefinite" />
+          </rect>
+          <rect x="53" y="79" width="14" height="3" rx="1" fill="#00FF88" opacity="0.3">
+            <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
+          </rect>
           
-          <path d="M 25 22 Q 25 5 50 5 Q 75 5 75 22 L 75 20 Q 75 12 50 12 Q 25 12 25 20 Z" fill="url(#helmetGradient)" stroke="#3D4220" strokeWidth="2" />
-          <ellipse cx="50" cy="8" rx="18" ry="6" fill="#4B5320" />
-          <path d="M 22 22 L 25 22 L 25 25 L 22 25 Z" fill="#4B5320" />
-          <path d="M 75 22 L 78 22 L 78 25 L 75 25 Z" fill="#4B5320" />
+          <path d="M 32 15 L 32 40 Q 32 48 40 48 L 80 48 Q 88 48 88 40 L 88 15 Q 88 5 60 5 Q 32 5 32 15 Z" fill="url(#metalGradient)" stroke="#1A2A1C" strokeWidth="2" />
+          <path d="M 28 20 L 32 18 L 32 35 L 28 33 Z" fill="#2C3E2D" />
+          <path d="M 92 20 L 88 18 L 88 35 L 92 33 Z" fill="#2C3E2D" />
           
-          <polygon points="50,3 53,10 47,10" fill="#FFD700" stroke="#B8860B" strokeWidth="0.5">
-            <animate attributeName="fill" values="#FFD700;#FFA500;#FFD700" dur="2s" repeatCount="indefinite" />
+          <polygon points="60,2 64,12 56,12" fill="url(#goldStar)" stroke="#8B6914" strokeWidth="0.5" filter="url(#glow)">
+            <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite" />
           </polygon>
+          <circle cx="60" cy="7" r="1.5" fill="#FFFACD">
+            <animate attributeName="r" values="1;2;1" dur="1.5s" repeatCount="indefinite" />
+          </circle>
           
-          <g className="transition-transform duration-100" style={{ transform: `translate(${eyePosition.x}px, ${eyePosition.y}px)` }}>
-            <ellipse cx="40" cy="32" rx="7" ry={isBlinking ? 1 : 6} fill="white" stroke="#3D4220" strokeWidth="1">
-              <animate attributeName="ry" values="6;6;1;6;6" dur="4s" repeatCount="indefinite" begin="0s" keyTimes="0;0.45;0.5;0.55;1" />
-            </ellipse>
-            <ellipse cx="60" cy="32" rx="7" ry={isBlinking ? 1 : 6} fill="white" stroke="#3D4220" strokeWidth="1">
-              <animate attributeName="ry" values="6;6;1;6;6" dur="4s" repeatCount="indefinite" begin="0s" keyTimes="0;0.45;0.5;0.55;1" />
-            </ellipse>
-            <circle cx="40" cy="33" r="3" fill="#3D4220" />
-            <circle cx="60" cy="33" r="3" fill="#3D4220" />
-            <circle cx="41" cy="31" r="1" fill="white" />
-            <circle cx="61" cy="31" r="1" fill="white" />
+          <path d="M 36 25 L 84 25 L 84 42 Q 84 45 80 45 L 40 45 Q 36 45 36 42 Z" fill="#0A1A0C" stroke="#00FF88" strokeWidth="1" opacity="0.95" />
+          
+          <g className="transition-transform duration-75" style={{ transform: `translate(${eyePosition.x * 1.2}px, ${eyePosition.y * 0.8}px)` }}>
+            <rect x="40" y="28" width="14" height={isBlinking ? 2 : 12} rx="2" fill="url(#visorGradient)" filter="url(#innerGlow)">
+              <animate attributeName="height" values="12;12;2;12;12" dur="4s" repeatCount="indefinite" keyTimes="0;0.45;0.5;0.55;1" />
+            </rect>
+            <rect x="66" y="28" width="14" height={isBlinking ? 2 : 12} rx="2" fill="url(#visorGradient)" filter="url(#innerGlow)">
+              <animate attributeName="height" values="12;12;2;12;12" dur="4s" repeatCount="indefinite" keyTimes="0;0.45;0.5;0.55;1" />
+            </rect>
+            <rect x="42" y="30" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.6" />
+            <rect x="68" y="30" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.6" />
+            <line x1="40" y1="34" x2="54" y2="34" stroke="#00FF88" strokeWidth="0.5" opacity="0.5">
+              <animate attributeName="x2" values="54;50;54" dur="0.5s" repeatCount="indefinite" />
+            </line>
+            <line x1="66" y1="34" x2="80" y2="34" stroke="#00FF88" strokeWidth="0.5" opacity="0.5">
+              <animate attributeName="x2" values="80;76;80" dur="0.5s" repeatCount="indefinite" begin="0.25s" />
+            </line>
           </g>
           
-          <path d="M 42 42 Q 50 48 58 42" fill="none" stroke="#3D4220" strokeWidth="2" strokeLinecap="round">
-            <animate attributeName="d" values="M 42 42 Q 50 48 58 42;M 42 43 Q 50 50 58 43;M 42 42 Q 50 48 58 42" dur="3s" repeatCount="indefinite" />
-          </path>
+          <line x1="56" y1="30" x2="64" y2="30" stroke="#00FF88" strokeWidth="1" opacity="0.4" />
+          <line x1="58" y1="34" x2="62" y2="34" stroke="#00FF88" strokeWidth="1" opacity="0.4" />
+          <line x1="57" y1="38" x2="63" y2="38" stroke="#00FF88" strokeWidth="1" opacity="0.4" />
           
-          <rect x="35" y="65" width="30" height="12" rx="3" fill="#3D4220" stroke="#2D3218" strokeWidth="1" />
-          <rect x="38" y="68" width="6" height="6" rx="1" fill="#4ADE80">
-            <animate attributeName="fill" values="#4ADE80;#22C55E;#4ADE80" dur="1.5s" repeatCount="indefinite" />
+          <circle cx="35" cy="30" r="2" fill="#FF3333" filter="url(#glow)">
+            <animate attributeName="opacity" values="0.5;1;0.5" dur="0.8s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="85" cy="30" r="2" fill="#FF3333" filter="url(#glow)">
+            <animate attributeName="opacity" values="0.5;1;0.5" dur="0.8s" repeatCount="indefinite" begin="0.4s" />
+          </circle>
+          
+          <rect x="36" y="55" width="8" height="2" fill="#00FF88" opacity="0.3">
+            <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite" />
           </rect>
-          <rect x="47" y="68" width="6" height="6" rx="1" fill="#FFA500">
-            <animate attributeName="fill" values="#FFA500;#FF8C00;#FFA500" dur="2s" repeatCount="indefinite" />
-          </rect>
-          <rect x="56" y="68" width="6" height="6" rx="1" fill="#DC143C">
-            <animate attributeName="fill" values="#DC143C;#B22222;#DC143C" dur="1.8s" repeatCount="indefinite" />
+          <rect x="76" y="55" width="8" height="2" fill="#00FF88" opacity="0.3">
+            <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite" begin="1.5s" />
           </rect>
           
-          <circle cx="28" cy="32" r="3" fill="#8B0000" opacity="0.7">
-            <animate attributeName="opacity" values="0.7;1;0.7" dur="1s" repeatCount="indefinite" />
-          </circle>
-          <circle cx="72" cy="32" r="3" fill="#8B0000" opacity="0.7">
-            <animate attributeName="opacity" values="0.7;1;0.7" dur="1s" repeatCount="indefinite" begin="0.5s" />
-          </circle>
+          <text x="60" y="63" textAnchor="middle" fill="#00FF88" fontSize="5" fontFamily="monospace" opacity="0.7">FACER-C</text>
         </svg>
       </div>
 
