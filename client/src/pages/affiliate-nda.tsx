@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -564,12 +564,16 @@ export default function AffiliateNda() {
     );
   }
 
-  if (!authData || authData.user?.role !== "affiliate") {
-    return null;
+  if (!authData) {
+    return <Redirect to="/affiliate/login" />;
+  }
+
+  if (authData.user?.role !== "affiliate") {
+    return <Redirect to="/login" />;
   }
 
   if (ndaStatus?.hasSigned) {
-    return null;
+    return <Redirect to="/affiliate/dashboard" />;
   }
 
   const today = new Date().toLocaleDateString("en-US", { 

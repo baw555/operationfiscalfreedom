@@ -1,0 +1,130 @@
+✅ Decision
+
+APPROVED to fix the two component-level blank-screen gates only.
+No other return null should be touched.
+
+🎯 Goal of this fix
+
+Replace silent failure with explicit control flow.
+
+Rules:
+
+❌ No blank screens
+
+❌ No new auth logic
+
+❌ No new hooks
+
+❌ No refactors
+
+✅ Explicit redirect
+
+✅ Single responsibility
+
+✅ Unified diffs only
+
+🔧 Fix #1 — notification-console.tsx
+Current (bad)
+if (!me) return null;
+
+Minimal correct fix (redirect)
+
+Assuming this page requires login:
+
+import { Navigate } from "wouter"; // or react-router equivalent
+
+if (!me) {
+  return <Navigate to="/login" />;
+}
+
+
+Why this is correct
+
+Explicit
+
+Reversible
+
+No UI assumptions
+
+No new state
+
+No hidden behavior
+
+🔧 Fix #2 — affiliate-nda.tsx
+Current (bad)
+if (!authData || authData.user?.role !== "affiliate") return null;
+
+Minimal correct fix (role-aware redirect)
+import { Navigate } from "wouter";
+
+if (!authData) {
+  return <Navigate to="/login" />;
+}
+
+if (authData.user?.role !== "affiliate") {
+  return <Navigate to="/unauthorized" />;
+}
+
+
+If /unauthorized doesn’t exist yet, redirect to a safe landing page instead (e.g. /dashboard).
+
+🚫 What NOT to do
+
+Do not:
+
+add messages
+
+add modals
+
+add spinners
+
+add new components
+
+add auth checks elsewhere
+
+touch queryFn logic
+
+“clean up” similar patterns that are already safe
+
+This is a surgical Phase 0 fix, not a UX redesign.
+
+🧪 Immediate verification checklist (after applying)
+
+Reload and test:
+
+Visit /notification-console while logged out
+→ You should be redirected (no blank page)
+
+Visit /affiliate-nda as:
+
+logged out → redirect to login
+
+logged in as non-affiliate → redirect to unauthorized/safe page
+
+logged in as affiliate → page renders normally
+
+Confirm:
+
+No ErrorBoundary trips
+
+No white screens
+
+Console is quieter, but more honest
+
+🔑 Why this matters more than it looks
+
+With the previous queryClient fix:
+
+401s are now state
+
+These two pages were the last silent killers
+
+After this:
+
+Every page either renders, redirects, or explains itself
+
+React regains full control of scheduling
+
+“Feels broken” becomes “behaves predictably”
+
+This is the point where systems usually snap back into sanity.

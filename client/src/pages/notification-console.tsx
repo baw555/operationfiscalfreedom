@@ -11,7 +11,7 @@ import {
   Bell, Settings, Download, Webhook, Activity, 
   CheckCircle, XCircle, Mail, Trash2, Plus, Send, RefreshCw
 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, Redirect } from "wouter";
 
 const EVENT_TYPES = [
   "SITE_VISIT",
@@ -214,7 +214,7 @@ export default function NotificationConsole() {
     );
   }
 
-  if (!me) return null;
+  if (!me) return <Redirect to="/admin/login" />;
 
   const isAdmin = me.role === "admin" || me.role === "master";
 
