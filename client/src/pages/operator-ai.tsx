@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { VeteranAuthGate } from "@/components/veteran-auth-gate";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -249,7 +249,6 @@ export default function OperatorAI() {
   }, []);
 
   return (
-    <VeteranAuthGate serviceName="Operator AI">
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-950 to-gray-900">
         {/* Classified Header Animation */}
@@ -761,6 +760,5 @@ export default function OperatorAI() {
         </div>
       </div>
     </Layout>
-    </VeteranAuthGate>
   );
 }

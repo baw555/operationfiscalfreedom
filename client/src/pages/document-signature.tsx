@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { RangerAuthGate } from "@/components/ranger-auth-gate";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -582,7 +582,6 @@ export default function DocumentSignature() {
   };
 
   return (
-    <RangerAuthGate>
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
         <style>{`
@@ -2560,6 +2559,5 @@ Example: 'John Doe from Acme Corp - john@acme.com, 555-123-4567, 123 Main St, Ch
         </DialogContent>
       </Dialog>
     </Layout>
-    </RangerAuthGate>
   );
 }

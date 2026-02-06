@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { VeteranAuthGate } from "@/components/veteran-auth-gate";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -602,7 +602,6 @@ export default function ClaimsNavigator() {
   if (myCases && myCases.length > 0 && step !== "dashboard" && !activeCaseId) {
     return (
       <Layout>
-        <VeteranAuthGate serviceName="Claims Navigator">
           <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
             <div className="container mx-auto px-4 py-12">
               <div className="max-w-4xl mx-auto">
@@ -661,7 +660,6 @@ export default function ClaimsNavigator() {
               </div>
             </div>
           </div>
-        </VeteranAuthGate>
       </Layout>
     );
   }
@@ -669,7 +667,6 @@ export default function ClaimsNavigator() {
   if (step === "dashboard" && activeCaseId) {
     return (
       <Layout>
-        <VeteranAuthGate serviceName="Claims Navigator">
           <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
             <div className="container mx-auto px-4 py-8">
               <div className="max-w-6xl mx-auto">
@@ -1710,14 +1707,12 @@ export default function ClaimsNavigator() {
               </div>
             </div>
           </div>
-        </VeteranAuthGate>
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <VeteranAuthGate serviceName="Claims Navigator">
         <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
           <div className="container mx-auto px-4 py-12">
             <div className="max-w-3xl mx-auto">
@@ -1967,7 +1962,6 @@ export default function ClaimsNavigator() {
             </div>
           </div>
         </div>
-      </VeteranAuthGate>
     </Layout>
   );
 }

@@ -3,7 +3,6 @@ import helmet from "helmet";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { seedPayziumData } from "./seeds/payziumSeed";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { createServer } from "http";
 import path from "path";
 import { startQueueRunner } from "./queueService";
@@ -116,10 +115,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Setup Replit Auth BEFORE other routes
-  await setupAuth(app);
-  registerAuthRoutes(app);
-  
   await registerRoutes(httpServer, app);
   
   // Run seed data for Payzium (Maurice Verrelli account and templates)

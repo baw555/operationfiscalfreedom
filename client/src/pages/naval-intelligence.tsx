@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { VeteranAuthGate } from "@/components/veteran-auth-gate";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -1143,7 +1143,6 @@ export default function NavalIntelligence() {
   const totalDuration = generations.reduce((sum, g) => sum + (g.duration || 0), 0);
 
   return (
-    <VeteranAuthGate serviceName="Generative AI">
     <Layout>
       <div className="bg-gradient-to-b from-gray-50 to-white">
         {/* Enhanced Hero Section */}
@@ -1933,6 +1932,5 @@ export default function NavalIntelligence() {
         </section>
       </div>
     </Layout>
-    </VeteranAuthGate>
   );
 }
