@@ -3859,8 +3859,9 @@ export async function registerRoutes(
     }
   });
 
-  // Sign affiliate NDA - delegates to action layer
-  app.post("/api/affiliate/sign-nda", requireAffiliate, async (req, res) => {
+  // Sign affiliate NDA - canonical action endpoint
+  // No panel talks to the database. No panel decides "this counts."
+  const handleNdaSubmit = async (req: any, res: any) => {
     const userId = req.session.userId;
     
     if (!userId) {
@@ -3884,6 +3885,8 @@ export async function registerRoutes(
       } else if (req.socket?.remoteAddress) {
         ipAddress = req.socket.remoteAddress;
       }
+
+      const userAgent = req.headers['user-agent'] || 'unknown';
 
       console.log(`[NDA Sign] IP detection: forwarded=${forwardedFor}, realIp=${realIp}, socket=${req.socket?.remoteAddress}, resolved=${ipAddress}`);
 
@@ -3909,6 +3912,7 @@ export async function registerRoutes(
         degradedCapabilities,
         degradedFeatures,
         ipAddress,
+        userAgent,
         req,
       });
 
@@ -3945,7 +3949,10 @@ export async function registerRoutes(
         retryable: true
       });
     }
-  });
+  };
+
+  app.post("/api/actions/submit-affiliate-nda", requireAffiliate, handleNdaSubmit);
+  app.post("/api/affiliate/sign-nda", requireAffiliate, handleNdaSubmit);
 
   // Session heartbeat - renew session on form focus to prevent timeout during long form fills
   app.post("/api/session/heartbeat", (req, res) => {

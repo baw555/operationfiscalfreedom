@@ -135,7 +135,7 @@ export function FormFieldsPanel() {
 
   const signNdaMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await fetch("/api/affiliate/sign-nda", {
+      const res = await fetch("/api/actions/submit-affiliate-nda", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
