@@ -1,0 +1,119 @@
+OPTION B — GUARDRAILS (LOCK IT IN)
+What we’re preventing (explicitly)
+
+❌ Component-level return null for auth
+
+❌ Global query crashes on 401
+
+❌ Root-level auth/data gating
+
+❌ Silent blank screens
+
+We’ll do this with three guardrails:
+
+ESLint rules (mechanical)
+
+A tiny runtime assertion (dev-only)
+
+A standing instruction block for Replit
+
+1️⃣ ESLint Guardrails (10 minutes)
+
+Add a single ESLint override to block the exact failure mode you hit.
+
+A. Create / update .eslintrc.cjs (or .eslintrc.js)
+
+Add this override (do not touch existing rules):
+
+module.exports = {
+  // keep existing config
+  overrides: [
+    {
+      files: ["client/src/pages/**/*.tsx"],
+      rules: {
+        // Disallow silent blank screens at component root
+        "no-restricted-syntax": [
+          "error",
+          {
+            selector:
+              "IfStatement > ReturnStatement[argument=null]",
+            message:
+              "Do not return null from page components. Use <Redirect>, <AuthBoundary>, or explicit UI.",
+          },
+        ],
+      },
+    },
+  ],
+};
+
+
+What this does
+
+ONLY affects page-level components
+
+Allows null in helpers, queryFns, subcomponents
+
+Fails the build if someone adds if (!auth) return null;
+
+This directly prevents regression.
+
+2️⃣ Runtime Guardrail (Dev-only, tiny)
+
+This catches violations even if ESLint is bypassed.
+
+A. Add a dev assertion to AppShell.tsx
+if (process.env.NODE_ENV === "development") {
+  // Guardrail: AppShell must never import auth or data hooks
+  // This is intentionally crude and effective
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const forbidden = ["useAuth", "useQuery"];
+  forbidden.forEach((name) => {
+    if ((globalThis as any)[name]) {
+      throw new Error(
+        `Guardrail violation: ${name} used in AppShell`
+      );
+    }
+  });
+}
+
+
+Why this is okay
+
+Dev-only
+
+Fail-fast
+
+Makes violations obvious immediately
+
+Zero prod impact
+
+3️⃣ Query Guardrail (documented, not code)
+
+You already fixed the behavior. Now we lock the rule.
+
+Add this comment once, right above the queryClient config:
+
+// GUARDRAIL:
+// Auth failures (401) must resolve to state, not throw.
+// Throwing here crashes the React tree and breaks concurrency.
+// Do not change on401 behavior without architectural review.
+
+
+This prevents “helpful” future changes.
+
+4️⃣ Replit Standing Instruction (copy-paste forever)
+
+Before asking Replit to touch UI code, paste this:
+
+Hard guardrails (do not violate):
+
+- Never return null from a page component for auth or permissions
+- No auth or data hooks in AppShell
+- 401 responses must resolve to state, not throw
+- Auth gating must use Redirect or AuthBoundary
+- Blank screens are considered bugs
+
+If a request conflicts with these rules, stop and ask.
+
+
+This dramatically improves agent behavior.

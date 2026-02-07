@@ -41,6 +41,10 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
+// GUARDRAIL:
+// Auth failures (401) must resolve to state, not throw.
+// Throwing here crashes the React tree and breaks concurrency.
+// Do not change on401 behavior without architectural review.
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

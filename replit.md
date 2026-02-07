@@ -59,6 +59,21 @@ The database supports user management, affiliate applications, support requests,
 - **Immutable Audit Trail**: Hash-chained notification audit logs for verification.
 - **Global Legal Signature System**: A platform-wide, fail-closed legal document signing system with `requireLegalClearance()` middleware, unified signature mirroring, atomic and idempotent signing, version and hash locked documents, and auto-healing on login. Supports admin override with full audit trails and external e-sign integrations.
 
+## Hard Guardrails (do not violate)
+- Never return null from a page component for auth or permissions
+- No auth or data hooks in App.tsx / root shell
+- 401 responses must resolve to state, not throw (see queryClient.ts)
+- Auth gating must use `<Redirect>` or explicit UI — never silent `return null`
+- Blank screens are considered bugs
+- If a request conflicts with these rules, stop and ask
+- ESLint enforces `no-restricted-syntax` on `client/src/pages/**/*.tsx` to catch `return null` at page level
+
+## Phase 0 Changes (Feb 2026)
+- Removed dead Replit Auth OIDC (server + client gate components)
+- Changed queryClient default from `on401: "throw"` to `on401: "returnNull"`
+- Replaced blank-screen `return null` with `<Redirect>` in notification-console.tsx and affiliate-nda.tsx
+- Simplified PlatformDisclaimerModal JSX for UX clarity (logic unchanged)
+
 ## External Dependencies
 - **PostgreSQL**: Primary database.
 - **Drizzle ORM**: For database interaction.
