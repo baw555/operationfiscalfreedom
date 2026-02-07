@@ -228,15 +228,18 @@ export function CameraCaptureCard({
   facePhoto,
   onPhotoCapture,
   onPhotoRemove,
+  onCapabilityChange,
 }: {
   facePhoto: string | null;
   onPhotoCapture: (photo: string) => void;
   onPhotoRemove: () => void;
+  onCapabilityChange?: (status: "available" | "unavailable" | "degraded") => void;
 }) {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const pendingStreamRef = useRef<MediaStream | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraUnavailable, setCameraUnavailable] = useState(false);
 
   const startCamera = useCallback(async () => {
     try {
@@ -249,15 +252,19 @@ export function CameraCaptureCard({
       });
       pendingStreamRef.current = stream;
       setIsCameraActive(true);
+      setCameraUnavailable(false);
+      onCapabilityChange?.("available");
     } catch (err: any) {
       console.error("Camera error:", err);
-      let message = "Please allow camera access to capture your face photo.";
+      setCameraUnavailable(true);
+      onCapabilityChange?.("unavailable");
+      let message = "Camera is not available on this device.";
       if (err.name === "NotFoundError") message = "No camera found on this device.";
-      else if (err.name === "NotAllowedError") message = "Camera permission denied. Please enable camera access in your browser settings.";
+      else if (err.name === "NotAllowedError") message = "Camera permission was denied.";
       else if (err.name === "NotReadableError") message = "Camera is in use by another application.";
-      toast({ title: "Camera Access Failed", description: message, variant: "destructive" });
+      toast({ title: "Camera Not Available", description: message + " You can still complete the NDA without a face photo.", variant: "default" });
     }
-  }, [toast]);
+  }, [toast, onCapabilityChange]);
 
   useEffect(() => {
     if (isCameraActive && pendingStreamRef.current && videoRef.current) {
@@ -319,9 +326,19 @@ export function CameraCaptureCard({
     <div className="space-y-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200" data-testid="camera-capture-card">
       <div className="flex items-center gap-2">
         <Camera className="w-5 h-5 text-blue-600" />
-        <Label className="text-blue-800 font-bold">Face Photo Verification *</Label>
+        <Label className="text-blue-800 font-bold">Face Photo Verification (Optional)</Label>
       </div>
-      <p className="text-sm text-blue-700">For identity verification, please capture a clear photo of your face using your camera.</p>
+      <p className="text-sm text-blue-700">For identity verification, you may capture a photo of your face using your camera. This is optional.</p>
+
+      {cameraUnavailable && !facePhoto && (
+        <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg" data-testid="camera-unavailable-warning">
+          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-amber-800">Camera access is unavailable.</p>
+            <p className="text-xs text-amber-700 mt-0.5">You can still complete and sign the NDA without a face photo.</p>
+          </div>
+        </div>
+      )}
 
       {!facePhoto ? (
         <div className="space-y-3">
@@ -339,10 +356,16 @@ export function CameraCaptureCard({
               </Button>
             </div>
           </div>
-          {!isCameraActive && (
+          {!isCameraActive && !cameraUnavailable && (
             <Button type="button" onClick={startCamera} className="bg-blue-600 hover:bg-blue-700" data-testid="button-start-camera">
               <Camera className="w-4 h-4 mr-2" />
               Start Camera
+            </Button>
+          )}
+          {cameraUnavailable && (
+            <Button type="button" variant="outline" size="sm" onClick={() => { setCameraUnavailable(false); startCamera(); }} data-testid="button-retry-camera">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Camera Again
             </Button>
           )}
         </div>
@@ -369,13 +392,16 @@ export function IdUploadCard({
   idFileName,
   onUpload,
   onRemove,
+  onCapabilityChange,
 }: {
   idPhoto: string | null;
   idFileName: string;
   onUpload: (photo: string, fileName: string) => void;
   onRemove: () => void;
+  onCapabilityChange?: (status: "available" | "unavailable" | "degraded") => void;
 }) {
   const { toast } = useToast();
+  const [uploadFailed, setUploadFailed] = useState(false);
 
   const handleIdUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -383,15 +409,26 @@ export function IdUploadCard({
       const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
       if (!allowedTypes.includes(file.type)) {
         toast({ title: "Invalid File Type", description: "Please upload an image file (JPG, PNG, GIF, or WebP).", variant: "destructive" });
+        setUploadFailed(true);
+        onCapabilityChange?.("degraded");
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        toast({ title: "File Too Large", description: "Please upload an image under 10MB.", variant: "destructive" });
+        toast({ title: "File Too Large", description: "Please upload an image under 10MB. You may continue without it.", variant: "default" });
+        setUploadFailed(true);
+        onCapabilityChange?.("degraded");
         return;
       }
       const reader = new FileReader();
       reader.onload = () => {
         onUpload(reader.result as string, file.name);
+        setUploadFailed(false);
+        onCapabilityChange?.("available");
+      };
+      reader.onerror = () => {
+        toast({ title: "Upload Failed", description: "Could not read the file. You may continue without it.", variant: "default" });
+        setUploadFailed(true);
+        onCapabilityChange?.("degraded");
       };
       reader.readAsDataURL(file);
     }
@@ -401,9 +438,19 @@ export function IdUploadCard({
     <div className="space-y-3 p-4 bg-amber-50 rounded-lg border-2 border-amber-200" data-testid="id-upload-card">
       <div className="flex items-center gap-2">
         <Upload className="w-5 h-5 text-amber-600" />
-        <Label className="text-amber-800 font-bold">ID Document Upload *</Label>
+        <Label className="text-amber-800 font-bold">ID Document Upload (Optional)</Label>
       </div>
-      <p className="text-sm text-amber-700">Upload a clear photo of your government-issued ID (driver's license, passport, military ID, etc.)</p>
+      <p className="text-sm text-amber-700">Upload a clear photo of your government-issued ID (driver's license, passport, military ID, etc.). This is optional.</p>
+
+      {uploadFailed && !idPhoto && (
+        <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg" data-testid="upload-failed-info">
+          <AlertTriangle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-blue-800">ID upload encountered an issue.</p>
+            <p className="text-xs text-blue-700 mt-0.5">You may continue without it. We can request it later if needed.</p>
+          </div>
+        </div>
+      )}
 
       {!idPhoto ? (
         <div className="space-y-2">

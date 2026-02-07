@@ -1,5 +1,12 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
+type CapabilityStatus = "available" | "unavailable" | "degraded";
+
+interface NdaCapabilities {
+  camera: CapabilityStatus;
+  upload: CapabilityStatus;
+}
+
 interface NdaFormFields {
   fullName: string;
   veteranNumber: string;
@@ -26,11 +33,14 @@ interface NdaFormStore {
   setIdPhoto: (photo: string | null, fileName?: string) => void;
   signature: SignatureState;
   setSignature: (sig: SignatureState) => void;
+  capabilities: NdaCapabilities;
+  setCapability: (key: keyof NdaCapabilities, status: CapabilityStatus) => void;
   getSnapshot: () => {
     formFields: NdaFormFields;
     facePhoto: string | null;
     idPhoto: string | null;
     signature: SignatureState;
+    capabilities: NdaCapabilities;
   };
 }
 
@@ -60,6 +70,10 @@ export function NdaFormProvider({ children }: { children: ReactNode }) {
     strokeCount: 0,
     hasContent: false,
   });
+  const [capabilities, setCapabilities] = useState<NdaCapabilities>({
+    camera: "available",
+    upload: "available",
+  });
 
   const updateField = useCallback(<K extends keyof NdaFormFields>(key: K, value: NdaFormFields[K]) => {
     setFormFields((prev) => ({ ...prev, [key]: value }));
@@ -70,12 +84,17 @@ export function NdaFormProvider({ children }: { children: ReactNode }) {
     setIdFileName(fileName || "");
   }, []);
 
+  const setCapability = useCallback((key: keyof NdaCapabilities, status: CapabilityStatus) => {
+    setCapabilities((prev) => ({ ...prev, [key]: status }));
+  }, []);
+
   const getSnapshot = useCallback(() => ({
     formFields,
     facePhoto,
     idPhoto,
     signature,
-  }), [formFields, facePhoto, idPhoto, signature]);
+    capabilities,
+  }), [formFields, facePhoto, idPhoto, signature, capabilities]);
 
   return (
     <NdaFormContext.Provider
@@ -90,6 +109,8 @@ export function NdaFormProvider({ children }: { children: ReactNode }) {
         setIdPhoto,
         signature,
         setSignature,
+        capabilities,
+        setCapability,
         getSnapshot,
       }}
     >

@@ -65,7 +65,7 @@ export function LegalTextPanel() {
 }
 
 export function SignaturePanel() {
-  const { facePhoto, setFacePhoto, setSignature } = useNdaForm();
+  const { facePhoto, setFacePhoto, setSignature, setCapability } = useNdaForm();
 
   return (
     <div className="space-y-6" data-testid="signature-panel">
@@ -73,6 +73,7 @@ export function SignaturePanel() {
         facePhoto={facePhoto}
         onPhotoCapture={setFacePhoto}
         onPhotoRemove={() => setFacePhoto(null)}
+        onCapabilityChange={(status) => setCapability("camera", status)}
       />
       <SignaturePad onSignatureChange={setSignature} />
     </div>
@@ -80,7 +81,7 @@ export function SignaturePanel() {
 }
 
 export function UploadPanel() {
-  const { idPhoto, idFileName, setIdPhoto } = useNdaForm();
+  const { idPhoto, idFileName, setIdPhoto, setCapability } = useNdaForm();
 
   return (
     <div data-testid="upload-panel">
@@ -89,6 +90,7 @@ export function UploadPanel() {
         idFileName={idFileName}
         onUpload={(photo, fileName) => setIdPhoto(photo, fileName)}
         onRemove={() => setIdPhoto(null)}
+        onCapabilityChange={(status) => setCapability("upload", status)}
       />
     </div>
   );
@@ -152,7 +154,7 @@ export function FormFieldsPanel() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { formFields: fields, facePhoto, idPhoto, signature } = getSnapshot();
+    const { formFields: fields, facePhoto, idPhoto, signature, capabilities } = getSnapshot();
 
     if (!fields.agreedToTerms) {
       toast({ title: "Please agree to the terms", variant: "destructive" });
@@ -169,16 +171,6 @@ export function FormFieldsPanel() {
       return;
     }
 
-    if (!facePhoto) {
-      toast({ title: "Face Photo Required", description: "Please capture your face using the camera.", variant: "destructive" });
-      return;
-    }
-
-    if (!idPhoto) {
-      toast({ title: "ID Upload Required", description: "Please upload a photo of your ID document.", variant: "destructive" });
-      return;
-    }
-
     if (!signature.hasDrawn || signature.strokeCount < 2 || !signature.hasContent) {
       toast({ title: "Signature Required", description: "Please sign your full name in the signature box. A meaningful signature with multiple strokes is required.", variant: "destructive" });
       return;
@@ -192,8 +184,12 @@ export function FormFieldsPanel() {
     signNdaMutation.mutate({
       ...fields,
       signatureData: signature.signatureData,
-      facePhoto,
-      idPhoto,
+      facePhoto: facePhoto || null,
+      idPhoto: idPhoto || null,
+      degradedCapabilities: {
+        camera: capabilities.camera,
+        upload: capabilities.upload,
+      },
     });
   };
 

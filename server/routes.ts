@@ -3867,7 +3867,7 @@ export async function registerRoutes(
     }
 
     try {
-      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms } = req.body;
+      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms, degradedCapabilities } = req.body;
       
       // Validate required fields
       if (!fullName || typeof fullName !== 'string' || fullName.trim().length < 2) {
@@ -3882,12 +3882,12 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Your signature is required - please sign in the signature box" });
       }
       
-      if (!facePhoto || typeof facePhoto !== 'string' || !facePhoto.startsWith('data:image/')) {
-        return res.status(400).json({ message: "Face photo is required - please capture your face using webcam" });
+      if (facePhoto && (typeof facePhoto !== 'string' || !facePhoto.startsWith('data:image/'))) {
+        return res.status(400).json({ message: "Face photo must be a valid image if provided" });
       }
       
-      if (!idPhoto || typeof idPhoto !== 'string' || !idPhoto.startsWith('data:image/')) {
-        return res.status(400).json({ message: "ID document upload is required - must be an image file" });
+      if (idPhoto && (typeof idPhoto !== 'string' || !idPhoto.startsWith('data:image/'))) {
+        return res.status(400).json({ message: "ID document must be a valid image if provided" });
       }
       
       if (agreedToTerms !== true && agreedToTerms !== 'true') {
@@ -3924,6 +3924,15 @@ export async function registerRoutes(
       }
       
       console.log(`[NDA Sign] IP detection: forwarded=${forwardedFor}, realIp=${realIp}, socket=${req.socket?.remoteAddress}, resolved=${ipAddress}`);
+      
+      if (degradedCapabilities) {
+        console.log(`[NDA Sign] Degraded submission for user ${userId}:`, {
+          camera: degradedCapabilities.camera || 'not-reported',
+          upload: degradedCapabilities.upload || 'not-reported',
+          hasFacePhoto: !!facePhoto,
+          hasIdPhoto: !!idPhoto,
+        });
+      }
       
       // ATOMIC + IDEMPOTENT: Single transaction for referral code + NDA creation
       // Prevents race conditions and partial state (code updated but NDA failed, or vice versa)
