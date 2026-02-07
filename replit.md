@@ -35,7 +35,20 @@ Business logic is extracted from routes into action functions. Each action:
 
 Current actions:
 - `submit-affiliate-nda.ts` — NDA signing with transactional event emission and degraded feature handling
+- `auth/affiliateSignup.ts` — Affiliate signup with validation, duplicate email check, user creation, best-effort application storage, and AFFILIATE_SIGNUP event emission. Session handling stays in route wrapper.
 - `emit-event.ts` — Generic fire-and-forget event emitter (for non-critical, outside-transaction use)
+
+### Platform Layer (`server/platform/`)
+Standardized infrastructure utilities — no business logic, just plumbing.
+- `errors.ts` — `ApiError` class with `badRequest()`, `unauthorized()`, `forbidden()` factory functions
+- `route.ts` — `route()` async wrapper: catches ApiError (structured JSON), guards headersSent, logs method/path on 500s, attaches typed `req.ctx` (RequestContext)
+- `requestContext.ts` — `getRequestContext(req)` returning `{ ip, userAgent, requestId }` with `crypto.randomUUID()` and validated x-request-id
+- `mailer.ts` — `sendMail()` canonical email entry point, delegates to `sendEmailWithRetry()`
+
+### Frontend Foundation (`client/src/lib/`)
+- `queryKeys.ts` — Canonical `qk` object for TanStack Query keys (me, ndaStatus, scheduleAStatus). Not yet adopted by pages.
+- `api.ts` — Safe `api<T>(url)` GET wrapper with typed `ApiError`. Not yet adopted by pages.
+- `queryClient.ts` — Existing: `apiRequest()` for mutations, `getQueryFn()` for legacy GETs
 
 ### Events Table
 Platform-wide append-only event log (`events` table):
