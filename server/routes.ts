@@ -3869,7 +3869,7 @@ export async function registerRoutes(
     }
 
     try {
-      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms, degradedCapabilities, degradedFeatures } = req.body;
+      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms, degradedCapabilities, degradedFeatures, idempotencyKey } = req.body;
 
       const forwardedFor = req.headers['x-forwarded-for'];
       const realIp = req.headers['x-real-ip'];
@@ -3913,6 +3913,7 @@ export async function registerRoutes(
         degradedFeatures,
         ipAddress,
         userAgent,
+        idempotencyKey,
         req,
       });
 

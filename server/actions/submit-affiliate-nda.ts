@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { affiliateNda, events, users } from "@shared/schema";
+import { affiliateNda, events, users, idempotencyKeys } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { LEGAL_DOCS, signLegalDocumentAtomic, hashDocument } from "../legal-system";
 import type { Request } from "express";
@@ -28,6 +28,7 @@ interface SubmitNdaInput {
   degradedFeatures?: DegradedReport[];
   ipAddress: string;
   userAgent?: string;
+  idempotencyKey?: string;
   req: Request;
 }
 
@@ -49,6 +50,7 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
     degradedCapabilities,
     degradedFeatures,
     ipAddress,
+    idempotencyKey,
     req,
   } = input;
 
@@ -103,10 +105,34 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
     }
   }
 
+  if (idempotencyKey && typeof idempotencyKey === "string") {
+    const [existingKey] = await db.select().from(idempotencyKeys).where(eq(idempotencyKeys.key, idempotencyKey));
+    if (existingKey) {
+      if (existingKey.userId !== userId) {
+        return { ok: false, code: 400, message: "Invalid request" };
+      }
+      if (existingKey.entityId) {
+        const [nda] = await db.select().from(affiliateNda).where(eq(affiliateNda.id, existingKey.entityId));
+        if (nda) {
+          console.log(`[NDA Sign] Idempotency key hit: key=${idempotencyKey}, ndaId=${nda.id}`);
+          return { ok: true, ndaId: nda.id, status: "accepted", degraded, nda, alreadySigned: true };
+        }
+      }
+    }
+  }
+
   try {
     const txResult = await db.transaction(async (tx) => {
       const [existing] = await tx.select().from(affiliateNda).where(eq(affiliateNda.userId, userId));
       if (existing) {
+        if (idempotencyKey) {
+          await tx.insert(idempotencyKeys).values({
+            key: idempotencyKey,
+            userId,
+            action: "submitAffiliateNda",
+            entityId: existing.id,
+          }).onConflictDoNothing();
+        }
         return { nda: existing, alreadySigned: true as const };
       }
 
@@ -129,6 +155,15 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
         signedIpAddress: ipAddress,
         agreedToTerms: "true",
       }).returning();
+
+      if (idempotencyKey) {
+        await tx.insert(idempotencyKeys).values({
+          key: idempotencyKey,
+          userId,
+          action: "submitAffiliateNda",
+          entityId: created.id,
+        });
+      }
 
       await tx.insert(events).values({
         eventType: "NDA_SUBMITTED",
@@ -167,7 +202,7 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
     });
 
     if ("error" in txResult) {
-      return { ok: false, code: txResult.code, message: txResult.message };
+      return { ok: false, code: txResult.code as number, message: txResult.message as string };
     }
 
     try {

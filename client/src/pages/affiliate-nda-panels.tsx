@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, Redirect } from "wouter";
 import { Input } from "@/components/ui/input";
@@ -132,6 +132,7 @@ export function FormFieldsPanel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { formFields, updateField, getSnapshot } = useNdaForm();
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   const signNdaMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -226,6 +227,10 @@ export function FormFieldsPanel() {
       return;
     }
 
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = `nda_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    }
+
     signNdaMutation.mutate({
       ...fields,
       signatureData: signature.signatureData,
@@ -236,6 +241,7 @@ export function FormFieldsPanel() {
         upload: capabilities.upload,
       },
       degradedFeatures: degradedReports.length > 0 ? degradedReports : undefined,
+      idempotencyKey: idempotencyKeyRef.current,
     });
   };
 
