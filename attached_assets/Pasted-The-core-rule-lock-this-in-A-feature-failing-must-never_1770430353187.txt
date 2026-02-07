@@ -1,0 +1,189 @@
+The core rule (lock this in)
+
+A feature failing must never block progress unless it is legally or logically required.
+
+That’s it. Everything flows from this.
+
+For the NDA flow, the only hard requirement is:
+
+a valid NDA submission (signature + required fields)
+
+Everything else (camera, upload, previews, helpers) is assistive, not authoritative.
+
+The correct mental model
+
+Each panel answers one question:
+
+❓ Is this capability available right now?
+
+❓ If not, is there an allowed fallback?
+
+The page does not ask:
+
+“Did everything succeed?”
+
+It asks:
+
+“Do I have the minimum required evidence to proceed?”
+
+Step 1 — Define REQUIRED vs OPTIONAL explicitly
+
+Do this once, in writing (or code comments):
+
+✅ REQUIRED (hard gate)
+
+NDA legal text accepted
+
+Signature captured by any valid method
+
+Required form fields valid
+
+🟡 OPTIONAL (soft gate)
+
+Camera-based signature
+
+ID upload
+
+Preview generation
+
+Any assistive automation
+
+If an optional feature fails → warn, degrade, continue.
+
+Step 2 — Represent capability state (simple, powerful)
+
+In your affiliate-nda-context.tsx, add capability flags, not booleans like “error”.
+
+Example:
+
+type CapabilityStatus = "available" | "unavailable" | "degraded";
+
+interface NdaCapabilities {
+  camera: CapabilityStatus;
+  upload: CapabilityStatus;
+}
+
+
+Each panel sets its own status:
+
+setCapabilities((c) => ({
+  ...c,
+  camera: "unavailable",
+}));
+
+
+No global “failed” flag.
+
+Step 3 — Panels must never block submission
+❌ Bad (what causes dead ends)
+if (!cameraReady) {
+  return <Error />;
+}
+
+✅ Correct
+if (cameraUnavailable) {
+  return (
+    <Warning>
+      Camera unavailable. You may continue using typed signature.
+    </Warning>
+  );
+}
+
+
+The panel communicates, not controls.
+
+Step 4 — Submission logic checks only REQUIRED inputs
+
+Your submit button logic should look like this (conceptually):
+
+const canSubmit =
+  hasAcceptedLegalText &&
+  hasValidSignature &&
+  formIsValid;
+
+
+❌ No checks for:
+
+camera success
+
+upload success
+
+preview success
+
+Those may add evidence, but they do not block progress.
+
+Step 5 — Make degradation visible but non-blocking
+
+This is critical for trust.
+
+Example UI copy (simple and honest):
+
+⚠️ Camera access is unavailable.
+You can still complete the NDA using a typed signature.
+
+Or:
+
+ℹ️ ID upload failed.
+You may continue, and we’ll request it later if required.
+
+No scary language. No red stop signs.
+
+Step 6 — Log degraded submissions (for ops, not UX)
+
+Behind the scenes, tag the submission:
+
+degradedCapabilities: {
+  camera: "unavailable",
+  upload: "available",
+}
+
+
+This lets you:
+
+audit later
+
+follow up if needed
+
+improve tooling
+
+But never surface this as a blocker to the user.
+
+Step 7 — Why this is legally and operationally safe
+
+This is important.
+
+You are not weakening compliance because:
+
+the legal artifact (NDA + signature) is intact
+
+the user intent is recorded
+
+optional evidence is clearly marked as unavailable, not missing
+
+Courts and auditors care about:
+
+intent
+
+acknowledgment
+
+integrity
+
+Not whether a webcam worked.
+
+What this buys you immediately
+
+Affiliates are never stuck
+
+Hardware failures don’t kill conversions
+
+Support tickets drop
+
+You stop debugging edge-case browsers
+
+The system behaves like a real platform, not a demo
+
+One sentence to enforce everywhere
+
+Optional features may fail loudly; required steps may never fail silently.
+
+You’ve already built the structure that makes this easy — this is just using it correctly.
