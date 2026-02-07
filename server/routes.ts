@@ -7,7 +7,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { db } from "./db";
 import { LEGAL_DOCS, getLegalStatus, signLegalDocumentAtomic, healLegalStateOnLogin, createLegalOverride, legalSystemHealthCheck, generateEvidenceBundle, processExternalEsignCallback, runLegalTestBot, requireLegalClearance, hashDocument } from "./legal-system";
-import { submitAffiliateNda } from "./actions/submit-affiliate-nda";
+import { submitAffiliateNda } from "./actions/nda/submitAffiliateNda";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
@@ -3922,10 +3922,10 @@ export async function registerRoutes(
       }
 
       if (result.alreadySigned) {
-        return res.json({ success: true, message: "NDA already signed", ndaId: result.ndaId, nda: result.nda });
+        return res.json({ success: true, message: "NDA already signed", ndaId: result.ndaId });
       }
 
-      res.json({ success: true, ndaId: result.ndaId, status: result.status, degraded: result.degraded, nda: result.nda });
+      res.json({ success: true, ndaId: result.ndaId, status: result.status, degraded: result.degraded });
     } catch (error: any) {
       console.error("[NDA SIGN FAILURE] Full error details:", {
         userId,
