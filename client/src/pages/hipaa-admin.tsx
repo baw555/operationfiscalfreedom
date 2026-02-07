@@ -340,10 +340,19 @@ export default function HipaaAdmin() {
   if (userLoading) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#0a1628] via-[#0f1f3a] to-[#1a365d]">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-[#FFB800] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-white font-display text-xl">Loading HIPAA Command Center...</p>
+        <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1f3a] to-[#1a365d] py-12">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 border-4 border-[#FFB800] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-white font-display text-xl">Loading HIPAA Command Center...</p>
+            </div>
+            <div className="bg-white/5 backdrop-blur rounded-xl border border-white/10 p-8">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-white/10 rounded w-1/3" />
+                <div className="h-4 bg-white/10 rounded w-1/2" />
+                <div className="h-4 bg-white/10 rounded w-2/3" />
+              </div>
+            </div>
           </div>
         </div>
       </Layout>

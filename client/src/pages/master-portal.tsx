@@ -445,7 +445,15 @@ export default function MasterPortal() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-white border-t-transparent rounded-full"></div>
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-white font-display text-xl">Loading Command Center...</p>
+          <div className="mt-6 max-w-md mx-auto animate-pulse space-y-3">
+            <div className="h-3 bg-white/10 rounded w-2/3 mx-auto" />
+            <div className="h-3 bg-white/10 rounded w-1/2 mx-auto" />
+            <div className="h-3 bg-white/10 rounded w-3/4 mx-auto" />
+          </div>
+        </div>
       </div>
     );
   }

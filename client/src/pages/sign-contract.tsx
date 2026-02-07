@@ -340,8 +340,23 @@ export default function SignContract() {
   if (authLoading) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
+        <div className="min-h-screen bg-gray-50 py-12">
+          <div className="container mx-auto px-4 max-w-3xl">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <Loader2 className="w-6 h-6 animate-spin text-brand-navy" />
+                <span className="text-brand-navy font-display text-lg">Loading contracts...</span>
+              </div>
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-gray-200 rounded w-1/3" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+                <div className="h-4 bg-gray-200 rounded w-2/3" />
+                <div className="h-10 bg-gray-200 rounded w-full mt-6" />
+                <div className="h-4 bg-gray-200 rounded w-1/4" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+              </div>
+            </div>
+          </div>
         </div>
       </Layout>
     );

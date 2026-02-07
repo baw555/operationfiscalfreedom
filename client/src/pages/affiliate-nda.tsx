@@ -556,7 +556,7 @@ export default function AffiliateNda() {
     }
   }, [ndaLoading, ndaStatus, setLocation]);
 
-  if (authLoading || ndaLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-brand-navy border-t-transparent rounded-full"></div>

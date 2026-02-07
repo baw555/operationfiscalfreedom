@@ -976,8 +976,28 @@ export default function AdminDashboard() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gray-100">
+        <div className="bg-brand-navy text-white px-6 py-4 flex items-center gap-3">
+          <Shield className="w-6 h-6" />
+          <h1 className="text-xl font-display">Admin Command Center</h1>
+        </div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-3" />
+                <div className="h-8 bg-gray-200 rounded w-1/3" />
+              </div>
+            ))}
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-1/3" />
+              <div className="h-4 bg-gray-200 rounded w-1/2" />
+              <div className="h-4 bg-gray-200 rounded w-2/3" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

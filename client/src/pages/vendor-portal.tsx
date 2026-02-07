@@ -273,8 +273,20 @@ export default function VendorPortal() {
   if (sessionLoading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-12">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="bg-white/5 backdrop-blur rounded-xl border border-white/10 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+                <span className="text-white font-display text-lg">Loading Vendor Portal...</span>
+              </div>
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-white/10 rounded w-1/3" />
+                <div className="h-4 bg-white/10 rounded w-1/2" />
+                <div className="h-4 bg-white/10 rounded w-2/3" />
+              </div>
+            </div>
+          </div>
         </div>
       </Layout>
     );

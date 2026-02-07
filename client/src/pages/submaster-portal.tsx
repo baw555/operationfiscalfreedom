@@ -114,7 +114,7 @@ export default function SubMasterPortal() {
   const totalSalesAmount = sales.reduce((acc, s) => acc + (s.saleAmount || 0), 0);
 
   // Loading state
-  if (authLoading || ndaLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">

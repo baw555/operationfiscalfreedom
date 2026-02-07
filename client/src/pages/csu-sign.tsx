@@ -484,10 +484,22 @@ export default function CsuSign() {
   if (isLoading) {
     return (
       <Layout>
-        <section className="min-h-screen bg-gray-100 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Loading contract...</p>
+        <section className="min-h-screen bg-gray-100 py-12">
+          <div className="container mx-auto px-4 max-w-3xl">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-gray-600">Loading contract...</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-gray-200 rounded w-1/3" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+                <div className="h-4 bg-gray-200 rounded w-2/3" />
+                <div className="h-10 bg-gray-200 rounded w-full mt-6" />
+                <div className="h-4 bg-gray-200 rounded w-1/4" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+              </div>
+            </div>
           </div>
         </section>
       </Layout>

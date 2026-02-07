@@ -377,7 +377,7 @@ export default function AffiliateDashboard() {
   const filteredHelpRequests = useMemo(() => helpRequests.filter(filterLead), [helpRequests, leadSearch, leadStatusFilter]);
   const filteredBusinessLeads = useMemo(() => businessLeads.filter(filterLead), [businessLeads, leadSearch, leadStatusFilter]);
 
-  if (authLoading || ndaLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">

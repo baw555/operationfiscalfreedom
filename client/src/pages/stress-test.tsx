@@ -179,7 +179,7 @@ export default function StressTest() {
   };
 
   // Loading state
-  if (authLoading || ndaLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
