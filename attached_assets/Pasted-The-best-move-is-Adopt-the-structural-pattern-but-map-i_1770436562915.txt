@@ -1,0 +1,149 @@
+The best move is:
+
+✅ Adopt the structural pattern, but map it to your existing schema and legal flow
+
+That means:
+
+Thin route: yes
+
+Keep validation: yes
+
+Keep field capture: yes
+
+Keep legal mirror: yes
+
+Don’t change signature shape: yes
+
+Add idempotency: yes
+
+Add events: yes
+
+Do not strip required fields: yes
+
+This isn’t a half-measure — it’s the right measure.
+
+What to do next, concretely (best sequence)
+Step 1 — Freeze the current contract (1 page)
+
+Write down, in your own words:
+
+What fields are required to sign an NDA today?
+
+What is the single endpoint that finalizes it?
+
+What side effects must happen?
+
+insert/update affiliate_nda
+
+signLegalDocumentAtomic
+
+send notifications
+
+audit/event log
+
+If you don’t freeze this, refactors become guessing.
+
+Step 2 — Implement a thin route that calls ONE action
+
+Route does:
+
+auth + role
+
+input validation (existing)
+
+calls submitAffiliateNdaAction(input)
+
+returns result
+
+No DB writes in the route.
+
+Step 3 — The action function should do exactly your current behavior, but under a single orchestration
+
+Inside the action:
+
+verify required fields (your existing validators)
+
+idempotency check (request-level)
+
+write affiliate_nda with all required columns
+
+call signLegalDocumentAtomic
+
+emit events
+
+enqueue notifications
+
+Important: if signLegalDocumentAtomic must never double-run, that’s part of idempotency semantics.
+
+Step 4 — Make side effects replay-safe
+
+If you use idempotency keys:
+
+replay should return the same NDA id and status
+
+legal mirror should not create duplicates
+
+notifications should not spam (queue de-dupe or “already sent” flag)
+
+This is the actual “prime time” work.
+
+The part where you should NOT be a yes-man to Replit
+
+Replit’s last question is good, but incomplete.
+
+If you tell it:
+
+“Yes, adopt only thin-route pattern”
+
+you’ll get:
+
+nicer file structure
+
+but still messy authority + idempotency + side effects
+
+still possible double-sign, partial sign, mismatched states
+
+So the correct instruction to Replit is:
+
+“Adopt thin route + action extraction without changing schema AND implement idempotency + replay-safe side effects while preserving validation + legal mirror.”
+
+That’s not “thin route only.” That’s “thin route + system integrity.”
+
+What I would decide in your shoes
+✅ Adopt:
+
+Thin-route extraction out of routes.ts
+
+Action layer orchestration (one authoritative function)
+
+Request-level idempotency key
+
+Event emission (at least NDA_SUBMITTED and NDA_SUBMITTED_WITH_DEGRADATION)
+
+“Proceed anyway + file report” semantics (optional feature failure)
+
+❌ Do NOT adopt:
+
+signature object shape changes unless you intentionally migrate schema
+
+dropping validation
+
+dropping legal mirror
+
+stripping required fields
+
+changing storage semantics during a refactor
+
+Optional but smart:
+
+add ndaVersionId as a string default “v1” (not mandatory today)
+
+add a “submission state” column if you have partial writes risk
+
+The one question you should ask Replit (that actually decides correctness)
+
+Ask it this, verbatim:
+
+“Show me the current end-to-end NDA signing transaction: what tables are written, in what order, and what happens if any step fails. Then propose the minimal refactor that preserves that exact behavior, adds request-level idempotency, and guarantees replay safety for legal mirror + notifications.”
+
+If Replit can answer that with a clean diff, you’re in business. If it can’t, it’s not ready to touch that part.
