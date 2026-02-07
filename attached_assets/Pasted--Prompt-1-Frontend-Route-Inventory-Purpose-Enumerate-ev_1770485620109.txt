@@ -1,0 +1,180 @@
+🔹 Prompt 1 — Frontend Route Inventory
+Purpose: Enumerate every user-facing surface area.
+Copy–paste:
+You are acting as a systems architect.
+
+Scan the entire frontend codebase and produce a complete inventory of all user-facing routes.
+
+For each route, output a table with:
+- URL path
+- Page / component file
+- Intended user role (public, authenticated user, affiliate, admin)
+- Whether the route:
+  - reads data only
+  - submits data
+  - triggers side effects (email, document, legal record, payment, logging)
+
+Do NOT propose fixes.
+Do NOT summarize.
+Do NOT infer intent.
+Only report what the code currently does.
+
+
+🔹 Prompt 2 — Frontend Data Dependency Mapping
+Purpose: Find React anti-patterns, blocking behavior, and fragility.
+Copy–paste:
+For each frontend route identified previously, analyze and report:
+
+- Which backend endpoint(s) it calls
+- Whether the route uses:
+  - useQuery
+  - useMutation
+  - both
+- Whether rendering is blocked on async data
+- Whether async failures prevent any UI from rendering
+- Whether the route:
+  - returns null
+  - conditionally renders nothing
+  - relies on implicit auth gating
+
+Output as a structured table.
+Do NOT propose fixes.
+Only classify current behavior.
+
+
+PART II — BACKEND REALITY CHECK (WHERE MOST ISSUES LIVE)
+This exposes why the frontend breaks.
+
+🔹 Prompt 3 — Backend Route Inventory by Domain
+Purpose: Identify ownership, coupling, and missing boundaries.
+Copy–paste:
+Scan the entire backend codebase.
+
+Produce a complete list of backend routes grouped by domain:
+- Auth
+- Legal
+- Scheduling
+- Payments
+- Admin
+- Affiliates
+- Other (explicitly name)
+
+For each route, output:
+- HTTP method
+- Path
+- File and line number
+- Whether it:
+  - reads data
+  - writes data
+  - triggers side effects
+- Whether it is called by:
+  - frontend UI
+  - internal service
+  - webhook
+  - unknown / unused
+
+No fixes.
+No refactoring suggestions.
+Only inventory and classification.
+
+
+🔹 Prompt 4 — Authority & Responsibility Leak Detection
+Purpose: Find structural corruption (not bugs).
+Copy–paste:
+Analyze backend route handlers and identify:
+
+- Routes where business logic exists directly inside Express handlers
+- Routes where req or res objects are passed into domain logic
+- Routes with duplicated responsibilities (logging, validation, orchestration)
+- Routes performing:
+  - validation
+  - authorization
+  - side effects
+  in more than one layer
+
+Output:
+- File
+- Line numbers
+- Type of responsibility leak
+
+Do NOT propose fixes.
+Do NOT justify behavior.
+Only report findings.
+
+
+PART III — DATA & DOMAIN FOUNDATIONS (YOUR 3 CORE ISSUES)
+You correctly identified the real root causes:
+Weak relational database
+
+
+No domain class layer
+
+
+UI not bound to domain objects
+
+
+This is where an architect stops coding and starts modeling.
+
+🔹 Prompt 5 — Relational Database Truth Audit
+Purpose: Determine if the database can even support correctness.
+Copy–paste:
+Analyze the database schema.
+
+Produce:
+- All tables
+- Primary keys
+- Foreign keys
+- Unique constraints
+- Nullable vs non-nullable fields
+
+Identify:
+- Missing foreign keys
+- Tables acting as implicit joins
+- Fields storing denormalized or mixed concerns
+- Tables used by multiple domains without ownership
+
+Do NOT redesign the schema.
+Do NOT suggest improvements.
+Only report structural facts and violations of relational integrity.
+
+
+🔹 Prompt 6 — Domain Model Extraction Feasibility
+Purpose: Determine whether class objects are even possible yet.
+Copy–paste:
+Based on the current database schema and backend code:
+
+Identify:
+- Core domain entities (e.g., User, NDA, Claim, Appointment, Affiliate)
+- For each entity:
+  - Which tables it spans
+  - Which backend routes mutate it
+  - Which routes read it
+
+State clearly:
+- Whether the entity has a single source of truth
+- Whether its lifecycle is fragmented across routes
+- Whether it can be represented as a stable class object today
+
+Do NOT propose new classes.
+Do NOT refactor.
+Only assess feasibility and fragmentation.
+
+
+🔹 Prompt 7 — UI ↔ Domain Binding Audit
+Purpose: Explain why the UI feels brittle.
+Copy–paste:
+Analyze how frontend components consume backend data.
+
+Identify:
+- Where UI components depend on raw API shapes
+- Where UI logic re-implements domain rules
+- Where multiple components interpret the same data differently
+- Where backend changes would break UI silently
+
+Classify bindings as:
+- Strong (domain-aligned)
+- Weak (shape-coupled)
+- Fragile (implicit assumptions)
+
+Do NOT propose fixes.
+Only classify current bindings.
