@@ -1,0 +1,98 @@
+OPTION A — PlatformDisclaimerModal (UX clarity only)
+Goals (met)
+
+User understands why they’re blocked
+
+Blocking feels intentional
+
+No blank/frozen feeling
+
+No behavior change
+
+🔧 Replace the modal JSX (NOT the logic)
+
+In PlatformDisclaimerModal.tsx (or wherever it lives), replace only the modal render body with the following structure.
+
+⚠️ Keep all existing state, handlers, and persistence logic unchanged.
+
+Updated JSX (clarity-focused)
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+export function PlatformDisclaimerModal({
+  open,
+  onAccept,
+}) {
+  return (
+    <Dialog open={open}>
+      <DialogContent
+        className="max-w-md text-center"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        {/* Title */}
+        <h2 className="text-xl font-semibold">
+          Before You Continue
+        </h2>
+
+        {/* Explanation */}
+        <p className="mt-3 text-sm text-muted-foreground">
+          This platform contains regulated tools, sensitive workflows,
+          and compliance-critical features.
+        </p>
+
+        <p className="mt-2 text-sm text-muted-foreground">
+          Please confirm you understand and agree before proceeding.
+        </p>
+
+        {/* Divider */}
+        <div className="my-4 border-t" />
+
+        {/* Acknowledgement */}
+        <label className="flex items-start gap-2 text-sm text-left">
+          <input type="checkbox" required />
+          <span>
+            I understand and accept responsibility for my use of this platform.
+          </span>
+        </label>
+
+        {/* Action */}
+        <Button
+          className="mt-4 w-full"
+          onClick={onAccept}
+        >
+          I Understand & Continue
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+🎯 What changed (and what did NOT)
+✅ Changed
+
+Clear title (“Before You Continue”)
+
+Explicit explanation text
+
+Visual structure (spacing, divider)
+
+Clear primary action button
+
+Obvious blocking intent
+
+❌ Not changed
+
+No auth logic
+
+No localStorage/session logic
+
+No redirect logic
+
+No state shape
+
+No modal open/close rules
+
+No side effects
+
+This is pure UX clarity.
