@@ -9,6 +9,8 @@ import { db } from "./db";
 import { LEGAL_DOCS, getLegalStatus, signLegalDocumentAtomic, healLegalStateOnLogin, createLegalOverride, legalSystemHealthCheck, generateEvidenceBundle, processExternalEsignCallback, runLegalTestBot, requireLegalClearance, hashDocument } from "./legal-system";
 
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
+import { route } from "./platform/route";
+import { affiliateSignupAction } from "./actions/auth/affiliateSignup";
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
 import Stripe from "stripe";
@@ -414,82 +416,27 @@ export async function registerRoutes(
   });
 
   // New affiliate self-signup - creates account and logs in immediately
-  app.post("/api/affiliate-signup", async (req, res) => {
-    try {
-      const { name, companyName, phone, email, password, description } = req.body;
-      
-      if (!name || !email || !password) {
-        return res.status(400).json({ message: "Name, email, and password are required" });
+  app.post("/api/affiliate-signup", route(async (req, res) => {
+    const result = await affiliateSignupAction(req.body, req.ctx);
+
+    req.session.regenerate((regenerateErr) => {
+      if (regenerateErr) {
+        console.error("Session regenerate error:", regenerateErr);
+        return res.status(201).json(result);
       }
-      
-      if (password.length < 6) {
-        return res.status(400).json({ message: "Password must be at least 6 characters" });
-      }
-      
-      // Check if email already exists
-      const existingUser = await storage.getUserByEmail(email);
-      if (existingUser) {
-        return res.status(400).json({ message: "An account with this email already exists. Please login instead." });
-      }
-      
-      // Create the affiliate user account
-      const affiliate = await createAffiliateUser(name, email, password);
-      
-      // Also store the application info for admin reference
-      try {
-        await storage.createAffiliateApplication({
-          name,
-          companyName: companyName || "",
-          phone: phone || "",
-          email,
-          description: description || "",
-        });
-      } catch (appError) {
-        // Application storage is optional, don't fail the signup
-        console.log("Note: Could not store application details:", appError);
-      }
-      
-      // Log the user in automatically with session regeneration for security
-      req.session.regenerate((regenerateErr) => {
-        if (regenerateErr) {
-          console.error("Session regenerate error:", regenerateErr);
-          // Still return success since account was created
-          return res.status(201).json({ 
-            success: true,
-            user: {
-              id: affiliate.id, 
-              name: affiliate.name, 
-              email: affiliate.email, 
-              role: affiliate.role 
-            }
-          });
+
+      req.session.userId = result.user.id;
+      req.session.userRole = result.user.role;
+
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error:", saveErr);
         }
-        
-        req.session.userId = affiliate.id;
-        req.session.userRole = affiliate.role;
-        
-        // Ensure session is saved before responding
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error("Session save error:", saveErr);
-          }
-          console.log(`[auth] Affiliate signup successful for user ${affiliate.id}, session saved`);
-          res.status(201).json({ 
-            success: true,
-            user: {
-              id: affiliate.id, 
-              name: affiliate.name, 
-              email: affiliate.email, 
-              role: affiliate.role 
-            }
-          });
-        });
+        console.log(`[auth] Affiliate signup successful for user ${result.user.id}, session saved`);
+        res.status(201).json(result);
       });
-    } catch (error) {
-      console.error("Affiliate signup error:", error);
-      res.status(500).json({ message: "Failed to create account. Please try again." });
-    }
-  });
+    });
+  }));
 
   // Ranger Tab Signup - Public route for requesting a contract portal
   app.post("/api/ranger-tab-signup", async (req, res) => {

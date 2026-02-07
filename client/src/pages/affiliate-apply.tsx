@@ -42,7 +42,7 @@ export default function AffiliateApply() {
       console.log("Signup successful, user:", data);
       await logConsent({
         submissionType: "affiliate_application",
-        submissionId: data.id,
+        submissionId: data.user?.id,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,

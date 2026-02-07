@@ -1,0 +1,278 @@
+PHASE 6 — COLLAPSE DUPLICATION (SAFE, BEHAVIOR-PRESERVING)
+
+Goal: remove duplicated logic without changing outcomes
+
+You are not refactoring what the system does — only where it lives.
+
+6.1 — Session Handling Helper
+
+(Kills nested regenerate → save patterns, stabilizes auth flows)
+
+Why this is first
+
+Auth is touched everywhere
+
+Session logic is duplicated 4+ times
+
+Fixing this reduces risk everywhere else
+
+You already confirmed:
+
+No global requireAuth
+
+Session creation logic lives inline in routes
+
+Nested callbacks are repeated and fragile
+
+✅ CREATE: server/platform/session.ts
+// server/platform/session.ts
+import type { Request } from "express";
+
+export async function establishSession(
+  req: Request,
+  params: { userId: number; role: string }
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((err) => {
+      if (err) return reject(err);
+
+      req.session.userId = params.userId;
+      req.session.userRole = params.role;
+
+      req.session.save((err2) => {
+        if (err2) return reject(err2);
+        resolve();
+      });
+    });
+  });
+}
+
+🔁 APPLY (example: /api/auth/login)
+
+Before: nested callbacks
+After: thin, readable, consistent
+
+import { establishSession } from "./platform/session";
+
+await establishSession(req, {
+  userId: user.id,
+  role: user.role,
+});
+
+🛑 PAUSE & VERIFY
+
+Login still works
+
+Session persists across refresh
+
+MFA flows still respected
+
+No double session creation
+
+❓ QUESTIONS TO ASK REPLIT
+1. Confirm all routes that call req.session.regenerate directly.
+2. Confirm no other session fields are set elsewhere (besides userId, userRole).
+
+
+Once confirmed → move on.
+
+6.2 — Claims Ownership Middleware
+
+(Removes 7 duplicated ownership checks, zero behavior change)
+
+Why now
+
+Claims domain is class-ready
+
+Ownership checks are duplicated
+
+This is pure correctness consolidation
+
+✅ CREATE: server/middleware/requireClaimOwner.ts
+// server/middleware/requireClaimOwner.ts
+import type { Request, Response, NextFunction } from "express";
+import { db } from "../db";
+import { claimCases } from "../../shared/schema";
+
+export async function requireClaimOwner(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const userId = req.session?.userId;
+  const caseId = Number(req.params.id);
+
+  if (!userId || !caseId) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const [claim] = await db
+    .select()
+    .from(claimCases)
+    .where(claimCases.id.eq(caseId))
+    .limit(1);
+
+  if (!claim || claim.veteranUserId !== String(userId)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  (req as any).claim = claim;
+  next();
+}
+
+🔁 APPLY (example)
+app.get(
+  "/api/claims/cases/:id",
+  requireClaimOwner,
+  route(async (req, res) => {
+    res.json((req as any).claim);
+  })
+);
+
+🛑 PAUSE & VERIFY
+
+Existing claim access still works
+
+Unauthorized access still blocked
+
+No extra DB queries added accidentally
+
+❓ QUESTIONS TO ASK REPLIT
+1. List all routes that manually fetch claim + compare veteranUserId.
+2. Confirm veteranUserId is always a string (no mixed types).
+
+6.3 — Commission Single Source of Truth
+
+(Backend + UI + Email read the same numbers)
+
+Why now
+
+Highest financial risk
+
+Logic exists in 3 places
+
+We unify without changing math
+
+✅ CREATE: shared/commissionModel.ts
+// shared/commissionModel.ts
+export type CommissionConfig = {
+  producerBasePct: number;
+  uplineEachPct: number;
+  housePct: number;
+  recruiterPct: number;
+};
+
+export const DEFAULT_COMMISSION: CommissionConfig = {
+  producerBasePct: 0.69,
+  uplineEachPct: 0.01,
+  housePct: 0.225,
+  recruiterPct: 0.025,
+};
+
+export function calculateCommission(
+  gross: number,
+  levels: number,
+  config = DEFAULT_COMMISSION
+) {
+  const producer = gross * config.producerBasePct;
+  const uplines = levels * (gross * config.uplineEachPct);
+  const house = gross * config.housePct;
+  const recruiter = gross * config.recruiterPct;
+
+  return {
+    producer,
+    uplines,
+    house,
+    recruiter,
+  };
+}
+
+🔁 APPLY
+
+Backend route /api/commission/calculate
+
+Email spreadsheet generator
+
+Frontend comp-plan.tsx
+
+All import this module, no local math.
+
+🛑 PAUSE & VERIFY
+
+Numbers match exactly what they did before
+
+No rounding changes
+
+No config drift
+
+❓ QUESTIONS TO ASK REPLIT
+1. Confirm all places commission math exists (routes.ts, emails, frontend).
+2. Confirm no percentages are dynamically overridden elsewhere.
+
+6.4 — Admin Dashboard Type Binding
+
+(Eliminates any, prevents silent admin bugs)
+
+Why last in Phase 6
+
+Admin views are brittle but not mission-critical
+
+This improves safety without changing behavior
+
+✅ CREATE: client/src/types/admin.ts
+export type AdminAffiliate = {
+  id: number;
+  email: string;
+  role: string;
+  status: string;
+};
+
+export type AdminLead<T = any> = {
+  id: number;
+  status: string;
+  data: T;
+};
+
+🔁 APPLY (example)
+const affiliates = useQuery<AdminAffiliate[]>(...);
+
+
+No any. No guessing.
+
+🛑 PAUSE & VERIFY
+
+Admin pages still render
+
+Type errors point to real mismatches
+
+No runtime changes
+
+❓ QUESTIONS TO ASK REPLIT
+1. Which admin endpoints return inconsistent shapes?
+2. Are any admin routes returning unions or polymorphic data?
+
+SUMMARY — YOUR EXECUTION CHECKLIST
+
+You now have 4 concrete stages, each with:
+
+Stage	Code Written	Behavior Change
+6.1 Session helper	✅	❌
+6.2 Claims middleware	✅	❌
+6.3 Commission module	✅	❌
+6.4 Admin typing	✅	❌
+
+That’s why this is safe.
+
+When you finish Phase 6
+
+You will have:
+
+One session model
+
+One commission model
+
+One claims ownership rule
+
+Typed admin views
+
+Then — and only then — Phase 7 (identity unification, schema hardening, global auth) becomes safe.
