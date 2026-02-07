@@ -10,6 +10,8 @@ import { LEGAL_DOCS, getLegalStatus, signLegalDocumentAtomic, healLegalStateOnLo
 
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { route } from "./platform/route";
+import { establishSession } from "./platform/session";
+import { calculateCommission } from "@shared/commissionModel";
 import { affiliateSignupAction } from "./actions/auth/affiliateSignup";
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
@@ -20,7 +22,7 @@ import { TOTP, generateSecret, verifySync, NobleCryptoPlugin, ScureBase32Plugin 
 import * as QRCode from "qrcode";
 import crypto from "crypto";
 import { getOrCreateConversation, getConversationHistory, saveMessage, generateAIResponse, getContextualTips, seedInitialFaqs, transcribeAudio } from "./sailor-chat";
-import { resolveClientIp, requireAdmin, requireAffiliate, requireAffiliateWithNda } from "./middleware";
+import { resolveClientIp, requireAdmin, requireAffiliate, requireAffiliateWithNda, requireClaimOwner, getVeteranUserId } from "./middleware";
 
 // HIPAA Security: Configure TOTP with strict timing window to prevent replay attacks
 const totpInstance = new TOTP({
@@ -419,23 +421,16 @@ export async function registerRoutes(
   app.post("/api/affiliate-signup", route(async (req, res) => {
     const result = await affiliateSignupAction(req.body, req.ctx);
 
-    req.session.regenerate((regenerateErr) => {
-      if (regenerateErr) {
-        console.error("Session regenerate error:", regenerateErr);
-        return res.status(201).json(result);
-      }
-
-      req.session.userId = result.user.id;
-      req.session.userRole = result.user.role;
-
-      req.session.save((saveErr) => {
-        if (saveErr) {
-          console.error("Session save error:", saveErr);
-        }
-        console.log(`[auth] Affiliate signup successful for user ${result.user.id}, session saved`);
-        res.status(201).json(result);
+    try {
+      await establishSession(req, {
+        userId: result.user.id,
+        userRole: result.user.role,
       });
-    });
+      console.log(`[auth] Affiliate signup successful for user ${result.user.id}, session saved`);
+    } catch (sessionErr) {
+      console.error("Session regenerate error:", sessionErr);
+    }
+    res.status(201).json(result);
   }));
 
   // Ranger Tab Signup - Public route for requesting a contract portal
@@ -1638,34 +1633,23 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      // Regenerate session to prevent session fixation and ensure clean session
-      req.session.regenerate((regenerateErr) => {
-        if (regenerateErr) {
-          console.error("VLT session regenerate error:", regenerateErr);
-          return res.status(500).json({ message: "Login failed - session error" });
-        }
-        
-        req.session.vltAffiliateId = affiliate.id;
-        
-        // Ensure session is saved before responding
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error("VLT session save error:", saveErr);
-            return res.status(500).json({ message: "Login failed - session error" });
+      try {
+        await establishSession(req, { vltAffiliateId: affiliate.id });
+        console.log(`[auth] VLT login successful for affiliate ${affiliate.id}, session saved`);
+        res.json({ 
+          success: true, 
+          affiliate: { 
+            id: affiliate.id, 
+            name: affiliate.name, 
+            email: affiliate.email,
+            referralCode: affiliate.referralCode,
+            totalLeads: affiliate.totalLeads
           }
-          console.log(`[auth] VLT login successful for affiliate ${affiliate.id}, session saved`);
-          res.json({ 
-            success: true, 
-            affiliate: { 
-              id: affiliate.id, 
-              name: affiliate.name, 
-              email: affiliate.email,
-              referralCode: affiliate.referralCode,
-              totalLeads: affiliate.totalLeads
-            }
-          });
         });
-      });
+      } catch (sessionErr) {
+        console.error("VLT session error:", sessionErr);
+        res.status(500).json({ message: "Login failed - session error" });
+      }
     } catch (error) {
       console.error("VLT login error:", error);
       res.status(500).json({ message: "Login failed" });
@@ -1820,55 +1804,38 @@ export async function registerRoutes(
       const mfaConfig = await storage.getUserMfaConfig(user.id);
       const mfaRequired = mfaConfig?.mfaEnabled === true;
 
-      // Regenerate session to prevent session fixation attacks and ensure clean session
-      req.session.regenerate((regenerateErr) => {
-        if (regenerateErr) {
-          console.error("Session regenerate error:", regenerateErr);
-          return res.status(500).json({ message: "Login failed - session error" });
-        }
-        
-        req.session.userId = user.id;
-        req.session.userRole = user.role;
-        
-        // If MFA is required, set pending state - user cannot access protected resources
-        if (mfaRequired) {
-          req.session.mfaPending = true;
-          req.session.mfaVerified = false;
-        } else {
-          req.session.mfaPending = false;
-          req.session.mfaVerified = true; // No MFA required, consider verified
-        }
-
-        // Ensure session is saved before responding
-        req.session.save(async (saveErr) => {
-          if (saveErr) {
-            console.error("Session save error:", saveErr);
-            return res.status(500).json({ message: "Login failed - session error" });
-          }
-          
-          // Log successful login for HIPAA audit
-          await storage.createHipaaAuditLog({
-            userId: user.id,
-            userName: user.name,
-            userRole: user.role,
-            action: mfaRequired ? "LOGIN_MFA_PENDING" : "LOGIN_SUCCESS",
-            resourceType: "authentication",
-            resourceId: String(user.id),
-            resourceDescription: mfaRequired ? "Login successful, awaiting MFA verification" : "Login successful",
-            ipAddress: req.ip || null,
-            userAgent: req.headers["user-agent"] || null,
-            sessionId: req.sessionID || null,
-            success: true,
-            phiAccessed: false,
-          });
-          
-          console.log(`[auth] Login successful for user ${user.id}, session saved, MFA required: ${mfaRequired}`);
-          res.json({ 
-            success: true, 
-            user: { id: user.id, name: user.name, email: user.email, role: user.role, portal: user.portal },
-            mfaRequired,
-          });
+      try {
+        await establishSession(req, {
+          userId: user.id,
+          userRole: user.role,
+          mfaPending: mfaRequired,
+          mfaVerified: !mfaRequired,
         });
+      } catch (sessionErr) {
+        console.error("Session error:", sessionErr);
+        return res.status(500).json({ message: "Login failed - session error" });
+      }
+
+      await storage.createHipaaAuditLog({
+        userId: user.id,
+        userName: user.name,
+        userRole: user.role,
+        action: mfaRequired ? "LOGIN_MFA_PENDING" : "LOGIN_SUCCESS",
+        resourceType: "authentication",
+        resourceId: String(user.id),
+        resourceDescription: mfaRequired ? "Login successful, awaiting MFA verification" : "Login successful",
+        ipAddress: req.ip || null,
+        userAgent: req.headers["user-agent"] || null,
+        sessionId: req.sessionID || null,
+        success: true,
+        phiAccessed: false,
+      });
+          
+      console.log(`[auth] Login successful for user ${user.id}, session saved, MFA required: ${mfaRequired}`);
+      res.json({ 
+        success: true, 
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, portal: user.portal },
+        mfaRequired,
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -1955,31 +1922,18 @@ export async function registerRoutes(
         role: "affiliate"
       });
 
-      // Auto-login after registration with session regeneration for security
-      req.session.regenerate((regenerateErr) => {
-        if (regenerateErr) {
-          console.error("Registration session regenerate error:", regenerateErr);
-          // Still return success since account was created
-          return res.status(201).json({ 
-            success: true, 
-            user: { id: user.id, name: user.name, email: user.email, role: user.role }
-          });
-        }
-        
-        req.session.userId = user.id;
-        req.session.userRole = user.role;
-
-        // Ensure session is saved before responding
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error("Registration session save error:", saveErr);
-          }
-          console.log(`[auth] Registration successful for user ${user.id}, session saved`);
-          res.status(201).json({ 
-            success: true, 
-            user: { id: user.id, name: user.name, email: user.email, role: user.role }
-          });
+      try {
+        await establishSession(req, {
+          userId: user.id,
+          userRole: user.role,
         });
+        console.log(`[auth] Registration successful for user ${user.id}, session saved`);
+      } catch (sessionErr) {
+        console.error("Registration session error:", sessionErr);
+      }
+      res.status(201).json({ 
+        success: true, 
+        user: { id: user.id, name: user.name, email: user.email, role: user.role }
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -4587,61 +4541,8 @@ export async function registerRoutes(
   // - Compression: empty upline slots go to producer, NOT house
   app.post("/api/commission/calculate", async (req, res) => {
     try {
-      const { 
-        grossCommission,  // The gross commission pool (e.g., 18% of deal for logistics)
-        uplineCount = 0,  // Number of active uplines (0-6)
-        hasRecruiter = true
-      } = req.body;
-      
-      const pool = Math.max(0, Number(grossCommission) || 0);
-      const uplines = Math.max(0, Math.min(6, Number(uplineCount) || 0));
-      const emptyUplines = 6 - uplines;
-      
-      // Fixed percentages
-      const HOUSE_PCT = 0.225;      // 22.5% always goes to house
-      const RECRUITER_PCT = 0.025;  // 2.5% recruiter bounty
-      const PRODUCER_BASE = 0.69;   // 69% base for producer
-      const UPLINE_EACH = 0.01;     // 1% per upline level
-      
-      // Calculate payouts (in cents)
-      const housePay = Math.round(pool * HOUSE_PCT * 100);
-      const recruiterPay = hasRecruiter ? Math.round(pool * RECRUITER_PCT * 100) : 0;
-      
-      // Producer gets base + compression from empty upline slots
-      const compressionPct = emptyUplines * UPLINE_EACH;
-      const producerPct = PRODUCER_BASE + compressionPct;
-      const producerPay = Math.round(pool * producerPct * 100);
-      
-      // Each active upline gets 1%
-      const uplinePayEach = Math.round(pool * UPLINE_EACH * 100);
-      const totalUplinePay = uplinePayEach * uplines;
-      
-      // Build upline breakdown
-      const uplineBreakdown = Array.from({ length: uplines }, (_, i) => ({
-        level: i + 1,
-        pay: uplinePayEach,
-        pct: UPLINE_EACH * 100
-      }));
-
-      res.json({
-        grossCommission: pool,
-        grossCommissionCents: Math.round(pool * 100),
-        housePay,
-        housePct: HOUSE_PCT * 100,
-        recruiterPay,
-        recruiterPct: RECRUITER_PCT * 100,
-        producerPay,
-        producerPct: producerPct * 100,
-        producerBase: PRODUCER_BASE * 100,
-        compressionPct: compressionPct * 100,
-        uplineCount: uplines,
-        uplinePayEach,
-        totalUplinePay,
-        uplineBreakdown,
-        totalPaid: housePay + recruiterPay + producerPay + totalUplinePay,
-        // Verification: should always equal 100%
-        totalPct: (HOUSE_PCT + RECRUITER_PCT + producerPct + (uplines * UPLINE_EACH)) * 100
-      });
+      const { grossCommission, uplineCount = 0, hasRecruiter = true } = req.body;
+      res.json(calculateCommission({ grossCommission, uplineCount, hasRecruiter }));
     } catch (error) {
       res.status(500).json({ message: "Failed to calculate commissions" });
     }
@@ -9332,14 +9233,6 @@ Create a detailed scene plan with timing. Return JSON:
   // CLAIMS NAVIGATOR API ENDPOINTS
   // ==========================================
 
-  // Helper to get authenticated user ID
-  const getVeteranUserId = (req: any): string | null => {
-    if (req.user && req.user.claims && req.user.claims.sub) {
-      return req.user.claims.sub;
-    }
-    return null;
-  };
-
   // Get all cases for the logged-in veteran
   app.get("/api/claims/cases", async (req, res) => {
     try {
@@ -9357,28 +9250,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Get a specific case
-  app.get("/api/claims/cases/:id", async (req, res) => {
+  app.get("/api/claims/cases/:id", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
-      const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase) {
-        return res.status(404).json({ message: "Case not found" });
-      }
-
-      if (claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
-      res.json(claimCase);
+      res.json((req as any).claimCase);
     } catch (error) {
       console.error("Error fetching case:", error);
       res.status(500).json({ message: "Failed to fetch case" });
@@ -9430,23 +9304,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Get tasks for a case
-  app.get("/api/claims/cases/:id/tasks", async (req, res) => {
+  app.get("/api/claims/cases/:id/tasks", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
       const tasks = await storage.getClaimTasksByCaseId(caseId);
       res.json(tasks);
     } catch (error) {
@@ -9495,23 +9355,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Get notes for a case
-  app.get("/api/claims/cases/:id/notes", async (req, res) => {
+  app.get("/api/claims/cases/:id/notes", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
       const notes = await storage.getCaseNotesByCaseId(caseId);
       res.json(notes);
     } catch (error) {
@@ -9521,22 +9367,10 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Add a note to a case
-  app.post("/api/claims/cases/:id/notes", async (req, res) => {
+  app.post("/api/claims/cases/:id/notes", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+      const userId = (req as any).veteranUserId;
 
       const { content } = req.body;
       if (!content) {
@@ -9558,23 +9392,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Get deadlines for a case
-  app.get("/api/claims/cases/:id/deadlines", async (req, res) => {
+  app.get("/api/claims/cases/:id/deadlines", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
       const deadlines = await storage.getCaseDeadlinesByCaseId(caseId);
       res.json(deadlines);
     } catch (error) {
@@ -9584,23 +9404,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Get files for a case
-  app.get("/api/claims/cases/:id/files", async (req, res) => {
+  app.get("/api/claims/cases/:id/files", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
       const files = await storage.getClaimFilesByCaseId(caseId);
       res.json(files);
     } catch (error) {
@@ -9610,23 +9416,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Get shares for a case
-  app.get("/api/claims/cases/:id/shares", async (req, res) => {
+  app.get("/api/claims/cases/:id/shares", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
       const shares = await storage.getCaseSharesByCaseId(caseId);
       res.json(shares);
     } catch (error) {
@@ -9636,22 +9428,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Invite a vendor to a case (upsert)
-  app.post("/api/claims/cases/:id/shares", async (req, res) => {
+  app.post("/api/claims/cases/:id/shares", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
 
       const { email, role } = req.body;
       if (!email || !["view", "comment", "upload"].includes(role)) {
@@ -9684,7 +9463,6 @@ Create a detailed scene plan with timing. Return JSON:
         return res.status(400).json({ message: "Invalid share ID" });
       }
 
-      // Verify the user owns the case this share belongs to
       const share = await storage.getCaseShareById(shareId);
       if (!share) {
         return res.status(404).json({ message: "Share not found" });
@@ -9728,22 +9506,10 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Get completeness analysis for a case
-  app.get("/api/claims/cases/:id/completeness", async (req, res) => {
+  app.get("/api/claims/cases/:id/completeness", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+      const claimCase = (req as any).claimCase;
 
       // Map claim type to purpose
       const purposeMap: Record<string, string> = {
@@ -9796,22 +9562,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Get evidence strength analysis for a case
-  app.get("/api/claims/cases/:id/strength", async (req, res) => {
+  app.get("/api/claims/cases/:id/strength", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
 
       const files = await storage.getClaimFilesByCaseId(caseId);
 
@@ -9853,22 +9606,10 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Get lane recommendation for a case
-  app.get("/api/claims/cases/:id/lane-recommendation", async (req, res) => {
+  app.get("/api/claims/cases/:id/lane-recommendation", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+      const claimCase = (req as any).claimCase;
 
       // Only VA cases get lane recommendations
       if (claimCase.caseType !== "va") {
@@ -9970,22 +9711,9 @@ Create a detailed scene plan with timing. Return JSON:
   // ====================================================
 
   // Get vendor activity metrics for a case
-  app.get("/api/claims/cases/:id/vendor-metrics", async (req, res) => {
+  app.get("/api/claims/cases/:id/vendor-metrics", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
 
       // Get files and notes for this case
       const files = await storage.getClaimFilesByCaseId(caseId);
@@ -10063,22 +9791,10 @@ Create a detailed scene plan with timing. Return JSON:
   // ====================================================
 
   // Generate export package summary for a case
-  app.get("/api/claims/cases/:id/export", async (req, res) => {
+  app.get("/api/claims/cases/:id/export", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+      const claimCase = (req as any).claimCase;
 
       // Get all case data
       const files = await storage.getClaimFilesByCaseId(caseId);
@@ -10211,22 +9927,9 @@ Create a detailed scene plan with timing. Return JSON:
   // ====================================================
 
   // Get evidence strength heatmap for a case
-  app.get("/api/claims/cases/:id/heatmap", async (req, res) => {
+  app.get("/api/claims/cases/:id/heatmap", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
 
       const files = await storage.getClaimFilesByCaseId(caseId);
       
@@ -10277,22 +9980,9 @@ Create a detailed scene plan with timing. Return JSON:
   // ====================================================
 
   // Stage 7: Get strength suggestions for a case
-  app.get("/api/claims/cases/:id/suggestions", async (req, res) => {
+  app.get("/api/claims/cases/:id/suggestions", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
 
       const files = await storage.getClaimFilesByCaseId(caseId);
       
@@ -10332,22 +10022,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Stage 8: Get vendor scorecards for a case
-  app.get("/api/claims/cases/:id/vendor-scorecards", async (req, res) => {
+  app.get("/api/claims/cases/:id/vendor-scorecards", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
 
       const notes = await storage.getCaseNotesByCaseId(caseId);
       const shares = await storage.getCaseSharesByCaseId(caseId);
@@ -10404,22 +10081,9 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Stage 9: Get VA lane confidence recommendation
-  app.get("/api/claims/cases/:id/lane-confidence", async (req, res) => {
+  app.get("/api/claims/cases/:id/lane-confidence", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
 
       const files = await storage.getClaimFilesByCaseId(caseId);
       const tasks = await storage.getClaimTasksByCaseId(caseId);
@@ -10481,22 +10145,10 @@ Create a detailed scene plan with timing. Return JSON:
   });
 
   // Stage 10: Get VA.gov upload checklist
-  app.get("/api/claims/cases/:id/upload-checklist", async (req, res) => {
+  app.get("/api/claims/cases/:id/upload-checklist", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+      const claimCase = (req as any).claimCase;
 
       const files = await storage.getClaimFilesByCaseId(caseId);
       
@@ -10528,22 +10180,10 @@ Create a detailed scene plan with timing. Return JSON:
   // ====================================================
 
   // Download submission package as ZIP (requires pro plan)
-  app.get("/api/claims/cases/:id/export/download", async (req, res) => {
+  app.get("/api/claims/cases/:id/export/download", requireClaimOwner(), async (req, res) => {
     try {
-      const userId = getVeteranUserId(req);
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
       const caseId = parseInt(req.params.id);
-      if (isNaN(caseId)) {
-        return res.status(400).json({ message: "Invalid case ID" });
-      }
-
-      const claimCase = await storage.getClaimCaseById(caseId);
-      if (!claimCase || claimCase.veteranUserId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+      const claimCase = (req as any).claimCase;
 
       // For now, allow all users (monetization gate can be added later via user plan field)
       // TODO: Check user plan when monetization is fully implemented

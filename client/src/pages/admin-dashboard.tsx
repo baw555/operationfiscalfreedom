@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
+import type { AdminLead, LeadStatus, AffiliateApplication, HelpRequest, User } from "@/types/admin";
 
 type MainTabType = "applications" | "requests" | "investors" | "affiliates";
 type RequestSubType = "get_help" | "startup_grant" | "furniture" | "private_doctor" | "website" | "general_contact";
-type LeadStatus = "new" | "contacted" | "in_progress" | "closed";
 
 const statusColors: Record<LeadStatus, string> = {
   new: "bg-blue-100 text-blue-800",
@@ -35,7 +35,7 @@ const requestSubTabs: { key: RequestSubType; label: string; icon: any }[] = [
   { key: "general_contact", label: "General Contact", icon: Mail },
 ];
 
-function filterLeads(leads: any[], searchTerm: string, statusFilter: string) {
+function filterLeads(leads: AdminLead[], searchTerm: string, statusFilter: string) {
   return leads.filter((lead) => {
     const searchFields = [
       lead.name, lead.firstName, lead.lastName, lead.email, lead.companyName, lead.businessName
@@ -52,10 +52,10 @@ function LeadDetailModal({
   onSave, 
   affiliates = [] 
 }: { 
-  selectedLead: any; 
-  setSelectedLead: (lead: any) => void; 
-  onSave: (lead: any) => void;
-  affiliates?: any[];
+  selectedLead: AdminLead | null; 
+  setSelectedLead: (lead: AdminLead | null) => void; 
+  onSave: (lead: AdminLead) => void;
+  affiliates?: User[];
 }) {
   if (!selectedLead) return null;
 
@@ -287,9 +287,9 @@ function StatCard({ label, count, icon: Icon, borderColor, textColor, isLoading 
 function ApplicationsPanel({ searchTerm, statusFilter }: { searchTerm: string; statusFilter: string }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [selectedLead, setSelectedLead] = useState<AdminLead | null>(null);
 
-  const { data: applications = [], isLoading } = useQuery({
+  const { data: applications = [], isLoading } = useQuery<AffiliateApplication[]>({
     queryKey: ["admin-applications"],
     queryFn: async () => {
       const res = await fetch("/api/admin/affiliate-applications", { credentials: "include" });
@@ -300,7 +300,7 @@ function ApplicationsPanel({ searchTerm, statusFilter }: { searchTerm: string; s
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, ...updates }: any) => {
+    mutationFn: async ({ id, ...updates }: { id: number; [key: string]: unknown }) => {
       const res = await fetch(`/api/admin/affiliate-applications/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -317,7 +317,7 @@ function ApplicationsPanel({ searchTerm, statusFilter }: { searchTerm: string; s
     },
   });
 
-  const { data: affiliates = [] } = useQuery({
+  const { data: affiliates = [] } = useQuery<User[]>({
     queryKey: ["admin-affiliates"],
     queryFn: async () => {
       const res = await fetch("/api/admin/affiliates", { credentials: "include" });
@@ -329,7 +329,7 @@ function ApplicationsPanel({ searchTerm, statusFilter }: { searchTerm: string; s
 
   if (isLoading) return <PanelSkeleton />;
 
-  const filtered = filterLeads(applications, searchTerm, statusFilter);
+  const filtered = filterLeads(applications as AdminLead[], searchTerm, statusFilter);
 
   return (
     <>
@@ -337,7 +337,7 @@ function ApplicationsPanel({ searchTerm, statusFilter }: { searchTerm: string; s
         {filtered.length === 0 ? (
           <p className="text-center text-gray-500 py-8" data-testid="text-empty-applications">No applications found</p>
         ) : (
-          filtered.map((app: any) => (
+          filtered.map((app) => (
             <div 
               key={app.id} 
               className="bg-gray-50 rounded-lg p-4 border hover:border-brand-navy/50 transition-colors cursor-pointer"
@@ -355,7 +355,7 @@ function ApplicationsPanel({ searchTerm, statusFilter }: { searchTerm: string; s
                     {app.status}
                   </span>
                   <p className="text-xs text-gray-400 mt-2">
-                    {format(new Date(app.createdAt), "MMM d, yyyy")}
+                    {app.createdAt ? format(new Date(app.createdAt), "MMM d, yyyy") : ""}
                   </p>
                 </div>
               </div>

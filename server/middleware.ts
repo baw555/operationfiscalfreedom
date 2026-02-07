@@ -1,6 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
+import { eq } from "drizzle-orm";
 import { getLegalStatus } from "./legal-system";
 import { getRequestContext } from "./platform/requestContext";
+import { db } from "./db";
+import { claimCases } from "@shared/schema";
+import type { ClaimCase } from "@shared/schema";
 
 /** @deprecated Use getRequestContext(req).ip instead */
 export function resolveClientIp(req: Request): string {
@@ -76,4 +80,40 @@ export async function requireAffiliateWithNda(req: Request, res: Response, next:
   }
   
   next();
+}
+
+export function getVeteranUserId(req: Request): string | null {
+  const user = (req as any).user;
+  if (user && user.claims && user.claims.sub) {
+    return user.claims.sub;
+  }
+  return null;
+}
+
+export function requireClaimOwner(paramName = "id") {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const userId = getVeteranUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const caseId = parseInt(req.params[paramName]);
+    if (isNaN(caseId)) {
+      return res.status(400).json({ message: "Invalid case ID" });
+    }
+
+    const [claimCase] = await db
+      .select()
+      .from(claimCases)
+      .where(eq(claimCases.id, caseId))
+      .limit(1);
+
+    if (!claimCase || claimCase.veteranUserId !== userId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    (req as any).claimCase = claimCase;
+    (req as any).veteranUserId = userId;
+    next();
+  };
 }

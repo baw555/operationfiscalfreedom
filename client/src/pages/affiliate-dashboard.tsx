@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { COMMISSION_DEFAULTS } from "@shared/commissionModel";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -320,26 +321,19 @@ export default function AffiliateDashboard() {
     }
   };
 
-  // Calculator logic
-  const maxUplines = 6;
-  const producerBase = 0.69;
-  const uplineEach = 0.01;
-  const housePct = 0.225;
-  const recruiterPct = 0.025;
-
   const calcResults = useMemo(() => {
     const deal = Math.max(0, Number.isFinite(dealAmount) ? dealAmount : 0);
     const rate = Math.max(0, Math.min(100, Number.isFinite(contractRate) ? contractRate : 0)) / 100;
     const pool = deal * rate;
-    const uplines = Math.max(0, Math.min(maxUplines, uplineCount));
-    const emptyUplines = maxUplines - uplines;
-    const compression = emptyUplines * uplineEach;
-    const producerPct = producerBase + compression;
+    const uplines = Math.max(0, Math.min(COMMISSION_DEFAULTS.maxUplines, uplineCount));
+    const emptyUplines = COMMISSION_DEFAULTS.maxUplines - uplines;
+    const compression = emptyUplines * COMMISSION_DEFAULTS.uplineEach;
+    const producerPct = COMMISSION_DEFAULTS.producerBase + compression;
     const producerPay = pool * producerPct;
-    const uplinePay = pool * uplineEach;
+    const uplinePay = pool * COMMISSION_DEFAULTS.uplineEach;
     const totalUplinePay = uplinePay * uplines;
-    const housePay = pool * housePct;
-    const recruiterPay = pool * recruiterPct;
+    const housePay = pool * COMMISSION_DEFAULTS.housePct;
+    const recruiterPay = pool * COMMISSION_DEFAULTS.recruiterPct;
 
     return {
       pool,

@@ -1,16 +1,7 @@
 import { useMemo, useState } from "react";
 import { Layout } from "@/components/layout";
 import { Calculator, DollarSign, Users, Building2, Info, ArrowLeft } from "lucide-react";
-
-/**
- * COMP MODEL (Simplified):
- * - Contract gross commission (e.g., 18% for ICC) = the pool
- * - Producer: 69% of pool + compression from empty uplines
- * - Each upline: 1% of pool each (max 6 uplines)
- * - House: 22.5% of pool (fixed)
- * - Recruiter: 2.5% of pool (separate bounty)
- * - Compression: empty upline slots go to PRODUCER, not house
- */
+import { COMMISSION_DEFAULTS } from "@shared/commissionModel";
 
 export default function CompPlan() {
   const [dealAmount, setDealAmount] = useState<number>(100000);
@@ -18,25 +9,19 @@ export default function CompPlan() {
   const [uplineCount, setUplineCount] = useState<number>(0);
   const [hasRecruiter, setHasRecruiter] = useState<boolean>(true);
 
-  const maxUplines = 6;
-  const producerBase = 0.69;
-  const uplineEach = 0.01;
-  const housePct = 0.225;
-  const recruiterPct = 0.025;
-
   const results = useMemo(() => {
     const deal = Math.max(0, Number.isFinite(dealAmount) ? dealAmount : 0);
     const rate = Math.max(0, Math.min(100, Number.isFinite(contractRate) ? contractRate : 0)) / 100;
     const pool = deal * rate;
-    const uplines = Math.max(0, Math.min(maxUplines, uplineCount));
-    const emptyUplines = maxUplines - uplines;
-    const compression = emptyUplines * uplineEach;
-    const producerPct = producerBase + compression;
+    const uplines = Math.max(0, Math.min(COMMISSION_DEFAULTS.maxUplines, uplineCount));
+    const emptyUplines = COMMISSION_DEFAULTS.maxUplines - uplines;
+    const compression = emptyUplines * COMMISSION_DEFAULTS.uplineEach;
+    const producerPct = COMMISSION_DEFAULTS.producerBase + compression;
     const producerPay = pool * producerPct;
-    const uplinePay = pool * uplineEach;
+    const uplinePay = pool * COMMISSION_DEFAULTS.uplineEach;
     const totalUplinePay = uplinePay * uplines;
-    const housePay = pool * housePct;
-    const recruiterPay = hasRecruiter ? pool * recruiterPct : 0;
+    const housePay = pool * COMMISSION_DEFAULTS.housePct;
+    const recruiterPay = hasRecruiter ? pool * COMMISSION_DEFAULTS.recruiterPct : 0;
     const totalPaid = producerPay + totalUplinePay + housePay + recruiterPay;
 
     return {
@@ -131,16 +116,16 @@ export default function CompPlan() {
                   { uplines: 5, rank: "E2", title: "PV2" },
                   { uplines: 6, rank: "E1", title: "PVT" },
                 ].map(({ uplines, rank, title }) => {
-                  const empty = maxUplines - uplines;
-                  const prod = producerBase + empty * uplineEach;
+                  const empty = COMMISSION_DEFAULTS.maxUplines - uplines;
+                  const prod = COMMISSION_DEFAULTS.producerBase + empty * COMMISSION_DEFAULTS.uplineEach;
                   return (
                     <tr key={uplines} className={`border-b border-white/10 ${uplineCount === uplines ? 'bg-brand-red/30' : ''}`}>
                       <td className="py-2">{rank} - {title} {uplines === 0 ? '(Solo)' : `(${uplines} upline${uplines > 1 ? 's' : ''})`}</td>
                       <td className="py-2 text-center">{uplines} × 1%</td>
                       <td className="py-2 text-center font-bold text-green-300">{pct(prod)}</td>
-                      <td className="py-2 text-center">{pct(uplines * uplineEach)}</td>
-                      <td className="py-2 text-center">{pct(housePct)}</td>
-                      <td className="py-2 text-center">{pct(recruiterPct)}</td>
+                      <td className="py-2 text-center">{pct(uplines * COMMISSION_DEFAULTS.uplineEach)}</td>
+                      <td className="py-2 text-center">{pct(COMMISSION_DEFAULTS.housePct)}</td>
+                      <td className="py-2 text-center">{pct(COMMISSION_DEFAULTS.recruiterPct)}</td>
                     </tr>
                   );
                 })}
