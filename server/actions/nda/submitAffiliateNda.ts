@@ -100,6 +100,7 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
       idPhoto: input.idPhoto,
       ipAddress: input.ipAddress,
       codeToCheck,
+      ndaVersionId: "v1",
       degraded,
       degradedReports,
       degradedCapabilities: input.degradedCapabilities,

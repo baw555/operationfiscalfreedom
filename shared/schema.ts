@@ -634,6 +634,7 @@ export const affiliateNda = pgTable("affiliate_nda", {
   facePhoto: text("face_photo"), // Base64 webcam capture of face
   idPhoto: text("id_photo"), // Base64 uploaded ID document
   signedIpAddress: text("signed_ip_address"),
+  ndaVersionId: text("nda_version_id").notNull().default("v1"),
   agreedToTerms: text("agreed_to_terms").notNull().default("true"),
   signedAt: timestamp("signed_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

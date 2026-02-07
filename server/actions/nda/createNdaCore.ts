@@ -19,6 +19,7 @@ export type CreateNdaCoreInput = {
   idPhoto?: string | null;
   ipAddress: string;
   codeToCheck: string;
+  ndaVersionId: string;
   degraded: boolean;
   degradedReports: DegradedReport[];
   degradedCapabilities?: { camera?: string; upload?: string };
@@ -31,7 +32,7 @@ export async function createNdaCore(
   const {
     userId, fullName, veteranNumber, address,
     customReferralCode, signatureData, facePhoto, idPhoto,
-    ipAddress, codeToCheck, degraded, degradedReports, degradedCapabilities,
+    ipAddress, codeToCheck, ndaVersionId, degraded, degradedReports, degradedCapabilities,
   } = input;
 
   const [existing] = await tx.select().from(affiliateNda).where(eq(affiliateNda.userId, userId));
@@ -59,6 +60,7 @@ export async function createNdaCore(
     facePhoto: facePhoto || null,
     idPhoto: idPhoto || null,
     signedIpAddress: ipAddress,
+    ndaVersionId,
     agreedToTerms: "true",
   }).returning();
 
