@@ -406,6 +406,7 @@ export const veteranIntake = pgTable("veteran_intake", {
   status: text("status").notNull().default("new"),
   assignedTo: integer("assigned_to"),
   notes: text("notes"),
+  supabasePhiId: text("supabase_phi_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -415,6 +416,7 @@ export const insertVeteranIntakeSchema = createInsertSchema(veteranIntake).omit(
   status: true,
   assignedTo: true,
   notes: true,
+  supabasePhiId: true,
   referredByL1: true,
   referredByL2: true,
   referredByL3: true,

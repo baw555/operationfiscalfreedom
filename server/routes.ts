@@ -24,6 +24,7 @@ import crypto from "crypto";
 import { getOrCreateConversation, getConversationHistory, saveMessage, generateAIResponse, getContextualTips, seedInitialFaqs, transcribeAudio } from "./sailor-chat";
 import { resolveClientIp, requireAdmin, requireAffiliate, requireAffiliateWithNda, requireClaimOwner, getVeteranUserId } from "./middleware";
 import { attachIdentity } from "./identity/requireIdentity";
+import { phiVault } from "./phiVault";
 
 // HIPAA Security: Configure TOTP with strict timing window to prevent replay attacks
 const totpInstance = new TOTP({
@@ -3931,6 +3932,70 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Failed to update intake" });
+    }
+  });
+
+  // ── PHI Vault Routes (Supabase-backed, admin-only) ──
+
+  app.post("/api/admin/veteran-intakes/:id/phi", requireAdmin, logPhiAccess("phi_vault"), async (req, res) => {
+    try {
+      const intakeId = parseInt(req.params.id);
+      const intake = await storage.getVeteranIntake(intakeId);
+      if (!intake) return res.status(404).json({ message: "Intake not found" });
+
+      const phiData = req.body;
+      const accessor = {
+        userId: String(req.session.userId),
+        ipAddress: req.ip || undefined,
+      };
+
+      const { externalId } = await phiVault.store(String(intakeId), phiData, accessor);
+      await storage.updateVeteranIntake(intakeId, { supabasePhiId: externalId });
+
+      res.json({ success: true, supabasePhiId: externalId });
+    } catch (error) {
+      console.error("[PHI_VAULT] Store route error:", error);
+      res.status(500).json({ message: "Failed to store sensitive data" });
+    }
+  });
+
+  app.get("/api/admin/veteran-intakes/:id/phi", requireAdmin, logPhiAccess("phi_vault"), async (req, res) => {
+    try {
+      const intakeId = parseInt(req.params.id);
+      const intake = await storage.getVeteranIntake(intakeId);
+      if (!intake) return res.status(404).json({ message: "Intake not found" });
+
+      const accessor = {
+        userId: String(req.session.userId),
+        ipAddress: req.ip || undefined,
+      };
+
+      const phiRecord = await phiVault.retrieve(String(intakeId), accessor);
+      res.json(phiRecord || {});
+    } catch (error) {
+      console.error("[PHI_VAULT] Retrieve route error:", error);
+      res.status(500).json({ message: "Failed to retrieve sensitive data" });
+    }
+  });
+
+  app.delete("/api/admin/veteran-intakes/:id/phi", requireAdmin, logPhiAccess("phi_vault"), async (req, res) => {
+    try {
+      const intakeId = parseInt(req.params.id);
+      const intake = await storage.getVeteranIntake(intakeId);
+      if (!intake) return res.status(404).json({ message: "Intake not found" });
+
+      const accessor = {
+        userId: String(req.session.userId),
+        ipAddress: req.ip || undefined,
+      };
+
+      await phiVault.delete(String(intakeId), accessor);
+      await storage.updateVeteranIntake(intakeId, { supabasePhiId: null });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[PHI_VAULT] Delete route error:", error);
+      res.status(500).json({ message: "Failed to delete sensitive data" });
     }
   });
 
