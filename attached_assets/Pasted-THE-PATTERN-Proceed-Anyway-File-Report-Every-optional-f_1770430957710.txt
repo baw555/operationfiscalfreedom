@@ -1,0 +1,230 @@
+THE PATTERN: “Proceed Anyway + File Report”
+
+Every optional feature panel (camera, upload, etc.) gets three states:
+
+Available → normal UI
+
+Unavailable / Failed → warning + actions
+
+Acknowledged → continue, logged
+
+1️⃣ UI COMPONENT (drop-in)
+
+Create a single reusable component so this never becomes ad hoc.
+
+DegradedFeatureNotice.tsx
+type DegradedFeatureNoticeProps = {
+  featureName: string;
+  description: string;
+  onProceed: () => void;
+  onReport: () => void;
+};
+
+export function DegradedFeatureNotice({
+  featureName,
+  description,
+  onProceed,
+  onReport,
+}: DegradedFeatureNoticeProps) {
+  return (
+    <div className="rounded border border-yellow-400 bg-yellow-50 p-4">
+      <h3 className="font-semibold text-yellow-800">
+        {featureName} Unavailable
+      </h3>
+
+      <p className="mt-1 text-sm text-yellow-700">
+        {description}
+      </p>
+
+      <div className="mt-4 flex gap-3">
+        <button
+          onClick={onProceed}
+          className="rounded bg-yellow-600 px-3 py-1.5 text-white hover:bg-yellow-700"
+        >
+          Proceed Anyway
+        </button>
+
+        <button
+          onClick={onReport}
+          className="rounded border border-yellow-600 px-3 py-1.5 text-yellow-700 hover:bg-yellow-100"
+        >
+          Proceed & File Report
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+This is:
+
+explicit
+
+accessible
+
+reusable
+
+honest
+
+2️⃣ HOW TO USE IT (example: SignaturePanel)
+function SignaturePanel() {
+  const { setCapabilities, setDegradedReports } = useNdaContext();
+
+  const cameraUnavailable = /* detected failure */;
+
+  if (cameraUnavailable) {
+    return (
+      <DegradedFeatureNotice
+        featureName="Camera Signature"
+        description="Camera access failed or was denied. You may continue using a typed signature."
+        onProceed={() => {
+          setCapabilities((c) => ({
+            ...c,
+            camera: "unavailable",
+          }));
+        }}
+        onReport={() => {
+          setCapabilities((c) => ({
+            ...c,
+            camera: "unavailable",
+          }));
+
+          setDegradedReports((r) => [
+            ...r,
+            {
+              feature: "camera",
+              reason: "permission_denied",
+              timestamp: Date.now(),
+            },
+          ]);
+        }}
+      />
+    );
+  }
+
+  return <ActualSignatureCanvas />;
+}
+
+
+Key points:
+
+No blocking
+
+User chooses explicitly
+
+Context records the decision
+
+UI remains usable
+
+3️⃣ SUBMISSION LOGIC (central, safe)
+
+Your submit button should:
+
+✅ Allow submit if REQUIRED conditions are met
+📝 Attach degraded feature reports if present
+const handleSubmit = async () => {
+  if (!canSubmitRequiredFields) return;
+
+  await submitNda({
+    formData,
+    signature,
+    degradedFeatures: degradedReports,
+  });
+};
+
+
+This creates:
+
+a legally valid NDA
+
+a technical audit trail
+
+zero user dead ends
+
+4️⃣ NOTIFICATION (server-side)
+
+On the backend, when a submission includes degradedFeatures:
+
+Example payload
+{
+  "degradedFeatures": [
+    {
+      "feature": "camera",
+      "reason": "permission_denied",
+      "timestamp": 1710000000000
+    }
+  ]
+}
+
+Trigger a notification (email / Slack / queue)
+if (degradedFeatures?.length) {
+  await notifyOps({
+    type: "DEGRADED_SUBMISSION",
+    userId,
+    page: "affiliate-nda",
+    degradedFeatures,
+  });
+}
+
+
+This is ops visibility, not user punishment.
+
+5️⃣ USER COPY (important)
+
+Use calm, non-alarming language.
+
+Good:
+
+“You may continue”
+
+“We’ll review if needed”
+
+“This won’t stop your submission”
+
+Avoid:
+
+“Error”
+
+“Blocked”
+
+“Required fix”
+
+You’re building trust, not fear.
+
+6️⃣ WHY THIS IS SAFE (legally & operationally)
+
+User intent is explicit
+
+Failure is acknowledged
+
+Proceeding is logged
+
+Core legal artifact is intact
+
+Optional evidence is marked unavailable, not missing
+
+This is stronger than silently failing or blocking.
+
+7️⃣ THIS BECOMES A PLATFORM STANDARD
+
+Once you have this component:
+
+reuse it everywhere
+
+camera
+
+uploads
+
+previews
+
+integrations
+
+AI helpers
+
+Every failure looks and behaves the same.
+
+🔒 ONE RULE TO ENFORCE
+
+No optional feature may block submission without an explicit user choice and a logged reason.
+
+You now have the UI and logic to enforce that rule.
