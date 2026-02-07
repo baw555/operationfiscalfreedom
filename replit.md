@@ -68,12 +68,36 @@ The database supports user management, affiliate applications, support requests,
 - If a request conflicts with these rules, stop and ask
 - ESLint enforces `no-restricted-syntax` on `client/src/pages/**/*.tsx` to catch `return null` at page level
 
+## The NDA Pattern (canonical decomposition pattern)
+Use this pattern for any page that mixes auth gating, data fetching, browser APIs, and form submission.
+
+### Structure (4 files per page):
+1. **page.tsx** — Thin shell. Auth gating ONLY (`<Redirect>` for unauthorized). Renders the Shell.
+2. **page-context.tsx** — Lightweight React Context for shared form state. No async data. Panels write independently; submit reads a snapshot via `getSnapshot()`.
+3. **page-panels.tsx** — Independent panels, each wrapped in `<ErrorBoundary><Suspense><Panel /></Suspense></ErrorBoundary>`. Each panel owns its own queries/hooks. No cross-panel dependencies.
+4. **page-components.tsx** — Pure presentational UI components. No data fetching, no hooks beyond basic UI state.
+
+### Rules:
+- Auth gating: page shell only. Gate on `authLoading` — never on data loading.
+- No page-level `isLoading` that blocks everything.
+- No serialized `if (!a || !b || !c) return <Spinner />`.
+- Every panel owns its own fate. If camera fails, only camera panel errors.
+- ErrorBoundary wraps OUTSIDE Suspense: `<ErrorBoundary><Suspense><Component /></Suspense></ErrorBoundary>`
+- For forms: Context holds artifacts (photos, signatures). Submit handler reads snapshot.
+- Session heartbeat lives in the shell, not gated by any data query.
+
+### Applied to:
+- `affiliate-nda.tsx` (Feb 2026) — 1094-line monolith decomposed into 4 files
+- `admin-dashboard.tsx` — 4 panels (Applications, Requests, Investors, Affiliates) with PanelError/PanelSkeleton
+- Next candidate: main dashboard or admin console (one page at a time)
+
 ## Phase 0 Changes (Feb 2026)
 - Removed dead Replit Auth OIDC (server + client gate components)
 - Changed queryClient default from `on401: "throw"` to `on401: "returnNull"`
 - Replaced blank-screen `return null` with `<Redirect>` in notification-console.tsx and affiliate-nda.tsx
 - Simplified PlatformDisclaimerModal JSX for UX clarity (logic unchanged)
 - **Data-Fetching Optimization**: Added `staleTime` to ~80 useQuery hooks across 9 heavy pages to reduce unnecessary API refetches. Auth queries use 60s staleTime; admin data uses 5min; operational data uses 30s. Claims Navigator additionally gates tab-specific queries (analysis, documents, timeline, deadlines, sharing) behind `activeTab` state to defer loading until needed.
+- **NDA Page Decomposition**: Decomposed affiliate-nda.tsx (1094 lines) into 4 files using The NDA Pattern. Auth gating in shell, 5 independent Suspense/ErrorBoundary panels (NdaStatus, LegalText, FormFields, Signature, Upload), shared NdaFormContext for atomic submit.
 
 ## External Dependencies
 - **PostgreSQL**: Primary database.
