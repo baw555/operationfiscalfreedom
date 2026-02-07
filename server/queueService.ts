@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { notificationQueue, InsertNotificationQueue, NotificationQueue } from "@shared/schema";
+import { notificationQueue, InsertNotificationQueue, NotificationQueue, idempotencyKeys } from "@shared/schema";
 import { eq, lte, and, gte } from "drizzle-orm";
 import { sendEmailWithRetry } from "./emailWithRetry";
 import { appendAudit } from "./auditService";
@@ -199,8 +199,24 @@ export async function promoteToDigest(userId: number) {
   console.log(`[Queue] User ${userId} promoted to hourly digest`);
 }
 
+export async function cleanupExpiredIdempotencyKeys(): Promise<number> {
+  try {
+    const expired = await db.delete(idempotencyKeys)
+      .where(lte(idempotencyKeys.expiresAt, new Date()))
+      .returning({ key: idempotencyKeys.key });
+    if (expired.length > 0) {
+      console.log(`[Idempotency] Cleaned up ${expired.length} expired keys`);
+    }
+    return expired.length;
+  } catch (err) {
+    console.error("[Idempotency] Cleanup failed:", err);
+    return 0;
+  }
+}
+
 let queueInterval: NodeJS.Timeout | null = null;
 let degradedInterval: NodeJS.Timeout | null = null;
+let idempotencyCleanupInterval: NodeJS.Timeout | null = null;
 
 export function startQueueRunner() {
   if (queueInterval) return;
@@ -215,6 +231,9 @@ export function startQueueRunner() {
   
   console.log("[Queue] Starting degraded mode monitor (60s interval)");
   degradedInterval = setInterval(checkDegradedMode, 60000);
+
+  console.log("[Queue] Starting idempotency key cleanup (1h interval)");
+  idempotencyCleanupInterval = setInterval(cleanupExpiredIdempotencyKeys, 60 * 60 * 1000);
 }
 
 export function stopQueueRunner() {
@@ -225,6 +244,10 @@ export function stopQueueRunner() {
   if (degradedInterval) {
     clearInterval(degradedInterval);
     degradedInterval = null;
+  }
+  if (idempotencyCleanupInterval) {
+    clearInterval(idempotencyCleanupInterval);
+    idempotencyCleanupInterval = null;
   }
   console.log("[Queue] Queue runner stopped");
 }

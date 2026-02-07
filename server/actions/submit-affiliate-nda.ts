@@ -132,6 +132,7 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
             userId,
             action: "submitAffiliateNda",
             entityId: existing.id,
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           }).onConflictDoNothing();
         }
         return { nda: existing, alreadySigned: true as const };
@@ -163,6 +164,7 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
           userId,
           action: "submitAffiliateNda",
           entityId: created.id,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         });
       }
 

@@ -2508,6 +2508,7 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
   action: text("action").notNull(),
   entityId: integer("entity_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull().default(sql`now() + interval '24 hours'`),
 });
 
 export const insertIdempotencyKeySchema = createInsertSchema(idempotencyKeys).omit({
