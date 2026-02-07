@@ -1,0 +1,68 @@
+This plan for a "PHI Vault" is the most professional and scalable way to handle your growth while checking the HIPAA boxes. It follows the principle of Separation of Concerns: Replit handles the "Business" (UI, logic, non-sensitive data), and Supabase handles the "Vault" (SSNs, medical files).
+
+Here is the blueprint to build this out with the least moving parts.
+
+1. The "PHI Vault" Architecture
+2. Step-by-Step implementation
+A. Get your "Admin" Key (Service Role Key)
+To build a secure boundary layer, your server needs a key that has more power than the one used in a browser.
+
+Go to Supabase Settings > API.
+
+Find the service_role secret key. Warning: Never expose this in frontend code.
+
+Add it to your Replit Secrets as SUPABASE_SERVICE_ROLE_KEY.
+
+B. Create the Secure Boundary Service
+In your server/ folder, create phiVault.ts. This service will be the only thing allowed to talk to Supabase.
+
+TypeScript
+import { createClient } from '@supabase/supabase-js';
+
+// Use the Service Role Key for server-to-server communication
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export const phiVault = {
+  // Store sensitive veteran data
+  async storeSensitiveData(replitUserId: string, phiData: any) {
+    const { data, error } = await supabaseAdmin
+      .from('veteran_phi')
+      .upsert({ 
+        external_id: replitUserId, 
+        ...phiData 
+      });
+    
+    // HIPAA Requirement: Log the access
+    await this.logAccess(replitUserId, 'WRITE_PHI');
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // HIPAA Audit Logging Function
+  async logAccess(userId: string, action: string) {
+    await supabaseAdmin.from('audit_logs').insert({
+      user_id: userId,
+      action: action,
+      timestamp: new Date().toISOString()
+    });
+  }
+};
+C. Link the Two Databases
+In your existing Replit database (Postgres), simply add a column to your users or veterans table:
+
+SQL
+ALTER TABLE users ADD COLUMN supabase_phi_id UUID;
+Replit Side: Stores name, email, referral_count.
+
+Supabase Side: Stores ssn, medical_history, disability_rating.
+
+3. Why this is the "Least Moving Parts" for HIPAA
+No Rewrites: You don't have to change your existing login system or affiliate logic.
+
+Legal Protection: By isolating the PHI to Supabase, you only need the BAA (Business Associate Agreement) for that specific Supabase project. Replit stays "clean" because it never touches the "hot" data.
+
+Compliance Ready: The logAccess function ensures you have a permanent trail of who touched what, which is the #1 thing auditors look for.
