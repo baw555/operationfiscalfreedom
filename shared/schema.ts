@@ -2501,5 +2501,20 @@ export const insertEventSchema = createInsertSchema(events).omit({
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type Event = typeof events.$inferSelect;
 
+// Idempotency Keys — prevents duplicate submissions from refresh, double-click, retry, network replay
+export const idempotencyKeys = pgTable("idempotency_keys", {
+  key: text("key").primaryKey(),
+  userId: integer("user_id").notNull(),
+  action: text("action").notNull(),
+  entityId: integer("entity_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertIdempotencyKeySchema = createInsertSchema(idempotencyKeys).omit({
+  createdAt: true,
+});
+export type InsertIdempotencyKey = z.infer<typeof insertIdempotencyKeySchema>;
+export type IdempotencyKey = typeof idempotencyKeys.$inferSelect;
+
 // Replit Auth tables (for veteran users)
 export * from "./models/auth";
