@@ -1,0 +1,224 @@
+7.1 — IDENTITY CANONICALIZATION (WITHOUT MERGING TABLES)
+What this stage IS
+
+Introduce a canonical identity abstraction
+
+WITHOUT deleting or merging any tables
+
+WITHOUT schema changes yet
+
+What this stage is NOT
+
+Not a user table rewrite
+
+Not a login rewrite
+
+Not a session rewrite
+
+7.1A — Canonical Identity Resolver
+Why
+
+Right now you have 4 identity systems:
+
+users
+
+vlt_affiliates
+
+veteran_auth_users
+
+ai_users
+
+They will not be unified yet — but code must stop guessing which one it’s dealing with.
+
+✅ CREATE: server/identity/resolveIdentity.ts
+export type IdentityKind =
+  | "user"
+  | "vlt_affiliate"
+  | "veteran"
+  | "ai";
+
+export type CanonicalIdentity = {
+  kind: IdentityKind;
+  id: string;          // always string
+  numericId?: number;  // if exists
+};
+
+export function resolveIdentityFromSession(
+  session: any
+): CanonicalIdentity | null {
+  if (!session) return null;
+
+  if (session.veteranUserId) {
+    return {
+      kind: "veteran",
+      id: session.veteranUserId,
+    };
+  }
+
+  if (session.vltAffiliateId) {
+    return {
+      kind: "vlt_affiliate",
+      id: String(session.vltAffiliateId),
+      numericId: session.vltAffiliateId,
+    };
+  }
+
+  if (session.userId) {
+    return {
+      kind: "user",
+      id: String(session.userId),
+      numericId: session.userId,
+    };
+  }
+
+  return null;
+}
+
+🛑 PAUSE & VERIFY
+
+No existing behavior changes
+
+No routes rewritten yet
+
+This is pure interpretation, not enforcement
+
+❓ QUESTIONS TO ASK REPLIT
+1. List every session field ever set related to identity.
+2. Confirm no routes rely on req.session.userId when veteran flows are active.
+
+7.2 — AUTHORIZATION POLICY LAYER (READ-ONLY FIRST)
+Why
+
+Right now authorization is:
+
+scattered
+
+partially implicit
+
+role-based in some places
+
+identity-based in others
+
+We do not enforce yet — we describe policy.
+
+7.2A — Policy Definitions
+✅ CREATE: server/auth/policies.ts
+import type { CanonicalIdentity } from "../identity/resolveIdentity";
+
+export function canAccessClaims(identity: CanonicalIdentity | null) {
+  return identity?.kind === "veteran";
+}
+
+export function canAccessAdmin(identity: CanonicalIdentity | null) {
+  return identity?.kind === "user";
+}
+
+export function canAccessAffiliate(identity: CanonicalIdentity | null) {
+  return identity?.kind === "vlt_affiliate" || identity?.kind === "user";
+}
+
+🛑 PAUSE & VERIFY
+
+No routes use this yet
+
+This does not change auth behavior
+
+It merely documents reality
+
+❓ QUESTIONS TO ASK REPLIT
+1. Which routes are intended to be accessible by which identity kinds?
+2. Are there any mixed-identity routes (affiliate + user)?
+
+7.3 — SCHEMA HARDENING (NON-DESTRUCTIVE FIRST)
+
+You are on drizzle push, so this stage is surgical.
+
+7.3A — Add NON-ENFORCING CONSTRAINTS
+What you do first
+
+Add indexes
+
+Add NOT VALID foreign keys (if supported)
+
+Add check constraints that don’t block existing rows
+
+(Exact SQL may vary depending on Neon / Postgres config)
+
+Example: Claim FK audit (NO ENFORCEMENT YET)
+-- Example: document intent without enforcement
+-- (do NOT run until verified in staging)
+
+-- COMMENT ON COLUMN claim_cases.veteran_user_id
+-- IS 'Intended FK → veteran_auth_users.id';
+
+
+This sounds trivial — but it’s critical for future migration safety.
+
+🛑 PAUSE & VERIFY
+
+No schema push yet
+
+Only documentation / comments / indexes
+
+Confirm zero write-path changes
+
+❓ QUESTIONS TO ASK REPLIT
+1. Does Neon/Postgres support NOT VALID foreign keys in our config?
+2. Are there any tables with mixed identity references?
+
+7.4 — GLOBAL AUTH MIDDLEWARE (LAST STEP OF PHASE 7)
+
+This is where everything finally converges.
+
+7.4A — Introduce requireIdentity
+Why
+
+You now have:
+
+canonical identity
+
+policy definitions
+
+stable session semantics
+
+Now you can enforce once.
+
+✅ CREATE: server/middleware/requireIdentity.ts
+import type { Request, Response, NextFunction } from "express";
+import { resolveIdentityFromSession } from "../identity/resolveIdentity";
+
+export function requireIdentity(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const identity = resolveIdentityFromSession(req.session);
+
+  if (!identity) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+
+  (req as any).identity = identity;
+  next();
+}
+
+🛑 PAUSE & VERIFY
+
+Apply to ONE low-risk route first
+
+Verify no unintended lockouts
+
+Confirm affiliate / veteran flows still work
+
+❓ QUESTIONS TO ASK REPLIT
+1. Which routes should explicitly NOT require identity?
+2. Which routes must remain legacy-auth for now?
+
+PHASE 7 SUMMARY (LIKE PHASE 6)
+Stage	Purpose	Behavior Change
+7.1 Identity resolution	Stop guessing identity	❌
+7.2 Policy layer	Describe auth rules	❌
+7.3 Schema hardening	Prepare constraints	❌
+7.4 Auth middleware	Enforce identity	✅ (controlled)
+
+Only 7.4 changes runtime behavior — and it happens last.
