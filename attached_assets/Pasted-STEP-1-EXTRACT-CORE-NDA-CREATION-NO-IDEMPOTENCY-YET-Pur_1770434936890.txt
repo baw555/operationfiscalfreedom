@@ -1,0 +1,151 @@
+STEP 1 — EXTRACT CORE NDA CREATION (NO IDEMPOTENCY YET)
+
+Purpose: isolate the authoritative write so it can be reused safely.
+
+server/actions/nda/createNdaCore.ts
+import { ndas } from "../../schema/ndas";
+import { events } from "../../schema/events";
+
+type DegradedFeature = {
+  feature: string;
+  reason: string;
+  acknowledgedByUser: true;
+  timestamp: number;
+};
+
+type CreateNdaCoreInput = {
+  userId: number;
+  ndaVersionId: string;
+  signature: { type: "typed" | "drawn"; value: string };
+  ipAddress: string;
+  userAgent: string;
+  degradedFeatures?: DegradedFeature[];
+};
+
+export async function createNdaCore(tx: any, input: CreateNdaCoreInput) {
+  const degraded = Boolean(input.degradedFeatures?.length);
+
+  const [nda] = await tx
+    .insert(ndas)
+    .values({
+      userId: input.userId,
+      ndaVersionId: input.ndaVersionId,
+      signatureType: input.signature.type,
+      signatureValue: input.signature.value,
+      ipAddress: input.ipAddress,
+      userAgent: input.userAgent,
+      degraded,
+    })
+    .returning();
+
+  await tx.insert(events).values({
+    eventType: "NDA_SUBMITTED",
+    userId: input.userId,
+    entityId: nda.id,
+    entityType: "nda",
+    degraded,
+    payload: { ndaVersionId: input.ndaVersionId },
+  });
+
+  if (degraded) {
+    await tx.insert(events).values({
+      eventType: "NDA_SUBMITTED_WITH_DEGRADATION",
+      userId: input.userId,
+      entityId: nda.id,
+      entityType: "nda",
+      degraded: true,
+      payload: { degradedFeatures: input.degradedFeatures },
+    });
+  }
+
+  return { ndaId: nda.id, degraded };
+}
+
+
+END CODE
+
+STEP 2 — WRAP CORE WITH IDEMPOTENCY (NO SIDE EFFECTS)
+
+Purpose: make idempotency pure and reusable.
+
+server/actions/nda/submitAffiliateNdaAction.ts
+import { withIdempotency } from "../withIdempotency";
+import { createNdaCore } from "./createNdaCore";
+
+type SubmitAffiliateNdaInput = {
+  idempotencyKey: string;
+  userId: number;
+  role: "affiliate";
+  ndaVersionId: string;
+  legalAcknowledgement: true;
+  signature: { type: "typed" | "drawn"; value: string };
+  ipAddress: string;
+  userAgent: string;
+  degradedFeatures?: any[];
+};
+
+export const submitAffiliateNdaAction = withIdempotency<
+  SubmitAffiliateNdaInput,
+  { entityId: number; degraded: boolean }
+>(
+  "submitAffiliateNda",
+  async (tx, input) => {
+    if (input.role !== "affiliate") throw new Error("Invalid role");
+    if (!input.legalAcknowledgement) throw new Error("Legal acknowledgement required");
+    if (!input.signature?.value) throw new Error("Signature required");
+
+    const result = await createNdaCore(tx, {
+      userId: input.userId,
+      ndaVersionId: input.ndaVersionId,
+      signature: input.signature,
+      ipAddress: input.ipAddress,
+      userAgent: input.userAgent,
+      degradedFeatures: input.degradedFeatures,
+    });
+
+    return {
+      entityId: result.ndaId,
+      degraded: result.degraded,
+    };
+  }
+);
+
+
+END CODE
+
+STEP 3 — OUTER ORCHESTRATOR (POST-TRANSACTION EFFECTS ONLY)
+
+Purpose: keep side effects outside idempotency + DB transaction.
+
+server/actions/nda/submitAffiliateNda.ts
+import { submitAffiliateNdaAction } from "./submitAffiliateNdaAction";
+import { notifyDegradedSubmission } from "../../notifications/notifyDegradedSubmission";
+import { mirrorLegalRecord } from "../../legal/mirrorLegalRecord";
+
+export async function submitAffiliateNda(input: any) {
+  const result = await submitAffiliateNdaAction(input);
+
+  // Post-transaction side effects (SAFE)
+  await mirrorLegalRecord({
+    ndaId: result.entityId,
+    userId: input.userId,
+  });
+
+  if (input.degradedFeatures?.length) {
+    await notifyDegradedSubmission({
+      userId: input.userId,
+      entityId: result.entityId,
+      entityType: "nda",
+      degradedFeatures: input.degradedFeatures,
+    });
+  }
+
+  return {
+    ndaId: result.entityId,
+    degraded: result.degraded,
+    replay: result.replay ?? false,
+  };
+}
+
+
+END CODE
