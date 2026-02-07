@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { signatureMetrics, complianceRuns, legalSignatures } from "@shared/schema";
-import { LEGAL_DOCS, signLegalDocumentAtomic, getLegalStatus } from "./legal-system";
+import { LEGAL_DOCS, signLegalDocumentCore, getLegalStatus } from "./legal-system";
 import { eq, sql } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
@@ -102,14 +102,13 @@ async function simulateUserSignatureFlow(testUserId: number): Promise<void> {
   for (const docType of docs) {
     const doc = LEGAL_DOCS[docType];
     
-    await signLegalDocumentAtomic({
+    await signLegalDocumentCore({
       userId: testUserId,
-      doc,
-      docHash: "TEST_HASH_" + docType,
-      req: { 
-        headers: { "user-agent": "SyntheticTestBot/1.0" }, 
-        socket: { remoteAddress: "127.0.0.1" } 
-      } as any,
+      documentType: doc.type,
+      documentVersion: doc.version,
+      documentHash: "TEST_HASH_" + docType,
+      ipAddress: "127.0.0.1",
+      userAgent: "SyntheticTestBot/1.0",
     });
 
     const status = await getLegalStatus(testUserId, "affiliate");

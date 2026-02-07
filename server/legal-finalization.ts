@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { legalSignatures, affiliateNda, signedAgreements, csuSignedAgreements, users } from "@shared/schema";
-import { LEGAL_DOCS, signLegalDocumentAtomic, hashDocument, legalSystemHealthCheck } from "./legal-system";
+import { LEGAL_DOCS, hashDocument, legalSystemHealthCheck } from "./legal-system";
 import { eq, and } from "drizzle-orm";
 
 export async function migrateLegacySignatures(): Promise<{ migrated: number; errors: string[] }> {

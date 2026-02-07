@@ -41,6 +41,49 @@ export async function hasSignedLegalDoc(userId: number, doc: LegalDoc): Promise<
   return Boolean(existing);
 }
 
+export async function signLegalDocumentCore({
+  userId,
+  documentType,
+  documentVersion,
+  documentHash,
+  ipAddress,
+  userAgent,
+}: {
+  userId: number;
+  documentType: string;
+  documentVersion: string;
+  documentHash?: string | null;
+  ipAddress: string;
+  userAgent: string;
+}): Promise<{ success: boolean; alreadySigned?: boolean }> {
+  return await db.transaction(async (tx) => {
+    const [existing] = await tx.select()
+      .from(legalSignatures)
+      .where(
+        and(
+          eq(legalSignatures.userId, userId),
+          eq(legalSignatures.documentType, documentType),
+          eq(legalSignatures.documentVersion, documentVersion)
+        )
+      );
+
+    if (existing) {
+      return { success: true, alreadySigned: true };
+    }
+
+    await tx.insert(legalSignatures).values({
+      userId,
+      documentType,
+      documentVersion,
+      documentHash: documentHash || null,
+      ipAddress,
+      userAgent,
+    });
+
+    return { success: true, alreadySigned: false };
+  });
+}
+
 export async function signLegalDocumentAtomic({
   userId,
   doc,
@@ -63,31 +106,13 @@ export async function signLegalDocumentAtomic({
 
   const ua = (req.headers["user-agent"] as string) || "unknown";
 
-  return await db.transaction(async (tx) => {
-    const [existing] = await tx.select()
-      .from(legalSignatures)
-      .where(
-        and(
-          eq(legalSignatures.userId, userId),
-          eq(legalSignatures.documentType, doc.type),
-          eq(legalSignatures.documentVersion, doc.version)
-        )
-      );
-
-    if (existing) {
-      return { success: true, alreadySigned: true };
-    }
-
-    await tx.insert(legalSignatures).values({
-      userId,
-      documentType: doc.type,
-      documentVersion: doc.version,
-      documentHash: docHash || null,
-      ipAddress: ip,
-      userAgent: ua,
-    });
-
-    return { success: true, alreadySigned: false };
+  return signLegalDocumentCore({
+    userId,
+    documentType: doc.type,
+    documentVersion: doc.version,
+    documentHash: docHash,
+    ipAddress: ip,
+    userAgent: ua,
   });
 }
 

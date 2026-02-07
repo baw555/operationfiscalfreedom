@@ -7,7 +7,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { db } from "./db";
 import { LEGAL_DOCS, getLegalStatus, signLegalDocumentAtomic, healLegalStateOnLogin, createLegalOverride, legalSystemHealthCheck, generateEvidenceBundle, processExternalEsignCallback, runLegalTestBot, requireLegalClearance, hashDocument } from "./legal-system";
-import { submitAffiliateNda } from "./actions/nda/submitAffiliateNda";
+
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
@@ -18,6 +18,7 @@ import { TOTP, generateSecret, verifySync, NobleCryptoPlugin, ScureBase32Plugin 
 import * as QRCode from "qrcode";
 import crypto from "crypto";
 import { getOrCreateConversation, getConversationHistory, saveMessage, generateAIResponse, getContextualTips, seedInitialFaqs, transcribeAudio } from "./sailor-chat";
+import { resolveClientIp, requireAdmin, requireAffiliate, requireAffiliateWithNda } from "./middleware";
 
 // HIPAA Security: Configure TOTP with strict timing window to prevent replay attacks
 const totpInstance = new TOTP({
@@ -25,22 +26,6 @@ const totpInstance = new TOTP({
   crypto: new NobleCryptoPlugin(),
   base32: new ScureBase32Plugin(),
 });
-
-function resolveClientIp(req: any): string {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.trim()) {
-    return forwarded.split(",")[0].trim();
-  }
-  const realIp = req.headers["x-real-ip"];
-  if (typeof realIp === "string" && realIp.trim()) {
-    return realIp.trim();
-  }
-  const cfIp = req.headers["cf-connecting-ip"];
-  if (typeof cfIp === "string" && cfIp.trim()) {
-    return cfIp.trim();
-  }
-  return req.socket?.remoteAddress || "unknown";
-}
 
 // Helper function for TOTP verification with security window
 function verifyTotp(token: string, secret: string): boolean {
@@ -304,88 +289,6 @@ function requirePermission(permission: Permission) {
   };
 }
 
-function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  const internalUser = (req as any).user;
-  if (internalUser?.service && (internalUser.role === "master" || internalUser.role === "admin")) {
-    return next();
-  }
-  
-  if (!req.session.userId || (req.session.userRole !== "admin" && req.session.userRole !== "master")) {
-    return res.status(403).json({ message: "Forbidden - Admin access required" });
-  }
-  
-  // HIPAA §164.312(d) - Enforce MFA for admin access to PHI
-  if (req.session.mfaPending === true && req.session.mfaVerified !== true) {
-    return res.status(403).json({ 
-      message: "MFA verification required for admin access",
-      mfaPending: true 
-    });
-  }
-  
-  next();
-}
-
-// Middleware to check if user is affiliate
-function requireAffiliate(req: Request, res: Response, next: NextFunction) {
-  if (!req.session.userId || req.session.userRole !== "affiliate") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-  
-  // HIPAA §164.312(d) - Enforce MFA for affiliate access if enabled
-  if (req.session.mfaPending === true && req.session.mfaVerified !== true) {
-    return res.status(403).json({ 
-      message: "MFA verification required",
-      mfaPending: true 
-    });
-  }
-  next();
-}
-
-// Middleware to check if affiliate has signed NDA - ENFORCED ON BACKEND
-// This is the authoritative check - client-side checks are for UX only
-// NOW USES GLOBAL LEGAL SYSTEM for unified enforcement
-async function requireAffiliateWithNda(req: Request, res: Response, next: NextFunction) {
-  if (!req.session.userId || req.session.userRole !== "affiliate") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-  
-  // HIPAA §164.312(d) - Enforce MFA for affiliate access if enabled
-  if (req.session.mfaPending === true && req.session.mfaVerified !== true) {
-    return res.status(403).json({ 
-      message: "MFA verification required",
-      mfaPending: true 
-    });
-  }
-  
-  // CRITICAL: Check legal status from GLOBAL LEGAL SYSTEM - single source of truth
-  try {
-    const legalStatus = await getLegalStatus(req.session.userId, req.session.userRole);
-    
-    // Check NDA specifically
-    if (!legalStatus.NDA) {
-      return res.status(403).json({ 
-        message: "NDA signature required",
-        required: "NDA",
-        redirectTo: "/affiliate/nda"
-      });
-    }
-    
-    // Check CONTRACT if defined for this role
-    if (legalStatus.CONTRACT === false) {
-      return res.status(403).json({ 
-        message: "Contract signature required",
-        required: "CONTRACT",
-        redirectTo: "/legal/contract"
-      });
-    }
-  } catch (error) {
-    console.error("[requireAffiliateWithNda] Error checking legal status:", error);
-    return res.status(500).json({ message: "Failed to verify legal status" });
-  }
-  
-  next();
-}
-
 // HIPAA §164.312(b) - PHI Access Audit Logging Middleware
 // Automatically logs access to PHI-containing resources
 function logPhiAccess(resourceType: string) {
@@ -490,6 +393,10 @@ export async function registerRoutes(
   );
   
   console.log(`[session] Session timeout configured: ${SESSION_TIMEOUT_MINUTES} minutes, secure cookies: ${isProduction}`);
+
+  // ===== MODULAR ROUTE REGISTRATIONS =====
+  const { registerAffiliateNdaRoutes } = await import("./routes/affiliateNda");
+  registerAffiliateNdaRoutes(app);
 
   // ===== PUBLIC ROUTES =====
 
@@ -2818,17 +2725,6 @@ export async function registerRoutes(
     }
   });
 
-  // Check if affiliate has signed NDA
-  app.get("/api/affiliate/nda-status", requireAffiliate, async (req, res) => {
-    try {
-      const hasSigned = await storage.hasAffiliateSignedNda(req.session.userId!);
-      const nda = hasSigned ? await storage.getAffiliateNdaByUserId(req.session.userId!) : null;
-      res.json({ hasSigned, nda });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to check NDA status" });
-    }
-  });
-
   // ===== GLOBAL LEGAL SYSTEM ROUTES =====
   
   // Get legal document signature status for current user
@@ -3874,46 +3770,6 @@ export async function registerRoutes(
       res.status(500).json({ message: "Failed to generate PDF" });
     }
   });
-
-  // Sign affiliate NDA — thin route delegates to action layer
-  const handleNdaSubmit = async (req: any, res: any) => {
-    const userId = req.session.userId;
-    if (!userId) {
-      return res.status(401).json({ message: "Session not established" });
-    }
-
-    try {
-      const ipAddress = resolveClientIp(req);
-      const userAgent = (req.headers["user-agent"] as string) || "unknown";
-
-      const result = await submitAffiliateNda({
-        ...req.body,
-        userId,
-        ipAddress,
-        userAgent,
-      });
-
-      if (!result.ok) {
-        return res.status(result.code).json({ message: result.message });
-      }
-
-      if (result.alreadySigned) {
-        return res.json({ success: true, message: "NDA already signed", ndaId: result.ndaId });
-      }
-
-      res.json({ success: true, ndaId: result.ndaId, status: result.status, degraded: result.degraded });
-    } catch (error: any) {
-      console.error("[NDA SIGN FAILURE]", {
-        userId,
-        error: error?.message,
-        code: error?.code,
-      });
-      res.status(500).json({ message: "NDA signing failed. Please retry.", retryable: true });
-    }
-  };
-
-  app.post("/api/actions/submit-affiliate-nda", requireAffiliate, handleNdaSubmit);
-  app.post("/api/affiliate/sign-nda", requireAffiliate, handleNdaSubmit);
 
   // Session heartbeat - renew session on form focus to prevent timeout during long form fills
   app.post("/api/session/heartbeat", (req, res) => {

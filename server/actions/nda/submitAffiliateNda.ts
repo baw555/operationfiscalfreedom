@@ -1,7 +1,7 @@
 import { submitAffiliateNdaAction } from "./submitAffiliateNdaAction";
 import { isReplay } from "../withIdempotency";
 import { notifyDegradedSubmission } from "../../notifications/notifyDegradedSubmission";
-import { LEGAL_DOCS, signLegalDocumentAtomic, hashDocument } from "../../legal-system";
+import { LEGAL_DOCS, signLegalDocumentCore, hashDocument } from "../../legal-system";
 import type { DegradedReport } from "./createNdaCore";
 
 export interface SubmitNdaInput {
@@ -141,23 +141,17 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
 
 async function mirrorToLegalSystem(input: SubmitNdaInput): Promise<void> {
   try {
-    const reqShim = {
-      headers: {
-        "x-forwarded-for": input.ipAddress,
-        "user-agent": input.userAgent,
-      },
-      socket: { remoteAddress: input.ipAddress },
-    } as any;
-
-    await signLegalDocumentAtomic({
+    await signLegalDocumentCore({
       userId: input.userId,
-      doc: LEGAL_DOCS.NDA,
-      docHash: hashDocument(JSON.stringify({
+      documentType: LEGAL_DOCS.NDA.type,
+      documentVersion: LEGAL_DOCS.NDA.version,
+      documentHash: hashDocument(JSON.stringify({
         fullName: input.fullName,
         signatureData: input.signatureData,
         address: input.address,
       })),
-      req: reqShim,
+      ipAddress: input.ipAddress,
+      userAgent: input.userAgent,
     });
     console.log(`[NDA Sign] Mirrored to legal_signatures for user ${input.userId}`);
   } catch (mirrorError) {
