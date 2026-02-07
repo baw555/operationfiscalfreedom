@@ -1,0 +1,210 @@
+kay — slow down, breathe. You did nothing wrong architecturally. What you’re facing now is a Drizzle tooling + existing schema drift issue, not a Phase-8 design problem.
+
+I’m going to do this methodically, as your architect, and I will not let you brick prod.
+
+WHAT IS ACTUALLY HAPPENING (CLEAR DIAGNOSIS)
+
+You are seeing an interactive prompt about a conversations table when running drizzle-kit push.
+
+That tells us one and only one thing:
+
+🔴 There is pre-existing schema drift unrelated to identity_map.
+
+This drift existed before Phase 8.
+Your identity map is just the first time you’ve tried to push schema again.
+
+Key insight (important)
+
+Drizzle is not “stuck”
+
+Drizzle is waiting for a destructive decision
+
+Flags like --force are dangerous because they may choose truncate or drop
+
+That is why Replit is concerned — and they’re right.
+
+HARD RULE (ARCHITECT OVERRIDE)
+
+❌ DO NOT run --force
+❌ DO NOT pipe blind answers
+❌ DO NOT create tables via raw SQL
+
+If you do, you lose:
+
+schema authority
+
+auditability
+
+rollback safety
+
+We fix this cleanly.
+
+WHY conversations IS SHOWING UP
+
+This almost always happens because one of these is true:
+
+The table exists in the DB but is missing from shared/schema.ts
+
+The table exists but has columns Drizzle doesn’t know about
+
+The table was created manually or by another tool
+
+A prior push was interrupted
+
+Drizzle is asking:
+
+“Should I reconcile / truncate / drop this table?”
+
+That decision has nothing to do with identity_map — but Drizzle must resolve it before any push.
+
+CORRECT, SAFE PLAN (STEP BY STEP)
+
+We are going to do Phase 8.1 correctly, without touching production data.
+
+STEP 1 — CAPTURE THE EXACT PROMPT (DO NOT ANSWER YET)
+
+Run this in an interactive shell (Replit Shell, not a build step):
+
+npx drizzle-kit push
+
+
+When the prompt appears about conversations, STOP.
+
+📋 Copy the entire prompt verbatim, including:
+
+the question
+
+the options (1 / 2 / 3 etc.)
+
+👉 Do not choose anything yet.
+
+This is non-negotiable.
+
+STEP 2 — ARCHITECT DECISION ON THE PROMPT
+
+Once you paste the prompt here, I will tell you exactly which option is safe.
+
+In 95% of cases, the correct answer is:
+
+“No action / Keep existing data”
+
+Never truncate
+
+Never drop
+
+But we do not guess.
+We read the prompt.
+
+STEP 3 — RESOLVE conversations DRIFT (ONE-TIME)
+
+Depending on what the prompt says, we will do one of these:
+
+Option A — Add conversations to Drizzle schema (most likely)
+
+If the table is real and in use:
+
+we add a minimal schema definition
+
+no behavior change
+
+no data touch
+
+Option B — Tell Drizzle to ignore it
+
+If it’s legacy / unused:
+
+we mark it unmanaged
+
+or explicitly keep it untouched
+
+Option C — Document and defer
+
+If ownership is unclear:
+
+we abort the push
+
+log the discrepancy
+
+proceed later
+
+We do not delete data. Ever.
+
+STEP 4 — RE-RUN PUSH (IDENTITY MAP ONLY)
+
+Once conversations is resolved:
+
+npx drizzle-kit push
+
+
+At this point, the diff must show only:
+
++ identity_map
+
+possibly an index
+
+Nothing else.
+
+STEP 5 — PAUSE CHECKLIST (MANDATORY)
+
+Before continuing:
+
+✅ identity_map exists
+✅ No other tables changed
+✅ No truncation occurred
+✅ Schema file unchanged post-push
+
+Only then is 8.1 officially complete.
+
+WHY THIS DOES NOT BLOCK PHASE 8
+
+This is not a failure. This is actually good news:
+
+You uncovered latent schema drift safely
+
+Before FK enforcement
+
+Before identity enforcement
+
+Before deletion
+
+This is exactly when you want to find it.
+
+WHAT WE DO NOT DO YET
+
+We do not start:
+
+8.2 shadow writes
+
+8.3 session canonicalization
+
+any enforcement
+
+Until schema ownership is clean.
+
+YOUR NEXT ACTION (CLEAR AND SMALL)
+
+Please do exactly this:
+
+Run:
+
+npx drizzle-kit push
+
+
+When the conversations prompt appears:
+
+do not answer
+
+copy it exactly
+
+Paste it here.
+
+I will then:
+
+interpret it as your architect
+
+tell you the safe choice
+
+and give you the next exact command
+
+You’re doing the right thing by stopping.
+This is how you keep production safe.
