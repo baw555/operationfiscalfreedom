@@ -165,7 +165,7 @@ export function FormFieldsPanel() {
       }
       return res.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (data: any) => {
       try {
         const statusRes = await fetch("/api/affiliate/nda-status", { credentials: "include" });
         if (!statusRes.ok) throw new Error("Status check failed");
@@ -174,7 +174,12 @@ export function FormFieldsPanel() {
 
         queryClient.invalidateQueries({ queryKey: ["/api/affiliate/nda-status"] });
         queryClient.invalidateQueries({ queryKey: ["affiliate-nda-status"] });
-        toast({ title: "NDA Signed Successfully!", description: "Welcome to the team! You can now access the affiliate dashboard." });
+
+        if (data?.replay) {
+          toast({ title: "Already Signed", description: "Your NDA was already submitted. Redirecting to your dashboard." });
+        } else {
+          toast({ title: "NDA Signed Successfully!", description: "Welcome to the team! You can now access the affiliate dashboard." });
+        }
         window.location.href = "/affiliate/dashboard";
       } catch {
         toast({ title: "Verification Failed", description: "Please try signing again.", variant: "destructive" });

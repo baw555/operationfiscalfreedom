@@ -34,7 +34,7 @@ interface SubmitNdaInput {
 }
 
 type ActionResult =
-  | { ok: true; ndaId: number; status: "accepted"; degraded: boolean; nda: any; alreadySigned?: boolean }
+  | { ok: true; ndaId: number; status: "accepted"; degraded: boolean; nda: any; alreadySigned?: boolean; replay?: boolean }
   | { ok: false; code: number; message: string };
 
 export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionResult> {
@@ -116,7 +116,7 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
         const [nda] = await db.select().from(affiliateNda).where(eq(affiliateNda.id, existingKey.entityId));
         if (nda) {
           console.log(`[NDA Sign] Idempotency key hit: key=${idempotencyKey}, ndaId=${nda.id}`);
-          return { ok: true, ndaId: nda.id, status: "accepted", degraded, nda, alreadySigned: true };
+          return { ok: true, ndaId: nda.id, status: "accepted", degraded, nda, alreadySigned: true, replay: true };
         }
       }
     }
