@@ -4,3 +4,43 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Secrets and environment files
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# Replit internals
+.replit
+.cache
+.config
+.upm
+replit.nix
+.local
+
+# Database
+*.sql.bak
+*.dump
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build artifacts
+.tsbuildinfo
+
+# Audit reports (regenerated on demand)
+docs/Skill1*.md
