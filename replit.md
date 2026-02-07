@@ -13,6 +13,7 @@ NavigatorUSA is a veteran family support platform designed to provide financial,
   - Gold: #EAB308 (Accent gold)
 - Typography: Bebas Neue for headings, Montserrat for body text
 - Network size displayed as 150,000+ veteran families
+- When user says "update live code", run `npm run audit:all` to regenerate all three audit reports
 
 ## System Architecture
 
