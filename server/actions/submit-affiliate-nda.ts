@@ -1,11 +1,13 @@
-import { storage } from "../storage";
+import { db } from "../db";
+import { affiliateNda, events, users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { LEGAL_DOCS, signLegalDocumentAtomic, hashDocument } from "../legal-system";
-import { emitEvent } from "./emit-event";
 import type { Request } from "express";
 
 interface DegradedReport {
   feature: string;
   reason: string;
+  acknowledgedByUser: true;
   timestamp: number;
 }
 
@@ -25,11 +27,12 @@ interface SubmitNdaInput {
   };
   degradedFeatures?: DegradedReport[];
   ipAddress: string;
+  userAgent?: string;
   req: Request;
 }
 
 type ActionResult =
-  | { ok: true; nda: any; alreadySigned?: boolean }
+  | { ok: true; ndaId: number; status: "accepted"; degraded: boolean; nda: any; alreadySigned?: boolean }
   | { ok: false; code: number; message: string };
 
 export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionResult> {
@@ -78,14 +81,12 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
   }
 
   const codeToCheck = customReferralCode.toUpperCase().trim();
-  const existingUser = await storage.getUserByReferralCode(codeToCheck);
-  if (existingUser && existingUser.id !== userId) {
-    return { ok: false, code: 400, message: "This referral code is already taken. Please choose a different code." };
-  }
 
-  const isDegraded = degradedCapabilities && (
-    degradedCapabilities.camera !== "available" ||
-    degradedCapabilities.upload !== "available"
+  const degraded = Boolean(
+    degradedCapabilities && (
+      degradedCapabilities.camera !== "available" ||
+      degradedCapabilities.upload !== "available"
+    )
   );
 
   const validatedReports: DegradedReport[] = [];
@@ -95,6 +96,7 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
         validatedReports.push({
           feature: f.feature.substring(0, 50),
           reason: f.reason.substring(0, 100),
+          acknowledgedByUser: true,
           timestamp: f.timestamp,
         });
       }
@@ -102,18 +104,71 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
   }
 
   try {
-    const result = await storage.signNdaAtomic(userId, codeToCheck, {
-      userId,
-      fullName,
-      veteranNumber: veteranNumber || null,
-      address,
-      customReferralCode: customReferralCode || null,
-      signatureData: signatureData || null,
-      facePhoto: facePhoto || null,
-      idPhoto: idPhoto || null,
-      signedIpAddress: ipAddress,
-      agreedToTerms: "true",
+    const txResult = await db.transaction(async (tx) => {
+      const [existing] = await tx.select().from(affiliateNda).where(eq(affiliateNda.userId, userId));
+      if (existing) {
+        return { nda: existing, alreadySigned: true as const };
+      }
+
+      const existingCode = await tx.select().from(users).where(eq(users.referralCode, codeToCheck));
+      if (existingCode.length > 0 && existingCode[0].id !== userId) {
+        return { error: true as const, code: 400, message: "This referral code is already taken. Please choose a different code." };
+      }
+
+      await tx.update(users).set({ referralCode: codeToCheck }).where(eq(users.id, userId));
+
+      const [created] = await tx.insert(affiliateNda).values({
+        userId,
+        fullName,
+        veteranNumber: veteranNumber || null,
+        address,
+        customReferralCode: customReferralCode || null,
+        signatureData: signatureData || null,
+        facePhoto: facePhoto || null,
+        idPhoto: idPhoto || null,
+        signedIpAddress: ipAddress,
+        agreedToTerms: "true",
+      }).returning();
+
+      await tx.insert(events).values({
+        eventType: "NDA_SUBMITTED",
+        userId,
+        entityId: created.id,
+        entityType: "nda",
+        degraded,
+        payload: {
+          fullName,
+          address,
+          referralCode: codeToCheck,
+          hasFacePhoto: !!facePhoto,
+          hasIdPhoto: !!idPhoto,
+          ipAddress,
+        },
+      });
+
+      if (degraded || validatedReports.length > 0) {
+        await tx.insert(events).values({
+          eventType: "NDA_SUBMITTED_WITH_DEGRADATION",
+          userId,
+          entityId: created.id,
+          entityType: "nda",
+          degraded: true,
+          payload: {
+            page: "affiliate-nda",
+            reports: validatedReports,
+            capabilities: degradedCapabilities || {},
+            hasFacePhoto: !!facePhoto,
+            hasIdPhoto: !!idPhoto,
+          },
+        });
+      }
+
+      return { nda: created, alreadySigned: false as const };
     });
+
+    if ("error" in txResult) {
+      return { ok: false, code: txResult.code, message: txResult.message };
+    }
 
     try {
       await signLegalDocumentAtomic({
@@ -127,48 +182,11 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
       console.error("[NDA Sign] Mirror to legal system failed (non-blocking):", mirrorError);
     }
 
-    const ndaId = result.nda?.id;
-
-    if (!result.alreadySigned) {
-      emitEvent({
-        eventType: "NDA_SIGNED",
-        userId,
-        entityId: ndaId,
-        entityType: "nda",
-        payload: {
-          fullName,
-          address,
-          referralCode: codeToCheck,
-          hasFacePhoto: !!facePhoto,
-          hasIdPhoto: !!idPhoto,
-          ipAddress,
-        },
-        degraded: !!isDegraded,
-      });
+    if (txResult.alreadySigned) {
+      return { ok: true, ndaId: txResult.nda.id, status: "accepted", degraded, nda: txResult.nda, alreadySigned: true };
     }
 
-    if (validatedReports.length > 0) {
-      emitEvent({
-        eventType: "DEGRADED_SUBMISSION",
-        userId,
-        entityId: ndaId,
-        entityType: "nda",
-        payload: {
-          page: "affiliate-nda",
-          reports: validatedReports,
-          capabilities: degradedCapabilities || {},
-          hasFacePhoto: !!facePhoto,
-          hasIdPhoto: !!idPhoto,
-        },
-        degraded: true,
-      });
-    }
-
-    if (result.alreadySigned) {
-      return { ok: true, nda: result.nda, alreadySigned: true };
-    }
-
-    return { ok: true, nda: result.nda };
+    return { ok: true, ndaId: txResult.nda.id, status: "accepted", degraded, nda: txResult.nda };
   } catch (codeError: any) {
     if (codeError?.code === "23505") {
       return { ok: false, code: 400, message: "This referral code was just taken by another user. Please choose a different code." };

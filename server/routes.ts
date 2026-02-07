@@ -3917,10 +3917,10 @@ export async function registerRoutes(
       }
 
       if (result.alreadySigned) {
-        return res.json({ success: true, message: "NDA already signed", nda: result.nda });
+        return res.json({ success: true, message: "NDA already signed", ndaId: result.ndaId, nda: result.nda });
       }
 
-      res.json({ success: true, nda: result.nda });
+      res.json({ success: true, ndaId: result.ndaId, status: result.status, degraded: result.degraded, nda: result.nda });
     } catch (error: any) {
       console.error("[NDA SIGN FAILURE] Full error details:", {
         userId,

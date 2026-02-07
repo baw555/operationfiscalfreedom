@@ -28,17 +28,17 @@ The database supports user management, affiliate applications, support requests,
 ### Action Layer (`server/actions/`)
 Business logic is extracted from routes into action functions. Each action:
 - Validates inputs (required vs optional)
-- Calls storage/ORM operations
-- Emits events to the `events` table (non-blocking, fire-and-forget)
-- Returns `{ ok: true, ... }` or `{ ok: false, code, message }` — no Express coupling
+- Owns its own `db.transaction()` — all writes + events are atomic
+- Returns `{ ok: true, ndaId, status, degraded }` or `{ ok: false, code, message }` — no Express coupling
+- Events emitted INSIDE the transaction (not fire-and-forget) — if the NDA write fails, no orphaned events
 
 Current actions:
-- `submit-affiliate-nda.ts` — NDA signing with degraded feature handling
-- `emit-event.ts` — Generic event emitter (append-only, non-blocking)
+- `submit-affiliate-nda.ts` — NDA signing with transactional event emission and degraded feature handling
+- `emit-event.ts` — Generic fire-and-forget event emitter (for non-critical, outside-transaction use)
 
 ### Events Table
 Platform-wide append-only event log (`events` table):
-- `event_type`: string identifier (e.g., `NDA_SIGNED`, `DEGRADED_SUBMISSION`)
+- `event_type`: string identifier (e.g., `NDA_SUBMITTED`, `NDA_SUBMITTED_WITH_DEGRADATION`)
 - `user_id`: integer FK to users table
 - `entity_id` / `entity_type`: optional polymorphic reference (e.g., ndaId + "nda")
 - `payload`: JSONB — flexible structured data per event type
