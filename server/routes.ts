@@ -198,6 +198,7 @@ declare module "express-session" {
     vltAffiliateId: number;
     mfaVerified?: boolean; // HIPAA §164.312(d) - MFA verification status
     mfaPending?: boolean; // Indicates user needs to complete MFA
+    identityId?: string; // Canonical UUID from identity_map (optional, lazy-set)
   }
 }
 

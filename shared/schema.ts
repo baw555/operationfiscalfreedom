@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, serial, boolean, pgEnum, jsonb, uuid, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, serial, boolean, pgEnum, jsonb, json, uuid, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { veteranAuthUsers } from "./models/auth";
@@ -1420,6 +1420,7 @@ export const notificationSettings = pgTable("notification_settings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull().unique(),
   enabled: boolean("enabled").default(true).notNull(),
+  emails: text("emails"),
   emailsEnc: text("emails_enc"), // AES-256-GCM encrypted JSON array of additional emails (max 5)
   events: text("events"), // JSON object { EVENT_NAME: true/false }
   delivery: text("delivery").default("instant").notNull(), // instant, hourly, daily
@@ -2517,6 +2518,14 @@ export const insertIdempotencyKeySchema = createInsertSchema(idempotencyKeys).om
 });
 export type InsertIdempotencyKey = z.infer<typeof insertIdempotencyKeySchema>;
 export type IdempotencyKey = typeof idempotencyKeys.$inferSelect;
+
+// ===== EXPRESS SESSION STORE (unmanaged, added to prevent schema drift) =====
+
+export const expressSession = pgTable("session", {
+  sid: varchar("sid").primaryKey(),
+  sess: json("sess").notNull(),
+  expire: timestamp("expire", { precision: 6 }).notNull(),
+});
 
 // ===== IDENTITY CANONICALIZATION =====
 

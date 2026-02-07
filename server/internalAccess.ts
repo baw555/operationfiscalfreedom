@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
+import { shadowWriteIdentity } from "./identity/ensureIdentityMap";
 
 declare global {
   namespace Express {
@@ -28,6 +29,8 @@ export function internalServiceAccess(req: Request, res: Response, next: NextFun
   };
   
   req.internalService = true;
+
+  shadowWriteIdentity("internal_service", "internal-service");
 
   console.log(
     "[INTERNAL SERVICE ACCESS]",

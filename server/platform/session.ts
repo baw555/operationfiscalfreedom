@@ -1,4 +1,5 @@
 import type { Request } from "express";
+import { shadowWriteIdentity } from "../identity/ensureIdentityMap";
 
 type SessionBase = {
   userId?: number;
@@ -9,6 +10,7 @@ type SessionExtras = {
   vltAffiliateId?: number;
   mfaPending?: boolean;
   mfaVerified?: boolean;
+  identityId?: string;
 };
 
 export async function establishSession(
@@ -24,6 +26,13 @@ export async function establishSession(
       if (fields.vltAffiliateId !== undefined) req.session.vltAffiliateId = fields.vltAffiliateId;
       if (fields.mfaPending !== undefined) req.session.mfaPending = fields.mfaPending;
       if (fields.mfaVerified !== undefined) req.session.mfaVerified = fields.mfaVerified;
+
+      if (fields.userId !== undefined) {
+        shadowWriteIdentity("user", fields.userId);
+      }
+      if (fields.vltAffiliateId !== undefined) {
+        shadowWriteIdentity("vlt_affiliate", fields.vltAffiliateId);
+      }
 
       req.session.save((err2) => {
         if (err2) return reject(err2);

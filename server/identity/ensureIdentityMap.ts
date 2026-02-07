@@ -15,6 +15,24 @@ function mapKindToSource(kind: string): IdentitySource {
   }
 }
 
+async function upsertIdentity(source: IdentitySource, legacyId: string): Promise<string | null> {
+  const [row] = await db
+    .insert(identityMap)
+    .values({ source, legacyId })
+    .onConflictDoNothing({ target: [identityMap.source, identityMap.legacyId] })
+    .returning({ identityId: identityMap.identityId });
+
+  if (row) return row.identityId;
+
+  const [existing] = await db
+    .select({ identityId: identityMap.identityId })
+    .from(identityMap)
+    .where(sql`${identityMap.source} = ${source} AND ${identityMap.legacyId} = ${legacyId}`)
+    .limit(1);
+
+  return existing?.identityId ?? null;
+}
+
 export async function ensureIdentityMap(
   identity: ResolvedIdentity | null
 ): Promise<string | null> {
@@ -24,37 +42,16 @@ export async function ensureIdentityMap(
   const legacyId = identity.primary.id;
 
   try {
-    const [row] = await db
-      .insert(identityMap)
-      .values({ source, legacyId })
-      .onConflictDoNothing({ target: [identityMap.source, identityMap.legacyId] })
-      .returning({ identityId: identityMap.identityId });
-
-    if (row) {
-      return row.identityId;
-    }
-
-    const [existing] = await db
-      .select({ identityId: identityMap.identityId })
-      .from(identityMap)
-      .where(
-        sql`${identityMap.source} = ${source} AND ${identityMap.legacyId} = ${legacyId}`
-      )
-      .limit(1);
+    const identityId = await upsertIdentity(source, legacyId);
 
     if (identity.secondary) {
       const secSource = mapKindToSource(identity.secondary.kind);
-      const secLegacyId = identity.secondary.id;
-      db.insert(identityMap)
-        .values({ source: secSource, legacyId: secLegacyId })
-        .onConflictDoNothing({ target: [identityMap.source, identityMap.legacyId] })
-        .then(() => {})
-        .catch((err) => {
-          console.error("[identity-map] Secondary shadow write failed:", err.message);
-        });
+      upsertIdentity(secSource, identity.secondary.id).catch((err) => {
+        console.error("[identity-map] Secondary shadow write failed:", err.message);
+      });
     }
 
-    return existing?.identityId ?? null;
+    return identityId;
   } catch (err: any) {
     console.error("[identity-map] Shadow write failed:", err.message);
     return null;
@@ -67,5 +64,11 @@ export function ensureIdentityMapFireAndForget(
   if (!identity) return;
   ensureIdentityMap(identity).catch((err) => {
     console.error("[identity-map] Fire-and-forget failed:", err.message);
+  });
+}
+
+export function shadowWriteIdentity(source: IdentitySource, legacyId: string | number): void {
+  upsertIdentity(source, String(legacyId)).catch((err) => {
+    console.error(`[identity-map] Shadow write (${source}/${legacyId}) failed:`, err.message);
   });
 }
