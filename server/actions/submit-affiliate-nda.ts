@@ -2,6 +2,7 @@ import { db } from "../db";
 import { affiliateNda, events, users, idempotencyKeys } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { LEGAL_DOCS, signLegalDocumentAtomic, hashDocument } from "../legal-system";
+import { notifyDegradedSubmission } from "../notifications/notifyDegradedSubmission";
 import type { Request } from "express";
 
 interface DegradedReport {
@@ -215,6 +216,15 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
       console.log(`[NDA Sign] Mirrored to legal_signatures for user ${userId}`);
     } catch (mirrorError) {
       console.error("[NDA Sign] Mirror to legal system failed (non-blocking):", mirrorError);
+    }
+
+    if (degraded && !txResult.alreadySigned) {
+      await notifyDegradedSubmission({
+        userId,
+        entityId: txResult.nda.id,
+        entityType: "nda",
+        degradedFeatures: validatedReports,
+      });
     }
 
     if (txResult.alreadySigned) {
