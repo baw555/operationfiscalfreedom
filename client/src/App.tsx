@@ -407,7 +407,7 @@ function App() {
         <TooltipProvider>
           <ScrollToTop />
           <Toaster />
-          <PlatformDisclaimerModal />
+          {/* <PlatformDisclaimerModal /> */}
           <Router />
           <FacerCBot />
         </TooltipProvider>
