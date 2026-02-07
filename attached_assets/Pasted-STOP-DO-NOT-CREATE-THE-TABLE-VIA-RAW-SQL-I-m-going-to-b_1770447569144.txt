@@ -1,0 +1,185 @@
+STOP — DO NOT CREATE THE TABLE VIA RAW SQL
+
+I’m going to be firm here because this is one of the few places you can accidentally break long-term safety.
+
+❌ Do not create the table manually via SQL
+even though it’s additive.
+
+Why:
+
+You are on drizzle push
+
+Drizzle tracks schema state implicitly
+
+Manual SQL creates schema drift
+
+Future pushes may:
+
+try to recreate the table
+
+fail silently
+
+or “fix” it incorrectly
+
+If you do raw SQL now, you lose one of the few guarantees you still have.
+
+So — don’t do it.
+We fix the tool issue instead.
+
+WHAT’S ACTUALLY HAPPENING (WHY IT’S STUCK)
+
+Drizzle push is interactive by default and is waiting for:
+
+“This operation may be destructive. Continue? (y/N)”
+
+In Replit / CI / non-TTY environments:
+
+stdin isn’t forwarded correctly
+
+so it looks like it’s hung
+
+This is a known drizzle-kit behavior, not your fault.
+
+THE CORRECT WAY TO PUSH (NON-INTERACTIVE, SAFE)
+OPTION A — Use --yes (preferred)
+
+Run exactly this:
+
+npx drizzle-kit push --yes
+
+
+This:
+
+auto-confirms prompts
+
+preserves Drizzle state
+
+keeps schema authoritative
+
+OPTION B — Explicit config override (fallback)
+
+If --yes still hangs:
+
+DRIZZLE_KIT_FORCE=1 npx drizzle-kit push
+
+
+or
+
+npx drizzle-kit push --force
+
+
+(depending on your drizzle-kit version)
+
+OPTION C — One-time config fix (best long-term)
+
+Add this to your drizzle.config.ts:
+
+export default {
+  // ...
+  verbose: true,
+  strict: false,
+};
+
+
+Then run:
+
+npx drizzle-kit push --yes
+
+
+This prevents future interactive stalls.
+
+PAUSE CHECKPOINT (MANDATORY)
+
+After the push completes, verify these three things before moving on:
+
+1️⃣ Table exists
+select * from identity_map limit 1;
+
+2️⃣ No other tables changed
+
+Check drizzle output — it should say:
+
++ identity_map
+
+nothing else
+
+3️⃣ Schema file unchanged after push
+
+Drizzle should not rewrite your schema file.
+
+If all three pass → Phase 8.1 is complete.
+
+WHY THIS MATTERS ARCHITECTURALLY
+
+You just completed the most dangerous part of Phase 8A:
+
+additive schema
+
+no behavior change
+
+no read paths
+
+no auth dependency
+
+Once this is in place, everything else becomes reversible.
+
+WHAT COMES NEXT (DON’T BUILD YET — READ FIRST)
+
+Once 8.1 is pushed cleanly, the next step is NOT more schema.
+
+The next step is:
+
+👉 8.2 — SHADOW WRITES (AUTH EVENTS ONLY)
+
+But before writing code, you must answer one gating question:
+
+❓ ARCHITECT GATE QUESTION
+
+Where are the only 3–5 places identity is guaranteed to be correct and stable?
+
+Expected answers:
+
+standard user login
+
+affiliate login
+
+OIDC callback
+
+internal service auth
+
+maybe password reset completion
+
+Not:
+
+every request
+
+background jobs
+
+admin reads
+
+YOUR NEXT MOVE (CLEAR)
+
+Abort raw SQL plan ❌
+
+Run:
+
+npx drizzle-kit push --yes
+
+
+Confirm the pause checklist
+
+Then reply with:
+
+“8.1 pushed cleanly — ready for 8.2 auth-scoped shadow writes.”
+
+When you do that, I’ll:
+
+give you the exact shadow-write helper
+
+show you where to call it
+
+include failure logging but zero coupling
+
+keep connection pools safe
+
+You’re doing this exactly right — the only risk right now is rushing past the tooling guardrails.
