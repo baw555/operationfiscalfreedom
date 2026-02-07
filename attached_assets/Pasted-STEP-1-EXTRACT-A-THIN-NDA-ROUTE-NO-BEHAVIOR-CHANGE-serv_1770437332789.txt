@@ -1,0 +1,194 @@
+STEP 1 — EXTRACT A THIN NDA ROUTE (NO BEHAVIOR CHANGE)
+server/routes/affiliateNda.ts
+import { Router } from "express";
+import { submitAffiliateNda } from "../actions/nda/submitAffiliateNda";
+import { validateAffiliateNda } from "../validators/affiliateNda";
+
+const router = Router();
+
+router.post("/submit", async (req, res) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const validation = validateAffiliateNda(req.body);
+  if (!validation.ok) {
+    return res.status(400).json({ error: validation.error });
+  }
+
+  const result = await submitAffiliateNda({
+    ...validation.data,
+    userId: req.session.userId,
+    role: "affiliate",
+    ipAddress: req.ip,
+    userAgent: req.headers["user-agent"] ?? "unknown",
+  });
+
+  res.json(result);
+});
+
+export default router;
+
+
+END CODE
+
+Register it (ONE LINE)
+// server/index.ts
+app.use("/api/affiliate/nda", affiliateNdaRouter);
+
+
+END CODE
+
+STEP 2 — REMOVE NDA LOGIC FROM routes.ts
+
+Delete the old NDA POST handler in routes.ts.
+(No replacement code here — you already added the new route.)
+
+END CODE
+
+STEP 3 — DECOUPLE ACTION FROM EXPRESS (FINAL BOUNDARY FIX)
+server/actions/nda/submitAffiliateNda.ts
+import { submitAffiliateNdaAction } from "./submitAffiliateNdaAction";
+import { notifyDegradedSubmission } from "../../notifications/notifyDegradedSubmission";
+import { signLegalDocumentAtomic } from "../../legal/signLegalDocumentAtomic";
+
+export async function submitAffiliateNda(input: {
+  idempotencyKey: string;
+  userId: number;
+  role: "affiliate";
+  fullName: string;
+  address: string;
+  referralCode?: string;
+  signatureData: string;
+  facePhoto?: string;
+  idPhoto?: string;
+  degradedFeatures?: any[];
+  ipAddress: string;
+  userAgent: string;
+}) {
+  const result = await submitAffiliateNdaAction(input);
+
+  // Legal mirror (replay-safe)
+  try {
+    await signLegalDocumentAtomic({
+      userId: input.userId,
+      documentType: "AFFILIATE_NDA",
+      signatureData: input.signatureData,
+      ipAddress: input.ipAddress,
+      userAgent: input.userAgent,
+    });
+  } catch (err) {
+    console.error("Legal mirror failed", err);
+  }
+
+  if (input.degradedFeatures?.length) {
+    await notifyDegradedSubmission({
+      userId: input.userId,
+      entityId: result.entityId,
+      entityType: "nda",
+      degradedFeatures: input.degradedFeatures,
+    });
+  }
+
+  return {
+    ndaId: result.entityId,
+    degraded: result.degraded,
+    replay: Boolean(result.replay),
+  };
+}
+
+
+END CODE
+
+STEP 4 — FINALIZE THE AUTHORITATIVE WRITE (NO SCHEMA CHANGES)
+server/actions/nda/createNdaCore.ts
+import { affiliateNda } from "../../schema/affiliateNda";
+import { events } from "../../schema/events";
+
+export async function createNdaCore(tx: any, input: any) {
+  const degraded = Boolean(input.degradedFeatures?.length);
+
+  const [nda] = await tx
+    .insert(affiliateNda)
+    .values({
+      userId: input.userId,
+      fullName: input.fullName,
+      address: input.address,
+      referralCode: input.referralCode ?? null,
+      signatureData: input.signatureData,
+      facePhoto: input.facePhoto ?? null,
+      idPhoto: input.idPhoto ?? null,
+      agreedToTerms: "true",
+      degraded,
+    })
+    .returning();
+
+  await tx.insert(events).values({
+    eventType: "NDA_SUBMITTED",
+    userId: input.userId,
+    entityId: nda.id,
+    entityType: "nda",
+    degraded,
+    payload: {},
+  });
+
+  if (degraded) {
+    await tx.insert(events).values({
+      eventType: "NDA_SUBMITTED_WITH_DEGRADATION",
+      userId: input.userId,
+      entityId: nda.id,
+      entityType: "nda",
+      degraded: true,
+      payload: { degradedFeatures: input.degradedFeatures },
+    });
+  }
+
+  return { ndaId: nda.id, degraded };
+}
+
+
+END CODE
+
+STEP 5 — LOCK IT WITH ACTION-LEVEL TESTS
+server/actions/nda/submitAffiliateNda.test.ts
+it("creates NDA once (idempotent)", async () => {
+  const input = baseInput();
+  const r1 = await submitAffiliateNda(input);
+  const r2 = await submitAffiliateNda(input);
+
+  expect(r1.ndaId).toBe(r2.ndaId);
+  expect(r2.replay).toBe(true);
+});
+
+it("allows degraded submission", async () => {
+  const res = await submitAffiliateNda({
+    ...baseInput(),
+    degradedFeatures: [{ feature: "camera", reason: "denied", acknowledgedByUser: true }],
+  });
+  expect(res.degraded).toBe(true);
+});
+
+it("rejects missing signature", async () => {
+  await expect(
+    submitAffiliateNda({ ...baseInput(), signatureData: "" })
+  ).rejects.toThrow();
+});
+
+
+END CODE
+
+STEP 6 — STOP
+
+At this point:
+
+NDA has one thin route
+
+one authoritative action
+
+replay-safe side effects
+
+no schema regressions
+
+tests lock behavior
+
+When ready, say one word and I’ll continue with code:
