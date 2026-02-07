@@ -73,6 +73,7 @@ The database supports user management, affiliate applications, support requests,
 - Changed queryClient default from `on401: "throw"` to `on401: "returnNull"`
 - Replaced blank-screen `return null` with `<Redirect>` in notification-console.tsx and affiliate-nda.tsx
 - Simplified PlatformDisclaimerModal JSX for UX clarity (logic unchanged)
+- **Data-Fetching Optimization**: Added `staleTime` to ~80 useQuery hooks across 9 heavy pages to reduce unnecessary API refetches. Auth queries use 60s staleTime; admin data uses 5min; operational data uses 30s. Claims Navigator additionally gates tab-specific queries (analysis, documents, timeline, deadlines, sharing) behind `activeTab` state to defer loading until needed.
 
 ## External Dependencies
 - **PostgreSQL**: Primary database.
