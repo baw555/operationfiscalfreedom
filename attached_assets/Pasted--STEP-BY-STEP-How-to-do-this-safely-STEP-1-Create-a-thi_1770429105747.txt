@@ -1,0 +1,141 @@
+🧩 STEP-BY-STEP: How to do this safely
+STEP 1 — Create a thin shell (10 minutes)
+
+Create a new file (do not modify logic yet):
+
+client/src/pages/affiliate-nda/AffiliateNdaPage.tsx
+
+
+Move only routing + auth gating here (which you already fixed):
+
+export function AffiliateNdaPage() {
+  return (
+    <NdaShell />
+  )
+}
+
+
+No hooks. No queries. No camera.
+
+STEP 2 — Build the shell that always renders
+function NdaShell() {
+  return (
+    <div className="nda-layout">
+      <h1>Affiliate NDA</h1>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <NdaStatusPanel />
+      </Suspense>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <LegalTextPanel />
+      </Suspense>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <SignaturePanel />
+      </Suspense>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <UploadPanel />
+      </Suspense>
+    </div>
+  )
+}
+
+
+🚫 No shared loading state
+🚫 No “if (!everything) return …”
+
+This is where concurrency is unlocked.
+
+STEP 3 — Move queries into their own panels
+Example: NDA status
+function NdaStatusPanel() {
+  const ndaStatus = useQueryNdaStatus()
+
+  if (ndaStatus.hasSigned) {
+    return <SignedNotice />
+  }
+
+  return <UnsignedNotice />
+}
+
+
+Now:
+
+NDA status loads independently
+
+rest of page renders instantly
+
+STEP 4 — Isolate camera/signature logic (huge win)
+
+All of this should move into SignaturePanel:
+
+camera access
+
+canvas
+
+drawing
+
+resize handling
+
+submit
+
+This panel is allowed to be heavy because it no longer blocks anything else.
+
+If camera fails → only signature panel errors.
+
+STEP 5 — Upload panel stands alone
+function UploadPanel() {
+  const uploadConfig = useUploadConfig()
+  return <Uploader config={uploadConfig} />
+}
+
+
+No coupling to NDA status or camera.
+
+🚦 IMPORTANT RULES (do not break)
+
+❌ No page-level isLoading
+
+❌ No “wait for everything”
+
+❌ No shared query results
+
+❌ No prop-drilling async data
+
+Every panel owns its own fate.
+
+🧪 HOW YOU KNOW IT WORKED (immediately)
+
+After Step 2–3:
+
+Refresh on slow network
+
+You should see:
+
+Page frame instantly
+
+Legal text quickly
+
+Signature panel load later
+
+Upload panel later
+
+No spinner covering the whole page
+
+No white screens
+
+That “feels fast” sensation = success.
+
+⛔ STOP CONDITION (very important)
+
+Do not decompose the entire 1,094 lines at once.
+
+Do this in two passes:
+
+Structural split (files + Suspense)
+
+Internal cleanup (later, optional)
+
+You’re aiming for parallelism first, cleanliness second.
