@@ -38,7 +38,7 @@ The NavigatorUSA platform is built with a React/TypeScript frontend and an Expre
 - **Events Table:** An append-only, platform-wide event log for audit trails, visibility, and compliance, storing structured event data with user and entity references.
 - **NDA Pattern:** A canonical decomposition pattern for complex pages, structuring them into a thin shell (auth gating), context for shared state, independent panels (each with its own data fetching/error handling), and pure presentational components. This pattern ensures modularity and independent panel rendering.
 - **Degraded Feature Pattern:** A standard for handling optional feature failures gracefully. Optional features must not block submission without explicit user acknowledgment, which triggers logging and reporting. This pattern defines UI states (Available, Unavailable/Failed, Acknowledged) and a reusable `DegradedFeatureNotice` component.
-- **Identity Layer (`server/identity/`):** Provides a request-aware identity resolution mechanism and policy functions for role-based access without merging disparate identity systems.
+- **Identity Layer (`server/identity/`):** Provides a request-aware identity resolution mechanism and policy functions for role-based access without merging disparate identity systems. Phase 8 added an `identity_map` table (Drizzle-managed) with fire-and-forget shadow writes on auth events (login, affiliate login, VLT login, internal service). Session includes optional `identityId` field. No enforcement or read paths yet — purely instrumentation.
 
 **Key Features:**
 - **Comprehensive Admin Operations Hub:** Centralized management for platform data, KPIs, applications, leads, and sales.
