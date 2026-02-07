@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import type { Request } from "express";
 
 export type RequestContext = {
@@ -11,9 +12,11 @@ export function getRequestContext(req: Request): RequestContext {
 
   const userAgent = String(req.headers["user-agent"] || "unknown");
 
+  const incoming = req.headers["x-request-id"];
   const requestId =
-    String(req.headers["x-request-id"] || "") ||
-    `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+    typeof incoming === "string" && incoming.length > 0 && incoming.length <= 128
+      ? incoming
+      : randomUUID();
 
   return { ip, userAgent, requestId };
 }
