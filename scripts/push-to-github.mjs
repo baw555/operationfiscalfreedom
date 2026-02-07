@@ -11,9 +11,9 @@ const IGNORE_DIRS = new Set([
   'node_modules', '.git', 'dist', '.cache', '.local', '.config', '.upm', 'tmp', 'scripts', 'attached_assets'
 ]);
 const IGNORE_FILES = new Set([
-  'package-lock.json', '.replit', '.breakpoints'
+  '.replit', '.breakpoints'
 ]);
-const IGNORE_EXTENSIONS = new Set(['.lock']);
+const IGNORE_EXTENSIONS = new Set([]);
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit to speed up push
 
 function shouldIgnore(filePath) {
