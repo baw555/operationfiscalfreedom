@@ -1,0 +1,107 @@
+STEP 2 — Action: submitAffiliateNda
+
+Create:
+
+server/actions/submitAffiliateNda.ts
+import { db } from "../db";
+import { events } from "../schema/events";
+import { ndas } from "../schema/ndas"; // assuming this exists
+import { eq } from "drizzle-orm";
+
+type DegradedFeature = {
+  feature: "camera" | "upload" | "preview" | "other";
+  reason: string;
+  acknowledgedByUser: true;
+  timestamp: number;
+};
+
+type SubmitAffiliateNdaInput = {
+  userId: string;
+  role: "affiliate";
+  ndaVersionId: string;
+
+  legalAcknowledgement: true;
+  signature: {
+    type: "typed" | "drawn";
+    value: string;
+  };
+
+  ipAddress: string;
+  userAgent: string;
+
+  degradedFeatures?: DegradedFeature[];
+};
+
+export async function submitAffiliateNda(input: SubmitAffiliateNdaInput) {
+  // --- HARD VALIDATION (authoritative) ---
+  if (!input.userId) throw new Error("Missing user");
+  if (input.role !== "affiliate") throw new Error("Invalid role");
+  if (!input.legalAcknowledgement) throw new Error("Legal acknowledgement required");
+  if (!input.signature?.value) throw new Error("Signature required");
+
+  const degraded = Boolean(input.degradedFeatures?.length);
+
+  // --- TRANSACTION ---
+  return await db.transaction(async (tx) => {
+    // 1. Create NDA record
+    const [nda] = await tx
+      .insert(ndas)
+      .values({
+        userId: input.userId,
+        ndaVersionId: input.ndaVersionId,
+        signatureType: input.signature.type,
+        signatureValue: input.signature.value,
+        ipAddress: input.ipAddress,
+        userAgent: input.userAgent,
+        degraded,
+      })
+      .returning();
+
+    // 2. Emit core event
+    await tx.insert(events).values({
+      eventType: "NDA_SUBMITTED",
+      userId: input.userId,
+      entityId: nda.id,
+      entityType: "nda",
+      degraded,
+      payload: {
+        ndaVersionId: input.ndaVersionId,
+      },
+    });
+
+    // 3. Emit degraded event if applicable
+    if (degraded) {
+      await tx.insert(events).values({
+        eventType: "NDA_SUBMITTED_WITH_DEGRADATION",
+        userId: input.userId,
+        entityId: nda.id,
+        entityType: "nda",
+        degraded: true,
+        payload: {
+          degradedFeatures: input.degradedFeatures,
+        },
+      });
+    }
+
+    return {
+      ndaId: nda.id,
+      status: "accepted" as const,
+      degraded,
+    };
+  });
+}
+
+
+This function:
+
+is the only place an NDA is finalized
+
+enforces required vs optional cleanly
+
+allows “proceed anyway” safely
+
+emits an audit trail
+
+is testable without UI
+
+END CODE
