@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, serial, boolean, pgEnum, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, serial, boolean, pgEnum, jsonb, uuid, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { veteranAuthUsers } from "./models/auth";
@@ -2517,6 +2517,32 @@ export const insertIdempotencyKeySchema = createInsertSchema(idempotencyKeys).om
 });
 export type InsertIdempotencyKey = z.infer<typeof insertIdempotencyKeySchema>;
 export type IdempotencyKey = typeof idempotencyKeys.$inferSelect;
+
+// ===== IDENTITY CANONICALIZATION =====
+
+export const identitySourceEnum = pgEnum("identity_source", [
+  "user",
+  "vlt_affiliate",
+  "veteran_oidc",
+  "ai",
+  "internal_service",
+]);
+
+export const identityMap = pgTable("identity_map", {
+  identityId: uuid("identity_id").primaryKey().default(sql`gen_random_uuid()`),
+  source: identitySourceEnum("source").notNull(),
+  legacyId: text("legacy_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  unique("uq_identity_source_legacy").on(table.source, table.legacyId),
+]);
+
+export const insertIdentityMapSchema = createInsertSchema(identityMap).omit({
+  identityId: true,
+  createdAt: true,
+});
+export type InsertIdentityMap = z.infer<typeof insertIdentityMapSchema>;
+export type IdentityMap = typeof identityMap.$inferSelect;
 
 // Replit Auth tables (for veteran users)
 export * from "./models/auth";
