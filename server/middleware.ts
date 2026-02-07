@@ -5,6 +5,9 @@ import { getRequestContext } from "./platform/requestContext";
 import { db } from "./db";
 import { claimCases } from "@shared/schema";
 import type { ClaimCase } from "@shared/schema";
+import { resolveIdentity } from "./identity/resolveIdentity";
+import { canAccessAffiliate } from "./identity/policies";
+import { logAuthDivergence } from "./identity/logAuthDivergence";
 
 /** @deprecated Use getRequestContext(req).ip instead */
 export function resolveClientIp(req: Request): string {
@@ -31,10 +34,23 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 }
 
 export function requireAffiliate(req: Request, res: Response, next: NextFunction) {
+  const legacyAllowed =
+    !!req.session.userId &&
+    req.session.userRole === "affiliate" &&
+    !(req.session.mfaPending === true && req.session.mfaVerified !== true);
+
+  try {
+    const identity = resolveIdentity(req);
+    (req as any).__resolvedIdentity = identity;
+    const policyAllowed = canAccessAffiliate(identity);
+    logAuthDivergence("affiliate", req, legacyAllowed, policyAllowed);
+  } catch (_err) {
+  }
+
   if (!req.session.userId || req.session.userRole !== "affiliate") {
     return res.status(403).json({ message: "Forbidden" });
   }
-  
+
   if (req.session.mfaPending === true && req.session.mfaVerified !== true) {
     return res.status(403).json({ 
       message: "MFA verification required",
