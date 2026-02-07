@@ -64,6 +64,7 @@ export default function NotificationConsole() {
       if (!res.ok) throw new Error("Not authenticated");
       return res.json();
     },
+    staleTime: 60_000,
   });
 
   const { data: settings, isLoading: settingsLoading } = useQuery<NotificationSettings>({
@@ -74,6 +75,7 @@ export default function NotificationConsole() {
       return res.json();
     },
     enabled: !!me,
+    staleTime: 30_000,
   });
 
   const { data: auditLogs = [], isLoading: auditLoading } = useQuery<AuditLog[]>({
@@ -84,6 +86,7 @@ export default function NotificationConsole() {
       return res.json();
     },
     enabled: !!me && (me.role === "admin" || me.role === "master"),
+    staleTime: 30_000,
   });
 
   const { data: health } = useQuery({
@@ -93,6 +96,7 @@ export default function NotificationConsole() {
       return res.json();
     },
     enabled: !!me && (me.role === "admin" || me.role === "master"),
+    staleTime: 30_000,
   });
 
   const { data: queueStats } = useQuery({
@@ -103,6 +107,7 @@ export default function NotificationConsole() {
       return res.json();
     },
     enabled: !!me && (me.role === "admin" || me.role === "master"),
+    staleTime: 30_000,
   });
 
   const [localSettings, setLocalSettings] = useState<NotificationSettings | null>(null);

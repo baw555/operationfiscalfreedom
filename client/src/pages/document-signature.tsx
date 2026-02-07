@@ -257,6 +257,7 @@ export default function DocumentSignature() {
       if (!res.ok) throw new Error("Failed to fetch templates");
       return res.json();
     },
+    staleTime: 30_000,
   });
 
   const { data: pendingContracts = [], isLoading: pendingLoading } = useQuery<ContractSend[]>({
@@ -266,6 +267,7 @@ export default function DocumentSignature() {
       if (!res.ok) throw new Error("Failed to fetch pending");
       return res.json();
     },
+    staleTime: 30_000,
   });
 
   const { data: signedContracts = [], isLoading: signedLoading } = useQuery<SignedAgreement[]>({
@@ -275,6 +277,7 @@ export default function DocumentSignature() {
       if (!res.ok) throw new Error("Failed to fetch signed");
       return res.json();
     },
+    staleTime: 30_000,
   });
 
   const sendContractMutation = useMutation({

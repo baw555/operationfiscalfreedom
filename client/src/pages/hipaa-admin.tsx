@@ -61,7 +61,8 @@ export default function HipaaAdmin() {
       const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) return null;
       return res.json();
-    }
+    },
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -77,7 +78,8 @@ export default function HipaaAdmin() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!currentUser
+    enabled: !!currentUser,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: trainingData = [], refetch: refetchTraining } = useQuery({
@@ -87,7 +89,8 @@ export default function HipaaAdmin() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!currentUser
+    enabled: !!currentUser,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: expiredTraining = [] } = useQuery({
@@ -97,7 +100,8 @@ export default function HipaaAdmin() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!currentUser
+    enabled: !!currentUser,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: auditLogs = [], refetch: refetchAuditLogs } = useQuery({
@@ -108,7 +112,8 @@ export default function HipaaAdmin() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!currentUser
+    enabled: !!currentUser,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: usersData = [] } = useQuery({
@@ -118,7 +123,8 @@ export default function HipaaAdmin() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!currentUser
+    enabled: !!currentUser,
+    staleTime: 5 * 60 * 1000,
   });
 
   const createBaaMutation = useMutation({

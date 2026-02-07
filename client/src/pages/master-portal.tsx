@@ -177,6 +177,7 @@ export default function MasterPortal() {
     },
     retry: 6,
     retryDelay: 1000,
+    staleTime: 60_000,
   });
 
   // Fetch all affiliates with their files
@@ -205,6 +206,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch disability referrals
@@ -216,6 +218,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch vet professional intakes
@@ -227,6 +230,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch healthcare intakes
@@ -238,6 +242,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch Schedule A signatures
@@ -249,6 +254,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch CSU signed agreements (individual contracts)
@@ -260,6 +266,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch affiliate applications
@@ -271,6 +278,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch help requests
@@ -282,6 +290,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch startup grants
@@ -293,6 +302,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch furniture assistance
@@ -304,6 +314,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch private doctor requests
@@ -315,6 +326,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch website applications
@@ -326,6 +338,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch general contact
@@ -337,6 +350,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch veteran intakes
@@ -348,6 +362,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch business intakes
@@ -359,6 +374,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch insurance intakes
@@ -370,6 +386,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch medical sales intakes
@@ -381,6 +398,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch business dev intakes
@@ -392,6 +410,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch business leads
@@ -403,6 +422,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch sales data
@@ -414,6 +434,7 @@ export default function MasterPortal() {
       return res.json();
     },
     enabled: authData?.user?.role === "admin" || authData?.user?.role === "master",
+    staleTime: 5 * 60 * 1000,
   });
 
   // Safety: normalize arrays to prevent "Cannot read properties of undefined" errors

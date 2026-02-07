@@ -64,6 +64,7 @@ export default function SignContract() {
     },
     retry: 6,
     retryDelay: 1000,
+    staleTime: 60_000,
   });
 
   // Fetch NDA data for autofill
@@ -75,6 +76,7 @@ export default function SignContract() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 30_000,
   });
 
   // Autofill user info from session and NDA
@@ -124,6 +126,7 @@ export default function SignContract() {
       if (!res.ok) return [];
       return res.json();
     },
+    staleTime: 30_000,
   });
 
   // Fetch signed agreements for this user
@@ -135,6 +138,7 @@ export default function SignContract() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 30_000,
   });
 
   // Fetch W9 status
@@ -146,6 +150,7 @@ export default function SignContract() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 30_000,
   });
 
   // W9 submission mutation

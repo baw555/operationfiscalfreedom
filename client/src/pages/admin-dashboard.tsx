@@ -57,6 +57,7 @@ export default function AdminDashboard() {
     },
     retry: 3,
     retryDelay: 500,
+    staleTime: 60_000,
   });
 
   // Redirect to login if not authenticated or not admin/master
@@ -75,6 +76,7 @@ export default function AdminDashboard() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: helpRequests = [] } = useQuery({
@@ -85,6 +87,7 @@ export default function AdminDashboard() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: affiliates = [] } = useQuery({
@@ -95,6 +98,7 @@ export default function AdminDashboard() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch new data types
@@ -106,6 +110,7 @@ export default function AdminDashboard() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: privateDoctorRequests = [] } = useQuery({
@@ -116,6 +121,7 @@ export default function AdminDashboard() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: websiteApplications = [] } = useQuery({
@@ -126,6 +132,7 @@ export default function AdminDashboard() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: generalContacts = [] } = useQuery({
@@ -136,6 +143,7 @@ export default function AdminDashboard() {
       return res.json();
     },
     enabled: !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Mutations

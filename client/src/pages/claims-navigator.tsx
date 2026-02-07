@@ -347,6 +347,7 @@ export default function ClaimsNavigator() {
       if (!res.ok) return [];
       return res.json() as Promise<ClaimCase[]>;
     },
+    staleTime: 30_000,
   });
 
   const { data: activeCase } = useQuery({
@@ -358,6 +359,7 @@ export default function ClaimsNavigator() {
       return res.json();
     },
     enabled: !!activeCaseId,
+    staleTime: 30_000,
   });
 
   const { data: caseTasks } = useQuery({
@@ -369,6 +371,7 @@ export default function ClaimsNavigator() {
       return res.json() as Promise<ClaimTask[]>;
     },
     enabled: !!activeCaseId,
+    staleTime: 30_000,
   });
 
   const { data: caseDeadlines } = useQuery({
@@ -379,7 +382,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return [];
       return res.json() as Promise<CaseDeadline[]>;
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "deadlines",
+    staleTime: 30_000,
   });
 
   const { data: caseNotes } = useQuery({
@@ -390,7 +394,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return [];
       return res.json() as Promise<CaseNote[]>;
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "timeline",
+    staleTime: 30_000,
   });
 
   const { data: caseFiles } = useQuery({
@@ -401,7 +406,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return [];
       return res.json() as Promise<ClaimFile[]>;
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "documents",
+    staleTime: 30_000,
   });
 
   const { data: caseShares } = useQuery({
@@ -412,7 +418,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return [];
       return res.json() as Promise<CaseShare[]>;
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "sharing",
+    staleTime: 30_000,
   });
 
   const { data: completenessData } = useQuery({
@@ -423,7 +430,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "analysis",
+    staleTime: 30_000,
   });
 
   const { data: strengthData } = useQuery({
@@ -434,7 +442,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "analysis",
+    staleTime: 30_000,
   });
 
   const { data: laneData } = useQuery({
@@ -445,7 +454,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "analysis",
+    staleTime: 30_000,
   });
 
   const { data: heatmapData } = useQuery({
@@ -456,7 +466,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "analysis",
+    staleTime: 30_000,
   });
 
   const { data: suggestionsData } = useQuery({
@@ -467,7 +478,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "analysis",
+    staleTime: 30_000,
   });
 
   const { data: vendorScorecardsData } = useQuery({
@@ -478,7 +490,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "analysis",
+    staleTime: 30_000,
   });
 
   const { data: laneConfidenceData } = useQuery({
@@ -489,7 +502,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "analysis",
+    staleTime: 30_000,
   });
 
   const { data: uploadChecklistData } = useQuery({
@@ -500,7 +514,8 @@ export default function ClaimsNavigator() {
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!activeCaseId,
+    enabled: !!activeCaseId && activeTab === "analysis",
+    staleTime: 30_000,
   });
 
   const createShareMutation = useMutation({

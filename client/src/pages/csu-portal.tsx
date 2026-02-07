@@ -1106,6 +1106,7 @@ function EnvelopesPanel({ templates }: { templates: CsuContractTemplate[] }) {
       if (!res.ok) return [];
       return res.json();
     },
+    staleTime: 30_000,
   });
 
   const addRecipient = () => {
@@ -1642,19 +1643,23 @@ function AnalyticsPanel() {
   const { data: stats } = useQuery<PortalStats>({
     queryKey: ["/api/portal/stats/payzium"],
     refetchInterval: 30000,
+    staleTime: 30_000,
   });
 
   const { data: activity = [] } = useQuery<PortalActivity[]>({
     queryKey: ["/api/portal/activity/payzium"],
     refetchInterval: 30000,
+    staleTime: 30_000,
   });
 
   const { data: contractSends = [] } = useQuery<CsuContractSend[]>({
     queryKey: ["/api/csu/contract-sends"],
+    staleTime: 30_000,
   });
 
   const { data: signedAgreements = [] } = useQuery<CsuSignedAgreement[]>({
     queryKey: ["/api/csu/signed-agreements"],
+    staleTime: 30_000,
   });
 
   const { data: ipGeoData, isLoading: ipLoading, error: ipError } = useQuery<IpGeoData>({
@@ -1666,6 +1671,7 @@ function AnalyticsPanel() {
       return res.json();
     },
     enabled: !!selectedIp && showIpModal,
+    staleTime: 30_000,
   });
 
   const handleIpClick = (ip: string) => {
@@ -2580,6 +2586,7 @@ export default function CsuPortal() {
       return res.json();
     },
     retry: false,
+    staleTime: 60_000,
   });
   const user = authData?.user;
 
@@ -2597,16 +2604,19 @@ export default function CsuPortal() {
     },
     enabled: !!user,
     retry: 1,
+    staleTime: 30_000,
   });
 
   const { data: contractSends = [] } = useQuery<CsuContractSend[]>({
     queryKey: ["/api/csu/contract-sends"],
     enabled: !!user,
+    staleTime: 30_000,
   });
 
   const { data: signedAgreements = [] } = useQuery<CsuSignedAgreement[]>({
     queryKey: ["/api/csu/signed-agreements"],
     enabled: !!user,
+    staleTime: 30_000,
   });
 
   // Initialize canvas for signature

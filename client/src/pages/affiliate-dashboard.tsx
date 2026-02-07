@@ -67,7 +67,7 @@ export default function AffiliateDashboard() {
     },
     retry: 2, // Limited retries - login page now verifies session before redirect
     retryDelay: 500,
-    staleTime: 30000, // Keep auth data fresh for 30 seconds to prevent unnecessary refetches
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -85,6 +85,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Auto-set upline count from VLT profile
@@ -103,6 +104,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch signed agreements for this user - only after auth confirmed
@@ -114,6 +116,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch assigned leads - only after auth confirmed
@@ -129,6 +132,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: helpRequests = [] } = useQuery({
@@ -142,6 +146,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: businessLeads = [] } = useQuery({
@@ -152,6 +157,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: disabilityReferrals = [] } = useQuery({
@@ -162,6 +168,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: vetProfessionalIntakes = [] } = useQuery({
@@ -172,6 +179,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch referral info - only after auth confirmed
@@ -183,6 +191,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Check NDA status - only after auth is confirmed successful
@@ -225,6 +234,7 @@ export default function AffiliateDashboard() {
       return res.json();
     },
     enabled: authSuccess && !!authData?.user,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Redirect to NDA page if not signed - use effect to avoid render-time navigation
