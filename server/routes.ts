@@ -24,6 +24,7 @@ import crypto from "crypto";
 import { getOrCreateConversation, getConversationHistory, saveMessage, generateAIResponse, getContextualTips, seedInitialFaqs, transcribeAudio } from "./sailor-chat";
 import { resolveClientIp, requireAdmin, requireAffiliate, requireAffiliateWithNda, requireClaimOwner, getVeteranUserId } from "./middleware";
 import { attachIdentity } from "./identity/requireIdentity";
+import { authDivergenceLog } from "./identity/authDivergenceLog";
 
 // HIPAA Security: Configure TOTP with strict timing window to prevent replay attacks
 const totpInstance = new TOTP({
@@ -398,6 +399,8 @@ export async function registerRoutes(
   );
   
   console.log(`[session] Session timeout configured: ${SESSION_TIMEOUT_MINUTES} minutes, secure cookies: ${isProduction}`);
+
+  app.use(authDivergenceLog);
 
   // ===== MODULAR ROUTE REGISTRATIONS =====
   const { registerAffiliateNdaRoutes } = await import("./routes/affiliateNda");
