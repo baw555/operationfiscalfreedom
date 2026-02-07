@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1128,23 +1128,31 @@ export default function AdminDashboard() {
 
           {activeTab === "applications" && (
             <div className="p-4 sm:p-6">
-              <ApplicationsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
+              <Suspense fallback={<PanelSkeleton />}>
+                <ApplicationsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
+              </Suspense>
             </div>
           )}
 
           {activeTab === "requests" && (
-            <RequestsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
+            <Suspense fallback={<PanelSkeleton />}>
+              <RequestsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
+            </Suspense>
           )}
 
           {activeTab === "investors" && (
             <div className="p-4 sm:p-6">
-              <InvestorsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
+              <Suspense fallback={<PanelSkeleton />}>
+                <InvestorsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
+              </Suspense>
             </div>
           )}
 
           {activeTab === "affiliates" && (
             <div className="p-4 sm:p-6">
-              <AffiliatesPanel />
+              <Suspense fallback={<PanelSkeleton />}>
+                <AffiliatesPanel />
+              </Suspense>
             </div>
           )}
         </div>
