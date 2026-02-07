@@ -1,0 +1,32 @@
+2. Why Sign-In "Randomly" Fails
+If login works sometimes but not others, it’s usually one of these three technical "ghosts":
+
+The "Iframe/SameSite" Cookie Issue (Most Common): Replit displays your site inside an iframe in the editor. Modern browsers (Chrome/Safari) often block cookies inside iframes for security.
+
+The Fix: In your Flask/Node config, you must set your cookies to SameSite=None and Secure=True. If you don't, the browser throws away your login session because it thinks it’s a "cross-site" attack.
+
+The "Kill 1" Restart: On Replit’s free or basic tier, your server "sleeps" if no one is looking at it. When a new user hits the site, it wakes up. If your login system uses In-Memory Sessions (instead of a database like MongoDB or PostgreSQL), every time the Repl sleeps, it forgets everyone who was logged in.
+
+The Fix: Ensure you are saving session data to a database, not just the server's RAM.
+
+Multiple Auth Systems (The "Agent" Bug): If you used the Replit Agent to "fix" things, it often creates a new login system instead of fixing the old one. You might have two different pieces of code trying to handle logins, and they are fighting each other.
+
+3. "Functionality Breaks All The Time"
+If things break right after you "fixed" them, you are likely dealing with Version Drift or Dependency Issues.
+
+The "Secrets" Audit: Check your Secrets (Environment Variables) tab. If a key is missing or formatted wrong, the code will run fine in your editor but fail when a real user tries to trigger an API (like your "Operator AI").
+
+Log Monitoring: Next time it "breaks," don't touch the code. Immediately open the "Logs" or "Console" tab in Replit. Look for:
+
+500 Internal Server Error (Logic bug)
+
+429 Too Many Requests (Replit is rate-limiting you)
+
+OOM (Out of Memory) (Your Repl is running out of RAM)
+
+Immediate Recommendation:
+Check your Cookies: If you use Flask, add SESSION_COOKIE_SAMESITE='None' and SESSION_COOKIE_SECURE=True to your app.config.
+
+Monitor with UptimeRobot: Set up a free account at UptimeRobot. It will ping your site every 5 minutes. If the site "breaks randomly," it will email you the exact second it happened so you can check the logs for that timestamp.
+
+Audit the Agent: If you use the Replit Agent, ask it: "Show me every file that handles authentication. Are there duplicates?"

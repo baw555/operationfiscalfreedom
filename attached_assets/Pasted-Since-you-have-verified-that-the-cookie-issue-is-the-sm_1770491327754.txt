@@ -1,0 +1,43 @@
+Since you have verified that the cookie issue is the "smoking gun," you are looking at the classic "Iframe Paradox" of developing on Replit.
+
+When you work in the Replit editor, your site is technically a "third-party" site being loaded inside the replit.com domain. Without the specific SameSite=None; Secure flags, the browser protects the user by refusing to save the session cookie, effectively "logging you out" every time you click a link in the preview.
+
+Here is the exact technical breakdown and the fix for the two critical issues you identified:
+
+1. The "Random" Login Fix (Cookie Strategy)
+To fix the login failures, you need to force the server to issue cookies that the browser will trust even when embedded in an iframe.
+
+The Fix (Flask Example): In your main application file (likely main.py or app.py), update your configuration:
+
+Python
+app.config.update(
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True, # Good practice to prevent XSS
+)
+Note: If you use Node.js/Express, you would update your express-session config with cookie: { sameSite: 'none', secure: true }.
+
+2. Hard-coded Secret Fallback
+Your current code likely looks something like this: secret = os.environ.get("SESSION_SECRET", "default-secret-key-123")
+
+The Risk: If the Replit environment ever fails to load your Secrets, it defaults to "default-secret-key-123". An attacker can then use that known key to sign their own cookies and "become" any user on your site (including an admin).
+
+The Fix: Change the logic to a "Fail-Loud" approach. If the secret is missing, the app should refuse to start. This prevents you from accidentally running an insecure site.
+
+Python
+import os
+
+# This will raise a KeyError and stop the app if the secret is missing
+SESSION_SECRET = os.environ["SESSION_SECRET"] 
+
+app.secret_key = SESSION_SECRET
+Stress Testing the "Fix"
+Once you apply these, here is how you "stress test" the fix to ensure the "random" breakage is gone:
+
+The Iframe Test: Open the site inside the Replit preview pane. Log in, and click through 10 different links rapidly. If you remain logged in, the SameSite fix worked.
+
+The New Tab Test: Click the "Open in new tab" icon in Replit. Do the same. (This confirms Secure=True isn't breaking the direct connection).
+
+The Secret Test: Temporarily rename your SESSION_SECRET in the Replit Secrets tab. Try to run the app. If it crashes immediately, you have successfully removed the hard-coded vulnerability.
+
+Would you like me to provide the specific code blocks for your backend (Flask or Node) to implement these two fixes right now?
