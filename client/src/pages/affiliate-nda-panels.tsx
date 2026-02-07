@@ -134,6 +134,13 @@ export function FormFieldsPanel() {
   const { formFields, updateField, getSnapshot } = useNdaForm();
   const idempotencyKeyRef = useRef<string | null>(null);
 
+  function getIdempotencyKey() {
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+    }
+    return idempotencyKeyRef.current;
+  }
+
   const signNdaMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await fetch("/api/actions/submit-affiliate-nda", {
@@ -227,10 +234,6 @@ export function FormFieldsPanel() {
       return;
     }
 
-    if (!idempotencyKeyRef.current) {
-      idempotencyKeyRef.current = `nda_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-    }
-
     signNdaMutation.mutate({
       ...fields,
       signatureData: signature.signatureData,
@@ -241,7 +244,7 @@ export function FormFieldsPanel() {
         upload: capabilities.upload,
       },
       degradedFeatures: degradedReports.length > 0 ? degradedReports : undefined,
-      idempotencyKey: idempotencyKeyRef.current,
+      idempotencyKey: getIdempotencyKey(),
     });
   };
 
