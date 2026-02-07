@@ -1,0 +1,335 @@
+8.1 — CANONICAL IDENTITY TABLE (ADDITIVE, NO BEHAVIOR)
+What this stage IS
+
+Introduce a canonical identity mapping
+
+WITHOUT removing legacy identity systems
+
+WITHOUT changing auth or sessions
+
+What this stage is NOT
+
+Not a login rewrite
+
+Not a session rewrite
+
+Not an authorization rewrite
+
+8.1A — Create identity mapping table
+✅ SCHEMA (additive only)
+CREATE TABLE identity_map (
+  identity_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- source system
+  source TEXT NOT NULL CHECK (
+    source IN (
+      'user',
+      'vlt_affiliate',
+      'veteran_oidc',
+      'ai',
+      'internal_service'
+    )
+  ),
+
+  -- legacy identifier (string to unify types)
+  legacy_id TEXT NOT NULL,
+
+  created_at TIMESTAMP NOT NULL DEFAULT now(),
+
+  UNIQUE (source, legacy_id)
+);
+
+
+Notes
+
+legacy_id is string to support:
+
+numeric users
+
+UUID veterans
+
+synthetic internal IDs
+
+This table is not referenced anywhere yet
+
+🛑 PAUSE & VERIFY
+
+No reads depend on this table
+
+No writes depend on this table
+
+No auth code changed
+
+❓ QUESTIONS TO ASK REPLIT
+1. Confirm all legacy identity sources and their PK formats.
+2. Confirm no legacy ID collisions across sources.
+
+8.2 — SHADOW IDENTITY RESOLUTION (READ + WRITE, NO ENFORCEMENT)
+Why
+
+You want to observe identity unification before enforcing it.
+
+8.2A — Extend identity resolver to shadow-write
+Conceptual behavior
+
+Identity is resolved as in Phase 7
+
+Mapping is created if missing
+
+Mapping is never required
+
+✅ MODIFY identity resolver (conceptual)
+// pseudo-shape
+const identity = resolveIdentity(req);
+
+// async, fire-and-forget
+ensureIdentityMap(identity);
+
+
+Where ensureIdentityMap:
+
+inserts (source, legacy_id) if not present
+
+never throws
+
+never blocks request
+
+🛑 PAUSE & VERIFY
+
+Identity map fills gradually
+
+No auth behavior changes
+
+No performance regressions
+
+❓ QUESTIONS TO ASK REPLIT
+1. Is background DB write latency acceptable here?
+2. Any endpoints with extreme request volume that should skip shadow writes?
+
+8.3 — SESSION CANONICALIZATION (DUAL MODE)
+What changes
+
+Sessions begin carrying identityId
+
+Legacy session fields remain intact
+
+8.3A — Extend session helper
+Behavior
+
+After login:
+
+session.identityId = mapped canonical ID
+
+legacy fields still set (userId, vltAffiliateId, etc.)
+
+No reads change yet.
+
+🛑 PAUSE & VERIFY
+
+Sessions still deserialize correctly
+
+No consumer expects identityId
+
+No serialization size issues
+
+❓ QUESTIONS TO ASK REPLIT
+1. Any code serializing session explicitly?
+2. Any session size limits enforced by infra?
+
+8.4 — POLICY ENFORCEMENT MIGRATION (DOMAIN BY DOMAIN)
+Rule
+
+Never enforce globally first.
+Migrate one domain at a time.
+
+8.4A — Claims domain (first)
+Why
+
+Clean ownership model
+
+Veteran-only access
+
+Already centralized checks
+
+APPLY
+
+Replace:
+
+manual ownership checks
+
+With:
+
+requireIdentity
+
+policy checks using canonical identity + MFA
+
+Behavior must be identical.
+
+🛑 PAUSE & VERIFY
+
+Veteran access unchanged
+
+Admin/internal service behavior unchanged
+
+MFA enforcement unchanged
+
+❓ QUESTIONS TO ASK REPLIT
+1. Any claim routes accessed by non-veterans?
+2. Any claim routes bypassing ownership checks today?
+
+8.4B — Affiliate domain (second)
+Why
+
+Composite identity (user + vlt)
+
+NDA + contract gating
+
+Higher risk
+
+APPLY
+
+Policy checks must:
+
+require role === affiliate
+
+enforce MFA
+
+enforce NDA/contract
+
+explicitly block admin
+
+🛑 PAUSE & VERIFY
+
+Admins cannot access affiliate-only routes
+
+VLT composite identity still works
+
+NDA enforcement unchanged
+
+❓ QUESTIONS TO ASK REPLIT
+1. Which affiliate routes are intentionally admin-accessible?
+2. Any affiliate routes skipping NDA today?
+
+8.4C — Admin domain (last)
+Why last
+
+Highest blast radius
+
+Internal service exceptions
+
+APPLY
+
+Enforce:
+
+admin role
+
+MFA
+
+internal service override
+
+🛑 PAUSE & VERIFY
+
+Internal service still bypasses MFA
+
+Admin MFA still enforced
+
+No lockouts
+
+8.5 — SCHEMA ENFORCEMENT (ONLY AFTER OBSERVATION)
+Important
+
+You are on drizzle push.
+This is dangerous if rushed.
+
+8.5A — Observability pass
+
+Before adding any FK:
+
+Query for orphaned legacy rows
+
+Verify identity_map coverage
+
+Confirm no mixed ownership
+
+🛑 PAUSE & VERIFY
+
+All rows have identity mappings
+
+No write paths bypass mapping
+
+Staging validation passes
+
+8.5B — Enforce constraints (incrementally)
+
+Examples:
+
+claims → identity_map
+
+commissions → identity_map
+
+signed agreements → identity_map
+
+One table at a time.
+
+8.6 — DELETE LEGACY CODE (CONTROLLED)
+What you delete
+
+Role string checks
+
+Legacy ownership checks
+
+Duplicate commission math
+
+Old auth middleware
+
+Dead helpers
+
+Rule
+
+If a piece of code:
+
+is unused
+
+has no callers
+
+is superseded by policy
+
+→ delete it
+
+🛑 PAUSE & VERIFY
+
+Manual smoke test:
+
+login
+
+veteran claims
+
+affiliate NDA
+
+admin dashboard
+
+No warnings in logs
+
+PHASE 8 SUMMARY (LIKE PHASE 6 & 7)
+Stage	Purpose	Behavior Change
+8.1 Identity map	Canonical identity	❌
+8.2 Shadow resolution	Observe mapping	❌
+8.3 Session dual-mode	Prepare sessions	❌
+8.4 Policy migration	Enforce correctly	✅ (gradual)
+8.5 Schema enforcement	Hard correctness	❌→✅
+8.6 Deletion	Remove entropy	❌
+Final architect clarity
+
+Total phases: 8
+
+Phase 8 is the finish line
+
+After Phase 8:
+
+identity is unambiguous
+
+auth is centralized
+
+schema reflects reality
+
+legacy drift is gone
