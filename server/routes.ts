@@ -3867,7 +3867,7 @@ export async function registerRoutes(
     }
 
     try {
-      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms, degradedCapabilities } = req.body;
+      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms, degradedCapabilities, degradedFeatures } = req.body;
       
       // Validate required fields
       if (!fullName || typeof fullName !== 'string' || fullName.trim().length < 2) {
@@ -3925,12 +3925,40 @@ export async function registerRoutes(
       
       console.log(`[NDA Sign] IP detection: forwarded=${forwardedFor}, realIp=${realIp}, socket=${req.socket?.remoteAddress}, resolved=${ipAddress}`);
       
-      if (degradedCapabilities) {
+      const isDegraded = degradedCapabilities && (
+        degradedCapabilities.camera !== 'available' || 
+        degradedCapabilities.upload !== 'available'
+      );
+      
+      if (isDegraded) {
         console.log(`[NDA Sign] Degraded submission for user ${userId}:`, {
           camera: degradedCapabilities.camera || 'not-reported',
           upload: degradedCapabilities.upload || 'not-reported',
           hasFacePhoto: !!facePhoto,
           hasIdPhoto: !!idPhoto,
+        });
+      }
+      
+      const validatedReports: Array<{feature: string; reason: string; timestamp: number}> = [];
+      if (degradedFeatures && Array.isArray(degradedFeatures)) {
+        for (const f of degradedFeatures) {
+          if (f && typeof f.feature === 'string' && typeof f.reason === 'string' && typeof f.timestamp === 'number') {
+            validatedReports.push({
+              feature: f.feature.substring(0, 50),
+              reason: f.reason.substring(0, 100),
+              timestamp: f.timestamp,
+            });
+          }
+        }
+      }
+      
+      if (validatedReports.length > 0) {
+        console.warn(`[NDA Sign] DEGRADED_SUBMISSION for user ${userId} on affiliate-nda:`, {
+          reportCount: validatedReports.length,
+          features: validatedReports,
+          hasFacePhoto: !!facePhoto,
+          hasIdPhoto: !!idPhoto,
+          ipAddress,
         });
       }
       

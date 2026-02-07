@@ -65,7 +65,20 @@ export function LegalTextPanel() {
 }
 
 export function SignaturePanel() {
-  const { facePhoto, setFacePhoto, setSignature, setCapability } = useNdaForm();
+  const { facePhoto, setFacePhoto, setSignature, setCapability, capabilities, addDegradedReport } = useNdaForm();
+
+  const handleCameraProceed = () => {
+    setCapability("camera", "acknowledged");
+  };
+
+  const handleCameraReport = () => {
+    setCapability("camera", "acknowledged");
+    addDegradedReport({
+      feature: "camera",
+      reason: "permission_denied",
+      timestamp: Date.now(),
+    });
+  };
 
   return (
     <div className="space-y-6" data-testid="signature-panel">
@@ -74,6 +87,9 @@ export function SignaturePanel() {
         onPhotoCapture={setFacePhoto}
         onPhotoRemove={() => setFacePhoto(null)}
         onCapabilityChange={(status) => setCapability("camera", status)}
+        onProceedAnyway={handleCameraProceed}
+        onFileReport={handleCameraReport}
+        acknowledged={capabilities.camera === "acknowledged"}
       />
       <SignaturePad onSignatureChange={setSignature} />
     </div>
@@ -81,7 +97,20 @@ export function SignaturePanel() {
 }
 
 export function UploadPanel() {
-  const { idPhoto, idFileName, setIdPhoto, setCapability } = useNdaForm();
+  const { idPhoto, idFileName, setIdPhoto, setCapability, capabilities, addDegradedReport } = useNdaForm();
+
+  const handleUploadProceed = () => {
+    setCapability("upload", "acknowledged");
+  };
+
+  const handleUploadReport = () => {
+    setCapability("upload", "acknowledged");
+    addDegradedReport({
+      feature: "upload",
+      reason: "file_read_failed",
+      timestamp: Date.now(),
+    });
+  };
 
   return (
     <div data-testid="upload-panel">
@@ -91,6 +120,9 @@ export function UploadPanel() {
         onUpload={(photo, fileName) => setIdPhoto(photo, fileName)}
         onRemove={() => setIdPhoto(null)}
         onCapabilityChange={(status) => setCapability("upload", status)}
+        onProceedAnyway={handleUploadProceed}
+        onFileReport={handleUploadReport}
+        acknowledged={capabilities.upload === "acknowledged"}
       />
     </div>
   );
@@ -154,7 +186,7 @@ export function FormFieldsPanel() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { formFields: fields, facePhoto, idPhoto, signature, capabilities } = getSnapshot();
+    const { formFields: fields, facePhoto, idPhoto, signature, capabilities, degradedReports } = getSnapshot();
 
     if (!fields.agreedToTerms) {
       toast({ title: "Please agree to the terms", variant: "destructive" });
@@ -168,6 +200,19 @@ export function FormFieldsPanel() {
 
     if (!fields.address || fields.address.trim().length < 5) {
       toast({ title: "Address Required", description: "Please enter your mailing address.", variant: "destructive" });
+      return;
+    }
+
+    const cameraNeedsAck = (capabilities.camera === "unavailable" || capabilities.camera === "degraded");
+    const uploadNeedsAck = (capabilities.upload === "unavailable" || capabilities.upload === "degraded");
+
+    if (cameraNeedsAck) {
+      toast({ title: "Camera Step Needs Your Attention", description: "Please choose 'Proceed Anyway' or 'Proceed & File Report' in the camera section above before submitting.", variant: "default" });
+      return;
+    }
+
+    if (uploadNeedsAck) {
+      toast({ title: "ID Upload Step Needs Your Attention", description: "Please choose 'Proceed Anyway' or 'Proceed & File Report' in the ID upload section above before submitting.", variant: "default" });
       return;
     }
 
@@ -190,6 +235,7 @@ export function FormFieldsPanel() {
         camera: capabilities.camera,
         upload: capabilities.upload,
       },
+      degradedFeatures: degradedReports.length > 0 ? degradedReports : undefined,
     });
   };
 

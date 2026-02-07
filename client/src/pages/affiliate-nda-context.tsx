@@ -1,10 +1,16 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
-type CapabilityStatus = "available" | "unavailable" | "degraded";
+export type CapabilityStatus = "available" | "unavailable" | "degraded" | "acknowledged";
 
 interface NdaCapabilities {
   camera: CapabilityStatus;
   upload: CapabilityStatus;
+}
+
+export interface DegradedReport {
+  feature: string;
+  reason: string;
+  timestamp: number;
 }
 
 interface NdaFormFields {
@@ -35,12 +41,15 @@ interface NdaFormStore {
   setSignature: (sig: SignatureState) => void;
   capabilities: NdaCapabilities;
   setCapability: (key: keyof NdaCapabilities, status: CapabilityStatus) => void;
+  degradedReports: DegradedReport[];
+  addDegradedReport: (report: DegradedReport) => void;
   getSnapshot: () => {
     formFields: NdaFormFields;
     facePhoto: string | null;
     idPhoto: string | null;
     signature: SignatureState;
     capabilities: NdaCapabilities;
+    degradedReports: DegradedReport[];
   };
 }
 
@@ -74,6 +83,7 @@ export function NdaFormProvider({ children }: { children: ReactNode }) {
     camera: "available",
     upload: "available",
   });
+  const [degradedReports, setDegradedReports] = useState<DegradedReport[]>([]);
 
   const updateField = useCallback(<K extends keyof NdaFormFields>(key: K, value: NdaFormFields[K]) => {
     setFormFields((prev) => ({ ...prev, [key]: value }));
@@ -88,13 +98,18 @@ export function NdaFormProvider({ children }: { children: ReactNode }) {
     setCapabilities((prev) => ({ ...prev, [key]: status }));
   }, []);
 
+  const addDegradedReport = useCallback((report: DegradedReport) => {
+    setDegradedReports((prev) => [...prev, report]);
+  }, []);
+
   const getSnapshot = useCallback(() => ({
     formFields,
     facePhoto,
     idPhoto,
     signature,
     capabilities,
-  }), [formFields, facePhoto, idPhoto, signature, capabilities]);
+    degradedReports,
+  }), [formFields, facePhoto, idPhoto, signature, capabilities, degradedReports]);
 
   return (
     <NdaFormContext.Provider
@@ -111,6 +126,8 @@ export function NdaFormProvider({ children }: { children: ReactNode }) {
         setSignature,
         capabilities,
         setCapability,
+        degradedReports,
+        addDegradedReport,
         getSnapshot,
       }}
     >

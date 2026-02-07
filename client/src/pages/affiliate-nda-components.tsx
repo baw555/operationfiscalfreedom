@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, FileSignature, CheckCircle, AlertTriangle, Camera, Upload, X, RefreshCw } from "lucide-react";
+import { DegradedFeatureNotice } from "@/components/degraded-feature-notice";
+import type { CapabilityStatus } from "./affiliate-nda-context";
 
 export function LegalAgreementText({ today }: { today: string }) {
   return (
@@ -229,11 +231,17 @@ export function CameraCaptureCard({
   onPhotoCapture,
   onPhotoRemove,
   onCapabilityChange,
+  onProceedAnyway,
+  onFileReport,
+  acknowledged,
 }: {
   facePhoto: string | null;
   onPhotoCapture: (photo: string) => void;
   onPhotoRemove: () => void;
-  onCapabilityChange?: (status: "available" | "unavailable" | "degraded") => void;
+  onCapabilityChange?: (status: CapabilityStatus) => void;
+  onProceedAnyway?: () => void;
+  onFileReport?: () => void;
+  acknowledged?: boolean;
 }) {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -330,12 +338,26 @@ export function CameraCaptureCard({
       </div>
       <p className="text-sm text-blue-700">For identity verification, you may capture a photo of your face using your camera. This is optional.</p>
 
-      {cameraUnavailable && !facePhoto && (
-        <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg" data-testid="camera-unavailable-warning">
-          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+      {cameraUnavailable && !facePhoto && !acknowledged && (
+        <DegradedFeatureNotice
+          featureName="Camera"
+          description="Camera access was denied or is unavailable on this device. You may continue without a face photo."
+          onProceed={() => onProceedAnyway?.()}
+          onReport={() => onFileReport?.()}
+          retryAction={() => { setCameraUnavailable(false); startCamera(); }}
+          retryLabel="Try Camera Again"
+        />
+      )}
+
+      {cameraUnavailable && !facePhoto && acknowledged && (
+        <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg" data-testid="camera-acknowledged">
+          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-amber-800">Camera access is unavailable.</p>
-            <p className="text-xs text-amber-700 mt-0.5">You can still complete and sign the NDA without a face photo.</p>
+            <p className="text-sm font-medium text-green-800">Camera step skipped. You may continue.</p>
+            <Button type="button" variant="ghost" size="sm" onClick={() => { setCameraUnavailable(false); startCamera(); }} className="mt-1 text-green-700 hover:bg-green-100 h-7 px-2 text-xs" data-testid="button-retry-camera-after-ack">
+              <RefreshCw className="w-3 h-3 mr-1" />
+              Try Camera Again
+            </Button>
           </div>
         </div>
       )}
@@ -356,16 +378,10 @@ export function CameraCaptureCard({
               </Button>
             </div>
           </div>
-          {!isCameraActive && !cameraUnavailable && (
+          {!isCameraActive && !cameraUnavailable && !acknowledged && (
             <Button type="button" onClick={startCamera} className="bg-blue-600 hover:bg-blue-700" data-testid="button-start-camera">
               <Camera className="w-4 h-4 mr-2" />
               Start Camera
-            </Button>
-          )}
-          {cameraUnavailable && (
-            <Button type="button" variant="outline" size="sm" onClick={() => { setCameraUnavailable(false); startCamera(); }} data-testid="button-retry-camera">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Try Camera Again
             </Button>
           )}
         </div>
@@ -393,12 +409,18 @@ export function IdUploadCard({
   onUpload,
   onRemove,
   onCapabilityChange,
+  onProceedAnyway,
+  onFileReport,
+  acknowledged,
 }: {
   idPhoto: string | null;
   idFileName: string;
   onUpload: (photo: string, fileName: string) => void;
   onRemove: () => void;
-  onCapabilityChange?: (status: "available" | "unavailable" | "degraded") => void;
+  onCapabilityChange?: (status: CapabilityStatus) => void;
+  onProceedAnyway?: () => void;
+  onFileReport?: () => void;
+  acknowledged?: boolean;
 }) {
   const { toast } = useToast();
   const [uploadFailed, setUploadFailed] = useState(false);
@@ -442,12 +464,21 @@ export function IdUploadCard({
       </div>
       <p className="text-sm text-amber-700">Upload a clear photo of your government-issued ID (driver's license, passport, military ID, etc.). This is optional.</p>
 
-      {uploadFailed && !idPhoto && (
-        <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg" data-testid="upload-failed-info">
-          <AlertTriangle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+      {uploadFailed && !idPhoto && !acknowledged && (
+        <DegradedFeatureNotice
+          featureName="ID Upload"
+          description="The ID document upload encountered an issue. You may continue without it — we can request it later if needed."
+          onProceed={() => onProceedAnyway?.()}
+          onReport={() => onFileReport?.()}
+          retryLabel="Try Upload Again"
+        />
+      )}
+
+      {uploadFailed && !idPhoto && acknowledged && (
+        <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg" data-testid="upload-acknowledged">
+          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-blue-800">ID upload encountered an issue.</p>
-            <p className="text-xs text-blue-700 mt-0.5">You may continue without it. We can request it later if needed.</p>
+            <p className="text-sm font-medium text-green-800">ID upload step skipped. You may continue.</p>
           </div>
         </div>
       )}

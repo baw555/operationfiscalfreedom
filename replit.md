@@ -91,6 +91,39 @@ Use this pattern for any page that mixes auth gating, data fetching, browser API
 - `admin-dashboard.tsx` — 4 panels (Applications, Requests, Investors, Affiliates) with PanelError/PanelSkeleton
 - Next candidate: main dashboard or admin console (one page at a time)
 
+## The Degraded Feature Pattern ("Proceed Anyway + File Report")
+Platform-wide standard for how optional features handle failure gracefully.
+
+### Rule: No optional feature may block submission without an explicit user choice and a logged reason.
+
+### Three UI States per optional feature:
+1. **Available** → Normal UI (camera works, upload works)
+2. **Unavailable / Failed** → `DegradedFeatureNotice` component shows with two explicit buttons: "Proceed Anyway" and "Proceed & File Report"
+3. **Acknowledged** → Green confirmation ("Step skipped. You may continue.") with optional retry
+
+### Component: `client/src/components/degraded-feature-notice.tsx`
+Reusable drop-in component. Props: `featureName`, `description`, `onProceed`, `onReport`, optional `retryAction` + `retryLabel`.
+
+### Context: `CapabilityStatus` type = `"available" | "unavailable" | "degraded" | "acknowledged"`
+- `degradedReports` array in context: `{ feature, reason, timestamp }[]`
+- `addDegradedReport()` method for "Proceed & File Report" path
+- `getSnapshot()` includes `degradedReports` for submission
+
+### Submit Enforcement:
+- If any capability is `"unavailable"` or `"degraded"`, submit is blocked with a toast asking user to acknowledge
+- Only `"available"` or `"acknowledged"` capabilities allow submission
+- `degradedReports` array attached to payload when present
+
+### Backend:
+- `degradedFeatures` array validated server-side (type checks + length truncation)
+- Structured `console.warn` with `DEGRADED_SUBMISSION` tag for ops visibility
+- Future: persist to audit storage or ops queue
+
+### Applied to:
+- Camera capture (affiliate-nda, Feb 2026)
+- ID document upload (affiliate-nda, Feb 2026)
+- Next: any optional feature — previews, integrations, AI helpers
+
 ## Phase 0 Changes (Feb 2026)
 - Removed dead Replit Auth OIDC (server + client gate components)
 - Changed queryClient default from `on401: "throw"` to `on401: "returnNull"`
