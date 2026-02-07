@@ -3,7 +3,6 @@ import { isReplay } from "../withIdempotency";
 import { notifyDegradedSubmission } from "../../notifications/notifyDegradedSubmission";
 import { LEGAL_DOCS, signLegalDocumentAtomic, hashDocument } from "../../legal-system";
 import type { DegradedReport } from "./createNdaCore";
-import type { Request } from "express";
 
 export interface SubmitNdaInput {
   userId: number;
@@ -21,9 +20,8 @@ export interface SubmitNdaInput {
   };
   degradedFeatures?: DegradedReport[];
   ipAddress: string;
-  userAgent?: string;
+  userAgent: string;
   idempotencyKey?: string;
-  req: Request;
 }
 
 type ActionResult =
@@ -143,6 +141,14 @@ export async function submitAffiliateNda(input: SubmitNdaInput): Promise<ActionR
 
 async function mirrorToLegalSystem(input: SubmitNdaInput): Promise<void> {
   try {
+    const reqShim = {
+      headers: {
+        "x-forwarded-for": input.ipAddress,
+        "user-agent": input.userAgent,
+      },
+      socket: { remoteAddress: input.ipAddress },
+    } as any;
+
     await signLegalDocumentAtomic({
       userId: input.userId,
       doc: LEGAL_DOCS.NDA,
@@ -151,7 +157,7 @@ async function mirrorToLegalSystem(input: SubmitNdaInput): Promise<void> {
         signatureData: input.signatureData,
         address: input.address,
       })),
-      req: input.req,
+      req: reqShim,
     });
     console.log(`[NDA Sign] Mirrored to legal_signatures for user ${input.userId}`);
   } catch (mirrorError) {

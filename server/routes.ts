@@ -26,6 +26,22 @@ const totpInstance = new TOTP({
   base32: new ScureBase32Plugin(),
 });
 
+function resolveClientIp(req: any): string {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded.trim()) {
+    return forwarded.split(",")[0].trim();
+  }
+  const realIp = req.headers["x-real-ip"];
+  if (typeof realIp === "string" && realIp.trim()) {
+    return realIp.trim();
+  }
+  const cfIp = req.headers["cf-connecting-ip"];
+  if (typeof cfIp === "string" && cfIp.trim()) {
+    return cfIp.trim();
+  }
+  return req.socket?.remoteAddress || "unknown";
+}
+
 // Helper function for TOTP verification with security window
 function verifyTotp(token: string, secret: string): boolean {
   try {
@@ -3859,62 +3875,22 @@ export async function registerRoutes(
     }
   });
 
-  // Sign affiliate NDA - canonical action endpoint
-  // No panel talks to the database. No panel decides "this counts."
+  // Sign affiliate NDA — thin route delegates to action layer
   const handleNdaSubmit = async (req: any, res: any) => {
     const userId = req.session.userId;
-    
     if (!userId) {
       return res.status(401).json({ message: "Session not established" });
     }
 
     try {
-      const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms, degradedCapabilities, degradedFeatures, idempotencyKey } = req.body;
-
-      const forwardedFor = req.headers['x-forwarded-for'];
-      const realIp = req.headers['x-real-ip'];
-      const cfConnectingIp = req.headers['cf-connecting-ip'];
-      
-      let ipAddress = 'not-captured';
-      if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
-        ipAddress = forwardedFor.split(',')[0].trim();
-      } else if (typeof realIp === 'string' && realIp.trim()) {
-        ipAddress = realIp.trim();
-      } else if (typeof cfConnectingIp === 'string' && cfConnectingIp.trim()) {
-        ipAddress = cfConnectingIp.trim();
-      } else if (req.socket?.remoteAddress) {
-        ipAddress = req.socket.remoteAddress;
-      }
-
-      const userAgent = req.headers['user-agent'] || 'unknown';
-
-      console.log(`[NDA Sign] IP detection: forwarded=${forwardedFor}, realIp=${realIp}, socket=${req.socket?.remoteAddress}, resolved=${ipAddress}`);
-
-      if (degradedCapabilities && (degradedCapabilities.camera !== 'available' || degradedCapabilities.upload !== 'available')) {
-        console.log(`[NDA Sign] Degraded submission for user ${userId}:`, {
-          camera: degradedCapabilities.camera || 'not-reported',
-          upload: degradedCapabilities.upload || 'not-reported',
-          hasFacePhoto: !!facePhoto,
-          hasIdPhoto: !!idPhoto,
-        });
-      }
+      const ipAddress = resolveClientIp(req);
+      const userAgent = (req.headers["user-agent"] as string) || "unknown";
 
       const result = await submitAffiliateNda({
+        ...req.body,
         userId,
-        fullName,
-        veteranNumber,
-        address,
-        customReferralCode,
-        signatureData,
-        facePhoto,
-        idPhoto,
-        agreedToTerms,
-        degradedCapabilities,
-        degradedFeatures,
         ipAddress,
         userAgent,
-        idempotencyKey,
-        req,
       });
 
       if (!result.ok) {
@@ -3927,28 +3903,12 @@ export async function registerRoutes(
 
       res.json({ success: true, ndaId: result.ndaId, status: result.status, degraded: result.degraded });
     } catch (error: any) {
-      console.error("[NDA SIGN FAILURE] Full error details:", {
+      console.error("[NDA SIGN FAILURE]", {
         userId,
-        errorMessage: error?.message,
-        errorCode: error?.code,
-        errorStack: error?.stack?.substring(0, 500),
-        sessionId: req.sessionID,
-        hasSession: !!req.session,
-        requestBody: {
-          hasFullName: !!req.body?.fullName,
-          hasAddress: !!req.body?.address,
-          hasSignature: !!req.body?.signatureData?.substring(0, 30),
-          hasFacePhoto: !!req.body?.facePhoto?.substring(0, 30),
-          hasIdPhoto: !!req.body?.idPhoto?.substring(0, 30),
-          agreedToTerms: req.body?.agreedToTerms,
-          customReferralCode: req.body?.customReferralCode,
-        }
+        error: error?.message,
+        code: error?.code,
       });
-      
-      res.status(500).json({ 
-        message: "NDA signing failed. Please retry.",
-        retryable: true
-      });
+      res.status(500).json({ message: "NDA signing failed. Please retry.", retryable: true });
     }
   };
 
