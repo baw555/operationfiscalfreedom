@@ -388,6 +388,17 @@ export default function AffiliateDashboard() {
     );
   }
 
+  if (ndaLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-brand-navy to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-lg text-white font-display">Verifying Access...</div>
+        </div>
+      </div>
+    );
+  }
+
   // Block access until NDA is signed - redirect happens in useEffect
   // Only show lock screen if we've confirmed NDA is not signed (not during loading/error)
   if (ndaStatus && !ndaStatus.hasSigned && !ndaError) {

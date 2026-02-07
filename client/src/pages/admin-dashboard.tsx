@@ -1,4 +1,5 @@
 import { useState, useEffect, Suspense } from "react";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -233,6 +234,27 @@ function PanelSkeleton() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PanelError({ panelName }: { panelName: string }) {
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center" data-testid="panel-error">
+      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <X className="w-6 h-6 text-red-600" />
+      </div>
+      <h3 className="text-lg font-semibold text-red-800 mb-1">{panelName} failed to load</h3>
+      <p className="text-sm text-red-600 mb-4">An unexpected error occurred while loading this section.</p>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.location.reload()}
+        className="border-red-300 text-red-700 hover:bg-red-100"
+        data-testid="button-panel-retry"
+      >
+        Reload Page
+      </Button>
     </div>
   );
 }
@@ -1148,31 +1170,39 @@ export default function AdminDashboard() {
 
           {activeTab === "applications" && (
             <div className="p-4 sm:p-6">
-              <Suspense fallback={<PanelSkeleton />}>
-                <ApplicationsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
-              </Suspense>
+              <ErrorBoundary fallback={<PanelError panelName="Applications" />}>
+                <Suspense fallback={<PanelSkeleton />}>
+                  <ApplicationsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
+                </Suspense>
+              </ErrorBoundary>
             </div>
           )}
 
           {activeTab === "requests" && (
-            <Suspense fallback={<PanelSkeleton />}>
-              <RequestsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
-            </Suspense>
+            <ErrorBoundary fallback={<PanelError panelName="Requests" />}>
+              <Suspense fallback={<PanelSkeleton />}>
+                <RequestsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
+              </Suspense>
+            </ErrorBoundary>
           )}
 
           {activeTab === "investors" && (
             <div className="p-4 sm:p-6">
-              <Suspense fallback={<PanelSkeleton />}>
-                <InvestorsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
-              </Suspense>
+              <ErrorBoundary fallback={<PanelError panelName="Investors" />}>
+                <Suspense fallback={<PanelSkeleton />}>
+                  <InvestorsPanel searchTerm={searchTerm} statusFilter={statusFilter} />
+                </Suspense>
+              </ErrorBoundary>
             </div>
           )}
 
           {activeTab === "affiliates" && (
             <div className="p-4 sm:p-6">
-              <Suspense fallback={<PanelSkeleton />}>
-                <AffiliatesPanel />
-              </Suspense>
+              <ErrorBoundary fallback={<PanelError panelName="Affiliates" />}>
+                <Suspense fallback={<PanelSkeleton />}>
+                  <AffiliatesPanel />
+                </Suspense>
+              </ErrorBoundary>
             </div>
           )}
         </div>
