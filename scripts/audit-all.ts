@@ -5,6 +5,7 @@ const scripts = [
   { name: "Schema Audit", file: "scripts/audit-schema.ts" },
   { name: "Domain Model Feasibility", file: "scripts/audit-domain.ts" },
   { name: "UI Binding Audit", file: "scripts/audit-ui-bindings.ts" },
+  { name: "Misc Operational Facts", file: "scripts/audit-misc.ts" },
 ];
 
 console.log("=== NavigatorUSA Audit Suite ===\n");
