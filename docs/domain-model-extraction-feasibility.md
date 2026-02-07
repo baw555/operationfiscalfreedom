@@ -48,32 +48,32 @@
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| POST | `/api/affiliate-signup` | 418 | New affiliate self-signup - creates account and logs in immediately |
-| POST | `/api/admin/vlt-affiliates` | 1607 | Create VLT affiliate |
-| PATCH | `/api/admin/vlt-affiliates/:id` | 1652 | Update VLT affiliate |
-| DELETE | `/api/admin/vlt-affiliates/:id` | 1666 | Delete VLT affiliate |
-| POST | `/api/vlt-affiliate/login` | 1679 | ===== VLT AFFILIATE PORTAL ===== |
-| POST | `/api/vlt-affiliate/logout` | 1730 | VLT Affiliate logout |
-| POST | `/api/auth/login` | 1794 | ===== AUTH ROUTES ===== |
-| POST | `/api/auth/logout` | 1934 | Logout |
-| POST | `/api/auth/init-admin` | 1960 | Initialize admin (one-time setup) |
-| POST | `/api/auth/register` | 1988 | Register new user (public registration) |
-| POST | `/api/auth/forgot-password` | 2045 | Request password reset |
-| POST | `/api/auth/reset-password` | 2139 | Reset password with token |
-| POST | `/api/admin/affiliates` | 2268 | Create affiliate user |
-| PATCH | `/api/admin/affiliates/:id/password` | 2294 | Reset affiliate password |
-| DELETE | `/api/admin/affiliates/:id` | 2317 | Delete affiliate |
+| POST | `/api/affiliate-signup` | 417 | New affiliate self-signup - creates account and logs in immediately |
+| POST | `/api/admin/vlt-affiliates` | 1606 | Create VLT affiliate |
+| PATCH | `/api/admin/vlt-affiliates/:id` | 1651 | Update VLT affiliate |
+| DELETE | `/api/admin/vlt-affiliates/:id` | 1665 | Delete VLT affiliate |
+| POST | `/api/vlt-affiliate/login` | 1678 | ===== VLT AFFILIATE PORTAL ===== |
+| POST | `/api/vlt-affiliate/logout` | 1729 | VLT Affiliate logout |
+| POST | `/api/auth/login` | 1793 | ===== AUTH ROUTES ===== |
+| POST | `/api/auth/logout` | 1933 | Logout |
+| POST | `/api/auth/init-admin` | 1959 | Initialize admin (one-time setup) |
+| POST | `/api/auth/register` | 1987 | Register new user (public registration) |
+| POST | `/api/auth/forgot-password` | 2044 | Request password reset |
+| POST | `/api/auth/reset-password` | 2138 | Reset password with token |
+| POST | `/api/admin/affiliates` | 2267 | Create affiliate user |
+| PATCH | `/api/admin/affiliates/:id/password` | 2293 | Reset affiliate password |
+| DELETE | `/api/admin/affiliates/:id` | 2316 | Delete affiliate |
 
 ### Routes That Read (6)
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| GET | `/api/admin/vlt-affiliates` | 1597 | ===== VLT AFFILIATE MANAGEMENT (Admin) ===== |
-| GET | `/api/vlt-affiliate/me` | 1736 | VLT Affiliate logout |
-| GET | `/api/vlt-affiliate/leads` | 1779 | Get VLT affiliate's leads |
-| GET | `/api/auth/me` | 1944 | Get current user |
-| GET | `/api/auth/validate-reset-token` | 2176 | Validate reset token (for UI) |
-| GET | `/api/admin/affiliates` | 2252 | Get all affiliates |
+| GET | `/api/admin/vlt-affiliates` | 1596 | ===== VLT AFFILIATE MANAGEMENT (Admin) ===== |
+| GET | `/api/vlt-affiliate/me` | 1735 | VLT Affiliate logout |
+| GET | `/api/vlt-affiliate/leads` | 1778 | Get VLT affiliate's leads |
+| GET | `/api/auth/me` | 1943 | Get current user |
+| GET | `/api/auth/validate-reset-token` | 2175 | Validate reset token (for UI) |
+| GET | `/api/admin/affiliates` | 2251 | Get all affiliates |
 
 ### Single Source of Truth?
 **NO.** 4 separate identity tables (users, vlt_affiliates, veteran_auth_users, ai_users) with no FK relationships between them
@@ -100,30 +100,30 @@
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| POST | `/api/legal/sign/:type` | 2742 | Sign a legal document (generic handler) |
-| POST | `/api/legal/esign-callback` | 2799 | External e-sign callback (for DocuSign/HelloSign style integrations) |
-| POST | `/api/metrics/signature-event` | 2885 | Signature metrics tracking endpoint (public for funnel tracking) |
-| POST | `/api/contracts/seed-mah` | 4122 | ===== CONTRACT MANAGEMENT ROUTES ===== |
-| POST | `/api/contracts/seed-all-services` | 4230 | Seed all MAH service contracts |
-| POST | `/api/contracts/seed-icc` | 4310 | Seed ICC Logistics service contract (legacy endpoint) |
-| POST | `/api/contracts/templates` | 4420 | Create contract template (admin only) |
-| PATCH | `/api/contracts/templates/:id` | 4434 | Update contract template (admin only) |
-| POST | `/api/contracts/sign` | 4478 | Sign a contract |
+| POST | `/api/legal/sign/:type` | 2741 | Sign a legal document (generic handler) |
+| POST | `/api/legal/esign-callback` | 2798 | External e-sign callback (for DocuSign/HelloSign style integrations) |
+| POST | `/api/metrics/signature-event` | 2884 | Signature metrics tracking endpoint (public for funnel tracking) |
+| POST | `/api/contracts/seed-mah` | 4121 | ===== CONTRACT MANAGEMENT ROUTES ===== |
+| POST | `/api/contracts/seed-all-services` | 4229 | Seed all MAH service contracts |
+| POST | `/api/contracts/seed-icc` | 4309 | Seed ICC Logistics service contract (legacy endpoint) |
+| POST | `/api/contracts/templates` | 4419 | Create contract template (admin only) |
+| PATCH | `/api/contracts/templates/:id` | 4433 | Update contract template (admin only) |
+| POST | `/api/contracts/sign` | 4477 | Sign a contract |
 
 ### Routes That Read (10)
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| GET | `/api/legal/status` | 2731 | ===== GLOBAL LEGAL SYSTEM ROUTES ===== |
-| GET | `/api/contracts/templates` | 4386 | Get all contract templates |
-| GET | `/api/contracts/templates/active` | 4396 | Get active contract templates |
-| GET | `/api/contracts/templates/:id` | 4406 | Get a single contract template |
-| GET | `/api/contracts/signed` | 4445 | Get all signed agreements (admin/master) |
-| GET | `/api/contracts/signed/affiliate/:affiliateId` | 4455 | Get signed agreements for a specific affiliate |
-| GET | `/api/contracts/check/:affiliateId/:templateId` | 4466 | Check if affiliate has signed a specific contract |
-| GET | `/api/contracts/pending/:affiliateId` | 4514 | Get pending contracts for an affiliate (contracts they haven't signed yet) |
-| GET | `/api/contracts/my-signed` | 4528 | Get signed agreements for the current logged-in user |
-| GET | `/api/contracts/signed/:id/download` | 4541 | Download signed agreement as HTML document |
+| GET | `/api/legal/status` | 2730 | ===== GLOBAL LEGAL SYSTEM ROUTES ===== |
+| GET | `/api/contracts/templates` | 4385 | Get all contract templates |
+| GET | `/api/contracts/templates/active` | 4395 | Get active contract templates |
+| GET | `/api/contracts/templates/:id` | 4405 | Get a single contract template |
+| GET | `/api/contracts/signed` | 4444 | Get all signed agreements (admin/master) |
+| GET | `/api/contracts/signed/affiliate/:affiliateId` | 4454 | Get signed agreements for a specific affiliate |
+| GET | `/api/contracts/check/:affiliateId/:templateId` | 4465 | Check if affiliate has signed a specific contract |
+| GET | `/api/contracts/pending/:affiliateId` | 4513 | Get pending contracts for an affiliate (contracts they haven't signed yet) |
+| GET | `/api/contracts/my-signed` | 4527 | Get signed agreements for the current logged-in user |
+| GET | `/api/contracts/signed/:id/download` | 4540 | Download signed agreement as HTML document |
 
 ### Single Source of Truth?
 **PARTIAL.** 3 separate signature systems: affiliate_nda, legal_signatures, signed_agreements. legal_signatures acts as partial aggregator.
@@ -153,36 +153,36 @@
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| POST | `/api/claims/cases` | 9443 | Create a new case with tasks |
-| PATCH | `/api/claims/tasks/:id` | 9513 | Update a task status |
-| POST | `/api/claims/cases/:id/notes` | 9578 | Add a note to a case |
-| POST | `/api/claims/cases/:id/shares` | 9693 | Invite a vendor to a case (upsert) |
-| DELETE | `/api/claims/shares/:id` | 9729 | Remove a vendor's access |
-| PATCH | `/api/claims/files/:id/evidence` | 9983 | Update file evidence metadata |
+| POST | `/api/claims/cases` | 9442 | Create a new case with tasks |
+| PATCH | `/api/claims/tasks/:id` | 9512 | Update a task status |
+| POST | `/api/claims/cases/:id/notes` | 9577 | Add a note to a case |
+| POST | `/api/claims/cases/:id/shares` | 9692 | Invite a vendor to a case (upsert) |
+| DELETE | `/api/claims/shares/:id` | 9728 | Remove a vendor's access |
+| PATCH | `/api/claims/files/:id/evidence` | 9982 | Update file evidence metadata |
 
 ### Routes That Read (19)
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| GET | `/api/claims/cases` | 9398 | Get all cases for the logged-in veteran |
-| GET | `/api/claims/cases/:id` | 9414 | Get a specific case |
-| GET | `/api/claims/cases/:id/tasks` | 9487 | Get tasks for a case |
-| GET | `/api/claims/cases/:id/notes` | 9552 | Get notes for a case |
-| GET | `/api/claims/cases/:id/deadlines` | 9615 | Get deadlines for a case |
-| GET | `/api/claims/cases/:id/files` | 9641 | Get files for a case |
-| GET | `/api/claims/cases/:id/shares` | 9667 | Get shares for a case |
-| GET | `/api/claims/evidence-requirements` | 9765 | EVIDENCE & COMPLETENESS ENDPOINTS |
-| GET | `/api/claims/cases/:id/completeness` | 9785 | Get completeness analysis for a case |
-| GET | `/api/claims/cases/:id/strength` | 9853 | Get evidence strength analysis for a case |
-| GET | `/api/claims/cases/:id/lane-recommendation` | 9910 | Get lane recommendation for a case |
-| GET | `/api/claims/cases/:id/vendor-metrics` | 10027 | ==================================================== |
-| GET | `/api/claims/cases/:id/export` | 10120 | ==================================================== |
-| GET | `/api/claims/cases/:id/heatmap` | 10268 | ==================================================== |
-| GET | `/api/claims/cases/:id/suggestions` | 10334 | STAGE 7-10: INTELLIGENCE FEATURES |
-| GET | `/api/claims/cases/:id/vendor-scorecards` | 10389 | Stage 8: Get vendor scorecards for a case |
-| GET | `/api/claims/cases/:id/lane-confidence` | 10461 | Stage 9: Get VA lane confidence recommendation |
-| GET | `/api/claims/cases/:id/upload-checklist` | 10538 | Stage 10: Get VA.gov upload checklist |
-| GET | `/api/claims/cases/:id/export/download` | 10585 | ZIP EXPORT (PAID FEATURE) |
+| GET | `/api/claims/cases` | 9397 | Get all cases for the logged-in veteran |
+| GET | `/api/claims/cases/:id` | 9413 | Get a specific case |
+| GET | `/api/claims/cases/:id/tasks` | 9486 | Get tasks for a case |
+| GET | `/api/claims/cases/:id/notes` | 9551 | Get notes for a case |
+| GET | `/api/claims/cases/:id/deadlines` | 9614 | Get deadlines for a case |
+| GET | `/api/claims/cases/:id/files` | 9640 | Get files for a case |
+| GET | `/api/claims/cases/:id/shares` | 9666 | Get shares for a case |
+| GET | `/api/claims/evidence-requirements` | 9764 | EVIDENCE & COMPLETENESS ENDPOINTS |
+| GET | `/api/claims/cases/:id/completeness` | 9784 | Get completeness analysis for a case |
+| GET | `/api/claims/cases/:id/strength` | 9852 | Get evidence strength analysis for a case |
+| GET | `/api/claims/cases/:id/lane-recommendation` | 9909 | Get lane recommendation for a case |
+| GET | `/api/claims/cases/:id/vendor-metrics` | 10026 | ==================================================== |
+| GET | `/api/claims/cases/:id/export` | 10119 | ==================================================== |
+| GET | `/api/claims/cases/:id/heatmap` | 10267 | ==================================================== |
+| GET | `/api/claims/cases/:id/suggestions` | 10333 | STAGE 7-10: INTELLIGENCE FEATURES |
+| GET | `/api/claims/cases/:id/vendor-scorecards` | 10388 | Stage 8: Get vendor scorecards for a case |
+| GET | `/api/claims/cases/:id/lane-confidence` | 10460 | Stage 9: Get VA lane confidence recommendation |
+| GET | `/api/claims/cases/:id/upload-checklist` | 10537 | Stage 10: Get VA.gov upload checklist |
+| GET | `/api/claims/cases/:id/export/download` | 10584 | ZIP EXPORT (PAID FEATURE) |
 
 ### Single Source of Truth?
 **YES.** Claims domain owns 9 related tables with claim_cases as clear root aggregate. All child tables FK to claim_cases.id.
@@ -207,21 +207,21 @@
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| POST | `/api/opportunities` | 3873 | Create opportunity (admin only) |
-| PATCH | `/api/opportunities/:id` | 3887 | Update opportunity (admin only) |
-| POST | `/api/sales` | 3954 | Create sale with commission calculation |
-| PATCH | `/api/sales/:id` | 3968 | Update sale status |
-| POST | `/api/commission/calculate` | 4642 | - Producer: 69% base + 1% for each empty upline slot (up to 75% solo) |
-| POST | `/api/commission/seed` | 4732 | Seed default commission config (simplified model) |
-| POST | `/api/admin/send-commission-spreadsheet` | 4809 | Send commission spreadsheet email |
+| POST | `/api/opportunities` | 3872 | Create opportunity (admin only) |
+| PATCH | `/api/opportunities/:id` | 3886 | Update opportunity (admin only) |
+| POST | `/api/sales` | 3953 | Create sale with commission calculation |
+| PATCH | `/api/sales/:id` | 3967 | Update sale status |
+| POST | `/api/commission/calculate` | 4641 | - Producer: 69% base + 1% for each empty upline slot (up to 75% solo) |
+| POST | `/api/commission/seed` | 4731 | Seed default commission config (simplified model) |
+| POST | `/api/admin/send-commission-spreadsheet` | 4808 | Send commission spreadsheet email |
 
 ### Routes That Read (3)
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| GET | `/api/opportunities` | 3863 | ===== ECOSYSTEM / MASTER PORTAL ROUTES ===== |
-| GET | `/api/commission/config` | 4705 | Get commission configuration (simplified model) |
-| GET | `/api/admin/commissions` | 4787 | Get all commissions for admin dashboard |
+| GET | `/api/opportunities` | 3862 | ===== ECOSYSTEM / MASTER PORTAL ROUTES ===== |
+| GET | `/api/commission/config` | 4704 | Get commission configuration (simplified model) |
+| GET | `/api/admin/commissions` | 4786 | Get all commissions for admin dashboard |
 
 ### Single Source of Truth?
 **NO.** Commission calculation embedded in route handler, hardcoded in email template, and duplicated in stress test. 7-level referral chain flattened with no FK.
@@ -249,42 +249,42 @@
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| POST | `/api/csu/scan-document` | 5892 | AI Document Scanner - Upload, extract text, and reformat documents |
-| POST | `/api/csu/fix-template/:id` | 5941 | Fix an existing template using AI |
-| PUT | `/api/csu/save-fixed-template/:id` | 5976 | Save fixed template content |
-| POST | `/api/csu/ai-smart-extract` | 6010 | AI Smart Extract - Consolidated AI that extracts, formats, and triple-checks all fields in one call |
-| POST | `/api/csu/ai-autofill` | 6151 | Legacy endpoint - redirect to smart extract |
-| POST | `/api/csu/analyze-document` | 6207 | Upload and analyze a contract document to extract form fields |
-| POST | `/api/csu/analyze-template-content` | 6253 | Analyze template content with AI (no file upload required) |
-| POST | `/api/csu/send-contract` | 6343 | Send a contract to someone (admin) |
-| POST | `/api/csu/send-contract-batch` | 6477 | Batch send contracts to multiple recipients (admin) |
-| POST | `/api/csu/envelopes` | 6627 | CSU ENVELOPES - DocuSign-like multi-recipient signing |
-| POST | `/api/csu/envelopes/:id/send` | 6718 | Send envelope (trigger emails based on routing order) |
-| PUT | `/api/csu/envelopes/:id/recipients` | 6899 | Update envelope signing order (before sending) |
-| POST | `/api/csu/envelopes/:id/void` | 6996 | Void envelope |
-| POST | `/api/csu/contract-sends/:id/resend` | 7055 | Resend contract with new token (admin) |
-| POST | `/api/csu/contract-sends/:id/void` | 7149 | Void/cancel a contract (admin) |
-| POST | `/api/csu/templates` | 7215 | Create or update template with fields (admin) |
-| PUT | `/api/csu/templates/:id` | 7282 | Update template with fields (admin) |
-| DELETE | `/api/csu/templates/:id` | 7355 | Delete template (admin) |
-| POST | `/api/csu/sign/:token` | 7454 | Public: Submit signed contract |
+| POST | `/api/csu/scan-document` | 5891 | AI Document Scanner - Upload, extract text, and reformat documents |
+| POST | `/api/csu/fix-template/:id` | 5940 | Fix an existing template using AI |
+| PUT | `/api/csu/save-fixed-template/:id` | 5975 | Save fixed template content |
+| POST | `/api/csu/ai-smart-extract` | 6009 | AI Smart Extract - Consolidated AI that extracts, formats, and triple-checks all fields in one call |
+| POST | `/api/csu/ai-autofill` | 6150 | Legacy endpoint - redirect to smart extract |
+| POST | `/api/csu/analyze-document` | 6206 | Upload and analyze a contract document to extract form fields |
+| POST | `/api/csu/analyze-template-content` | 6252 | Analyze template content with AI (no file upload required) |
+| POST | `/api/csu/send-contract` | 6342 | Send a contract to someone (admin) |
+| POST | `/api/csu/send-contract-batch` | 6476 | Batch send contracts to multiple recipients (admin) |
+| POST | `/api/csu/envelopes` | 6626 | CSU ENVELOPES - DocuSign-like multi-recipient signing |
+| POST | `/api/csu/envelopes/:id/send` | 6717 | Send envelope (trigger emails based on routing order) |
+| PUT | `/api/csu/envelopes/:id/recipients` | 6898 | Update envelope signing order (before sending) |
+| POST | `/api/csu/envelopes/:id/void` | 6995 | Void envelope |
+| POST | `/api/csu/contract-sends/:id/resend` | 7054 | Resend contract with new token (admin) |
+| POST | `/api/csu/contract-sends/:id/void` | 7148 | Void/cancel a contract (admin) |
+| POST | `/api/csu/templates` | 7214 | Create or update template with fields (admin) |
+| PUT | `/api/csu/templates/:id` | 7281 | Update template with fields (admin) |
+| DELETE | `/api/csu/templates/:id` | 7354 | Delete template (admin) |
+| POST | `/api/csu/sign/:token` | 7453 | Public: Submit signed contract |
 
 ### Routes That Read (12)
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| GET | `/api/csu/templates` | 6332 | Get all CSU contract templates (admin) |
-| GET | `/api/csu/contract-sends` | 6612 | Get all contract sends (admin) |
-| GET | `/api/csu/envelopes` | 6868 | Get all envelopes |
-| GET | `/api/csu/envelopes/:id` | 6879 | Get envelope with recipients |
-| GET | `/api/csu/envelopes/:id/signing-order` | 6931 | Get signing order diagram preview |
-| GET | `/api/csu/envelopes/:id/audit-trail` | 6978 | Get audit trail for envelope |
-| GET | `/api/csu/signed-agreements` | 7189 | Get all signed agreements (admin) |
-| GET | `/api/csu/templates/:id/fields` | 7200 | Get template fields for a specific template (admin) |
-| GET | `/api/csu/templates/:id` | 7376 | Get single template with fields (admin) |
-| GET | `/api/csu/contract/:token` | 7398 | Public: Get contract by token (for signing page) |
-| GET | `/api/csu/signed-agreements/:id/pdf/public` | 7559 | Public: Download signed agreement PDF (for immediate download after signing) |
-| GET | `/api/csu/signed-agreements/:id/pdf` | 7624 | Admin: Download signed agreement PDF |
+| GET | `/api/csu/templates` | 6331 | Get all CSU contract templates (admin) |
+| GET | `/api/csu/contract-sends` | 6611 | Get all contract sends (admin) |
+| GET | `/api/csu/envelopes` | 6867 | Get all envelopes |
+| GET | `/api/csu/envelopes/:id` | 6878 | Get envelope with recipients |
+| GET | `/api/csu/envelopes/:id/signing-order` | 6930 | Get signing order diagram preview |
+| GET | `/api/csu/envelopes/:id/audit-trail` | 6977 | Get audit trail for envelope |
+| GET | `/api/csu/signed-agreements` | 7188 | Get all signed agreements (admin) |
+| GET | `/api/csu/templates/:id/fields` | 7199 | Get template fields for a specific template (admin) |
+| GET | `/api/csu/templates/:id` | 7375 | Get single template with fields (admin) |
+| GET | `/api/csu/contract/:token` | 7397 | Public: Get contract by token (for signing page) |
+| GET | `/api/csu/signed-agreements/:id/pdf/public` | 7558 | Public: Download signed agreement PDF (for immediate download after signing) |
+| GET | `/api/csu/signed-agreements/:id/pdf` | 7623 | Admin: Download signed agreement PDF |
 
 ### Single Source of Truth?
 **NO.** Two parallel signing systems: legacy single-send (csu_contract_sends → csu_signed_agreements) and new envelope system (csu_envelopes → csu_envelope_recipients).
@@ -314,32 +314,32 @@
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| POST | `/api/ai/generate` | 8539 | 1 minute |
-| DELETE | `/api/ai/generation/:id` | 8634 | Delete an AI generation |
-| POST | `/api/ai/templates` | 8657 | Admin: Create a new AI template |
-| PATCH | `/api/ai/templates/:id` | 8668 | Admin: Update an AI template |
-| POST | `/api/operator-ai/chat` | 8690 | Operator AI Chat endpoint with 3 memory modes |
-| DELETE | `/api/operator-ai/session/:sessionId` | 8866 | Clear session memory (Forget Session button) |
-| DELETE | `/api/operator-ai/persistent/:userId` | 8878 | Clear persistent memory (Wipe Memory button - requires user auth) |
-| POST | `/api/operator-ai/documents` | 8918 | Upload documents endpoint |
-| DELETE | `/api/operator-ai/documents/:sessionId` | 8992 | Clear session documents |
-| POST | `/api/orchestration/route` | 9045 | Route user intent to optimal model(s) |
-| POST | `/api/orchestration/execute` | 9114 | Execute an orchestration pipeline |
-| POST | `/api/ai/generate-image` | 9150 | Image Generation endpoint - real GPT-4o Image API |
-| POST | `/api/ai/text-to-speech` | 9209 | Text-to-Speech endpoint |
-| POST | `/api/orchestration/fusion` | 9252 | Fusion endpoint - combine multiple media types |
+| POST | `/api/ai/generate` | 8538 | 1 minute |
+| DELETE | `/api/ai/generation/:id` | 8633 | Delete an AI generation |
+| POST | `/api/ai/templates` | 8656 | Admin: Create a new AI template |
+| PATCH | `/api/ai/templates/:id` | 8667 | Admin: Update an AI template |
+| POST | `/api/operator-ai/chat` | 8689 | Operator AI Chat endpoint with 3 memory modes |
+| DELETE | `/api/operator-ai/session/:sessionId` | 8865 | Clear session memory (Forget Session button) |
+| DELETE | `/api/operator-ai/persistent/:userId` | 8877 | Clear persistent memory (Wipe Memory button - requires user auth) |
+| POST | `/api/operator-ai/documents` | 8917 | Upload documents endpoint |
+| DELETE | `/api/operator-ai/documents/:sessionId` | 8991 | Clear session documents |
+| POST | `/api/orchestration/route` | 9044 | Route user intent to optimal model(s) |
+| POST | `/api/orchestration/execute` | 9113 | Execute an orchestration pipeline |
+| POST | `/api/ai/generate-image` | 9149 | Image Generation endpoint - real GPT-4o Image API |
+| POST | `/api/ai/text-to-speech` | 9208 | Text-to-Speech endpoint |
+| POST | `/api/orchestration/fusion` | 9251 | Fusion endpoint - combine multiple media types |
 
 ### Routes That Read (7)
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| GET | `/api/ai/gallery` | 8446 | ========================================== |
-| GET | `/api/ai/generation/:id` | 8479 | Get a specific AI generation |
-| GET | `/api/ai/templates` | 8496 | Get all active AI templates |
-| GET | `/api/ai/templates/category/:category` | 8507 | Get templates by category |
-| GET | `/api/operator-ai/session/:sessionId` | 8890 | Get session memory history |
-| GET | `/api/operator-ai/documents/:sessionId` | 8968 | Get uploaded documents for session |
-| GET | `/api/orchestration/models` | 9009 | ========================================================================== |
+| GET | `/api/ai/gallery` | 8445 | ========================================== |
+| GET | `/api/ai/generation/:id` | 8478 | Get a specific AI generation |
+| GET | `/api/ai/templates` | 8495 | Get all active AI templates |
+| GET | `/api/ai/templates/category/:category` | 8506 | Get templates by category |
+| GET | `/api/operator-ai/session/:sessionId` | 8889 | Get session memory history |
+| GET | `/api/operator-ai/documents/:sessionId` | 8967 | Get uploaded documents for session |
+| GET | `/api/orchestration/models` | 9008 | ========================================================================== |
 
 ### Single Source of Truth?
 **NO.** Memory stored in 2 tables (operator_ai_memory FK to users, ai_memory FK to ai_users). ai_generations FK to users but other AI tables FK to ai_users.
@@ -366,19 +366,19 @@
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| POST | `/api/admin/vlt-affiliates` | 1607 | Create VLT affiliate |
-| PATCH | `/api/admin/vlt-affiliates/:id` | 1652 | Update VLT affiliate |
-| DELETE | `/api/admin/vlt-affiliates/:id` | 1666 | Delete VLT affiliate |
-| POST | `/api/vlt-affiliate/login` | 1679 | ===== VLT AFFILIATE PORTAL ===== |
-| POST | `/api/vlt-affiliate/logout` | 1730 | VLT Affiliate logout |
+| POST | `/api/admin/vlt-affiliates` | 1606 | Create VLT affiliate |
+| PATCH | `/api/admin/vlt-affiliates/:id` | 1651 | Update VLT affiliate |
+| DELETE | `/api/admin/vlt-affiliates/:id` | 1665 | Delete VLT affiliate |
+| POST | `/api/vlt-affiliate/login` | 1678 | ===== VLT AFFILIATE PORTAL ===== |
+| POST | `/api/vlt-affiliate/logout` | 1729 | VLT Affiliate logout |
 
 ### Routes That Read (3)
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| GET | `/api/admin/vlt-affiliates` | 1597 | ===== VLT AFFILIATE MANAGEMENT (Admin) ===== |
-| GET | `/api/vlt-affiliate/me` | 1736 | VLT Affiliate logout |
-| GET | `/api/vlt-affiliate/leads` | 1779 | Get VLT affiliate's leads |
+| GET | `/api/admin/vlt-affiliates` | 1596 | ===== VLT AFFILIATE MANAGEMENT (Admin) ===== |
+| GET | `/api/vlt-affiliate/me` | 1735 | VLT Affiliate logout |
+| GET | `/api/vlt-affiliate/leads` | 1778 | Get VLT affiliate's leads |
 
 ### Single Source of Truth?
 **NO.** Hierarchy stored as 7 flat columns in vlt_affiliates, duplicated in sales and 3 intake tables. 34 referral columns, none with FK constraints.
@@ -402,17 +402,17 @@
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| POST | `/api/sailor/conversation` | 11053 | 25MB limit for audio |
-| POST | `/api/sailor/chat` | 11083 | Send a text message and get AI response |
-| POST | `/api/sailor/transcribe` | 11122 | Voice transcription endpoint |
-| POST | `/api/sailor/voice-chat` | 11136 | Voice chat - transcribe and respond |
+| POST | `/api/sailor/conversation` | 11052 | 25MB limit for audio |
+| POST | `/api/sailor/chat` | 11082 | Send a text message and get AI response |
+| POST | `/api/sailor/transcribe` | 11121 | Voice transcription endpoint |
+| POST | `/api/sailor/voice-chat` | 11135 | Voice chat - transcribe and respond |
 
 ### Routes That Read (2)
 
 | Method | Path | Line | Description |
 |---|---|---|---|
-| GET | `/api/sailor/conversation/:id/messages` | 11068 | Get conversation history |
-| GET | `/api/sailor/tips` | 11110 | Get contextual tips for current page |
+| GET | `/api/sailor/conversation/:id/messages` | 11067 | Get conversation history |
+| GET | `/api/sailor/tips` | 11109 | Get contextual tips for current page |
 
 ### Single Source of Truth?
 **YES.** Self-contained domain. 3 tables with clear FK relationships. Service layer already extracted (sailor-chat.ts).

@@ -1,20 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 import { getLegalStatus } from "./legal-system";
+import { getRequestContext } from "./platform/requestContext";
 
+/** @deprecated Use getRequestContext(req).ip instead */
 export function resolveClientIp(req: Request): string {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.trim()) {
-    return forwarded.split(",")[0].trim();
-  }
-  const realIp = req.headers["x-real-ip"];
-  if (typeof realIp === "string" && realIp.trim()) {
-    return realIp.trim();
-  }
-  const cfIp = req.headers["cf-connecting-ip"];
-  if (typeof cfIp === "string" && cfIp.trim()) {
-    return cfIp.trim();
-  }
-  return req.socket?.remoteAddress || "unknown";
+  return getRequestContext(req).ip;
 }
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {

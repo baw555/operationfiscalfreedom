@@ -9,7 +9,7 @@ import { startQueueRunner } from "./queueService";
 import { internalServiceAccess } from "./internalAccess";
 
 const app = express();
-app.set("trust proxy", true); // REQUIRED on Replit for secure cookies/sessions
+app.set("trust proxy", 1); // trust first proxy hop only (Replit load balancer)
 const httpServer = createServer(app);
 
 declare module "http" {

@@ -13,11 +13,11 @@
 |---|---|---|---|
 | App created | `server/index.ts` | 11 | `const app = express();` |
 | HTTP server | `server/index.ts` | 13 | `const httpServer = createServer(app);` |
-| Trust proxy (index) | `server/index.ts` | 12 | `app.set("trust proxy", true); // REQUIRED on Replit for secure cookies/sessions` |
+| Trust proxy (index) | `server/index.ts` | 12 | `app.set("trust proxy", 1); // trust first proxy hop only (Replit load balancer)` |
 | Routes mounted | `server/index.ts` | 3 | `import { registerRoutes } from "./routes";` |
 | Routes mounted | `server/index.ts` | 118 | `await registerRoutes(httpServer, app);` |
 | registerRoutes defined | `server/routes.ts` | 324 | `export async function registerRoutes(` |
-| Trust proxy (routes) | `server/routes.ts` | 329 | `app.set('trust proxy', 1);` |
+| Trust proxy (routes) | `server/routes.ts` | 328 | `// trust proxy is set once in server/index.ts — do not duplicate here` |
 
 > **Warning:** `trust proxy` is set twice — once in `index.ts` and once in `routes.ts`. The second call overwrites the first.
 
@@ -131,10 +131,10 @@ Pages bypassing `apiRequest` with raw `fetch()`:
 
 | Guard | Line | Roles | MFA Check | Notes |
 |---|---|---|---|---|
-| `resolveClientIp` | 4 | `master`, `admin` | YES | IP resolution utility, not an auth guard |
-| `requireAdmin` | 20 | `master`, `admin`, `affiliate` | YES |  |
-| `requireAffiliate` | 39 | `affiliate` | YES |  |
-| `requireAffiliateWithNda` | 53 | `affiliate` | YES | Checks NDA + CONTRACT via getLegalStatus() |
+| `resolveClientIp` | 6 | `master`, `admin`, `affiliate` | YES | IP resolution utility, not an auth guard |
+| `requireAdmin` | 10 | `master`, `admin`, `affiliate` | YES |  |
+| `requireAffiliate` | 29 | `affiliate` | YES |  |
+| `requireAffiliateWithNda` | 43 | `affiliate` | YES | Checks NDA + CONTRACT via getLegalStatus() |
 
 **Note:** There is NO generic `requireAuth` middleware. Routes that need any-user auth check `req.session.userId` inline — **5 occurrences** in `routes.ts`.
 
@@ -154,8 +154,8 @@ Pages bypassing `apiRequest` with raw `fetch()`:
 
 ### Usage in routes.ts
 
-- Inline `getResendClient()` calls (no retry): **10** at lines 1475, 1541, 2101, 2701, 4812, 6401, 6505, 6760, 7106, 10830
-- `sendEmailWithRetry()` calls (with retry): **3** at lines 187, 1027, 6768
+- Inline `getResendClient()` calls (no retry): **10** at lines 1474, 1540, 2100, 2700, 4811, 6400, 6504, 6759, 7105, 10829
+- `sendEmailWithRetry()` calls (with retry): **3** at lines 187, 1026, 6767
 
 > **Duplication:** `sendEmailWithRetry` exists but most call sites bypass it with direct `getResendClient()` + `resend.emails.send()` — no retry logic.
 
@@ -167,8 +167,8 @@ Pages bypassing `apiRequest` with raw `fetch()`:
 
 | File | Line | Value |
 |---|---|---|
-| `server/index.ts` | 12 | `true);` |
-| `server/routes.ts` | 329 | `1);` |
+| `server/index.ts` | 12 | `1);` |
+| `server/routes.ts` | 328 | `?` |
 
 > **Warning:** `trust proxy` set twice. The `routes.ts` call overwrites `index.ts`. Final effective value is from routes.ts.
 
@@ -176,8 +176,8 @@ Pages bypassing `apiRequest` with raw `fetch()`:
 
 | Pattern | Count | Locations |
 |---|---|---|
-| `req.ip` (Express built-in, trust-proxy aware) | 22 | `routes.ts:275`, `routes.ts:309`, `routes.ts:1813`, `routes.ts:1841`, `routes.ts:1912`, `routes.ts:3057`, `routes.ts:3114`, `routes.ts:3139`, `routes.ts:3595`, `routes.ts:3691`, `routes.ts:5553`, `routes.ts:6702`, `routes.ts:6809`, `routes.ts:6821`, `routes.ts:6844`, `routes.ts:7043`, `routes.ts:8184`, `routes.ts:8219`, `routes.ts:8282`, `routes.ts:8322`, `routes.ts:8389`, `routes.ts:8426` |
-| Manual `x-forwarded-for` header parsing | 13 | `routes.ts:539`, `routes.ts:611`, `routes.ts:981`, `routes.ts:1263`, `routes.ts:3833`, `routes.ts:4481`, `routes.ts:5009`, `routes.ts:5552`, `routes.ts:7508`, `routes.ts:7711`, `routes.ts:7836`, `legal-system.ts:103`, `legal-system.ts:186` |
+| `req.ip` (Express built-in, trust-proxy aware) | 22 | `routes.ts:275`, `routes.ts:309`, `routes.ts:1812`, `routes.ts:1840`, `routes.ts:1911`, `routes.ts:3056`, `routes.ts:3113`, `routes.ts:3138`, `routes.ts:3594`, `routes.ts:3690`, `routes.ts:5552`, `routes.ts:6701`, `routes.ts:6808`, `routes.ts:6820`, `routes.ts:6843`, `routes.ts:7042`, `routes.ts:8183`, `routes.ts:8218`, `routes.ts:8281`, `routes.ts:8321`, `routes.ts:8388`, `routes.ts:8425` |
+| Manual `x-forwarded-for` header parsing | 13 | `routes.ts:538`, `routes.ts:610`, `routes.ts:980`, `routes.ts:1262`, `routes.ts:3832`, `routes.ts:4480`, `routes.ts:5008`, `routes.ts:5551`, `routes.ts:7507`, `routes.ts:7710`, `routes.ts:7835`, `legal-system.ts:103`, `legal-system.ts:186` |
 | `resolveClientIp()` helper | 1 | `routes.ts:21` |
 
 > **Redundancy:** Since `trust proxy` is set, `req.ip` already parses `x-forwarded-for`. The 13 manual extraction sites are redundant and may return different values in edge cases. `resolveClientIp()` exists in middleware.ts but is rarely used.

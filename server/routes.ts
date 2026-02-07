@@ -325,8 +325,7 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Trust proxy for Replit's load balancer (needed in both dev and production)
-  app.set('trust proxy', 1);
+  // trust proxy is set once in server/index.ts — do not duplicate here
 
   // PostgreSQL session store for persistent sessions
   const PgStore = pgSession(session);
