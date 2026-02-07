@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, serial, boolean, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, serial, boolean, pgEnum, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { veteranAuthUsers } from "./models/auth";
@@ -2481,6 +2481,25 @@ export const insertSailorFaqSchema = createInsertSchema(sailorFaq).omit({
 });
 export type InsertSailorFaq = z.infer<typeof insertSailorFaqSchema>;
 export type SailorFaq = typeof sailorFaq.$inferSelect;
+
+// Platform Events (append-only audit/event log)
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  eventType: text("event_type").notNull(),
+  userId: integer("user_id").notNull(),
+  entityId: integer("entity_id"),
+  entityType: text("entity_type"),
+  payload: jsonb("payload").notNull(),
+  degraded: boolean("degraded").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type Event = typeof events.$inferSelect;
 
 // Replit Auth tables (for veteran users)
 export * from "./models/auth";

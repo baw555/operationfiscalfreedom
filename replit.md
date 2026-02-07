@@ -23,7 +23,27 @@ The frontend is built with React and TypeScript, using Wouter for routing and Ta
 The backend utilizes Express.js, connecting to a PostgreSQL database via Drizzle ORM. It implements session-based authentication with bcrypt for password hashing and robust role-based access control (admin/affiliate). Zod is used for API endpoint validation.
 
 ### Database Schema
-The database supports user management, affiliate applications, support requests, business services, sales and commissions, veteran intakes, and comprehensive contract management.
+The database supports user management, affiliate applications, support requests, business services, sales and commissions, veteran intakes, comprehensive contract management, and a platform-wide events table.
+
+### Action Layer (`server/actions/`)
+Business logic is extracted from routes into action functions. Each action:
+- Validates inputs (required vs optional)
+- Calls storage/ORM operations
+- Emits events to the `events` table (non-blocking, fire-and-forget)
+- Returns `{ ok: true, ... }` or `{ ok: false, code, message }` — no Express coupling
+
+Current actions:
+- `submit-affiliate-nda.ts` — NDA signing with degraded feature handling
+- `emit-event.ts` — Generic event emitter (append-only, non-blocking)
+
+### Events Table
+Platform-wide append-only event log (`events` table):
+- `event_type`: string identifier (e.g., `NDA_SIGNED`, `DEGRADED_SUBMISSION`)
+- `user_id`: integer FK to users table
+- `entity_id` / `entity_type`: optional polymorphic reference (e.g., ndaId + "nda")
+- `payload`: JSONB — flexible structured data per event type
+- `degraded`: boolean flag for events involving degraded features
+- Used for audit trails, ops visibility, compliance logging
 
 ### Feature Specifications
 - **Comprehensive Admin Operations Hub**: A central portal for managing all platform data, KPIs, applications, leads, and sales.

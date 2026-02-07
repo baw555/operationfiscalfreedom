@@ -7,6 +7,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { db } from "./db";
 import { LEGAL_DOCS, getLegalStatus, signLegalDocumentAtomic, healLegalStateOnLogin, createLegalOverride, legalSystemHealthCheck, generateEvidenceBundle, processExternalEsignCallback, runLegalTestBot, requireLegalClearance, hashDocument } from "./legal-system";
+import { submitAffiliateNda } from "./actions/submit-affiliate-nda";
 import { authenticateUser, createAdminUser, createAffiliateUser, hashPassword } from "./auth";
 import { getResendClient } from "./resendClient";
 import twilio from "twilio";
@@ -3858,7 +3859,7 @@ export async function registerRoutes(
     }
   });
 
-  // Sign affiliate NDA - ATOMIC + IDEMPOTENT
+  // Sign affiliate NDA - delegates to action layer
   app.post("/api/affiliate/sign-nda", requireAffiliate, async (req, res) => {
     const userId = req.session.userId;
     
@@ -3868,49 +3869,10 @@ export async function registerRoutes(
 
     try {
       const { fullName, veteranNumber, address, customReferralCode, signatureData, facePhoto, idPhoto, agreedToTerms, degradedCapabilities, degradedFeatures } = req.body;
-      
-      // Validate required fields
-      if (!fullName || typeof fullName !== 'string' || fullName.trim().length < 2) {
-        return res.status(400).json({ message: "Full legal name is required (at least 2 characters)" });
-      }
-      
-      if (!address || typeof address !== 'string' || address.trim().length < 5) {
-        return res.status(400).json({ message: "Address is required (at least 5 characters)" });
-      }
-      
-      if (!signatureData || typeof signatureData !== 'string' || !signatureData.startsWith('data:image/')) {
-        return res.status(400).json({ message: "Your signature is required - please sign in the signature box" });
-      }
-      
-      if (facePhoto && (typeof facePhoto !== 'string' || !facePhoto.startsWith('data:image/'))) {
-        return res.status(400).json({ message: "Face photo must be a valid image if provided" });
-      }
-      
-      if (idPhoto && (typeof idPhoto !== 'string' || !idPhoto.startsWith('data:image/'))) {
-        return res.status(400).json({ message: "ID document must be a valid image if provided" });
-      }
-      
-      if (agreedToTerms !== true && agreedToTerms !== 'true') {
-        return res.status(400).json({ message: "You must agree to the terms to proceed" });
-      }
-      
-      if (!customReferralCode || typeof customReferralCode !== 'string' || customReferralCode.trim().length < 3) {
-        return res.status(400).json({ message: "Custom referral code is required (at least 3 characters)" });
-      }
-      
-      // Check if custom referral code is already taken BEFORE creating NDA
-      const codeToCheck = customReferralCode.toUpperCase().trim();
-      const existingUser = await storage.getUserByReferralCode(codeToCheck);
-      if (existingUser && existingUser.id !== userId) {
-        return res.status(400).json({ 
-          message: "This referral code is already taken. Please choose a different code." 
-        });
-      }
 
-      // Get IP address for audit trail with robust fallback handling
       const forwardedFor = req.headers['x-forwarded-for'];
       const realIp = req.headers['x-real-ip'];
-      const cfConnectingIp = req.headers['cf-connecting-ip']; // Cloudflare
+      const cfConnectingIp = req.headers['cf-connecting-ip'];
       
       let ipAddress = 'not-captured';
       if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
@@ -3922,15 +3884,10 @@ export async function registerRoutes(
       } else if (req.socket?.remoteAddress) {
         ipAddress = req.socket.remoteAddress;
       }
-      
+
       console.log(`[NDA Sign] IP detection: forwarded=${forwardedFor}, realIp=${realIp}, socket=${req.socket?.remoteAddress}, resolved=${ipAddress}`);
-      
-      const isDegraded = degradedCapabilities && (
-        degradedCapabilities.camera !== 'available' || 
-        degradedCapabilities.upload !== 'available'
-      );
-      
-      if (isDegraded) {
+
+      if (degradedCapabilities && (degradedCapabilities.camera !== 'available' || degradedCapabilities.upload !== 'available')) {
         console.log(`[NDA Sign] Degraded submission for user ${userId}:`, {
           camera: degradedCapabilities.camera || 'not-reported',
           upload: degradedCapabilities.upload || 'not-reported',
@@ -3938,78 +3895,33 @@ export async function registerRoutes(
           hasIdPhoto: !!idPhoto,
         });
       }
-      
-      const validatedReports: Array<{feature: string; reason: string; timestamp: number}> = [];
-      if (degradedFeatures && Array.isArray(degradedFeatures)) {
-        for (const f of degradedFeatures) {
-          if (f && typeof f.feature === 'string' && typeof f.reason === 'string' && typeof f.timestamp === 'number') {
-            validatedReports.push({
-              feature: f.feature.substring(0, 50),
-              reason: f.reason.substring(0, 100),
-              timestamp: f.timestamp,
-            });
-          }
-        }
+
+      const result = await submitAffiliateNda({
+        userId,
+        fullName,
+        veteranNumber,
+        address,
+        customReferralCode,
+        signatureData,
+        facePhoto,
+        idPhoto,
+        agreedToTerms,
+        degradedCapabilities,
+        degradedFeatures,
+        ipAddress,
+        req,
+      });
+
+      if (!result.ok) {
+        return res.status(result.code).json({ message: result.message });
       }
-      
-      if (validatedReports.length > 0) {
-        console.warn(`[NDA Sign] DEGRADED_SUBMISSION for user ${userId} on affiliate-nda:`, {
-          reportCount: validatedReports.length,
-          features: validatedReports,
-          hasFacePhoto: !!facePhoto,
-          hasIdPhoto: !!idPhoto,
-          ipAddress,
-        });
+
+      if (result.alreadySigned) {
+        return res.json({ success: true, message: "NDA already signed", nda: result.nda });
       }
-      
-      // ATOMIC + IDEMPOTENT: Single transaction for referral code + NDA creation
-      // Prevents race conditions and partial state (code updated but NDA failed, or vice versa)
-      try {
-        const result = await storage.signNdaAtomic(userId, codeToCheck, {
-          userId,
-          fullName,
-          veteranNumber: veteranNumber || null,
-          address,
-          customReferralCode: customReferralCode || null,
-          signatureData: signatureData || null,
-          facePhoto: facePhoto || null,
-          idPhoto: idPhoto || null,
-          signedIpAddress: ipAddress,
-          agreedToTerms: "true",
-        });
-        
-        // MIRROR TO GLOBAL LEGAL SYSTEM - single source of truth
-        // This ensures unified enforcement across all protected routes
-        // Non-blocking: don't fail NDA signing if mirror fails
-        try {
-          await signLegalDocumentAtomic({
-            userId,
-            doc: LEGAL_DOCS.NDA,
-            docHash: hashDocument(JSON.stringify({ fullName, signatureData, address })),
-            req,
-          });
-          console.log(`[NDA Sign] Mirrored to legal_signatures for user ${userId}`);
-        } catch (mirrorError) {
-          console.error("[NDA Sign] Mirror to legal system failed (non-blocking):", mirrorError);
-        }
-        
-        // Idempotent: return success even if already signed
-        if (result.alreadySigned) {
-          return res.json({ success: true, message: "NDA already signed", nda: result.nda });
-        }
-        
-        res.json({ success: true, nda: result.nda });
-      } catch (codeError: any) {
-        // Handle race condition where code was taken between check and transaction
-        if (codeError?.code === '23505') {
-          return res.status(400).json({ 
-            message: "This referral code was just taken by another user. Please choose a different code." 
-          });
-        }
-        throw codeError;
-      }
+
+      res.json({ success: true, nda: result.nda });
     } catch (error: any) {
-      // Detailed error logging for debugging
       console.error("[NDA SIGN FAILURE] Full error details:", {
         userId,
         errorMessage: error?.message,
