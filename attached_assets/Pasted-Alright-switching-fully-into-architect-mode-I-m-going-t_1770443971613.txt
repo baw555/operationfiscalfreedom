@@ -1,0 +1,363 @@
+Alright — switching fully into architect mode.
+I’m going to stress-test Phase 2 as if this were about to be rolled into a regulated, revenue-producing system, then I’ll tell you what questions must be asked, what is safe, what is unsafe, and what must be explicitly decided before moving on.
+
+I will not add new fixes yet unless something is genuinely unsafe.
+
+ARCHITECT STRESS TEST — PHASE 2 (FRONTEND STABILITY LAYER)
+
+You did the right thing by stopping here and asking for a stress test. This phase is foundational — mistakes here propagate everywhere.
+
+We’ll evaluate each decision, then run edge-case simulations.
+
+PART A — CANONICAL QUERY KEYS (queryKeys.ts)
+What you proposed
+export const qk = {
+  me: ["auth", "me"] as const,
+  ndaStatus: ["affiliate", "ndaStatus"] as const,
+  scheduleAStatus: ["affiliate", "scheduleAStatus"] as const,
+};
+
+Architect verdict
+
+✅ Correct
+✅ Safe
+✅ Necessary
+🟡 Incomplete but intentionally so
+
+Stress test scenarios
+Scenario 1 — Mixed adoption (current reality)
+
+Some pages still use ["/api/auth/me"]
+
+Some use ["auth"]
+
+Some will start using qk.me
+
+Result:
+✔ No runtime breakage
+✔ No crashes
+❌ Cache invalidation is still fragmented (expected)
+
+Architect ruling:
+This is acceptable because you explicitly said “foundation first”.
+The existence of queryKeys.ts does not change behavior yet — it creates a single truth anchor.
+
+This is correct sequencing.
+
+Scenario 2 — Future migration
+
+Once pages migrate to qk.me, you can:
+
+invalidate auth state once
+
+reason about auth as one cache identity
+
+This solves the exact bug identified in the UI audit:
+
+affiliate-apply invalidates /api/auth/me, affiliate-dashboard listens on ["auth"] → stale auth state
+
+Architect ruling:
+This file is pure upside, no risk.
+
+What NOT to do yet
+
+❌ Do not delete old queryKeys
+❌ Do not mass-replace pages yet
+❌ Do not enforce lint rules yet
+
+This stays inert until Phase 3+.
+
+PART B — SAFE API WRAPPER (api.ts)
+What you proposed
+export async function api<T>(url: string): Promise<T> {
+  const res = await fetch(url, { credentials: "include" });
+
+  const isJson = res.headers
+    .get("content-type")
+    ?.includes("application/json");
+
+  const body = isJson ? await res.json().catch(() => null) : null;
+
+  if (!res.ok) {
+    throw new ApiError(res.status, body?.message || res.statusText);
+  }
+
+  return body as T;
+}
+
+
+This is the most important part to stress-test.
+
+STRESS TEST MATRIX — api()
+
+We’ll run it through every failure mode the frontend can experience.
+
+1️⃣ 401 Unauthorized (MOST COMMON)
+
+Example
+
+GET /api/auth/me
+401 Unauthorized
+Content-Type: application/json
+{ "message": "Not authenticated" }
+
+
+Behavior
+
+res.ok === false
+
+body.message extracted
+
+throws ApiError(401, "Not authenticated")
+
+React effect
+
+Error is thrown
+
+But now it is a typed error, not a null return
+
+Page can:
+
+catch
+
+redirect
+
+show login
+
+or boundary-handle
+
+Architect verdict:
+✅ This fixes the blank screen bug
+✅ This is exactly what you want
+⚠ Requires pages to intentionally handle 401 (later)
+
+2️⃣ 401 with EMPTY BODY (common with middleware)
+
+Example
+
+401 Unauthorized
+Content-Type: application/json
+(empty body)
+
+
+Behavior
+
+res.json() throws
+
+.catch(() => null) → body = null
+
+error message falls back to res.statusText
+
+Architect verdict:
+✅ Safe
+✅ No crash
+✅ Predictable message
+
+3️⃣ Non-JSON error response (HTML / text)
+
+Example
+
+500 Internal Server Error
+Content-Type: text/html
+<html>...</html>
+
+
+Behavior
+
+isJson === false
+
+body = null
+
+error thrown with statusText
+
+Architect verdict:
+✅ Safe
+✅ No JSON parsing crash
+⚠ You lose server error details (this is good for security)
+
+4️⃣ 204 No Content (common for PATCH/DELETE)
+
+Example
+
+204 No Content
+
+
+Behavior
+
+isJson === false
+
+body = null
+
+res.ok === true
+
+returns null as T
+
+Architect verdict:
+🟡 Acceptable if documented
+
+Important nuance:
+This is the one place where api<T>() can legitimately return null.
+
+Architect rule:
+
+GETs should never be 204
+
+Mutations already use apiRequest()
+
+As long as you do not use api() for mutations, this is safe.
+
+5️⃣ Network failure / CORS / offline
+
+Example
+
+DNS failure
+
+Replit hiccup
+
+Browser offline
+
+Behavior
+
+fetch() throws before res
+
+error is not an ApiError
+
+Architect verdict:
+🟡 This will bubble as an untyped error
+🟢 This is OK for now
+
+Why?
+
+Network errors should still surface
+
+You will later decide whether to:
+
+retry
+
+show offline UI
+
+degrade gracefully
+
+Do not over-handle this yet.
+
+6️⃣ Pages that still use getQueryFn()
+
+Current reality:
+
+useQuery({ queryKey: ["/api/auth/me"], queryFn: getQueryFn() })
+
+
+These will:
+
+still throw raw errors
+
+still blank-screen if mishandled
+
+Architect verdict:
+✅ This is acceptable because you explicitly are not converting pages yet
+
+This phase is foundational, not corrective.
+
+PART C — COEXISTENCE WITH EXISTING INFRASTRUCTURE
+Coexists with:
+
+apiRequest() (mutations)
+
+getQueryFn() (legacy GETs)
+
+raw fetch() (legacy pages)
+
+Architect verdict:
+✅ No conflicts
+✅ No runtime overlap
+✅ No naming collision
+✅ No behavior regression
+
+PART D — WHAT IS NOT SOLVED YET (INTENTIONALLY)
+
+This phase does NOT yet solve:
+
+❌ Role gating drift
+❌ NDA gate duplication
+❌ Query invalidation mismatch
+❌ staleTime: Infinity inconsistencies
+❌ Admin pages using any
+❌ Commission logic in UI
+
+That is correct.
+Foundation ≠ migration.
+
+CRITICAL ARCHITECT QUESTIONS (YOU MUST ANSWER THESE)
+
+Before proceeding to Phase 3 (page migration), you must answer:
+
+Q1 — How should 401 be handled globally?
+
+Choose ONE (explicitly):
+
+A) Redirect to login automatically
+
+B) Let page decide (recommended)
+
+C) Show inline auth error component
+
+Architect recommendation: B
+But this must be a conscious decision.
+
+Q2 — Should api() ever be used for mutations?
+
+If yes, it must:
+
+accept method
+
+accept body
+
+handle 204s explicitly
+
+If no (current plan):
+
+enforce rule:
+GET → api()
+MUTATE → apiRequest()
+
+Architect recommendation: No, keep split.
+
+Q3 — Do you want to deprecate getQueryFn()?
+
+Eventually you should — but not yet.
+
+Decision needed:
+
+Deprecate later
+
+Or keep for static pages
+
+Q4 — Do you want runtime response validation?
+
+Examples:
+
+Zod decode on frontend
+
+Soft validation with warnings
+
+No validation (status quo)
+
+Architect note:
+This is optional, but if chosen, it must integrate with api().
+
+FINAL ARCHITECT RULING
+Phase 2 is:
+
+✅ Structurally correct
+✅ Safe to merge
+✅ Non-breaking
+✅ The right abstraction boundary
+✅ Properly sequenced
+
+Phase 2 is NOT:
+
+❌ A full fix
+❌ A migration
+❌ A behavior change
+
+And that’s exactly what you want.
