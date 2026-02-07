@@ -23,6 +23,7 @@ import * as QRCode from "qrcode";
 import crypto from "crypto";
 import { getOrCreateConversation, getConversationHistory, saveMessage, generateAIResponse, getContextualTips, seedInitialFaqs, transcribeAudio } from "./sailor-chat";
 import { resolveClientIp, requireAdmin, requireAffiliate, requireAffiliateWithNda, requireClaimOwner, getVeteranUserId } from "./middleware";
+import { attachIdentity } from "./identity/requireIdentity";
 
 // HIPAA Security: Configure TOTP with strict timing window to prevent replay attacks
 const totpInstance = new TOTP({
@@ -774,13 +775,14 @@ export async function registerRoutes(
   });
 
   // System health endpoint
-  app.get("/api/system/health", async (req, res) => {
+  app.get("/api/system/health", attachIdentity, async (req, res) => {
     try {
       await storage.getUser(1);
       res.json({
         status: "ok",
         db: "up",
-        time: new Date().toISOString()
+        time: new Date().toISOString(),
+        identityKind: req.identity?.primary.kind ?? "anonymous",
       });
     } catch {
       res.status(500).json({ status: "degraded", db: "down" });
