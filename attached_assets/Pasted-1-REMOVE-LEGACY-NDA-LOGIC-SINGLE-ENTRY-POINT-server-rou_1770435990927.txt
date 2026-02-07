@@ -1,0 +1,157 @@
+1️⃣ REMOVE LEGACY NDA LOGIC (SINGLE ENTRY POINT)
+server/routes/affiliateNda.ts
+import { submitAffiliateNda } from "../actions/nda/submitAffiliateNda";
+
+app.post("/api/affiliate/nda/submit", async (req, res) => {
+  const userId = req.session.userId;
+  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+  const result = await submitAffiliateNda({
+    ...req.body,
+    userId,
+    role: "affiliate",
+    ipAddress: req.ip,
+    userAgent: req.headers["user-agent"] ?? "unknown",
+  });
+
+  res.json(result);
+});
+
+
+END CODE
+
+2️⃣ NDA ACTION (FINAL, AUTHORITATIVE)
+server/actions/nda/submitAffiliateNda.ts
+import { submitAffiliateNdaAction } from "./submitAffiliateNdaAction";
+import { notifyDegradedSubmission } from "../../notifications/notifyDegradedSubmission";
+
+export async function submitAffiliateNda(input: any) {
+  const result = await submitAffiliateNdaAction(input);
+
+  if (input.degradedFeatures?.length) {
+    await notifyDegradedSubmission({
+      userId: input.userId,
+      entityId: result.entityId,
+      entityType: "nda",
+      degradedFeatures: input.degradedFeatures,
+    });
+  }
+
+  return {
+    ndaId: result.entityId,
+    degraded: result.degraded,
+    replay: Boolean(result.replay),
+  };
+}
+
+
+END CODE
+
+3️⃣ ACTION CORE (AUTHORITATIVE WRITE + EVENTS)
+server/actions/nda/createNdaCore.ts
+import { ndas } from "../../schema/affiliateNda";
+import { events } from "../../schema/events";
+
+export async function createNdaCore(tx: any, input: any) {
+  const degraded = Boolean(input.degradedFeatures?.length);
+
+  const [nda] = await tx
+    .insert(ndas)
+    .values({
+      userId: input.userId,
+      signatureData: input.signature.value,
+      agreedToTerms: "true",
+      degraded,
+    })
+    .returning();
+
+  await tx.insert(events).values({
+    eventType: "NDA_SUBMITTED",
+    userId: input.userId,
+    entityId: nda.id,
+    entityType: "nda",
+    degraded,
+    payload: {},
+  });
+
+  if (degraded) {
+    await tx.insert(events).values({
+      eventType: "NDA_SUBMITTED_WITH_DEGRADATION",
+      userId: input.userId,
+      entityId: nda.id,
+      entityType: "nda",
+      degraded: true,
+      payload: { degradedFeatures: input.degradedFeatures },
+    });
+  }
+
+  return { ndaId: nda.id, degraded };
+}
+
+
+END CODE
+
+4️⃣ IDEMPOTENT WRAP (FINAL)
+server/actions/nda/submitAffiliateNdaAction.ts
+import { withIdempotency } from "../withIdempotency";
+import { createNdaCore } from "./createNdaCore";
+
+export const submitAffiliateNdaAction = withIdempotency(
+  "submitAffiliateNda",
+  async (tx, input) => {
+    if (!input.signature?.value) throw new Error("Signature required");
+
+    const result = await createNdaCore(tx, input);
+    return { entityId: result.ndaId, degraded: result.degraded };
+  }
+);
+
+
+END CODE
+
+5️⃣ CLIENT SUBMIT (FINAL)
+import { useRef } from "react";
+
+const idemRef = useRef<string | null>(null);
+const getIdemKey = () =>
+  idemRef.current ?? (idemRef.current = crypto.randomUUID());
+
+async function handleSubmit() {
+  const res = await api.post("/api/affiliate/nda/submit", {
+    idempotencyKey: getIdemKey(),
+    signature,
+    degradedFeatures,
+  });
+
+  navigate(`/affiliate/nda/complete/${res.ndaId}`);
+}
+
+
+END CODE
+
+6️⃣ TESTS (LOCK IT IN)
+server/actions/nda/submitAffiliateNda.test.ts
+it("creates NDA once", async () => {
+  const input = baseInput();
+  const r1 = await submitAffiliateNda(input);
+  const r2 = await submitAffiliateNda(input);
+
+  expect(r1.ndaId).toBe(r2.ndaId);
+  expect(r2.replay).toBe(true);
+});
+
+it("allows degraded submission", async () => {
+  const res = await submitAffiliateNda({
+    ...baseInput(),
+    degradedFeatures: [{ feature: "camera", reason: "denied", acknowledgedByUser: true }],
+  });
+  expect(res.degraded).toBe(true);
+});
+
+it("rejects missing signature", async () => {
+  await expect(submitAffiliateNda({ ...baseInput(), signature: null }))
+    .rejects.toThrow();
+});
+
+
+END CODE

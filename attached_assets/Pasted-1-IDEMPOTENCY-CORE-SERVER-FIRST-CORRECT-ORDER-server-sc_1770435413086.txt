@@ -1,0 +1,184 @@
+1️⃣ IDEMPOTENCY CORE (SERVER-FIRST, CORRECT ORDER)
+server/schema/idempotencyKeys.ts
+import { pgTable, text, integer, timestamp } from "drizzle-orm/pg-core";
+
+export const idempotencyKeys = pgTable("idempotency_keys", {
+  key: text("key").primaryKey(),
+  userId: integer("user_id").notNull(),
+  action: text("action").notNull(),
+  entityId: integer("entity_id"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+
+END CODE
+
+server/actions/withIdempotency.ts
+import { db } from "../db";
+import { idempotencyKeys } from "../schema/idempotencyKeys";
+import { eq, lt } from "drizzle-orm";
+
+type IdemInput = {
+  idempotencyKey: string;
+  userId: number;
+};
+
+export function withIdempotency<TInput extends IdemInput, TResult extends { entityId?: number }>(
+  actionName: string,
+  handler: (tx: any, input: TInput) => Promise<TResult>
+) {
+  return async function run(input: TInput): Promise<TResult & { replay?: boolean }> {
+    return await db.transaction(async (tx) => {
+      const existing = await tx
+        .select()
+        .from(idempotencyKeys)
+        .where(eq(idempotencyKeys.key, input.idempotencyKey));
+
+      if (existing.length && existing[0].entityId) {
+        return { entityId: existing[0].entityId, replay: true } as any;
+      }
+
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await tx.insert(idempotencyKeys).values({
+        key: input.idempotencyKey,
+        userId: input.userId,
+        action: actionName,
+        expiresAt,
+      });
+
+      const result = await handler(tx, input);
+
+      if (result.entityId) {
+        await tx
+          .update(idempotencyKeys)
+          .set({ entityId: result.entityId })
+          .where(eq(idempotencyKeys.key, input.idempotencyKey));
+      }
+
+      return result;
+    });
+  };
+}
+
+
+END CODE
+
+2️⃣ NDA ACTION (USES IDEMPOTENCY + EVENTS)
+server/actions/submitAffiliateNda.ts
+import { withIdempotency } from "./withIdempotency";
+import { events } from "../schema/events";
+import { ndas } from "../schema/ndas";
+
+type DegradedFeature = {
+  feature: string;
+  reason: string;
+  acknowledgedByUser: true;
+  timestamp: number;
+};
+
+type Input = {
+  idempotencyKey: string;
+  userId: number;
+  role: "affiliate";
+  ndaVersionId: string;
+  legalAcknowledgement: true;
+  signature: { type: "typed" | "drawn"; value: string };
+  ipAddress: string;
+  userAgent: string;
+  degradedFeatures?: DegradedFeature[];
+};
+
+export const submitAffiliateNda = withIdempotency<Input, { entityId: number; degraded: boolean }>(
+  "submitAffiliateNda",
+  async (tx, input) => {
+    if (input.role !== "affiliate") throw new Error("Invalid role");
+    if (!input.signature?.value) throw new Error("Signature required");
+
+    const degraded = Boolean(input.degradedFeatures?.length);
+
+    const [nda] = await tx
+      .insert(ndas)
+      .values({
+        userId: input.userId,
+        ndaVersionId: input.ndaVersionId,
+        signatureType: input.signature.type,
+        signatureValue: input.signature.value,
+        ipAddress: input.ipAddress,
+        userAgent: input.userAgent,
+        degraded,
+      })
+      .returning();
+
+    await tx.insert(events).values({
+      eventType: "NDA_SUBMITTED",
+      userId: input.userId,
+      entityId: nda.id,
+      entityType: "nda",
+      degraded,
+      payload: { ndaVersionId: input.ndaVersionId },
+    });
+
+    if (degraded) {
+      await tx.insert(events).values({
+        eventType: "NDA_SUBMITTED_WITH_DEGRADATION",
+        userId: input.userId,
+        entityId: nda.id,
+        entityType: "nda",
+        degraded: true,
+        payload: { degradedFeatures: input.degradedFeatures },
+      });
+    }
+
+    return { entityId: nda.id, degraded };
+  }
+);
+
+
+END CODE
+
+3️⃣ CLIENT KEY GEN + REPLAY FEEDBACK + CLEANUP JOB
+Client — idempotency key (stable per submit)
+import { useRef } from "react";
+
+const idemRef = useRef<string | null>(null);
+
+function getIdemKey() {
+  if (!idemRef.current) idemRef.current = crypto.randomUUID();
+  return idemRef.current;
+}
+
+
+END CODE
+
+Client — submit handler
+async function handleSubmit() {
+  const res = await api.post("/actions/submit-affiliate-nda", {
+    idempotencyKey: getIdemKey(),
+    ndaVersionId,
+    legalAcknowledgement: true,
+    signature,
+    degradedFeatures,
+  });
+
+  if (res.replay) toast.info("Submission already received.");
+  navigate(`/affiliate/nda/complete/${res.entityId}`);
+}
+
+
+END CODE
+
+Server — cleanup job (hourly)
+import { db } from "../db";
+import { idempotencyKeys } from "../schema/idempotencyKeys";
+import { lt } from "drizzle-orm";
+
+export async function cleanupIdempotencyKeys() {
+  await db.delete(idempotencyKeys).where(lt(idempotencyKeys.expiresAt, new Date()));
+}
+
+setInterval(cleanupIdempotencyKeys, 60 * 60 * 1000);
+
+
+END CODE
