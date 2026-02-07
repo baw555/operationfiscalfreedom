@@ -1,0 +1,223 @@
+1️⃣ WHERE TO WIRE IT (VERY IMPORTANT)
+
+Do NOT scatter this across routes.
+
+Wire divergence logging at one choke point per auth domain, where:
+
+legacy middleware already decides allow/deny
+
+req.identity is available
+
+you can call the policy equivalent
+
+Recommended initial targets (pick ONE domain first):
+
+Affiliate (moderate traffic, clear rules)
+
+Claims (veteran) (clean ownership)
+
+Admin (last, highest risk)
+
+👉 Start with Affiliate.
+
+2️⃣ DEFINE A SINGLE LOGGING HELPER
+
+Create a tiny helper so logs are consistent and easy to grep.
+
+✅ CREATE: server/identity/logAuthDivergence.ts
+import type { Request } from "express";
+
+type DivergencePayload = {
+  path: string;
+  method: string;
+  legacyAllowed: boolean;
+  policyAllowed: boolean;
+  identity?: {
+    kind?: string;
+    role?: string;
+    mfaVerified?: boolean;
+    hasNda?: boolean;
+    hasContract?: boolean;
+    isInternalService?: boolean;
+  };
+};
+
+export function logAuthDivergence(
+  req: Request,
+  legacyAllowed: boolean,
+  policyAllowed: boolean
+) {
+  if (legacyAllowed === policyAllowed) return;
+
+  const identity = (req as any).identity;
+
+  const payload: DivergencePayload = {
+    path: req.path,
+    method: req.method,
+    legacyAllowed,
+    policyAllowed,
+    identity: identity
+      ? {
+          kind: identity.kind,
+          role: identity.role,
+          mfaVerified: identity.mfaVerified,
+          hasNda: identity.hasNda,
+          hasContract: identity.hasContract,
+          isInternalService: identity.isInternalService,
+        }
+      : undefined,
+  };
+
+  console.warn("AUTH_DIVERGENCE", payload);
+}
+
+
+Notes
+
+One log line
+
+Structured
+
+Easy to search
+
+No PII
+
+3️⃣ WIRE IT INTO ONE DOMAIN (AFFILIATE)
+
+We will wrap, not replace, legacy middleware.
+
+Example: requireAffiliate (or equivalent)
+
+Where legacy code currently does:
+
+export function requireAffiliate(req, res, next) {
+  if (!legacyAffiliateCheck(req)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  next();
+}
+
+🔁 MODIFY (LOG ONLY)
+import { canAccessAffiliate } from "../identity/policies";
+import { logAuthDivergence } from "../identity/logAuthDivergence";
+
+export function requireAffiliate(req, res, next) {
+  const legacyAllowed = legacyAffiliateCheck(req);
+
+  // NEW: policy check (no enforcement)
+  const policyAllowed = canAccessAffiliate((req as any).identity);
+
+  // LOG ONLY
+  logAuthDivergence(req, legacyAllowed, policyAllowed);
+
+  // ENFORCE LEGACY ONLY
+  if (!legacyAllowed) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  next();
+}
+
+
+Rules enforced here
+
+Legacy remains authoritative
+
+Policy is advisory only
+
+Divergence is visible
+
+Behavior unchanged
+
+4️⃣ PAUSE & VERIFY (MANDATORY)
+
+After deploying this:
+
+What to watch
+
+Logs for AUTH_DIVERGENCE
+
+Route paths involved
+
+Identity metadata
+
+What should happen
+
+Ideally: zero logs
+
+If logs appear:
+
+they explain legacy quirks
+
+or expose policy bugs (which we fix before enforcement)
+
+What must NOT happen
+
+No new 401/403
+
+No user-visible changes
+
+No crashes
+
+5️⃣ STRESS TEST (TRY TO BREAK IT)
+
+Let’s pressure-test edge cases:
+
+Case: Admin hits affiliate route
+
+Legacy: ❌ deny
+
+Policy: ❌ deny
+
+Log: ❌ none
+✅ correct
+
+Case: Affiliate without MFA
+
+Legacy: ❌ deny
+
+Policy: ❌ deny
+
+Log: ❌ none
+✅ correct
+
+Case: Affiliate with MFA + NDA
+
+Legacy: ✅ allow
+
+Policy: ✅ allow
+
+Log: ❌ none
+✅ correct
+
+Case: Legacy exception (bug or edge)
+
+Legacy: ✅ allow
+
+Policy: ❌ deny
+
+Log: ✅ AUTH_DIVERGENCE
+✅ correct (this is exactly what we want to see)
+
+6️⃣ HOW LONG TO OBSERVE
+
+Minimum:
+
+24–48 hours of normal traffic
+
+Ideal:
+
+A few hundred affiliate requests
+
+Zero or explainable divergence
+
+Do not rush this.
+
+7️⃣ WHAT NOT TO DO NEXT
+
+Until divergence is understood:
+
+❌ Do not flip enforcement
+❌ Do not remove legacy checks
+❌ Do not add FKs
+❌ Do not touch admin routes
