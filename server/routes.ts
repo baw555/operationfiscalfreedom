@@ -384,20 +384,26 @@ export async function registerRoutes(
   app.use(
     session({
       store: sessionStore,
-      secret: process.env.SESSION_SECRET || "operation-fiscal-freedom-secret-key-2024",
+      secret: (() => {
+        const secret = process.env.SESSION_SECRET;
+        if (!secret) {
+          throw new Error("[FATAL] SESSION_SECRET environment variable is required. Refusing to start with insecure defaults.");
+        }
+        return secret;
+      })(),
       resave: false,
       saveUninitialized: false,
       rolling: true, // Reset session expiry on each request (for activity-based timeout)
       cookie: {
-        secure: isProduction, // HTTPS only in production (§164.312(e)(1))
+        secure: true, // HTTPS required - Replit always serves over HTTPS (§164.312(e)(1))
         httpOnly: true, // Prevent XSS access to cookies (§164.312(c)(1))
-        sameSite: 'lax', // CSRF protection - lax allows cookies on navigation from external links (email, social) while still blocking cross-origin POST requests
+        sameSite: 'none', // Required for cross-site/iframe usage (Replit editor preview, embedded contexts)
         maxAge: SESSION_TIMEOUT_MINUTES * 60 * 1000, // 15 minutes for HIPAA auto-logoff
       },
     })
   );
   
-  console.log(`[session] Session timeout configured: ${SESSION_TIMEOUT_MINUTES} minutes, secure cookies: ${isProduction}`);
+  console.log(`[session] Session timeout configured: ${SESSION_TIMEOUT_MINUTES} minutes, secure cookies: true, sameSite: none`);
 
   // ===== MODULAR ROUTE REGISTRATIONS =====
   const { registerAffiliateNdaRoutes } = await import("./routes/affiliateNda");
