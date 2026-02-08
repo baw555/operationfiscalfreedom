@@ -42,5 +42,8 @@ npm-debug.log*
 # Build artifacts
 .tsbuildinfo
 
+# Large video files (hosted externally)
+client/public/videos/soldiers-marching-new.mp4
+
 # Audit reports (regenerated on demand)
 docs/Skill1*.md
