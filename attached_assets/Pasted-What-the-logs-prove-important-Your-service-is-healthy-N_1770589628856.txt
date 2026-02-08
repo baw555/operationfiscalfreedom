@@ -1,0 +1,159 @@
+What the logs prove (important)
+
+Your service is healthy:
+
+✅ Node started
+✅ DB connected
+✅ Sessions initialized
+✅ Seeds ran
+✅ Express bound
+✅ Queues running
+
+Key line:
+
+[express] serving on port 8080
+
+
+So the app is alive.
+
+Why Railway thinks it’s “not working”
+
+Railway only considers a service “up” if ALL of these are true:
+
+The process binds to the correct port
+
+The port matches Railway’s injected PORT
+
+The process keeps running
+
+The service responds to HTTP traffic
+
+You are failing #1 / #2, not #3.
+
+The core problem (this is it)
+
+You hard-coded port 8080.
+
+Railway does not guarantee 8080.
+
+Railway injects a dynamic port via:
+
+process.env.PORT
+
+
+If you bind to 8080 instead of PORT, Railway’s proxy can’t reach your app — so it looks “dead” even though it’s running.
+
+The fix (mandatory)
+🔴 BAD (what you likely have)
+app.listen(8080, () => {
+  console.log("serving on port 8080");
+});
+
+✅ GOOD (Railway-compatible)
+const PORT = process.env.PORT || 8080;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`[express] serving on port ${PORT}`);
+});
+
+
+Two critical things here:
+
+Use process.env.PORT
+
+Bind to "0.0.0.0" (Railway requires this)
+
+Why "0.0.0.0" matters
+
+Railway containers are networked.
+Binding to localhost or default interfaces can block ingress.
+
+Always do:
+
+app.listen(PORT, "0.0.0.0")
+
+Second thing to check (takes 10 seconds)
+
+In Railway → Service → Settings:
+
+Start Command must be exactly:
+
+npm start
+
+
+or
+
+node dist/index.cjs
+
+
+Not:
+
+npm run dev
+
+anything interactive
+
+anything watching files
+
+Your logs show npm start is correct 👍
+
+Health check (optional but recommended)
+
+Railway doesn’t require this, but it makes life easier.
+
+Add:
+
+app.get("/health", (_req, res) => {
+  res.status(200).send("ok");
+});
+
+
+Then Railway can always confirm the service is alive.
+
+One more silent killer to rule out
+
+If Railway immediately restarts after this log, check:
+
+Environment Variables
+
+Make sure all of these exist in Railway (not just locally):
+
+DATABASE_URL
+
+SESSION_SECRET
+
+Any Stripe / email / queue secrets
+
+Missing env vars can cause crash loops after startup, which sometimes look like “it never deploys”.
+
+Why I’m confident this is the issue
+
+Because:
+
+Your app clearly starts
+
+Express is running
+
+No crash logs
+
+Railway “can’t see it”
+
+Port is hard-coded
+
+That combination = PORT mismatch 99% of the time.
+
+What I want you to do next (in order)
+
+Change app.listen to use process.env.PORT + "0.0.0.0"
+
+Redeploy
+
+Watch logs for:
+
+serving on port 3xxxx
+
+
+(Railway ports are usually high numbers)
+
+If it still fails after that, paste the first 30 lines after redeploy, and we’ll go one layer deeper (proxy / service type / region).
+
+You’re very close — this is plumbing, not architecture.
