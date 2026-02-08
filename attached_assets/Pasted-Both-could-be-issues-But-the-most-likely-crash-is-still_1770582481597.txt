@@ -1,0 +1,46 @@
+Both could be issues. But the most likely crash is still the db.ts file using the Neon WebSocket driver instead of the standard pg driver. Railway Postgres won't work with the Neon driver.
+Do these in order:
+
+Change server/db.ts to the code I gave you
+Run npm install pg @types/pg in Replit shell
+Remove the video file from git: git rm --cached path/to/soldiers-marching-video
+Add it to .gitignore
+Commit and push
+
+The db.ts change is the fix. The video is blocking your push. Do both, push, and Railway will redeploy with the correct database driver.
+Show me the Deploy Logs after it redeploys.give me a detailed code and instructions for replit3:27 PMStep 1: Open server/db.ts in Replit and replace the ENTIRE file with this:
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from "@shared/schema";
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
+}
+
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+export const db = drizzle({ client: pool, schema });
+Step 2: Open Replit Shell (bottom panel) and run these commands one at a time:
+npm install pg @types/pg
+npm install drizzle-orm
+Step 3: Find and remove the video file. Run in Shell:
+find . -name "*.mp4" -o -name "*.mov" -o -name "*.avi" -o -name "*.webm" | head -20
+That will show you where the video file is. Then run:
+git rm --cached PATH/TO/THE/VIDEO/FILE
+Replace PATH/TO/THE/VIDEO/FILE with whatever the find command showed you.
+Step 4: Add it to .gitignore. Run in Shell:
+echo "*.mp4" >> .gitignore
+echo "*.mov" >> .gitignore
+Step 5: Commit and push. Run in Shell:
+git add -A
+git commit -m "Switch to standard pg driver, remove large video"
+git push origin main
+If Replit Shell won't let you type, use Replit's Git panel (branch icon on left sidebar) to commit and push instead.
+After the push, Railway auto-redeploys. Screenshot the Deploy Logs for me.
