@@ -1432,15 +1432,14 @@ export async function registerRoutes(
       // Send notifications via Resend integration
       if (data.email) {
         try {
-          const { client: resend, fromEmail } = await getResendClient();
-          resend.emails.send({
-            from: `Veteran Led Tax Solutions <${fromEmail}>`,
+          await sendEmailWithRetry({
+            from: `Veteran Led Tax Solutions`,
             to: data.email,
             subject: "We received your intake",
             html: `<p>Your intake was received. A specialist will review shortly.</p>`,
-          }).catch(err => console.error("Email failed:", err));
+          });
         } catch (err) {
-          console.error("Resend not configured:", err);
+          console.error("Email send failed:", err);
         }
       }
       
@@ -1498,15 +1497,14 @@ export async function registerRoutes(
       // Send email via Resend integration
       if (email) {
         try {
-          const { client: resend, fromEmail } = await getResendClient();
-          await resend.emails.send({
-            from: `Veteran Led Tax Solutions <${fromEmail}>`,
+          await sendEmailWithRetry({
+            from: `Veteran Led Tax Solutions`,
             to: email,
             subject: "We received your intake",
             html: `<p>${message || "Your intake was received. A specialist will review shortly."}</p>`,
           });
         } catch (err) {
-          console.error("Resend not configured:", err);
+          console.error("Email send failed:", err);
         }
       }
 
@@ -2017,12 +2015,9 @@ export async function registerRoutes(
 
       // Send email via Resend integration
       try {
-        const { client: resend, fromEmail: configuredFromEmail } = await getResendClient();
-        const actualFromEmail = portal === "payzium" 
-          ? `Payzium <${configuredFromEmail}>` 
-          : `${portalName} <${configuredFromEmail}>`;
-        await resend.emails.send({
-          from: actualFromEmail,
+        const actualFromName = portal === "payzium" ? "Payzium" : portalName;
+        await sendEmailWithRetry({
+          from: actualFromName,
           to: user.email,
           subject: `Reset Your ${portalName} Password`,
           html: `
@@ -2617,9 +2612,8 @@ export async function registerRoutes(
       
       // Send email notification to master/admin about the air support request
       try {
-        const { client: resend, fromEmail } = await getResendClient();
-        await resend.emails.send({
-          from: `NavigatorUSA <${fromEmail}>`,
+        await sendEmailWithRetry({
+          from: `NavigatorUSA`,
           to: process.env.ADMIN_EMAIL || "admin@navigatorusa.com",
           subject: `VSO Air Support Request from ${user?.name}`,
           html: `
@@ -4744,9 +4738,6 @@ export async function registerRoutes(
   // Send commission spreadsheet email
   app.post("/api/admin/send-commission-spreadsheet", requireAdmin, async (req, res) => {
     try {
-      const { getResendClient } = await import("./resendClient");
-      const { client, fromEmail } = await getResendClient();
-      
       const emailTo = req.body.email || "bradweitma@gmail.com";
       
       const htmlContent = `
@@ -4919,8 +4910,7 @@ export async function registerRoutes(
         </html>
       `;
       
-      await client.emails.send({
-        from: fromEmail,
+      await sendEmailWithRetry({
         to: emailTo,
         subject: "Navigator USA Commission Structure Breakdown",
         html: htmlContent
@@ -6334,12 +6324,9 @@ Be thorough but concise. Focus on actionable insights.`
       let emailError: string | null = null;
       try {
         console.log(`[Email] Attempting to send contract email to ${recipientEmail}...`);
-        const { client: resend, fromEmail } = await getResendClient();
-        console.log(`[Email] Using from_email: ${fromEmail}`);
         
-        const emailResult = await resend.emails.send({
-          from: `Operation Fiscal Freedom <${fromEmail}>`,
-          replyTo: fromEmail,
+        const emailResult = await sendEmailWithRetry({
+          from: `Operation Fiscal Freedom`,
           to: recipientEmail,
           subject: subject || "Contract Ready for Signature - Operation Fiscal Freedom",
           html: `
@@ -6380,12 +6367,11 @@ Be thorough but concise. Focus on actionable insights.`
           `,
         });
         
-        // Check for Resend API errors in the response
-        if (emailResult.error) {
-          console.error(`[Email] Resend API error:`, emailResult.error);
-          emailError = emailResult.error.message || "Resend API returned an error";
+        if (!emailResult.success) {
+          console.error(`[Email] Send failed:`, emailResult.error);
+          emailError = emailResult.error || "Email send failed";
         } else {
-          console.log(`[Email] Successfully sent email to ${recipientEmail}, ID: ${emailResult.data?.id}`);
+          console.log(`[Email] Successfully sent email to ${recipientEmail}, ID: ${emailResult.messageId}`);
           emailSent = true;
         }
       } catch (err: any) {
@@ -6438,7 +6424,6 @@ Be thorough but concise. Focus on actionable insights.`
       }
 
       const crypto = await import("crypto");
-      const { client: resend, fromEmail } = await getResendClient();
       
       const baseUrl = process.env.CUSTOM_DOMAIN
         ? `https://${process.env.CUSTOM_DOMAIN}`
@@ -6478,9 +6463,8 @@ Be thorough but concise. Focus on actionable insights.`
           const signingUrl = `${baseUrl}/csu-sign?token=${signToken}`;
 
           // Send email
-          const emailResult = await resend.emails.send({
-            from: `Operation Fiscal Freedom <${fromEmail}>`,
-            replyTo: fromEmail,
+          const emailResult = await sendEmailWithRetry({
+            from: `Operation Fiscal Freedom`,
             to: recipient.email,
             subject: subject || "Contract Ready for Signature - Operation Fiscal Freedom",
             html: `
@@ -6520,8 +6504,8 @@ Be thorough but concise. Focus on actionable insights.`
             `,
           });
 
-          if (emailResult.error) {
-            results.push({ recipient: recipient.email, success: false, error: emailResult.error.message, signingUrl });
+          if (!emailResult.success) {
+            results.push({ recipient: recipient.email, success: false, error: emailResult.error || "Email send failed", signingUrl });
           } else {
             results.push({ recipient: recipient.email, success: true, signingUrl });
           }
@@ -7039,9 +7023,7 @@ Be thorough but concise. Focus on actionable insights.`
       const signingUrl = `${baseUrl}/csu-sign?token=${newToken}`;
 
       // Send email
-      const { client: resend, fromEmail } = await getResendClient();
-      await resend.emails.send({
-        from: fromEmail,
+      await sendEmailWithRetry({
         to: existingSend.recipientEmail,
         subject: `[Reminder] Please Sign: ${template?.name || "Contract Agreement"}`,
         html: `
@@ -10501,17 +10483,13 @@ Generated: ${new Date().toISOString()}
 
       // Send email via Resend
       try {
-        const { getResendClient } = await import("./resendClient");
-        const { client: resend, fromEmail } = await getResendClient();
-        
         const appUrl = process.env.REPL_SLUG 
           ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
           : "http://localhost:5000";
         
         const magicLinkUrl = `${appUrl}/vendor-portal?token=${token}`;
 
-        await resend.emails.send({
-          from: fromEmail,
+        await sendEmailWithRetry({
           to: normalizedEmail,
           subject: "Your NavigatorUSA Vendor Portal Login Link",
           html: `

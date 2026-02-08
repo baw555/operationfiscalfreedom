@@ -74,8 +74,15 @@ export async function sendEmailWithRetry(
     try {
       const { client, fromEmail } = await getResendClient();
 
+      let resolvedFrom = fromEmail;
+      if (emailOptions.from) {
+        resolvedFrom = emailOptions.from.includes("<")
+          ? emailOptions.from
+          : `${emailOptions.from} <${fromEmail}>`;
+      }
+
       const result = await client.emails.send({
-        from: emailOptions.from || fromEmail,
+        from: resolvedFrom,
         to: emailOptions.to,
         subject: emailOptions.subject,
         html: emailOptions.html,
