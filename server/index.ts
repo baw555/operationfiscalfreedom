@@ -125,45 +125,49 @@ app.use((req, res, next) => {
   next();
 });
 
+const port = parseInt(process.env.PORT || "5000", 10);
+httpServer.listen(
+  {
+    port,
+    host: "0.0.0.0",
+  },
+  () => {
+    log(`listening on port ${port} (healthz ready)`);
+  },
+);
+
 (async () => {
-  await registerRoutes(httpServer, app);
-  
-  // Run seed data for Payzium (Maurice Verrelli account and templates)
-  await seedPayziumData();
+  try {
+    log("Starting route registration...");
+    await registerRoutes(httpServer, app);
+    log("Routes registered successfully");
+    
+    try {
+      await seedPayziumData();
+      log("Seed data loaded");
+    } catch (seedErr: any) {
+      log(`Seed data warning (non-fatal): ${seedErr.message}`);
+    }
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-    console.error(`[error] ${status}: ${message}`, err.stack || err);
-    res.status(status).json({ message });
-  });
+      console.error(`[error] ${status}: ${message}`, err.stack || err);
+      res.status(status).json({ message });
+    });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
+    if (process.env.NODE_ENV === "production") {
+      serveStatic(app);
+    } else {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
+    }
+
+    startQueueRunner();
+    log("Application fully initialized");
+  } catch (err: any) {
+    console.error("Fatal startup error:", err);
+    log(`Startup error: ${err.message}`);
   }
-
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-    },
-    () => {
-      log(`serving on port ${port}`);
-      
-      startQueueRunner();
-      log("Notification queue runner started");
-    },
-  );
 })();
