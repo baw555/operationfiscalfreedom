@@ -3056,7 +3056,7 @@ export async function registerRoutes(
   });
 
   // Pipeline gate check (for CI/CD)
-  app.get("/api/repair/pipeline-gate", async (req, res) => {
+  app.get("/api/repair/pipeline-gate", requireAdmin, async (req, res) => {
     try {
       const logs = await storage.getRepairLogs(100);
       const blocking = logs.filter(log => log.status === "ESCALATED" || log.status === "FAILED");
@@ -3085,7 +3085,7 @@ export async function registerRoutes(
   // ==================== EMAIL COMMAND WEBHOOK ====================
 
   // Inbound email webhook for repair commands (from SendGrid/Mailgun/Postmark)
-  app.post("/api/repair/email", async (req, res) => {
+  app.post("/api/repair/email", requireAdmin, async (req, res) => {
     try {
       const { parseCommand } = await import("./repair-commands");
       const { enqueueRepair, registerIncident, getIncidentState } = await import("./repair-queue");
@@ -5129,7 +5129,7 @@ export async function registerRoutes(
   
   // Run stress test simulation with 1000 sales across 30 affiliates
   // Public endpoint for demo purposes
-  app.post("/api/stress-test/run", async (req, res) => {
+  app.post("/api/stress-test/run", requireAdmin, async (req, res) => {
     try {
       // Get configurable parameters from request body
       const { 
@@ -5332,7 +5332,7 @@ export async function registerRoutes(
   
   // Get stress test results
   // Public endpoint for demo purposes
-  app.get("/api/stress-test/results", async (req, res) => {
+  app.get("/api/stress-test/results", requireAdmin, async (req, res) => {
     try {
       const affiliates = await storage.getAllVltAffiliates();
       const allSales = await storage.getAllSales();
@@ -5403,7 +5403,7 @@ export async function registerRoutes(
   
   // Clear stress test data
   // Public endpoint for demo purposes
-  app.delete("/api/stress-test/clear", async (req, res) => {
+  app.delete("/api/stress-test/clear", requireAdmin, async (req, res) => {
     try {
       // This would need a storage method to clear test data
       // For safety, we only clear affiliates with @stresstest.nav emails
@@ -8364,7 +8364,7 @@ Be thorough but concise. Focus on actionable insights.`
 
   // Get all AI generations for the gallery
   // Shows sample/demo content plus user's own generations
-  app.get("/api/ai/gallery", async (req, res) => {
+  app.get("/api/ai/gallery", requireAdmin, async (req, res) => {
     try {
       const sessionId = req.sessionID || req.headers['x-session-id'] as string;
       
@@ -8397,7 +8397,7 @@ Be thorough but concise. Focus on actionable insights.`
   });
 
   // Get a specific AI generation
-  app.get("/api/ai/generation/:id", async (req, res) => {
+  app.get("/api/ai/generation/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const generation = await storage.getAiGeneration(id);
@@ -8457,7 +8457,7 @@ Be thorough but concise. Focus on actionable insights.`
   const AI_RATE_WINDOW_MS = 60000; // 1 minute
 
   // Start a new AI generation
-  app.post("/api/ai/generate", async (req, res) => {
+  app.post("/api/ai/generate", requireAdmin, async (req, res) => {
     try {
       // Rate limiting check
       const rateLimitKey = req.session.userId ? `user:${req.session.userId}` : `session:${req.sessionID}`;
@@ -8608,7 +8608,7 @@ Be thorough but concise. Focus on actionable insights.`
 
   // Operator AI Chat endpoint with 3 memory modes
   // Mode: "stateless" (no storage), "session" (temp DB), "persistent" (user-linked)
-  app.post("/api/operator-ai/chat", async (req, res) => {
+  app.post("/api/operator-ai/chat", requireAdmin, async (req, res) => {
     try {
       const { 
         message, 
@@ -8784,7 +8784,7 @@ Be thorough but concise. Focus on actionable insights.`
   });
 
   // Clear session memory (Forget Session button)
-  app.delete("/api/operator-ai/session/:sessionId", async (req, res) => {
+  app.delete("/api/operator-ai/session/:sessionId", requireAdmin, async (req, res) => {
     try {
       const { sessionId } = req.params;
       await storage.clearSessionMemory(sessionId);
@@ -8796,7 +8796,7 @@ Be thorough but concise. Focus on actionable insights.`
   });
 
   // Clear persistent memory (Wipe Memory button - requires user auth)
-  app.delete("/api/operator-ai/persistent/:userId", async (req, res) => {
+  app.delete("/api/operator-ai/persistent/:userId", requireAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       await storage.clearUserPersistentMemory(userId);
@@ -8808,7 +8808,7 @@ Be thorough but concise. Focus on actionable insights.`
   });
 
   // Get session memory history
-  app.get("/api/operator-ai/session/:sessionId", async (req, res) => {
+  app.get("/api/operator-ai/session/:sessionId", requireAdmin, async (req, res) => {
     try {
       const { sessionId } = req.params;
       const memory = await storage.getSessionMemory(sessionId);
@@ -8836,7 +8836,7 @@ Be thorough but concise. Focus on actionable insights.`
   const { processDocument, storeDocuments, getDocuments, clearSessionDocuments, getDocumentContext } = await import("./documentProcessor");
 
   // Upload documents endpoint
-  app.post("/api/operator-ai/documents", documentUpload.array("files", 10), async (req, res) => {
+  app.post("/api/operator-ai/documents", requireAdmin, documentUpload.array("files", 10), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       const { sessionId, memoryMode = "stateless" } = req.body;
@@ -8886,7 +8886,7 @@ Be thorough but concise. Focus on actionable insights.`
   });
 
   // Get uploaded documents for session
-  app.get("/api/operator-ai/documents/:sessionId", async (req, res) => {
+  app.get("/api/operator-ai/documents/:sessionId", requireAdmin, async (req, res) => {
     try {
       const { sessionId } = req.params;
       const docs = getDocuments(sessionId);
@@ -8910,7 +8910,7 @@ Be thorough but concise. Focus on actionable insights.`
   });
 
   // Clear session documents
-  app.delete("/api/operator-ai/documents/:sessionId", async (req, res) => {
+  app.delete("/api/operator-ai/documents/:sessionId", requireAdmin, async (req, res) => {
     try {
       const { sessionId } = req.params;
       clearSessionDocuments(sessionId);
@@ -8927,7 +8927,7 @@ Be thorough but concise. Focus on actionable insights.`
   // ==========================================================================
 
   // Get model registry and available pipelines
-  app.get("/api/orchestration/models", async (req, res) => {
+  app.get("/api/orchestration/models", requireAdmin, async (req, res) => {
     try {
       const { MODEL_REGISTRY, PIPELINE_TEMPLATES, modelRouter, getAvailableModelsForTask } = await import("../shared/orchestration");
       
@@ -8963,7 +8963,7 @@ Be thorough but concise. Focus on actionable insights.`
   });
 
   // Route user intent to optimal model(s)
-  app.post("/api/orchestration/route", async (req, res) => {
+  app.post("/api/orchestration/route", requireAdmin, async (req, res) => {
     try {
       const { userIntent, inputs, preferSpeed, preferQuality, maxBudget } = req.body;
       
@@ -9032,7 +9032,7 @@ Respond with JSON:
   });
 
   // Execute an orchestration pipeline
-  app.post("/api/orchestration/execute", async (req, res) => {
+  app.post("/api/orchestration/execute", requireAdmin, async (req, res) => {
     try {
       const { pipelineId, steps, inputs, sessionId } = req.body;
       
@@ -9068,7 +9068,7 @@ Respond with JSON:
   });
 
   // Image Generation endpoint - real GPT-4o Image API
-  app.post("/api/ai/generate-image", async (req, res) => {
+  app.post("/api/ai/generate-image", requireAdmin, async (req, res) => {
     try {
       const { prompt, style, aspectRatio, quality } = req.body;
 
@@ -9127,7 +9127,7 @@ Respond with JSON:
   });
 
   // Text-to-Speech endpoint
-  app.post("/api/ai/text-to-speech", async (req, res) => {
+  app.post("/api/ai/text-to-speech", requireAdmin, async (req, res) => {
     try {
       const { text, voice, speed } = req.body;
 
@@ -9170,7 +9170,7 @@ Respond with JSON:
   });
 
   // Fusion endpoint - combine multiple media types
-  app.post("/api/orchestration/fusion", async (req, res) => {
+  app.post("/api/orchestration/fusion", requireAdmin, async (req, res) => {
     try {
       const { images, audio, text, duration, style, outputFormat } = req.body;
       
