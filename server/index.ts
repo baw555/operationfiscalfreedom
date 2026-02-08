@@ -13,7 +13,7 @@ app.set("trust proxy", 1);
 const httpServer = createServer(app);
 
 app.get("/healthz", (_req, res) => {
-  res.status(200).send("ok");
+  res.status(200).json({ status: "ok" });
 });
 
 app.use((req, _res, next) => {
