@@ -1,0 +1,28 @@
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/d5c25d3a-476b-410e-b156-08d091c2bbf9/vol_0kouecv2kxj26gzu
+Starting Container
+Certificate will not expire
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-02-08 21:42:34.504 UTC [7] LOG:  starting PostgreSQL 17.7 (Debian 17.7-3.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-02-08 21:42:34.504 UTC [7] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-02-08 21:42:34.504 UTC [7] LOG:  listening on IPv6 address "::", port 5432
+2026-02-08 21:42:34.508 UTC [7] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-02-08 21:42:34.520 UTC [30] LOG:  database system was interrupted; last known up at 2026-02-08 21:33:50 UTC
+2026-02-08 21:42:35.110 UTC [30] LOG:  database system was not properly shut down; automatic recovery in progress
+2026-02-08 21:42:35.121 UTC [30] LOG:  redo starts at 0/1CBB098
+2026-02-08 21:42:35.126 UTC [30] LOG:  invalid record length at 0/1CC4CE0: expected at least 24, got 0
+2026-02-08 21:42:35.126 UTC [30] LOG:  redo done at 0/1CC4CB8 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2026-02-08 21:42:35.135 UTC [28] LOG:  checkpoint starting: end-of-recovery immediate wait
+2026-02-08 21:42:35.158 UTC [28] LOG:  checkpoint complete: wrote 11 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.005 s, total=0.026 s; sync files=6, longest=0.004 s, average=0.001 s; distance=39 kB, estimate=39 kB; lsn=0/1CC4CE0, redo lsn=0/1CC4CE0
+2026-02-08 21:42:35.162 UTC [7] LOG:  database system is ready to accept connections
+2026-02-08 21:47:35.257 UTC [28] LOG:  checkpoint starting: time
+2026-02-08 21:47:36.198 UTC [28] LOG:  checkpoint complete: wrote 10 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.917 s, sync=0.007 s, total=0.942 s; sync files=4, longest=0.006 s, average=0.002 s; distance=53 kB, estimate=53 kB; lsn=0/1CD22C0, redo lsn=0/1CD2268
+2026-02-08 21:52:35.297 UTC [28] LOG:  checkpoint starting: time
+2026-02-08 21:52:35.918 UTC [28] LOG:  checkpoint complete: wrote 7 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.606 s, sync=0.005 s, total=0.621 s; sync files=4, longest=0.005 s, average=0.002 s; distance=22 kB, estimate=50 kB; lsn=0/1CD7E28, redo lsn=0/1CD7DD0
+2026-02-08 21:58:29.834 UTC [53] LOG:  could not receive data from client: Connection reset by peer
+2026-02-08 22:02:36.115 UTC [28] LOG:  checkpoint starting: time
+2026-02-08 22:02:36.749 UTC [28] LOG:  checkpoint complete: wrote 7 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.605 s, sync=0.006 s, total=0.635 s; sync files=4, longest=0.005 s, average=0.002 s; distance=23 kB, estimate=47 kB; lsn=0/1CDDDA8, redo lsn=0/1CDDD50
+2026-02-08 22:16:42.705 UTC [63] LOG:  could not receive data from client: Connection reset by peer
+2026-02-08 22:17:37.047 UTC [28] LOG:  checkpoint starting: time
+2026-02-08 22:17:37.673 UTC [28] LOG:  checkpoint complete: wrote 7 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.603 s, sync=0.006 s, total=0.626 s; sync files=4, longest=0.006 s, average=0.002 s; distance=23 kB, estimate=45 kB; lsn=0/1CE3B20, redo lsn=0/1CE3AC8
+2026-02-08 22:18:13.122 UTC [85] LOG:  could not receive data from client: Connection reset by peer
+2026-02-08 22:20:30.663 UTC [89] LOG:  could not receive data from client: Connection reset by peer
