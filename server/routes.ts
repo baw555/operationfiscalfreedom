@@ -3085,8 +3085,14 @@ export async function registerRoutes(
   // ==================== EMAIL COMMAND WEBHOOK ====================
 
   // Inbound email webhook for repair commands (from SendGrid/Mailgun/Postmark)
-  app.post("/api/repair/email", requireAdmin, async (req, res) => {
+  app.post("/api/repair/email", async (req, res) => {
     try {
+      const webhookSecret = process.env.REPAIR_WEBHOOK_SECRET;
+      const providedSecret = req.headers["x-webhook-secret"] || req.query.secret;
+      if (!webhookSecret || providedSecret !== webhookSecret) {
+        return res.status(401).json({ message: "Unauthorized webhook request" });
+      }
+
       const { parseCommand } = await import("./repair-commands");
       const { enqueueRepair, registerIncident, getIncidentState } = await import("./repair-queue");
       const { sendEmergencyLockConfirmation, sendEscalationConfirmation, sendStatusUpdate } = await import("./repair-mailer");
