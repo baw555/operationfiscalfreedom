@@ -1,9 +1,22 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let _supabaseAdmin: SupabaseClient | null = null;
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (!_supabaseAdmin) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error('[PHI_VAULT] SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for PHI operations');
+    }
+    _supabaseAdmin = createClient(url, key);
+  }
+  return _supabaseAdmin;
+}
+
+function isAvailable(): boolean {
+  return !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
 
 export interface PhiRecord {
   ssn?: string;
@@ -25,7 +38,7 @@ export interface AuditEntry {
 
 async function logAccess(entry: Omit<AuditEntry, 'timestamp'>): Promise<void> {
   try {
-    await supabaseAdmin.from('phi_audit_log').insert({
+    await getSupabaseAdmin().from('phi_audit_log').insert({
       user_id: entry.userId,
       action: entry.action,
       entity_type: entry.entityType,
@@ -44,7 +57,7 @@ export const phiVault = {
     phiData: PhiRecord,
     accessorInfo: { userId: string; ipAddress?: string }
   ): Promise<{ externalId: string }> {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await getSupabaseAdmin()
       .from('veteran_phi')
       .upsert(
         {
@@ -82,7 +95,7 @@ export const phiVault = {
     replitUserId: string,
     accessorInfo: { userId: string; ipAddress?: string }
   ): Promise<PhiRecord | null> {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await getSupabaseAdmin()
       .from('veteran_phi')
       .select('ssn_encrypted, medical_history, disability_rating, conditions, treatment_details, private_notes')
       .eq('external_id', replitUserId)
@@ -117,7 +130,7 @@ export const phiVault = {
     replitUserId: string,
     accessorInfo: { userId: string; ipAddress?: string }
   ): Promise<void> {
-    const { error } = await supabaseAdmin
+    const { error } = await getSupabaseAdmin()
       .from('veteran_phi')
       .delete()
       .eq('external_id', replitUserId);
@@ -136,5 +149,6 @@ export const phiVault = {
     });
   },
 
+  isAvailable,
   logAccess,
 };
