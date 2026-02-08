@@ -4,6 +4,7 @@ import session from "express-session";
 import pgSession from "connect-pg-simple";
 import pg from "pg";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { db } from "./db";
 import { LEGAL_DOCS, getLegalStatus, signLegalDocumentAtomic, healLegalStateOnLogin, createLegalOverride, legalSystemHealthCheck, generateEvidenceBundle, processExternalEsignCallback, runLegalTestBot, requireLegalClearance, hashDocument } from "./legal-system";
@@ -418,8 +419,24 @@ export async function registerRoutes(
     }
   });
 
+  const intakeLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many submissions from this IP, please try again in 15 minutes" },
+  });
+
+  const aiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many AI requests from this IP, please try again in 15 minutes" },
+  });
+
   // New affiliate self-signup - creates account and logs in immediately
-  app.post("/api/affiliate-signup", route(async (req, res) => {
+  app.post("/api/affiliate-signup", intakeLimiter, route(async (req, res) => {
     const result = await affiliateSignupAction(req.body, req.ctx);
 
     try {
@@ -435,7 +452,7 @@ export async function registerRoutes(
   }));
 
   // Ranger Tab Signup - Public route for requesting a contract portal
-  app.post("/api/ranger-tab-signup", async (req, res) => {
+  app.post("/api/ranger-tab-signup", intakeLimiter, async (req, res) => {
     try {
       const signupSchema = z.object({
         name: z.string().min(1, "Name is required"),
@@ -916,7 +933,7 @@ export async function registerRoutes(
   // ============================================
 
   // Submit disability referral (public endpoint)
-  app.post("/api/disability-referrals", async (req, res) => {
+  app.post("/api/disability-referrals", intakeLimiter, async (req, res) => {
     try {
       const data = insertDisabilityReferralSchema.parse(req.body);
       
@@ -1007,7 +1024,7 @@ export async function registerRoutes(
   });
 
   // Submit job placement intake (public endpoint)
-  app.post("/api/job-placement-intakes", async (req, res) => {
+  app.post("/api/job-placement-intakes", intakeLimiter, async (req, res) => {
     try {
       const data = insertJobPlacementIntakeSchema.parse(req.body);
       
@@ -1102,7 +1119,7 @@ export async function registerRoutes(
   });
 
   // Healthcare Intakes - public submission
-  app.post("/api/healthcare-intakes", async (req, res) => {
+  app.post("/api/healthcare-intakes", intakeLimiter, async (req, res) => {
     try {
       const intake = await storage.createHealthcareIntake(req.body);
       res.status(201).json(intake);
@@ -1197,7 +1214,7 @@ export async function registerRoutes(
   });
 
   // Submit help request
-  app.post("/api/help-requests", async (req, res) => {
+  app.post("/api/help-requests", intakeLimiter, async (req, res) => {
     try {
       const { referralCode, ...rest } = req.body;
       const data = insertHelpRequestSchema.parse(rest);
@@ -1251,7 +1268,7 @@ export async function registerRoutes(
   });
 
   // Submit startup grant application
-  app.post("/api/startup-grants", async (req, res) => {
+  app.post("/api/startup-grants", intakeLimiter, async (req, res) => {
     try {
       const data = insertStartupGrantSchema.parse(req.body);
       const grant = await storage.createStartupGrant(data);
@@ -1265,7 +1282,7 @@ export async function registerRoutes(
   });
 
   // Submit furniture assistance request
-  app.post("/api/furniture-assistance", async (req, res) => {
+  app.post("/api/furniture-assistance", intakeLimiter, async (req, res) => {
     try {
       const data = insertFurnitureAssistanceSchema.parse(req.body);
       const request = await storage.createFurnitureAssistance(data);
@@ -1279,7 +1296,7 @@ export async function registerRoutes(
   });
 
   // Submit investor submission
-  app.post("/api/investor-submissions", async (req, res) => {
+  app.post("/api/investor-submissions", intakeLimiter, async (req, res) => {
     try {
       const data = insertInvestorSubmissionSchema.parse(req.body);
       const submission = await storage.createInvestorSubmission(data);
@@ -1293,7 +1310,7 @@ export async function registerRoutes(
   });
 
   // Submit private doctor request
-  app.post("/api/private-doctor-requests", async (req, res) => {
+  app.post("/api/private-doctor-requests", intakeLimiter, async (req, res) => {
     try {
       const data = insertPrivateDoctorRequestSchema.parse(req.body);
       const request = await storage.createPrivateDoctorRequest(data);
@@ -1307,7 +1324,7 @@ export async function registerRoutes(
   });
 
   // Submit website application
-  app.post("/api/website-applications", async (req, res) => {
+  app.post("/api/website-applications", intakeLimiter, async (req, res) => {
     try {
       const data = insertWebsiteApplicationSchema.parse(req.body);
       const application = await storage.createWebsiteApplication(data);
@@ -1321,7 +1338,7 @@ export async function registerRoutes(
   });
 
   // Submit general contact
-  app.post("/api/general-contact", async (req, res) => {
+  app.post("/api/general-contact", intakeLimiter, async (req, res) => {
     try {
       const data = insertGeneralContactSchema.parse(req.body);
       const contact = await storage.createGeneralContact(data);
@@ -1335,7 +1352,7 @@ export async function registerRoutes(
   });
 
   // Submit VLT intake
-  app.post("/api/vlt-intake", async (req, res) => {
+  app.post("/api/vlt-intake", intakeLimiter, async (req, res) => {
     try {
       const data = insertVltIntakeSchema.parse(req.body);
       
@@ -3884,7 +3901,7 @@ export async function registerRoutes(
   });
 
   // Veteran Intake - multiple programs
-  app.post("/api/veteran-intake", async (req, res) => {
+  app.post("/api/veteran-intake", intakeLimiter, async (req, res) => {
     try {
       const data = insertVeteranIntakeSchema.parse(req.body);
       
@@ -3998,7 +4015,7 @@ export async function registerRoutes(
   });
 
   // Business Intake - B2B services
-  app.post("/api/business-intake", async (req, res) => {
+  app.post("/api/business-intake", intakeLimiter, async (req, res) => {
     try {
       const data = insertBusinessIntakeSchema.parse(req.body);
       
@@ -4919,7 +4936,7 @@ export async function registerRoutes(
   // === Business Leads API ===
   
   // Public: Submit a business lead
-  app.post("/api/business-leads", async (req, res) => {
+  app.post("/api/business-leads", intakeLimiter, async (req, res) => {
     try {
       const { referralCode, ...rest } = req.body;
       const data = insertBusinessLeadSchema.parse(rest);
@@ -5610,7 +5627,7 @@ export async function registerRoutes(
   // Insurance Intake Routes
   
   // Public: Submit insurance intake
-  app.post("/api/insurance-intakes", async (req, res) => {
+  app.post("/api/insurance-intakes", intakeLimiter, async (req, res) => {
     try {
       const validatedData = insertInsuranceIntakeSchema.parse(req.body);
       const intake = await storage.createInsuranceIntake(validatedData);
@@ -5646,7 +5663,7 @@ export async function registerRoutes(
   });
 
   // Medical Sales Intake Routes
-  app.post("/api/medical-sales-intakes", async (req, res) => {
+  app.post("/api/medical-sales-intakes", intakeLimiter, async (req, res) => {
     try {
       const validatedData = insertMedicalSalesIntakeSchema.parse(req.body);
       const intake = await storage.createMedicalSalesIntake(validatedData);
@@ -5690,7 +5707,7 @@ export async function registerRoutes(
   });
 
   // Business Development Intake Routes
-  app.post("/api/business-dev-intakes", async (req, res) => {
+  app.post("/api/business-dev-intakes", intakeLimiter, async (req, res) => {
     try {
       const validatedData = insertBusinessDevIntakeSchema.parse(req.body);
       const intake = await storage.createBusinessDevIntake(validatedData);
@@ -8455,7 +8472,7 @@ Be thorough but concise. Focus on actionable insights.`
   const AI_RATE_WINDOW_MS = 60000; // 1 minute
 
   // Start a new AI generation
-  app.post("/api/ai/generate", requireAuth, async (req, res) => {
+  app.post("/api/ai/generate", requireAuth, aiLimiter, async (req, res) => {
     try {
       // Rate limiting check
       const rateLimitKey = req.session.userId ? `user:${req.session.userId}` : `session:${req.sessionID}`;
@@ -8606,7 +8623,7 @@ Be thorough but concise. Focus on actionable insights.`
 
   // Operator AI Chat endpoint with 3 memory modes
   // Mode: "stateless" (no storage), "session" (temp DB), "persistent" (user-linked)
-  app.post("/api/operator-ai/chat", requireAuth, async (req, res) => {
+  app.post("/api/operator-ai/chat", requireAuth, aiLimiter, async (req, res) => {
     try {
       const { 
         message, 
@@ -8961,7 +8978,7 @@ Be thorough but concise. Focus on actionable insights.`
   });
 
   // Route user intent to optimal model(s)
-  app.post("/api/orchestration/route", requireAuth, async (req, res) => {
+  app.post("/api/orchestration/route", requireAuth, aiLimiter, async (req, res) => {
     try {
       const { userIntent, inputs, preferSpeed, preferQuality, maxBudget } = req.body;
       
@@ -9030,7 +9047,7 @@ Respond with JSON:
   });
 
   // Execute an orchestration pipeline
-  app.post("/api/orchestration/execute", requireAuth, async (req, res) => {
+  app.post("/api/orchestration/execute", requireAuth, aiLimiter, async (req, res) => {
     try {
       const { pipelineId, steps, inputs, sessionId } = req.body;
       
@@ -9066,7 +9083,7 @@ Respond with JSON:
   });
 
   // Image Generation endpoint - real GPT-4o Image API
-  app.post("/api/ai/generate-image", requireAuth, async (req, res) => {
+  app.post("/api/ai/generate-image", requireAuth, aiLimiter, async (req, res) => {
     try {
       const { prompt, style, aspectRatio, quality } = req.body;
 
@@ -9125,7 +9142,7 @@ Respond with JSON:
   });
 
   // Text-to-Speech endpoint
-  app.post("/api/ai/text-to-speech", requireAuth, async (req, res) => {
+  app.post("/api/ai/text-to-speech", requireAuth, aiLimiter, async (req, res) => {
     try {
       const { text, voice, speed } = req.body;
 
@@ -9168,7 +9185,7 @@ Respond with JSON:
   });
 
   // Fusion endpoint - combine multiple media types
-  app.post("/api/orchestration/fusion", requireAuth, async (req, res) => {
+  app.post("/api/orchestration/fusion", requireAuth, aiLimiter, async (req, res) => {
     try {
       const { images, audio, text, duration, style, outputFormat } = req.body;
       
