@@ -10,7 +10,7 @@ interface MontageSegment {
 
 // Base video sequence - will be built dynamically from actual durations
 const videoSequence = [
-  { src: "/videos/soldiers-marching-new.mp4", description: "march" },
+  { src: "/videos/soldiers-marching.mp4", description: "march" },
   { src: "/videos/montage-rain.mp4", description: "rain" },
   { src: "/videos/montage-gear.mp4", description: "gear up" },
   { src: "/videos/montage-clip.mp4", description: "action" },
