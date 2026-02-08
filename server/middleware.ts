@@ -14,6 +14,13 @@ export function resolveClientIp(req: Request): string {
   return getRequestContext(req).ip;
 }
 
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+  next();
+}
+
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const internalUser = (req as any).user;
   if (internalUser?.service && (internalUser.role === "master" || internalUser.role === "admin")) {
