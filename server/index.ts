@@ -9,8 +9,12 @@ import { startQueueRunner } from "./queueService";
 import { internalServiceAccess } from "./internalAccess";
 
 const app = express();
-app.set("trust proxy", 1); // trust first proxy hop only (Replit load balancer)
+app.set("trust proxy", 1);
 const httpServer = createServer(app);
+
+app.get("/healthz", (_req, res) => {
+  res.status(200).send("ok");
+});
 
 declare module "http" {
   interface IncomingMessage {
