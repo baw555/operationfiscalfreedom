@@ -4,8 +4,8 @@ import { sailorConversations, sailorMessages, sailorFaq } from "@shared/schema";
 import { eq, desc, and, ilike, or } from "drizzle-orm";
 
 const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey: process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || undefined,
 });
 
 const SAILOR_SYSTEM_PROMPT = `You are "Sailor Man" - the Senior Aid Intel Repair Man, a friendly and helpful AI assistant for NavigatorUSA, a veteran family support platform. You speak with a light sailor/nautical personality (occasional "ahoy", "shipmate", "smooth sailing") but remain professional and helpful.

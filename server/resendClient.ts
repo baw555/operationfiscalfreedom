@@ -1,12 +1,16 @@
 import { Resend } from 'resend';
 
-// WARNING: Never cache the Resend client.
-// Access tokens expire, so a new client must be created each time.
-// Always call getResendClient() to get a fresh client per request.
-
 export async function getResendClient(): Promise<{ client: Resend; fromEmail: string }> {
   console.log("[Resend] Getting fresh Resend client...");
-  
+
+  if (process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
+    console.log(`[Resend] Using direct API key with from_email: ${process.env.RESEND_FROM_EMAIL}`);
+    return {
+      client: new Resend(process.env.RESEND_API_KEY),
+      fromEmail: process.env.RESEND_FROM_EMAIL,
+    };
+  }
+
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY 
     ? 'repl ' + process.env.REPL_IDENTITY 
@@ -15,8 +19,8 @@ export async function getResendClient(): Promise<{ client: Resend; fromEmail: st
     : null;
 
   if (!xReplitToken) {
-    console.error("[Resend] ERROR: X_REPLIT_TOKEN not found");
-    throw new Error('Resend integration not available: authentication token not found');
+    console.error("[Resend] ERROR: No RESEND_API_KEY env var and no Replit connector token found");
+    throw new Error('Resend not available: set RESEND_API_KEY and RESEND_FROM_EMAIL, or run on Replit with the Resend integration');
   }
 
   if (!hostname) {
@@ -24,8 +28,7 @@ export async function getResendClient(): Promise<{ client: Resend; fromEmail: st
     throw new Error('Resend integration not available: connector hostname not configured');
   }
 
-  console.log("[Resend] Fetching connection settings from connector...");
-  // Hostname may already include https:// prefix
+  console.log("[Resend] Fetching connection settings from Replit connector...");
   const baseUrl = hostname.startsWith('http') ? hostname : 'https://' + hostname;
   const response = await fetch(
     baseUrl + '/api/v2/connection?include_secrets=true&connector_names=resend',
@@ -46,8 +49,8 @@ export async function getResendClient(): Promise<{ client: Resend; fromEmail: st
   const connectionSettings = data.items?.[0];
 
   if (!connectionSettings) {
-    console.error("[Resend] ERROR: No connection settings returned - Resend integration not configured");
-    throw new Error('Resend not connected - please configure the Resend integration in the Replit Secrets panel');
+    console.error("[Resend] ERROR: No connection settings returned");
+    throw new Error('Resend not connected - please configure the Resend integration');
   }
 
   if (!connectionSettings.settings?.api_key) {
@@ -59,13 +62,12 @@ export async function getResendClient(): Promise<{ client: Resend; fromEmail: st
   const fromEmail = connectionSettings.settings.from_email;
 
   if (!fromEmail) {
-    console.error("[Resend] ERROR: from_email not configured in Resend integration");
-    throw new Error('Resend from_email not configured - please set a verified sender email in the integration settings');
+    console.error("[Resend] ERROR: from_email not configured");
+    throw new Error('Resend from_email not configured');
   }
 
   console.log(`[Resend] Successfully configured with from_email: ${fromEmail}`);
 
-  // Create a fresh client for each request (never cache)
   return {
     client: new Resend(apiKey),
     fromEmail
