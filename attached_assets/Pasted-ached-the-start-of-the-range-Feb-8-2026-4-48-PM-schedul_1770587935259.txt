@@ -1,0 +1,89 @@
+ached the start of the range
+Feb 8, 2026, 4:48 PM
+scheduling build on Metal builder "builder-wkkdbn"
+scheduling build on Metal builder "builder-wkkdbn"
+[snapshot] received sha256:17b230800c9293bbd255d2b217f8c9f68dbc03bbc81edacd02927274da73cfac md5:9f14aab6a06546afc9eecb0cf357bcb4
+receiving snapshot
+317.7 MB
+17.7s
+analyzing snapshot
+317.7 MB
+606ms
+uploading snapshot
+317.7 MB
+8.1s
+fetched snapshot sha256:17b230800c9293bbd255d2b217f8c9f68dbc03bbc81edacd02927274da73cfac (333 MB bytes)
+fetching snapshot
+317.7 MB
+5.4s
+unpacking archive
+325.8 MB
+1.3s
+using build driver railpack-v0.17.1
+ INFO No package manager inferred, using npm default
+                   
+╭─────────────────╮
+│ Railpack 0.17.1 │
+╰─────────────────╯
+ 
+  ↳ Detected Node
+  ↳ Using npm package manager
+            
+  Packages  
+  ──────────
+  node  │  22.22.0  │  railpack default (22)
+            
+  Steps     
+  ──────────
+  ▸ install
+    $ npm ci
+         
+  ▸ build
+    $ npm run build
+            
+  Deploy    
+  ──────────
+    $ npm run start
+ 
+
+load build definition from ./railpack-plan.json
+0ms
+
+install mise packages: node cached
+0ms
+
+npm ci cached
+1ms
+
+copy package.json, package-lock.json cached
+0ms
+
+mkdir -p /app/node_modules/.cache cached
+0ms
+
+copy / /app
+1s
+
+npm run build
+9s
+⚡ Done in 249ms
+
+copy /root/.cache, /root/.local/state/mise, /etc/mise/config.toml, /mise/shims, /mise/installs, /usr/local/bin/mise cached
+0ms
+
+copy /app
+5s
+
+install apt packages: libatomic1 cached
+0ms
+
+copy /app/node_modules cached
+0ms
+
+exporting to docker image format
+6s
+containerimage.digest: sha256:0707047a1d3865bb0e6eb888ece09ac86f19f6370d993a0b17c13b392599d7f9
+containerimage.descriptor: eyJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLm1hbmlmZXN0LnYxK2pzb24iLCJkaWdlc3QiOiJzaGEyNTY6MDcwNzA0N2ExZDM4NjViYjBlNmViODg4ZWNlMDlhYzg2ZjE5ZjYzNzBkOTkzYTBiMTdjMTNiMzkyNTk5ZDdmOSIsInNpemUiOjIzOTAsImFubm90YXRpb25zIjp7Im9yZy5vcGVuY29udGFpbmVycy5pbWFnZS5jcmVhdGVkIjoiMjAyNi0wMi0wOFQyMTo1NToyNVoifSwicGxhdGZvcm0iOnsiYXJjaGl0ZWN0dXJlIjoiYW1kNjQiLCJvcyI6ImxpbnV4In19
+containerimage.config.digest: sha256:7f6a1994579d9ae68020f3409f2c0a13ce28a0b051ee436f053d938903948501
+image push
+737.3 MB / 737.3 MB
