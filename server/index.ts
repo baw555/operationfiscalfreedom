@@ -16,6 +16,13 @@ app.get("/healthz", (_req, res) => {
   res.status(200).send("ok");
 });
 
+app.use((req, _res, next) => {
+  if (req.path !== "/healthz") {
+    console.log(`[req] ${req.method} ${req.path} from ${req.ip}`);
+  }
+  next();
+});
+
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
