@@ -51,6 +51,11 @@ async function buildAll() {
           "@assets": path.resolve(dirname, "attached_assets"),
         },
       },
+      css: {
+        postcss: {
+          plugins: [],
+        },
+      },
       root: path.resolve(dirname, "client"),
       build: {
         outDir: path.resolve(dirname, "dist/public"),
