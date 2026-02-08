@@ -22,7 +22,7 @@ import { TOTP, generateSecret, verifySync, NobleCryptoPlugin, ScureBase32Plugin 
 import * as QRCode from "qrcode";
 import crypto from "crypto";
 import { getOrCreateConversation, getConversationHistory, saveMessage, generateAIResponse, getContextualTips, seedInitialFaqs, transcribeAudio } from "./sailor-chat";
-import { resolveClientIp, requireAdmin, requireAffiliate, requireAffiliateWithNda, requireClaimOwner, getVeteranUserId } from "./middleware";
+import { resolveClientIp, requireAuth, requireAdmin, requireAffiliate, requireAffiliateWithNda, requireClaimOwner, getVeteranUserId } from "./middleware";
 import { attachIdentity } from "./identity/requireIdentity";
 import { phiVault } from "./phiVault";
 
@@ -201,14 +201,6 @@ declare module "express-session" {
     mfaPending?: boolean; // Indicates user needs to complete MFA
     identityId?: string; // Canonical UUID from identity_map (optional, lazy-set)
   }
-}
-
-// Middleware to check if user is authenticated
-function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!req.session.userId) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-  next();
 }
 
 // HIPAA §164.312(d) - MFA-enforced authentication middleware
@@ -3006,7 +2998,7 @@ export async function registerRoutes(
   });
 
   // Approve repair (admin only)
-  app.post("/api/repair/approve", requireAdmin, async (req, res) => {
+  app.post("/api/repair/approve", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.query.id as string);
       if (!id) {
@@ -3031,7 +3023,7 @@ export async function registerRoutes(
   });
 
   // Reject repair (admin only)
-  app.post("/api/repair/reject", requireAdmin, async (req, res) => {
+  app.post("/api/repair/reject", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.query.id as string);
       if (!id) {
@@ -3536,7 +3528,7 @@ export async function registerRoutes(
   });
 
   // Approve or reject incident
-  app.post("/api/critical-flow/approve/:incidentId", requireAdmin, async (req, res) => {
+  app.post("/api/critical-flow/approve/:incidentId", requireAuth, async (req, res) => {
     try {
       const { incidentId } = req.params;
       const { action } = req.body;
@@ -3591,7 +3583,7 @@ export async function registerRoutes(
   });
 
   // Emergency mode activation
-  app.post("/api/critical-flow/emergency", requireAdmin, async (req, res) => {
+  app.post("/api/critical-flow/emergency", requireAuth, async (req, res) => {
     try {
       const { description, userId, documentId } = req.body;
       
@@ -5135,7 +5127,7 @@ export async function registerRoutes(
   
   // Run stress test simulation with 1000 sales across 30 affiliates
   // Public endpoint for demo purposes
-  app.post("/api/stress-test/run", requireAdmin, async (req, res) => {
+  app.post("/api/stress-test/run", requireAuth, async (req, res) => {
     try {
       // Get configurable parameters from request body
       const { 
@@ -5338,7 +5330,7 @@ export async function registerRoutes(
   
   // Get stress test results
   // Public endpoint for demo purposes
-  app.get("/api/stress-test/results", requireAdmin, async (req, res) => {
+  app.get("/api/stress-test/results", requireAuth, async (req, res) => {
     try {
       const affiliates = await storage.getAllVltAffiliates();
       const allSales = await storage.getAllSales();
@@ -5409,7 +5401,7 @@ export async function registerRoutes(
   
   // Clear stress test data
   // Public endpoint for demo purposes
-  app.delete("/api/stress-test/clear", requireAdmin, async (req, res) => {
+  app.delete("/api/stress-test/clear", requireAuth, async (req, res) => {
     try {
       // This would need a storage method to clear test data
       // For safety, we only clear affiliates with @stresstest.nav emails
@@ -8463,7 +8455,7 @@ Be thorough but concise. Focus on actionable insights.`
   const AI_RATE_WINDOW_MS = 60000; // 1 minute
 
   // Start a new AI generation
-  app.post("/api/ai/generate", requireAdmin, async (req, res) => {
+  app.post("/api/ai/generate", requireAuth, async (req, res) => {
     try {
       // Rate limiting check
       const rateLimitKey = req.session.userId ? `user:${req.session.userId}` : `session:${req.sessionID}`;
@@ -8614,7 +8606,7 @@ Be thorough but concise. Focus on actionable insights.`
 
   // Operator AI Chat endpoint with 3 memory modes
   // Mode: "stateless" (no storage), "session" (temp DB), "persistent" (user-linked)
-  app.post("/api/operator-ai/chat", requireAdmin, async (req, res) => {
+  app.post("/api/operator-ai/chat", requireAuth, async (req, res) => {
     try {
       const { 
         message, 
@@ -8969,7 +8961,7 @@ Be thorough but concise. Focus on actionable insights.`
   });
 
   // Route user intent to optimal model(s)
-  app.post("/api/orchestration/route", requireAdmin, async (req, res) => {
+  app.post("/api/orchestration/route", requireAuth, async (req, res) => {
     try {
       const { userIntent, inputs, preferSpeed, preferQuality, maxBudget } = req.body;
       
@@ -9038,7 +9030,7 @@ Respond with JSON:
   });
 
   // Execute an orchestration pipeline
-  app.post("/api/orchestration/execute", requireAdmin, async (req, res) => {
+  app.post("/api/orchestration/execute", requireAuth, async (req, res) => {
     try {
       const { pipelineId, steps, inputs, sessionId } = req.body;
       
@@ -9074,7 +9066,7 @@ Respond with JSON:
   });
 
   // Image Generation endpoint - real GPT-4o Image API
-  app.post("/api/ai/generate-image", requireAdmin, async (req, res) => {
+  app.post("/api/ai/generate-image", requireAuth, async (req, res) => {
     try {
       const { prompt, style, aspectRatio, quality } = req.body;
 
@@ -9133,7 +9125,7 @@ Respond with JSON:
   });
 
   // Text-to-Speech endpoint
-  app.post("/api/ai/text-to-speech", requireAdmin, async (req, res) => {
+  app.post("/api/ai/text-to-speech", requireAuth, async (req, res) => {
     try {
       const { text, voice, speed } = req.body;
 
@@ -9176,7 +9168,7 @@ Respond with JSON:
   });
 
   // Fusion endpoint - combine multiple media types
-  app.post("/api/orchestration/fusion", requireAdmin, async (req, res) => {
+  app.post("/api/orchestration/fusion", requireAuth, async (req, res) => {
     try {
       const { images, audio, text, duration, style, outputFormat } = req.body;
       
