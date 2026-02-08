@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Menu, X, Star, LogIn, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import logoImage from "@assets/Navigaor_USA_Logo_396x86_1767699671480.png";
 import logoStacked from "@assets/NavStar-Stacked_(2)_1769496493964.png";
@@ -114,7 +114,7 @@ const freeVetSoftwareSubItems = [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [disabilityOpen, setDisabilityOpen] = useState(false);
   const [finOpsOpen, setFinOpsOpen] = useState(false);
@@ -125,7 +125,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileBusinessOpen, setMobileBusinessOpen] = useState(false);
   const [freeVetSoftwareOpen, setFreeVetSoftwareOpen] = useState(false);
   const [mobileFreeVetSoftwareOpen, setMobileFreeVetSoftwareOpen] = useState(false);
-  
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
+
   return (
     <div className="min-h-[100svh] flex flex-col bg-background font-body overflow-x-hidden">
       {/* Top Bar - INTENSE */}
